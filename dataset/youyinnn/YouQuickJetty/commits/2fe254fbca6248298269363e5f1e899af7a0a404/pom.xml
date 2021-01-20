@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>cn.youyinnn</groupId>
+    <artifactId>YouQuickJetty</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>war</packaging>
+
+    <properties>
+        <jetty-version>9.4.6.v20170531</jetty-version>
+        <compileVersion>1.8</compileVersion>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <build>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.0</version>
+                <configuration>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <target>${compileVersion}</target>
+                    <source>${compileVersion}</source>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.0.1</version>
+
+                <executions>
+                    <execution>
+                        <id>copy-command</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <encoding>${project.build.sourceEncoding}</encoding>
+                            <outputDirectory>
+                                ${project.build.directory}
+                            </outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/resources/bin/</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <warName>${project.artifactId}</warName>
+                    <!--
+                                  这两个配置可以在打包的时候把Jar依赖和conf文件中的内容排除掉
+                                  配合着把配置文件打包在外面
+                              -->
+                    <packagingExcludes>**/*.class,**/conf/*.*,**/*.jar</packagingExcludes>
+
+                    <archive>
+                        <manifest>
+                            <!-- 这里写入口主函数的全类名 -->
+                            <mainClass>Start2</mainClass>
+                            <addClasspath>true</addClasspath>
+                            <!-- 在所有依赖引用之前加上lib前缀 这样就会引用war包外的lib目录-->
+                            <classpathPrefix>lib/</classpathPrefix>
+                        </manifest>
+                        <manifestEntries>
+                            <!-- 在Class-Path下添加外部classes文件路径 -->
+                            <Class-Path>classes/</Class-Path>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <configuration>
+                    <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                    <excludeTransitive>false</excludeTransitive>
+                    <!-- 表示是否不包含间接依赖的包 -->
+                    <stripVersion>false</stripVersion>
+                    <!-- 去除版本信息 -->
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <!-- 拷贝项目依赖包到lib/目录下 -->
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <excludeTransitive>false</excludeTransitive>
+                            <stripVersion>false</stripVersion>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <!--<build>-->
+
+        <!--<plugins>-->
+        <!--<plugin>-->
+        <!--<groupId>org.apache.maven.plugins</groupId>-->
+        <!--<artifactId>maven-surefire-plugin</artifactId>-->
+        <!--<configuration>-->
+        <!--<skip>true</skip>-->
+        <!--</configuration>-->
+        <!--</plugin>-->
+
+        <!--<plugin>-->
+        <!--<groupId>org.apache.maven.plugins</groupId>-->
+        <!--<artifactId>maven-jar-plugin</artifactId>-->
+        <!--<version>3.0.2</version>-->
+        <!--<configuration>-->
+        <!--<finalName>you-quick-jetty</finalName>-->
+        <!--<includes>-->
+        <!--&lt;!&ndash; 打jar包时cn.youyinnn包下的内容 &ndash;&gt;-->
+        <!--<include>**/cn/youyinnn/**/*.*</include>-->
+        <!--</includes>-->
+        <!--</configuration>-->
+        <!--</plugin>-->
+        <!--</plugins>-->
+
+    <!--</build>-->
+
+    <dependencies>
+
+        <!-- jetty-server部分 -->
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+            <version>${jetty-version}</version>
+        </dependency>
+
+        <!-- jetty-servlet部分 -->
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlet</artifactId>
+            <version>${jetty-version}</version>
+        </dependency>
+
+        <!-- jetty-webapp部分 -->
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-webapp</artifactId>
+            <version>${jetty-version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-plus</artifactId>
+            <version>${jetty-version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-annotations</artifactId>
+            <version>${jetty-version}</version>
+        </dependency>
+    </dependencies>
+</project>

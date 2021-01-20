@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>edu.stanford.prpl</groupId>
+    <artifactId>junction</artifactId>
+    <version>current</version>
+  </parent>
+
+  <groupId>org.jinzora</groupId>
+  <artifactId>JinzoraMobile-android</artifactId>
+  <version>3.1.3</version>
+  <packaging>apk</packaging>
+  <name>JinzoraMobile</name>
+  <description>Jinzora client for Android</description>
+
+  <properties>
+    <ANDROID_HOME>${env.ANDROID_SDK}</ANDROID_HOME>
+  </properties>
+
+ <build>
+    <sourceDirectory>src</sourceDirectory>
+    <plugins>
+      <plugin>
+        <groupId>com.jayway.maven.plugins.android.generation2</groupId>
+        <artifactId>maven-android-plugin</artifactId>
+        <version>2.8.4</version>
+        <configuration>
+          <sdk>
+            <path>${env.ANDROID_SDK}</path>
+            <platform>10</platform>
+          </sdk>
+          <deleteConflictingFiles>true</deleteConflictingFiles>
+        </configuration>
+        <extensions>true</extensions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+          <debug>true</debug>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>android</groupId>
+      <artifactId>android</artifactId>
+      <version>10</version>
+      <scope>provided</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.teleal.cling</groupId>
+      <artifactId>cling-core</artifactId>
+      <version>1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mobisocial</groupId>
+      <artifactId>SocialKit</artifactId>
+      <version>0.1.7-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.teleal.cling</groupId>
+      <artifactId>cling-support</artifactId>
+      <version>1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>android.support</groupId>
+      <artifactId>support</artifactId>
+      <version>v13</version>
+    </dependency>
+    <!-- 
+    <dependency>
+      <groupId>edu.stanford.prpl.junction</groupId>
+      <artifactId>AndroidJunction</artifactId>
+      <version>0.6.7-SNAPSHOT</version>
+    </dependency>
+     -->
+     
+  </dependencies>
+
+  <repositories>
+    <repository>
+      <id>mobisocial-public</id>
+      <name>PrPl Public Files</name>
+      <url>http://mobisocial.stanford.edu:8081/nexus/content/groups/public</url>
+    </repository>
+    
+    <repository>
+        <id>teleal.org-repo</id>
+        <url>http://teleal.org/m2</url>
+        <snapshots>
+            <enabled>false</enabled>
+        </snapshots>
+    </repository>
+  </repositories>
+  
+  <pluginRepositories>
+    <pluginRepository>
+        <id>teleal.org-repo</id>
+        <url>http://teleal.org/m2</url>
+        <snapshots>
+            <enabled>false</enabled>
+        </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <profiles>
+          <profile>
+              <id>sign</id>
+              <build>
+                  <plugins>
+                 
+                      <plugin>
+                          <groupId>org.apache.maven.plugins</groupId>
+                          <artifactId>maven-jarsigner-plugin</artifactId>
+                          <version>1.2</version>
+                          <executions>
+                              <execution>
+                                  <id>signing</id>
+                                  <goals>
+                                      <goal>sign</goal>
+                                  </goals>
+                                  <phase>package</phase>
+                                  <inherited>true</inherited>
+                                  <configuration>
+                                      <archiveDirectory></archiveDirectory>
+                                      <includes>
+                                          <include>target/*.apk</include>
+                                      </includes>
+                                      <keystore>/home/bjdodson/android.keystore</keystore>
+                                      <storepass>JAV.w00t</storepass>
+                                      <keypass>JAV.w00t</keypass>
+                                      <alias>com.bjdodson</alias>
+                                  </configuration>
+                              </execution>
+                              
+                          </executions>
+                      </plugin>
+                      
+                       <plugin>
+			  <groupId>org.codehaus.mojo</groupId>
+			  <artifactId>exec-maven-plugin</artifactId>
+			  <version>1.1.1</version>
+			  <executions>
+			      <execution>
+				  <id>zipalign</id>
+				  <goals>
+				      <goal>exec</goal>
+				  </goals>
+				  <phase>package</phase>
+				  <configuration>
+				      <executable>${ANDROID_HOME}/tools/zipalign</executable>
+				       <arguments>
+					  <argument>-f</argument>
+					  <argument>4</argument>
+					  <argument>target/${project.build.finalName}.apk</argument>
+					  <argument>target/${project.build.finalName}-zipped.apk</argument>
+				      </arguments>
+				  </configuration>
+			      </execution>
+			  </executions>
+                    </plugin>
+                      <plugin>
+                          <groupId>com.jayway.maven.plugins.android.generation2</groupId>
+                          <artifactId>maven-android-plugin</artifactId>
+                          <inherited>true</inherited>
+                          <configuration>
+                              <sign>
+                                  <debug>false</debug>
+                              </sign>
+                          </configuration>
+                      </plugin>
+                      
+                  </plugins>
+              </build>
+          </profile>
+    </profiles>
+
+</project>

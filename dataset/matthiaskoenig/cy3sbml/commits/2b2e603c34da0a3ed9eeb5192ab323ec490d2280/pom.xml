@@ -1,0 +1,736 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <properties>
+        <bundle.symbolicName>cy3sbml</bundle.symbolicName>
+        <bundle.namespace>org.cy3sbml</bundle.namespace>
+        <cytoscape.api.version>3.8.0</cytoscape.api.version>
+        <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
+        <maven-bundle-plugin.version>4.1.0</maven-bundle-plugin.version>
+        <osgi.api.version>6.0.0</osgi.api.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- javax.xml.namespace -->
+        <!--
+        <org.osgi.framework.system.packages.extra>
+            javafx.animation,javafx.application,javafx.collections,javafx.embed.swing,javafx.geometry,javafx.scene,javafx.scene.layout,javafx.scene.transform,javax.swing,javax.swing.border,javafx.fxml,netscape.javascript,org.osgi.framework
+        </org.osgi.framework.system.packages.extra>
+        -->
+        <org.osgi.framework.bootdelegation>netscape.javascript</org.osgi.framework.bootdelegation>
+
+
+        <!-- Exclude the long running model tests. For all tests run
+            mvn clean install -Dmodels.test.excludes=""
+        -->
+        <models.test.excludes>**/models/*Test.java, **/ols/OLSClientTest.java, **/biomodel/BioModelInterfaceTest.java
+        </models.test.excludes>
+    </properties>
+
+    <groupId>org.cysbml</groupId>
+    <artifactId>cy3sbml</artifactId>
+    <packaging>bundle</packaging>
+    <name>${bundle.symbolicName}</name>
+    <version>0.4.0</version>
+    <description>A Cytoscape app for SBML.</description>
+    <url>https://github.com/matthiaskoenig/cy3sbml</url>
+
+    <build>
+        <plugins>
+            <!-- bundle -->
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>${maven-bundle-plugin.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <!-- The BND instructions for the bundle -->
+                    <instructions>
+                        <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
+                        <Bundle-Version>${project.version}</Bundle-Version>
+                        <Export-Package>${bundle.namespace}.*;version="${project.version}"</Export-Package>
+                        <Private-Package>${bundle.namespace}.*</Private-Package>
+                        <Bundle-Activator>${bundle.namespace}.CyActivator</Bundle-Activator>
+                        <Embed-Dependency>*;scope=!provided|test;groupId=!org.cytoscape</Embed-Dependency>
+                        <Embed-Transitive>true</Embed-Transitive>
+                        <DynamicImport-Package>netscape.javascript</DynamicImport-Package>
+                        <!--
+                        <Import-Package>*;resolution:=optional</Import-Package>
+                        -->
+                        <Import-Package>javax.xml.namespace, *;resolution:=optional</Import-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+
+
+            <plugin>
+                <inherited>true</inherited>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                    <encoding>UTF-8</encoding>
+                    <optimize>true</optimize>
+                    <showWarnings>true</showWarnings>
+                    <showDeprecation>true</showDeprecation>
+                    <compilerArguments>
+                        <Xmaxwarns>10000</Xmaxwarns>
+                        <Xmaxerrs>10000</Xmaxerrs>
+                    </compilerArguments>
+                </configuration>
+            </plugin>
+
+            <!-- resources -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.0.2</version>
+            </plugin>
+            <!-- jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.2</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>2.5.2</version>
+            </plugin>
+
+            <!-- testing -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.20.1</version>
+                <configuration>
+                    <excludes>
+                        <exclude>${models.test.excludes}</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <!-- coverage -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.9</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+
+    <repositories>
+
+        <repository>
+            <id>in-project</id>
+            <name>In project repository</name>
+            <url>file:${project.basedir}/lib</url>
+        </repository>
+
+        <repository>
+            <id>cytoscape_snapshots</id>
+            <name>Cytoscape Snapshots</name>
+            <url>http://code.cytoscape.org/nexus/content/repositories/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>cytoscape_releases</id>
+            <name>Cytoscape Releases</name>
+            <url>http://code.cytoscape.org/nexus/content/repositories/releases/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+        <repository>
+            <id>maven-central</id>
+            <name>Maven central repository</name>
+            <url>https://repo.maven.apache.org/maven2/</url>
+        </repository>
+
+        <repository>
+            <id>sems-maven-repository-releases</id>
+            <name>SEMS Maven Repo</name>
+            <url>http://mvn.sems.uni-rostock.de/releases/</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>sems-maven-repository-snapshots</id>
+            <name>SEMS Maven Repo</name>
+            <url>http://mvn.sems.uni-rostock.de/snapshots/</url>
+            <layout>default</layout>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+
+        <repository>
+            <id>JSBML-SNAPSHOT</id>
+            <name>The JSBML Snapshot repository</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
+
+        <repository>
+            <id>ebi-repo</id>
+            <name>The EBI internal repository</name>
+            <url>https://www.ebi.ac.uk/~maven/m2repo</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+        <!-- OLS client -->
+        <repository>
+            <id>EBI SNAPSHOT</id>
+            <name>EBI Snapshot repository</name>
+            <url>https://www.ebi.ac.uk/Tools/maven/repos/content/repositories/pst-snapshots</url>
+        </repository>
+
+
+        <!-- EBI repo -->
+        <repository>
+            <id>nexus-ebi-release-repo</id>
+            <url>https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/</url>
+        </repository>
+
+        <repository>
+            <id>repository.jboss.org-public</id>
+            <name>JBoss.org Maven repository</name>
+            <url>https://repository.jboss.org/nexus/content/groups/public</url>
+        </repository>
+    </repositories>
+
+
+    <dependencies>
+
+        <!-- Cytoscape 3 dependency -->
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>model-api</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>application-api</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>swing-application-api</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>swing-util-api</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>viewmodel-api</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>io-api</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>work-api</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>work-swing-api</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>service-api</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>session-api</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>vizmap-api</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>core-task-api</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>layout-api</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>property-api</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>group-api</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- JavaFX Linux -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-base</artifactId>
+            <version>13</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>13</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>13</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>13</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
+            <version>13</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-swing</artifactId>
+            <version>13</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-web</artifactId>
+            <version>13</version>
+            <scope>provided</scope>
+        </dependency>
+
+
+        <!-- OSGi core dependency -->
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <version>${osgi.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- caching -->
+        <dependency>
+            <groupId>net.sf.ehcache</groupId>
+            <artifactId>ehcache</artifactId>
+            <version>2.10.6</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- misc -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.10</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
+        </dependency>
+
+        <!-- JavaFX -->
+        <dependency>
+            <groupId>org.controlsfx</groupId>
+            <artifactId>controlsfx</artifactId>
+            <!--<version>8.40.14</version>-->
+            <version>11.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codefx.libfx</groupId>
+            <artifactId>LibFX</artifactId>
+            <version>0.3.0</version>
+        </dependency>
+
+        <!--  UniRest -->
+        <dependency>
+            <groupId>com.mashape.unirest</groupId>
+            <artifactId>unirest-java</artifactId>
+            <version>1.4.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.12</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpmime</artifactId>
+            <version>4.5.12</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpasyncclient</artifactId>
+            <version>4.1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20190722</version>
+        </dependency>
+
+        <!-- MIRIAM Registry -->
+        <!-- manually registered from repo -->
+        <dependency>
+            <groupId>org.identifiers.registry</groupId>
+            <artifactId>registry-lib</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <!-- http://www.ebi.ac.uk/~maven/m2repo/uk/ac/ebi/miriam/miriam-lib/ -->
+        <dependency>
+            <groupId>uk.ac.ebi.miriam</groupId>
+            <artifactId>miriam-lib</artifactId>
+            <version>1.1.6</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- BioModels (2015-08-09) -->
+        <!-- http://www.ebi.ac.uk/~maven/m2repo/uk/ac/ebi/biomodels/biomodels-wslib/ -->
+        <dependency>
+            <groupId>uk.ac.ebi.biomodels</groupId>
+            <artifactId>biomodels-wslib</artifactId>
+            <version>1.21</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- OLS -->
+        <!-- https://www.ebi.ac.uk/Tools/maven/repos/content/repositories/pst-snapshots/uk/ac/ebi/pride/utilities/ols-client/ -->
+        <dependency>
+            <groupId>uk.ac.ebi.pride.utilities</groupId>
+            <artifactId>ols-client</artifactId>
+            <version>2.13-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>jcl-over-slf4j</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>uk.ac.ebi.pride.architectural</groupId>
+                    <artifactId>pride-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+
+
+        <!-- CombineArchive -->
+        <!--
+        <dependency>
+            <groupId>de.unirostock.sems</groupId>
+            <artifactId>CombineArchive</artifactId>
+            <version>1.3.0</version>
+        </dependency>
+        -->
+
+        <!-- UniProt -->
+        <!-- http://www.ebi.ac.uk/~maven/m2repo/uk/ac/ebi/uniprot/japi/ -->
+        <dependency>
+            <groupId>uk.ac.ebi.uniprot</groupId>
+            <artifactId>japi</artifactId>
+            <version>1.0.31</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-classic</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>ch.qos.logback</groupId>
+                    <artifactId>logback-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.xml.bind</groupId>
+                    <artifactId>jaxb-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.junit.platform</groupId>
+                    <artifactId>junit-platform-commons</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+
+        <!-- Needed for uniprot -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>cy3sbml-dep</groupId>
+            <artifactId>jsbml</artifactId>
+            <version>1.6-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>cy3sbml-dep</groupId>
+            <artifactId>jsbml-qual</artifactId>
+            <version>2.1-b1</version>
+        </dependency>
+        <dependency>
+            <groupId>cy3sbml-dep</groupId>
+            <artifactId>jsbml-layout</artifactId>
+            <version>1.0-b1</version>
+        </dependency>
+        <dependency>
+            <groupId>cy3sbml-dep</groupId>
+            <artifactId>jsbml-comp</artifactId>
+            <version>1.0-b1</version>
+        </dependency>
+        <dependency>
+            <groupId>cy3sbml-dep</groupId>
+            <artifactId>jsbml-fbc</artifactId>
+            <version>1.0-b1</version>
+        </dependency>
+        <dependency>
+            <groupId>cy3sbml-dep</groupId>
+            <artifactId>jsbml-groups</artifactId>
+            <version>0.4-b1</version>
+        </dependency>
+        <dependency>
+            <groupId>cy3sbml-dep</groupId>
+            <artifactId>jsbml-distrib</artifactId>
+            <version>0.5</version>
+        </dependency>
+        <dependency>
+            <groupId>cy3sbml-dep</groupId>
+            <artifactId>jsbml-tidy</artifactId>
+            <version>1.6-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>cy3sbml-dep</groupId>
+            <artifactId>jtidy</artifactId>
+            <version>r938</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.woodstox</groupId>
+            <artifactId>woodstox-core</artifactId>
+            <version>5.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.w3c.jigsaw</groupId>
+            <artifactId>jigsaw</artifactId>
+            <version>2.2.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.thoughtworks.xstream</groupId>
+            <artifactId>xstream</artifactId>
+            <version>1.4.9</version>
+            <type>jar</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.staxmate</groupId>
+            <artifactId>staxmate</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.biojava</groupId>
+            <artifactId>biojava-ontology</artifactId>
+            <version>4.0.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-slf4j-impl</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>2.0.2-beta</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>event-api</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>model-impl</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>model-impl</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>group-impl</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>group-impl</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>ding-presentation-impl</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>ding-presentation-impl</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>work-impl</artifactId>
+            <version>${cytoscape.api.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

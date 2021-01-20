@@ -1,0 +1,267 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<name>WiseML implementation using JiBX</name>
+	<groupId>ichatz</groupId>
+	<artifactId>wiseml</artifactId>
+
+	<packaging>jar</packaging>
+	<version>1.0-SNAPSHOT</version>
+
+	<url>http://www.wisebed.eu</url>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>jibx.sf.net</id>
+			<name>JiBX repository</name>
+			<url>http://jibx.sf.net/maven2</url>
+			<releases>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<repositories>
+		<repository>
+			<id>jibx.sf.net</id>
+			<name>JiBX repository</name>
+			<url>http://jibx.sf.net/maven2</url>
+			<releases>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jibx</groupId>
+			<artifactId>jibx-run</artifactId>
+			<version>1.2.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jibx</groupId>
+			<artifactId>jibx-extras</artifactId>
+			<version>1.2.3</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.jibx</groupId>
+					<artifactId>maven-jibx-plugin</artifactId>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.0.2</version>
+				<configuration>
+					<source>1.6</source>
+					<target>jsr14</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.jibx</groupId>
+				<artifactId>maven-jibx-plugin</artifactId>
+				<version>1.2.3</version>
+				<configuration>
+					<directory>src/main/jibx</directory>
+					<includes>
+						<includes>*-binding.xml</includes>
+					</includes>
+					<excludes>
+						<exclude>template-binding.xml</exclude>
+					</excludes>
+					<verbose>true</verbose>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>process-classes</phase>
+						<goals>
+							<goal>bind</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>2.5</version>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>2.6</version>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>
+							jar-with-dependencies
+                        </descriptorRef>
+					</descriptorRefs>
+					<archive>
+						<manifest>
+							<mainClass>
+								ch.stefanjaeger.JiBXDemoApplication
+                            </mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<!-- this is used for inheritance merges -->
+						<phase>package</phase>
+						<!-- append to the packaging phase. -->
+						<goals>
+							<goal>attached</goal>
+							<!-- goals == mojos -->
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.7</version>
+				<configuration>
+					<show>private</show>
+				</configuration>
+			</plugin>
+
+			<!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>exec-maven-plugin</artifactId> <version>1.1</version> <executions> 
+				<execution> <phase>test</phase> <goals> <goal>java</goal> </goals> <configuration> <mainClass>wiseml.test.SetupNewNode</mainClass> 
+				&lt;!&ndash;<workingDirectory>/tmp</workingDirectory>&ndash;&gt; <arguments> <argument>marshal</argument> </arguments> </configuration> 
+				</execution> </executions> </plugin> -->
+
+		</plugins>
+
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ssh-external</artifactId>
+				<version>1.0-beta-6</version>
+			</extension>
+		</extensions>
+
+	</build>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<linkXref>true</linkXref>
+					<sourceEncoding>utf-8</sourceEncoding>
+					<minimumTokens>100</minimumTokens>
+					<targetJdk>1.6</targetJdk>
+					<excludes>
+						<exclude>**/test/**</exclude>
+					</excludes>
+					<rulesets>
+						<ruleset>rulesets/basic.xml</ruleset>
+						<ruleset>rulesets/braces.xml</ruleset>
+						<ruleset>rulesets/clone.xml</ruleset>
+						<ruleset>rulesets/codesize.xml</ruleset>
+						<ruleset>rulesets/coupling.xml</ruleset>
+						<ruleset>rulesets/design.xml</ruleset>
+						<ruleset>rulesets/finalizers.xml</ruleset>
+						<ruleset>rulesets/imports.xml</ruleset>
+						<ruleset>rulesets/j2ee.xml</ruleset>
+						<ruleset>rulesets/javabeans.xml</ruleset>
+						<ruleset>rulesets/junit.xml</ruleset>
+						<ruleset>rulesets/logging-jakarta-commons.xml</ruleset>
+						<ruleset>rulesets/logging-java.xml</ruleset>
+						<ruleset>rulesets/migrating.xml</ruleset>
+						<ruleset>rulesets/naming.xml</ruleset>
+						<ruleset>rulesets/optimizations.xml</ruleset>
+						<ruleset>rulesets/strictexception.xml</ruleset>
+						<ruleset>rulesets/strings.xml</ruleset>
+						<ruleset>rulesets/sunsecure.xml</ruleset>
+						<ruleset>rulesets/unusedcode.xml</ruleset>
+					</rulesets>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<configlocation>sun_checks.xml</configlocation>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.7</version>
+				<configuration>
+					<show>public</show>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<findbugsXmlOutput>true</findbugsXmlOutput>
+					<!-- Optional directory to put findbugs xml report -->
+					<findbugsXmlOutputDirectory>target/site</findbugsXmlOutputDirectory>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</reporting>
+
+	<distributionManagement>
+		<repository>
+			<id>itm-maven-repository-releases</id>
+			<name>ITM UzL Maven releases repository</name>
+			<url>scpexe://itm01.itm.uni-luebeck.de/www/itm/projects/maven/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>itm-maven-repository-snapshots</id>
+			<name>ITM UzL Maven snapshots repository</name>
+			<url>scpexe://itm01.itm.uni-luebeck.de/www/itm/projects/maven/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+</project>

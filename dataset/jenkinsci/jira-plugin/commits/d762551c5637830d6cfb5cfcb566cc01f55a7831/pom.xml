@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.jenkins-ci.plugins</groupId>
+    <artifactId>plugin</artifactId>
+    <version>4.12</version>
+    <relativePath />
+  </parent>
+
+  <artifactId>jira</artifactId>
+  <version>${revision}${changelist}</version>
+  <packaging>hpi</packaging>
+  <name>Jenkins Jira plugin</name>
+  <description>Integrates Jenkins to Jira</description>
+  <url>https://github.com/jenkinsci/jira-plugin</url>
+
+  <properties>
+    <revision>3.1.4</revision>
+    <changelist>-SNAPSHOT</changelist>
+    <gitHubRepo>jenkinsci/jira-plugin</gitHubRepo>
+    <java.level>8</java.level>
+    <jira-rest-client.version>5.2.2</jira-rest-client.version>
+    <fugue.version>3.0.0</fugue.version>
+    <!-- jenkins -->
+    <jenkins.version>2.222.4</jenkins.version>
+    <!-- security spotbugs -->
+    <spotbugs.failOnError>false</spotbugs.failOnError>
+  </properties>
+
+  <scm>
+    <connection>scm:git:git://github.com/${gitHubRepo}.git</connection>
+    <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
+    <url>https://github.com/${gitHubRepo}</url>
+    <tag>${scmTag}</tag>
+  </scm>
+
+  <licenses>
+    <license>
+      <name>The MIT license</name>
+      <url>https://github.com/jenkinsci/jira-plugin/raw/master/LICENSE.md</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <issueManagement>
+    <system>JIRA</system>
+    <url>https://issues.jenkins-ci.org/browse/JENKINS</url>
+  </issueManagement>
+
+  <developers>
+    <developer>
+      <id>olamy</id>
+      <name>Olivier Lamy</name>
+    </developer>
+    <developer>
+      <id>warden</id>
+      <name>Radek Antoniuk</name>
+    </developer>
+  </developers>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <configuration>
+            <doclint>none</doclint>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.eluder.coveralls</groupId>
+        <artifactId>coveralls-maven-plugin</artifactId>
+        <version>4.3.0</version>
+        <!-- Explicit dependency on jaxb-api to avoid problems with
+          JDK9 and later, until a new release is made:
+          See also https://github.com/trautonen/coveralls-maven-plugin/issues/112
+        -->
+        <dependencies>
+          <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.1</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <!-- spotbugs is defined in parent plugin-pom but overriding some things here -->
+      <plugin>
+       <groupId>com.github.spotbugs</groupId>
+       <artifactId>spotbugs-maven-plugin</artifactId>
+       <!-- <configuration>
+         <failOnError>${spotbugs.failOnError}</failOnError>
+       </configuration> -->
+       <executions>
+         <execution>
+           <id>spotbugs</id>
+           <goals>
+             <goal>check</goal>
+           </goals>
+           <phase>verify</phase>
+           <configuration>
+             <failOnError>${spotbugs.failOnError}</failOnError>
+             <spotbugsXmlOutput>false</spotbugsXmlOutput>
+             <effort>${spotbugs.effort}</effort>
+             <threshold>${spotbugs.threshold}</threshold>
+             <onlyAnalyze>hudson.plugins.jira.*</onlyAnalyze>
+           </configuration>
+         </execution>
+       </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <reuseForks>false</reuseForks>
+          <!-- fix issues in test when trying to serialize some mocks and to run some tests within your IDE you will need this -->
+          <systemPropertyVariables>
+            <hudson.remoting.ClassFilter>hudson.plugins.jira.JiraFolderProperty,hudson.plugins.jira.JiraSite,hudson.plugins.jira.JiraJobAction,com.atlassian.jira.rest.client.api.domain.IssueType</hudson.remoting.ClassFilter>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.atlassian.jira</groupId>
+      <artifactId>jira-rest-java-client-api</artifactId>
+      <version>${jira-rest-client.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+    	<!-- version 18 is the first one containing com.google.common.base.MoreObjects.ToStringHelper which is used by com.atlassian.jira.rest.client.api.domain.Issue -->
+    	<!-- Remove this dependency and the exclusion above when jenkins provides a up-to-date guava version (currently 11.0.1) -->
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>18.0</version>
+    </dependency>
+    <dependency>
+      <!-- TODO maybe these dependency needs to be changed/removed -->
+      <groupId>io.atlassian.util.concurrent</groupId>
+      <artifactId>atlassian-util-concurrent</artifactId>
+      <version>4.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.atlassian.jira</groupId>
+      <artifactId>jira-rest-java-client-core</artifactId>
+      <version>${jira-rest-client.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-beans</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>javax.activation</groupId>
+          <artifactId>activation</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpmime</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.atlassian.httpclient</groupId>
+          <artifactId>atlassian-httpclient-plugin</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.atlassian.httpclient</groupId>
+          <artifactId>atlassian-httpclient-library</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.codehaus.jackson</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.atlassian.fugue</groupId>
+      <artifactId>fugue</artifactId>
+      <version>${fugue.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>apache-httpcomponents-client-4-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.11</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact</artifactId>
+      <version>3.6.3</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-lang3</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- Jenkins plugin dependencies -->
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>matrix-project</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>mailer</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>jackson2-api</artifactId>
+      <version>2.11.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>credentials</artifactId>
+    </dependency>
+
+    <dependency>
+      <artifactId>workflow-step-api</artifactId>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <optional>true</optional>
+      <exclusions>
+        <exclusion>
+          <groupId>org.jenkins-ci.plugins</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>branch-api</artifactId>
+      <version>2.6.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-job</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>p4</artifactId>
+      <version>1.11.1</version>
+      <optional>true</optional>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-compress</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.jenkins-ci.plugins</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- test dependencies -->
+    <dependency>
+      <groupId>io.jenkins.configuration-as-code</groupId>
+      <artifactId>test-harness</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>joda-time</groupId>
+          <artifactId>joda-time</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito2</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-scm-step</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-step-api</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-multibranch</artifactId>
+      <version>2.22</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.jenkins.tools.bom</groupId>
+        <artifactId>bom-2.222.x</artifactId>
+        <version>17</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <repositories>
+   <repository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>atlassian-public</id>
+      <url>https://packages.atlassian.com/mvn/maven-public/</url>
+      <releases>
+        <enabled>true</enabled>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>daily</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+       <id>repo.jenkins-ci.org</id>
+       <url>https://repo.jenkins-ci.org/public/</url>
+       <releases>
+         <enabled>true</enabled>
+       </releases>
+       <snapshots>
+         <enabled>false</enabled>
+       </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>atlassian-public</id>
+      <url>https://packages.atlassian.com/mvn/maven-public/</url>
+      <releases>
+        <enabled>true</enabled>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+      <snapshots>
+        <checksumPolicy>warn</checksumPolicy>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
+
+</project>

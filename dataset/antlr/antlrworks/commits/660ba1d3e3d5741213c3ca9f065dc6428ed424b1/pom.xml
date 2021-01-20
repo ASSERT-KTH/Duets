@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+  ANTLRWorks project definition for building via Maven.
+
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
+    <!--
+
+        Standard elements for a maven project defines the way that antlrworks
+        can be pulled in via projects that depend on it (though this isn't
+        likely to happen).
+
+        So, here we have antlrworks being the artifact id and org.antlr
+        being the group, to live alongside antlr, antlr-runtime and so on.
+
+      -->
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.antlr</groupId>
+    <artifactId>antlrworks</artifactId>
+    <packaging>jar</packaging>
+    <version>1.5.3-SNAPSHOT</version>
+
+    <!--
+        Name of the porject as seen by IDEs and so on.
+      -->
+    <name>ANTLRWorks</name>
+    <description>ANTLRWorks 1</description>
+
+    <!--
+        Home URL of the project.
+      -->
+    <url>http://antlr.org</url>
+
+  <!--
+    Make sure that the build is not platform dependent (I.E show that
+    all the files in the source tree are in UTF-8 format.
+    -->
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java5.home>${env.JAVA5_HOME}</java5.home>
+        <java6.home>${env.JAVA6_HOME}</java6.home>
+        <bootclasspath.java5>${java5.home}/lib/rt.jar</bootclasspath.java5>
+        <bootclasspath.java6>${java6.home}/lib/rt.jar</bootclasspath.java6>
+        <bootclasspath.compile>${bootclasspath.java5}</bootclasspath.compile>
+        <bootclasspath.testCompile>${bootclasspath.java6}</bootclasspath.testCompile>
+        <!-- This property is used for dependencies and for the MANIFEST.MF customization -->
+        <antlr3.version>3.5.1</antlr3.version>
+        <aw1.basedir>${basedir}</aw1.basedir>
+    </properties>
+
+    <!--
+        Where you can view the license that this project is issued under.
+      -->
+    <licenses>
+        <license>
+            <name>BSD licence</name>
+            <url>http://antlr.org/license.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <!--
+        Where to go to browse the source code for this project.
+      -->
+    <scm>
+        <url>https://github.com/antlr/antlrworks</url>
+        <connection>scm:git:git://github.com/antlr/antlrworks.git</connection>
+        <developerConnection>scm:git:git@github.com:antlr/antlrworks.git</developerConnection>
+      <tag>HEAD</tag>
+  </scm>
+
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/antlr/antlrworks/issues</url>
+    </issueManagement>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr-runtime</artifactId>
+            <version>${antlr3.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr</artifactId>
+            <version>${antlr3.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>stringtemplate</artifactId>
+            <version>3.2.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.jgoodies</groupId>
+            <artifactId>forms</artifactId>
+            <version>1.2.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.apple</groupId>
+            <artifactId>AppleJavaExtensions</artifactId>
+            <version>1.4</version>
+            <scope>provided</scope>
+        </dependency>
+
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>sonatype-oss-release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>default-compile</id>
+                                <configuration>
+                                    <source>1.5</source>
+                                    <target>1.5</target>
+                                    <compilerArgs>
+                                        <arg>-Xlint</arg>
+                                        <arg>-Xlint:-serial</arg>
+                                        <arg>-bootclasspath</arg>
+                                        <arg>${bootclasspath.compile}</arg>
+                                    </compilerArgs>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>default-testCompile</id>
+                                <configuration>
+                                    <source>1.6</source>
+                                    <target>1.6</target>
+                                    <compilerArgs>
+                                        <arg>-Xlint</arg>
+                                        <arg>-Xlint:-serial</arg>
+                                        <arg>-bootclasspath</arg>
+                                        <arg>${bootclasspath.testCompile}</arg>
+                                    </compilerArgs>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <version>2.1</version>
+                        <inherited>false</inherited>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>shade</goal>
+                                </goals>
+                                <configuration>
+                                    <minimizeJar>true</minimizeJar>
+                                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                                    <createSourcesJar>true</createSourcesJar>
+                                    <shadedClassifierName>complete</shadedClassifierName>
+                                    <filters>
+                                        <filter>
+                                            <artifact>org.antlr:antlr</artifact>
+                                            <includes>
+                                                <!-- Make sure the minimizer doesn't exclude any files required for the dynamically loaded targets. -->
+                                                <include>**</include>
+                                            </includes>
+                                        </filter>
+                                        <filter>
+                                            <artifact>org.antlr:antlr-runtime</artifact>
+                                            <includes>
+                                                <!-- Make sure the minimizer doesn't exclude any files required for the debug runtime. -->
+                                                <include>**</include>
+                                            </includes>
+                                        </filter>
+                                    </filters>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>osxappbundle-maven-plugin</artifactId>
+                        <version>1.0-alpha-1</version>
+                        <configuration>
+                            <mainClass>org.antlr.works.IDE</mainClass>
+                            <javaApplicationStub>${basedir}/osx/ANTLRWorks.app/Contents/MacOS/JavaApplicationStub</javaApplicationStub>
+                            <dictionaryFile>osx/Info.plist</dictionaryFile>
+                            <iconFile>${basedir}/osx/ANTLRWorks.app/Contents/Resources/app.icns</iconFile>
+                            <jvmVersion>1.5+</jvmVersion>
+                            <additionalResources>
+                                <fileSet>
+                                    <directory>${basedir}/osx</directory>
+                                    <includes>
+                                        <include>ANTLRWorks.app/Contents/Resources/doc.icns</include>
+                                    </includes>
+                                </fileSet>
+                            </additionalResources>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>bundle</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <build>
+
+        <defaultGoal>install</defaultGoal>
+
+        <!--
+            The root of the source code
+        -->
+        <sourceDirectory>src</sourceDirectory>
+
+        <!--
+
+          The resources that we need to include in the runtime jar.
+        -->
+        <resources>
+            <resource>
+                <directory>resources</directory>
+                <includes>
+                    <include>**/*.properties</include>
+                    <include>**/*.st</include>
+                    <include>**/*.png</include>
+                </includes>
+                <excludes>
+                    <exclude>**/\%*.*</exclude>
+                </excludes>
+            </resource>
+        </resources>
+
+        <!--
+            The root of the test source code for StringTemplate.
+        -->
+        <testSourceDirectory>test</testSourceDirectory>
+        <testResources>
+            <testResource>
+                <directory>test</directory>
+            </testResource>
+        </testResources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <mainClass>org.antlr.works.IDE</mainClass>
+                        </manifest>
+                        <manifestSections>
+                            <manifestSection>
+                                <name>org/antlr/</name>
+                                <manifestEntries>
+                                    <Implementation-Title>ANTLR 3</Implementation-Title>
+                                    <Implementation-Version>${antlr3.version}</Implementation-Version>
+                                    <Implementation-Vendor-Id>org.antlr</Implementation-Vendor-Id>
+                                </manifestEntries>
+                            </manifestSection>
+                            <manifestSection>
+                                <name>org/antlr/works/</name>
+                                <manifestEntries>
+                                    <Implementation-Title>${project.name}</Implementation-Title>
+                                    <Implementation-Version>${project.version}</Implementation-Version>
+                                    <Implementation-Vendor-Id>${project.groupId}</Implementation-Vendor-Id>
+                                </manifestEntries>
+                            </manifestSection>
+                        </manifestSections>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <sourceDirectory>src</sourceDirectory>
+                    <showWarnings>true</showWarnings>
+                    <showDeprecation>true</showDeprecation>
+                    <compilerArgs>
+                        <arg>-Xlint</arg>
+                        <arg>-Xlint:-serial</arg>
+                    </compilerArgs>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <configuration>
+                            <source>1.5</source>
+                            <target>1.5</target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>default-testCompile</id>
+                        <configuration>
+                            <source>1.6</source>
+                            <target>1.6</target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <!-- override the version inherited from the parent -->
+                <version>2.4.1</version>
+                <configuration>
+                    <arguments>-Psonatype-oss-release ${release.arguments}</arguments>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <!-- override the version inherited from the parent -->
+                <version>2.16</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>2.5.2</version>
+                <configuration>
+                    <findbugsXmlOutput>true</findbugsXmlOutput>
+                    <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
+                    <xmlOutput>true</xmlOutput>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <!-- override the version inherited from the parent -->
+                <version>2.2.1</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <!-- override the version inherited from the parent -->
+                <version>2.9.1</version>
+                <configuration>
+                    <quiet>true</quiet>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <!-- override the version inherited from the parent -->
+                <version>1.4</version>
+            </plugin>
+
+        </plugins>
+
+    </build>
+
+</project>

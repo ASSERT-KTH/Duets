@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>me.keybarricade</groupId>
+    <artifactId>KeyBarricade</artifactId>
+
+    <version>0.1</version>
+
+    <name>KeyBarricade</name>
+    <description>Key Barricade game.</description>
+    <inceptionYear>2016</inceptionYear>
+    <url>https://github.com/timvisee/KeyBarricade</url>
+
+    <scm>
+        <connection>scm:git:https://github.com/timvisee/KeyBarricade.git</connection>
+        <developerConnection>scm:git:git@github.com:timvisee/KeyBarricade.git</developerConnection>
+        <url>https://github.com/timvisee/KeyBarricade</url>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/timvisee/KeyBarricade/issues</url>
+    </issueManagement>
+
+    <licenses>
+        <license>
+            <!--<title>The GNU General Public Licence version 3 (GPLv3)</title>-->
+            <url>http://www.gnu.org/licenses/gpl-3.0.html</url>
+        </license>
+    </licenses>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Compiler Version (JDK) -->
+        <javaVersion>1.7</javaVersion>
+
+        <!-- LWJGL version -->
+        <lwjgl.version>3.0.0b</lwjgl.version>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>windows</id>
+            <activation>
+                <os>
+                    <family>Windows</family>
+                </os>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.lwjgl</groupId>
+                    <artifactId>lwjgl-platform</artifactId>
+                    <version>${lwjgl.version}</version>
+                    <classifier>natives-windows</classifier>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>linux</id>
+            <activation>
+                <os>
+                    <family>Linux</family>
+                </os>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.lwjgl</groupId>
+                    <artifactId>lwjgl-platform</artifactId>
+                    <version>${lwjgl.version}</version>
+                    <classifier>natives-linux</classifier>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <!-- This platform is not officially supported! And thus it's likely to experience undocumented behaviour. -->
+            <id>mac</id>
+            <activation>
+                <os>
+                    <family>Mac</family>
+                </os>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.lwjgl</groupId>
+                    <artifactId>lwjgl-platform</artifactId>
+                    <version>${lwjgl.version}</version>
+                    <classifier>natives-osx</classifier>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
+    <build>
+        <finalName>${project.name}-${project.version}</finalName>
+        <plugins>
+            <!-- Copy native LWJGL libraries to target directory -->
+            <plugin>
+                <groupId>com.googlecode.mavennatives</groupId>
+                <artifactId>maven-nativedependencies-plugin</artifactId>
+                <version>0.0.7</version>
+                <executions>
+                    <execution>
+                        <id>unpacknatives</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Compiler -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.3</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>${javaVersion}</target>
+                </configuration>
+            </plugin>
+
+            <!-- Create executable file with proper main class. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.4.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>me.keybarricade.KeyBarricade</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Execute the application if configured. -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>java</executable>
+                    <arguments>
+                        <argument>-XstartOnFirstThread</argument>
+                        <argument>-classpath</argument>
+                        <classpath/>
+                        <argument>me.keybarricade.KeyBarricade</argument>
+                    </arguments>
+                    <mainClass>me.keybarricade.KeyBarricade</mainClass>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <includes>
+                        <include>**</include>
+                    </includes>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <repositories>
+
+        <!-- JOML OpenGL mathematics library -->
+        <repository>
+            <id>oss.sonatype.org</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </repository>
+
+    </repositories>
+
+    <dependencies>
+
+        <!-- LWJGL libraries -->
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl</artifactId>
+            <version>${lwjgl.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-platform</artifactId>
+            <version>${lwjgl.version}</version>
+            <classifier>natives-windows</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-platform</artifactId>
+            <version>${lwjgl.version}</version>
+            <classifier>natives-osx</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl-platform</artifactId>
+            <version>${lwjgl.version}</version>
+            <classifier>natives-linux</classifier>
+        </dependency>
+
+        <!-- YAML library -->
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.17</version>
+        </dependency>
+
+        <!-- JOML OpenGL mathematics library -->
+        <dependency>
+            <groupId>org.joml</groupId>
+            <artifactId>joml</artifactId>
+            <version>1.7.2-SNAPSHOT</version>
+        </dependency>
+
+        <!-- JBullet physics library -->
+        <dependency>
+            <groupId>cz.advel.jbullet</groupId>
+            <artifactId>jbullet</artifactId>
+            <version>20101010-1</version>
+        </dependency>
+
+    </dependencies>
+</project>

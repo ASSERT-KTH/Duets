@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.jj</groupId>
+    <artifactId>hdp-test-examples</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <encoding>UTF-8</encoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+
+        <junit.version>4.12</junit.version>
+        <mockito-all.version>1.10.19</mockito-all.version>
+        <!-- TODO: The following will need to be different foreach profile. -->
+        <scalatest.version>2.2.1</scalatest.version>
+        <scalatest-maven-plugin.version>1.0</scalatest-maven-plugin.version>
+        <spark-testing-base.version>1.6.1_0.3.3</spark-testing-base.version>
+    </properties>
+
+    <dependencies>
+        <!-- Spark -->
+        <!--<dependency>-->
+            <!--<groupId>org.apache.spark</groupId>-->
+            <!--<artifactId>spark-core_2.11</artifactId>-->
+            <!--<version>${spark.version}</version>-->
+            <!--<scope>compile</scope>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.apache.spark</groupId>-->
+            <!--<artifactId>spark-sql_2.11</artifactId>-->
+            <!--<version>${spark.version}</version>-->
+            <!--<scope>compile</scope>-->
+        <!--</dependency>-->
+
+        <!-- Pig -->
+        <dependency>
+            <groupId>org.apache.pig</groupId>
+            <artifactId>pig</artifactId>
+            <version>${pig.version}</version>
+            <classifier>h2</classifier>
+            <!-- NOTE: It is very important to have this classifier. Unit tests will
+            break if this doesn't exist. This gets the pig jars for Hadoop v2. -->
+        </dependency>
+
+        <!-- HBase -->
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-client</artifactId>
+            <version>${hbase.version}</version>
+        </dependency>
+
+        <!-- Hive -->
+        <!--<dependency>-->
+            <!--<groupId>org.apache.hive</groupId>-->
+            <!--<artifactId>hive-jdbc</artifactId>-->
+            <!--<version>${hive.version}</version>-->
+        <!--</dependency>-->
+
+        <!-- Hadoop -->
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${hadoop.base}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+            <version>${hadoop.base}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-auth</artifactId>
+            <version>${hadoop.base}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
+            <version>${hadoop.base}</version>
+        </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>${mockito-all.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_2.11</artifactId>
+            <version>${scalatest.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>com.holdenkarau</groupId>-->
+            <!--<artifactId>spark-testing-base_2.11</artifactId>-->
+            <!--<version>${spark-testing-base.version}</version>-->
+            <!--<scope>test</scope>-->
+            <!--&lt;!&ndash; TODO: update scala versions for each profile  &ndash;&gt;-->
+        <!--</dependency>-->
+        <dependency>
+            <groupId>org.apache.pig</groupId>
+            <artifactId>pigunit</artifactId>
+            <version>${pig.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+                <updatePolicy>never</updatePolicy>
+                <checksumPolicy>fail</checksumPolicy>
+            </snapshots>
+            <id>HDPReleases</id>
+            <name>HDP Releases</name>
+            <url>http://repo.hortonworks.com/content/repositories/releases/</url>
+            <layout>default</layout>
+        </repository>
+    </repositories>
+
+    <profiles>
+        <!-- Versions are based on the following:
+            https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.2.4/bk_HDP_RelNotes/content/ch_relnotes_v224.html
+            https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.2.6/bk_HDP_RelNotes/content/ch_relnotes_v226.html
+            https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.2.9/bk_HDP_RelNotes/content/ch_relnotes_v229.html
+            https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.0/bk_HDP_RelNotes/content/ch_relnotes_v230.html
+            https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.2/bk_HDP_RelNotes/content/ch_relnotes_v232.html
+            https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.4/bk_HDP_RelNotes/content/ch_relnotes_v234.html
+            https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.0/bk_HDP_RelNotes/content/ch_relnotes_v240.html
+            https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.4.2/bk_HDP_RelNotes/content/ch_relnotes_v242.html
+        -->
+        <profile>
+            <id>hdp-2.2.4</id>
+            <properties>
+                <hadoop.base>2.6.0</hadoop.base>
+                <hbase.version>0.98.4</hbase.version>
+                <hive.version>0.14.0</hive.version>
+                <pig.version>0.14.0</pig.version>
+                <spark.version>1.2.1</spark.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>hdp-2.2.6</id>
+            <properties>
+                <hadoop.base>2.6.0</hadoop.base>
+                <hbase.version>0.98.4</hbase.version>
+                <hive.version>0.14.0</hive.version>
+                <pig.version>0.14.0</pig.version>
+                <spark.version>1.2.1</spark.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>hdp-2.2.9</id>
+            <properties>
+                <hadoop.base>2.6.0</hadoop.base>
+                <hbase.version>0.98.4</hbase.version>
+                <hive.version>0.14.0</hive.version>
+                <pig.version>0.14.0</pig.version>
+                <spark.version>1.3.1</spark.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>hdp-2.3.0</id>
+            <properties>
+                <hadoop.base>2.7.1</hadoop.base>
+                <hbase.version>1.1.1</hbase.version>
+                <hive.version>1.2.1</hive.version>
+                <pig.version>0.15.0</pig.version>
+                <spark.version>1.3.1</spark.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>hdp-2.3.2</id>
+            <properties>
+                <hadoop.base>2.7.1</hadoop.base>
+                <hbase.version>1.1.2</hbase.version>
+                <hive.version>1.2.1</hive.version>
+                <pig.version>0.15.0</pig.version>
+                <spark.version>1.4.1</spark.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>hdp-2.3.4</id>
+            <properties>
+                <hadoop.base>2.7.1</hadoop.base>
+                <hbase.version>1.1.2</hbase.version>
+                <hive.version>1.2.1</hive.version>
+                <pig.version>0.15.0</pig.version>
+                <spark.version>1.5.2</spark.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>hdp-2.3-with-1.6</id>
+            <properties>
+                <hadoop.base>2.7.1</hadoop.base>
+                <hbase.version>1.1.2</hbase.version>
+                <hive.version>1.2.1</hive.version>
+                <pig.version>0.15.0</pig.version>
+                <spark.version>1.6.0</spark.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>hdp-2.4.0</id>
+            <properties>
+                <scala.version>2.11.7</scala.version>
+
+                <hadoop.base>2.7.1</hadoop.base>
+                <hbase.version>1.1.2</hbase.version>
+                <hive.version>1.2.1</hive.version>
+                <pig.version>0.15.0</pig.version>
+                <spark.version>1.6.0</spark.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>hdp-2.4.2</id>
+            <properties>
+                <scala.version>2.11.7</scala.version>
+
+                <hadoop.base>2.7.1</hadoop.base>
+                <hbase.version>1.1.2</hbase.version>
+                <hive.version>1.2.1</hive.version>
+                <pig.version>0.15.0</pig.version>
+                <spark.version>1.6.1</spark.version>
+            </properties>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.scala-tools</groupId>
+                <artifactId>maven-scala-plugin</artifactId>
+                <version>2.15.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <scalaVersion>${scala.version}</scalaVersion>
+                    <args>
+                        <arg>-target:jvm-1.8</arg>
+                    </args>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.scalatest</groupId>
+                <artifactId>scalatest-maven-plugin</artifactId>
+                <version>${scalatest-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>test</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.scala-tools</groupId>
+                <artifactId>maven-scala-plugin</artifactId>
+                <version>2.15.2</version>
+                <configuration>
+                    <scalaVersion>${scala.version}</scalaVersion>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
+</project>

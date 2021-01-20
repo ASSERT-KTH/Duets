@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
+
+  <groupId>com.squareup.haha</groupId>
+  <artifactId>haha</artifactId>
+  <version>2.2-SNAPSHOT</version>
+
+  <name>Headless Android Heap Analyzer</name>
+  <description>Java library to automate the analysis of Android heap dumps.</description>
+  <url>https://github.com/square/haha</url>
+  <inceptionYear>2015</inceptionYear>
+
+  <scm>
+    <url>https://github.com/square/haha</url>
+    <connection>scm:git:https://github.com/square/haha.git</connection>
+    <developerConnection>scm:git:git@github.com:square/haha.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
+  <organization>
+    <name>Square, Inc.</name>
+    <url>http://squareup.com</url>
+  </organization>
+
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>http://github.com/square/haha/issues</url>
+  </issueManagement>
+
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Pierre-Yves Ricau</name>
+      <email>py@squareup.com</email>
+      <organization>Square, Inc.</organization>
+      <organizationUrl>https://squareup.com</organizationUrl>
+    </developer>
+  </developers>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <java.version>1.8</java.version>
+  </properties>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <dependencies>
+	<dependency>
+	  <groupId>org.jetbrains.trove4j</groupId>
+	  <artifactId>trove4j</artifactId>
+	  <version>20160824</version>
+	</dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>17.0</version>
+    </dependency>
+  </dependencies>
+
+  <repositories>
+    <repository>
+      <id>bintray</id>
+      <name>bintray</name>
+      <url>http://jcenter.bintray.com</url>
+    </repository>
+  </repositories>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.4</version>
+        <executions>
+          <execution>
+            <id>replace-source-file</id>
+            <phase>process-sources</phase>
+            <configuration>
+              <tasks>
+                <move file="src/main/java/com/android/tools/perflib/heap/HprofParser.java" tofile="src/main/java/com/android/tools/perflib/heap/HprofParser.java.override" />
+                <copy file="src/patch/java/com/android/tools/perflib/heap/HprofParser.java" todir="src/main/java/com/android/tools/perflib/heap/" />
+                <move file="./src/main/java/com/android/tools/perflib/heap/memoryanalyzer" tofile="./removed" />
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>restore-source-file</id>
+            <phase>compile</phase>
+            <configuration>
+              <tasks>
+                <move file="src/main/java/com/android/tools/perflib/heap/HprofParser.java.override" tofile="src/main/java/com/android/tools/perflib/heap/HprofParser.java" />
+                <move file="./removed" tofile="./src/main/java/com/android/tools/perflib/heap/memoryanalyzer" />
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.0.1</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            </execution>
+          </executions>
+          <configuration>
+			<doclint>none</doclint>
+          </configuration>
+        </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.5.1</version>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <useReleaseProfile>false</useReleaseProfile>
+          <releaseProfiles>release</releaseProfiles>
+          <localCheckout>true</localCheckout>
+          <goals>deploy</goals>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.6.3</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>true</autoReleaseAfterClose>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.1.2</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.4.3</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <minimizeJar>true</minimizeJar>
+          <createSourcesJar>true</createSourcesJar>
+          <shadeSourcesContent>true</shadeSourcesContent>
+          <artifactSet>
+            <excludes>
+              <exclude>org.jetbrains.trove4j:trove4j</exclude>
+            </excludes>
+          </artifactSet>
+          <relocations>
+            <relocation>
+              <pattern>com.google.common</pattern>
+              <shadedPattern>com.squareup.haha.guava</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>com.android.annotations</pattern>
+              <shadedPattern>com.squareup.haha.annotations</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>com.android.tools.perflib.heap</pattern>
+              <shadedPattern>com.squareup.haha.perflib</shadedPattern>
+            </relocation>
+          </relocations>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.github.wvengen</groupId>
+        <artifactId>proguard-maven-plugin</artifactId>
+        <version>2.0.13</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>proguard</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>net.sf.proguard</groupId>
+            <artifactId>proguard-base</artifactId>
+            <version>5.2.1</version>
+            <scope>runtime</scope>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <proguardVersion>5.2.1</proguardVersion>
+          <obfuscate>false</obfuscate>
+          <options>
+            <option>-allowaccessmodification</option>
+            <option>-keep,includedescriptorclasses class com.squareup.haha.perflib.** { *; }</option>
+            <option>-dontwarn javax.annotation.**</option>
+            <option>-optimizations !code/allocation/variable</option>
+            <!-- Proguard removes Iterables but includes its inner class, Iterables$2. It then
+                 removes the EnclosingMethod attribute from Iterables$2, presumably because it
+                 references a non-existent class. This causes warnings for HAHA's dependents like:
+
+                     "Ignoring InnerClasses attribute for an anonymous inner class [...] that
+                     doesn't come with an associated EnclosingMethod attribute."
+
+                 Keeping Iterables prevents Proguard from removing the EnclosingMethod attribute.
+                 See https://sourceforge.net/p/proguard/discussion/182456/thread/6920e89e.
+                 -->
+            <option>-keepnames class com.squareup.haha.guava.collect.Iterables</option>
+          </options>
+          <libs>
+            <lib>${java.home}/lib/rt.jar</lib>
+          </libs>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <inherited>false</inherited>
+            <executions>
+              <execution>
+                <id>git submodule update</id>
+                <phase>initialize</phase>
+                <configuration>
+                  <executable>git</executable>
+                  <arguments>
+                    <argument>submodule</argument>
+                    <argument>update</argument>
+                    <argument>--init</argument>
+                    <argument>--recursive</argument>
+                  </arguments>
+                </configuration>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.0.1</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+</project>

@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) 2015 Red Hat, Inc.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.fabric8</groupId>
+  <artifactId>elasticsearch-cloud-kubernetes</artifactId>
+  <version>6.2.4-SNAPSHOT</version>
+  <name>Elasticsearch Kubernetes cloud plugin</name>
+  <description>The Kubernetes Cloud plugin allows to use Kubernetes for the unicast discovery mechanism.</description>
+  <url>https://github.com/fabric8io/elasticsearch-cloud-kubernetes/</url>
+  <inceptionYear>2015</inceptionYear>
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>9</version>
+  </parent>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <scm>
+    <connection>scm:git:git@github.com:fabric8io/elasticsearch-cloud-kubernetes.git</connection>
+    <developerConnection>scm:git:git@github.com:fabric8io/elasticsearch-cloud-kubernetes.git</developerConnection>
+    <url>http://github.com/fabric8io/elasticsearch-cloud-kubernetes</url>
+    <tag>HEAD</tag>
+  </scm>
+
+	<issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/fabric8io/elasticsearch-cloud-kubernetes/issues/</url>
+  </issueManagement>
+
+  <properties>
+    <elasticsearch.plugin.name>discovery-kubernetes</elasticsearch.plugin.name>
+    <elasticsearch.version>6.2.3</elasticsearch.version>
+    <kubernetes-client.version>1.4.35</kubernetes-client.version>
+    <tests.shuffle>true</tests.shuffle>
+    <tests.output>onerror</tests.output>
+    <tests.client.ratio />
+    <es.logger.level>INFO</es.logger.level>
+    <es.config>${project.build.testOutputDirectory}/elasticsearch.yml</es.config>
+  </properties>
+
+  <dependencies>
+    <!-- Elasticsearch -->
+    <dependency>
+      <groupId>org.elasticsearch</groupId>
+      <artifactId>elasticsearch</artifactId>
+      <version>${elasticsearch.version}</version>
+    </dependency>
+
+    <!-- Fabric8 Kubernetes APIs -->
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kubernetes-client</artifactId>
+      <version>${kubernetes-client.version}</version>
+    </dependency>
+
+    <!-- Logging -->
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>2.10.0</version>
+    </dependency>
+
+    <!-- Tests -->
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.10.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>4.5.1</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <extensions>
+      <extension>
+        <groupId>org.kuali.maven.wagons</groupId>
+        <artifactId>maven-s3-wagon</artifactId>
+        <version>1.1.19</version>
+      </extension>
+    </extensions>
+    <resources>
+      <resource>
+        <directory>src/main/plugin-metadata</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>plugin-test.properties</include>
+          <include>elasticsearch.yml</include>
+        </includes>
+      </testResource>
+      <testResource>
+        <directory>src/test/resources</directory>
+        <filtering>false</filtering>
+        <includes>
+          <include>log4j.xml</include>
+        </includes>
+      </testResource>
+    </testResources>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.15</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.2.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.6</version>
+        <configuration>
+          <appendAssemblyId>false</appendAssemblyId>
+          <outputDirectory>${project.build.directory}/releases/</outputDirectory>
+          <descriptors>
+            <descriptor>${basedir}/src/main/assemblies/plugin.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <version>0.17.1</version>
+        <configuration>
+          <images>
+            <image>
+              <name>docker.io/fabric8/elasticsearch:${elasticsearch.version}</name>
+              <build>
+                <dockerFileDir>${project.basedir}/src/main/docker</dockerFileDir>
+              </build>
+            </image>
+            <image>
+              <name>docker.io/fabric8/elasticsearch-k8s:${elasticsearch.version}</name>
+              <build>
+                <from>docker.io/fabric8/elasticsearch:${elasticsearch.version}</from>
+                <assembly>
+                  <descriptor>${basedir}/src/main/assemblies/docker-image.xml</descriptor>
+                  <basedir>/usr/share/elasticsearch/</basedir>
+                </assembly>
+                <env>
+                  <NODE_DATA>true</NODE_DATA>
+                  <NODE_MASTER>true</NODE_MASTER>
+                  <ES_JAVA_OPTS>-Xms512m -Xmx512m</ES_JAVA_OPTS>
+                </env>
+              </build>
+            </image>
+          </images>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <releaseProfiles>docker-deploy</releaseProfiles>
+          <goals>deploy docker:build docker:push</goals>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>2.11</version>
+        <configuration>
+          <aggregate>true</aggregate>
+          <header>header.txt</header>
+          <properties>
+            <owner>Red Hat, Inc.</owner>
+          </properties>
+          <excludes>
+            <exclude>.editorconfig</exclude>
+            <exclude>license.txt</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <!--
+  Default sample commands:
+  mvn -Pdocker-build         ... build Docker images
+  mvn -Pdocker-deploy        ... docker-build + push to Docker registry
+  -->
+  <profiles>
+    <profile>
+      <id>docker-build</id>
+      <build>
+        <defaultGoal>clean install docker:build</defaultGoal>
+      </build>
+    </profile>
+    <profile>
+      <id>docker-deploy</id>
+      <build>
+        <defaultGoal>clean install docker:build docker:push</defaultGoal>
+      </build>
+    </profile>
+  </profiles>
+</project>

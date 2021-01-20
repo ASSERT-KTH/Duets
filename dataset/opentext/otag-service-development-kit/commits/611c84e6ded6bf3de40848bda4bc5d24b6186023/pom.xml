@@ -1,0 +1,335 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.opentext.otag.sdk</groupId>
+    <artifactId>otag-service-development-kit</artifactId>
+    <version>16.6.2</version>
+    <packaging>jar</packaging>
+
+    <name>Open Text AppWorks Gateway Service Developer Kit (SDK)</name>
+
+    <description>This module provides access to the set of utility classes required to interact with an
+        instance of an AppWorks Gateway from an AppWorks Service. It covers AppWorks dedicated service
+        deployment API, which is a limited subset of the full AppWorks admin API.
+
+        We currently provide the facility for services to listen to service life-cycle events such as 'service
+        installed', 'service upgraded' and 'service uninstalled'.
+
+        We also provide the facility for centralised configuration setting management. As AppWorks services
+        are edited from the AppWork Gateway administration console, we provide the ability to respond to
+        updates made here, and also expose creation and update end points for these settings.
+    </description>
+
+    <url>https://github.com/opentext/otag-service-development-kit</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jackson.version>2.10.0.pr3</jackson.version>
+        <appworks.platform.version>16.3.0</appworks.platform.version>
+        <fortify.project.version>16.4.0</fortify.project.version>
+        <fortify.auth.token>auth-token-here</fortify.auth.token>
+        <fortify.ssc.url>http://host:port/ssc</fortify.ssc.url>
+        <fortify.results.file>
+            ${project.build.directory}/fortify-code-analysis/${project.artifactId}-${project.version}.fpr
+        </fortify.results.file>
+        <fortify.log.file>${project.build.directory}/fortify-code-analysis/sca-scan.log</fortify.log.file>
+        <fortify.source>1.8</fortify.source>
+    </properties>
+
+    <profiles>
+        <!-- We use this profile to sign and upload (deploy) the -->
+        <profile>
+            <id>deploy-to-central</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+
+            <build>
+                <plugins>
+                    <!-- PGP will need to be setup locally for this to work -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- Used to deploy the plugin to Sonatype (then onto Maven central) -->
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.3</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>run-fortify</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <version>2.4.3</version>
+                        <executions>
+                            <execution>
+                                <phase>none</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.fortify.ps.maven.plugin</groupId>
+                        <artifactId>sca-maven-plugin</artifactId>
+                        <version>4.40</version>
+                        <executions>
+                            <execution>
+                                <id>scan</id>
+                                <phase>site</phase>
+                                <goals>
+                                    <goal>clean</goal>
+                                    <goal>translate</goal>
+                                    <goal>scan</goal>
+                                </goals>
+                                <!--To perform scan, sca:clean, sca:translate, sca:scan -->
+                                <configuration>
+                                    <source>${fortify.source}</source>
+                                    <resultsFile>${fortify.results.file}</resultsFile>
+                                    <logfile>${fortify.log.file}</logfile>
+                                    <upload>true</upload>
+                                    <f360Url>${fortify.ssc.url}</f360Url>
+                                    <f360AuthToken>${fortify.auth.token}</f360AuthToken>
+                                    <projectVersion>${fortify.project.version}</projectVersion>
+                                    <failOnSCAError>false</failOnSCAError>
+                                    <!--<dontRunSCA>true</dontRunSCA>-->
+                                    <!--<toplevelArtifactId>otag-parent</toplevelArtifactId>-->
+                                    <!--<quickScan>true</quickScan>-->
+                                    <!--<htmlReport>true</htmlReport>-->
+                                    <!--<findbugs>true</findbugs>-->
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>${project.basedir}/src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>${project.build.directory}/licenses</directory>
+                <targetPath>META-INF</targetPath>
+            </resource>
+            <resource>
+                <directory>${project.build.directory}/generated-sources/license</directory>
+                <targetPath>META-INF</targetPath>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.3</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.fortify.ps.maven.plugin</groupId>
+                <artifactId>sca-maven-plugin</artifactId>
+                <version>4.40</version>
+                <!--To perform scan, sca:clean, sca:translate, sca:scan -->
+                <configuration>
+                    <projectName>awg-service-development-kit</projectName>
+                    <source>${fortify.source}</source>
+                    <resultsFile>${fortify.results.file}</resultsFile>
+                    <logfile>${fortify.log.file}</logfile>
+                    <upload>true</upload>
+                    <f360Url>${fortify.ssc.url}</f360Url>
+                    <f360AuthToken>${fortify.auth.token}</f360AuthToken>
+                    <projectVersion>${fortify.project.version}</projectVersion>
+                    <failOnSCAError>false</failOnSCAError>
+                    <!--<dontRunSCA>true</dontRunSCA>-->
+                    <!--<toplevelArtifactId>otag-parent</toplevelArtifactId>-->
+                    <!--<quickScan>true</quickScan>-->
+                    <!--<htmlReport>true</htmlReport>-->
+                    <!--<findbugs>true</findbugs>-->
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <licenses>
+        <license>
+            <name>Open Text End User License Agreement</name>
+            <url>
+                https://developer.opentext.com/awd/resources/articles/15235159/end+user+software+license+agreement+for+open+text+corporation+software
+            </url>
+        </license>
+        <license>
+            <name>Trial Use Agreement</name>
+            <url>https://developer.opentext.com/awd/resources/articles/15235173/trial+use+agreement</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Rhys Evans</name>
+            <email>rhyse@opentext.com</email>
+            <organization>Open Text</organization>
+            <organizationUrl>http://www.opentext.com/</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git@github.com:opentext/otag-service-development-kit.git</connection>
+        <developerConnection>scm:git:git@github.com:opentext/otag-service-development-kit.git</developerConnection>
+        <url>git@github.com:opentext/otag-service-development-kit.git</url>
+    </scm>
+
+    <dependencies>
+
+        <!-- We expect developers to include this dependency themselves as a separate Jar
+            in their WAR -->
+        <dependency>
+            <groupId>com.opentext.otag.service.context</groupId>
+            <artifactId>otag-service-context</artifactId>
+            <version>16.5.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.opentext.otag.tomcat</groupId>
+            <artifactId>otag-tomcat-listener</artifactId>
+            <version>${appworks.platform.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.opentext.otag.sdk.bus</groupId>
+            <artifactId>otag-sdk-bus</artifactId>
+            <version>16.5.5</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.4</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.jaxrs</groupId>
+            <artifactId>jackson-jaxrs-json-provider</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>2.10.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.10</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Fluent assertions -->
+        <dependency>
+            <groupId>org.easytesting</groupId>
+            <artifactId>fest-assert-core</artifactId>
+            <version>2.0M10</version>
+            <scope>test</scope>
+        </dependency>
+        <!--Mocking library-->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.10.19</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+</project>

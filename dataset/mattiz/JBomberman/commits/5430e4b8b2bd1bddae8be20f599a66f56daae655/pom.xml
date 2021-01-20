@@ -1,0 +1,165 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.moogirc.jbomberman</groupId>
+	<artifactId>jbomberman</artifactId>
+	<version>0.1</version>
+	<packaging>jar</packaging>
+
+	<name>jbomberman</name>
+	<url>http://maven.apache.org</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<slick.version>267</slick.version>
+		<lwjgl.version>2.1.0</lwjgl.version>
+		<platform>linux64</platform>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>slick</groupId>
+			<artifactId>slick</artifactId>
+			<version>${slick.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.lwjgl</groupId>
+			<artifactId>lwjgl-native</artifactId>
+			<version>${lwjgl.version}</version>
+			<classifier>${arch}</classifier>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.16</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+
+				<!-- Copy our packaged prosject target/lib -->
+				<executions>
+					<execution>
+						<id>copy-installed</id>
+						<phase>install</phase>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>${project.groupId}</groupId>
+									<artifactId>${project.artifactId}</artifactId>
+									<version>${project.version}</version>
+									<type>${project.packaging}</type>
+								</artifactItem>
+							</artifactItems>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+						</configuration>
+					</execution>
+
+					<!-- Unpack the native files for the current architechture and copy to target/natives -->
+					<execution>
+						<id>unpack</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>org.lwjgl</groupId>
+									<artifactId>lwjgl-native</artifactId>
+									<version>${lwjgl.version}</version>
+									<type>jar</type>
+									<classifier>${arch}</classifier>
+									<outputDirectory>${project.build.directory}/natives</outputDirectory>
+									<overWrite>true</overWrite>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+
+					<!-- Copy all dependencies to target/lib -->
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>install</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+						</configuration>
+					</execution>
+
+				</executions>
+			</plugin>
+
+			<!-- Copy images, sounds, etc to target/data -->
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.5</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/data</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.basedir}/src/data</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>b2s-repo</id>
+			<url>http://b2s-repo.googlecode.com/svn/trunk/mvn-repo</url>
+		</repository>
+
+		<repository>
+			<id>slick-repo</id>
+			<url>http://slick.cokeandcode.com/mavenrepo</url>
+		</repository>
+		<repository>
+			<id>maven-repo</id>
+			<url>http://http://repo1.maven.org/maven2</url>
+		</repository>
+	</repositories>
+
+</project>

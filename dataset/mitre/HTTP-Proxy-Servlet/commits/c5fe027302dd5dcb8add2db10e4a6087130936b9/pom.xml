@@ -1,0 +1,277 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.mitre.dsmiley.httpproxy</groupId>
+  <artifactId>smiley-http-proxy-servlet</artifactId>
+  <version>1.11</version>
+  <packaging>jar</packaging>
+
+  <name>Smiley's HTTP Proxy Servlet</name>
+  <description>An HTTP Proxy (aka gateway) in the form of a Java servlet. An
+    HTTP proxy is useful for AJAX applications to communicate with web
+    accessible services on hosts other than where the web application is hosted.
+  </description>
+
+  <url>https://github.com/dsmiley/HTTP-Proxy-Servlet</url>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>David Smiley</name>
+      <email>dsmiley@apache.org</email>
+      <!-- I used to work for MITRE for many years but I don't anymore. -->
+      <!--<organization>MITRE</organization>-->
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/dsmiley/HTTP-Proxy-Servlet</url>
+    <connection>scm:git:https://dsmiley@github.com/dsmiley/HTTP-Proxy-Servlet.git</connection>
+    <developerConnection>scm:git:git@github.com:dsmiley/HTTP-Proxy-Servlet.git</developerConnection>
+    <tag>smiley-http-proxy-servlet-1.11</tag>
+  </scm>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!-- works with v4.3 and forward; see .travis.yml -->
+    <httpclient.version>4.5.6</httpclient.version>
+    <!-- the last version to provide LocalTestServer.java -->
+    <httpclient.test.version>4.3.6</httpclient.test.version>
+  </properties>
+
+  <prerequisites>
+    <maven>3.0.4</maven>
+  </prerequisites>
+
+  <!-- To check for new plugins and dependencies:
+  mvn org.codehaus.mojo:versions-maven-plugin:2.3:display-plugin-updates
+  mvn org.codehaus.mojo:versions-maven-plugin:2.3:display-dependency-updates
+  -->
+
+  <dependencies>
+
+    <!-- FYI tomcat 5.5 & beyond -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.0.1</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${httpclient.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${httpclient.test.version}</version>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>httpunit</groupId>
+      <artifactId>httpunit</artifactId>
+      <version>1.7</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.17</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.5.1</version>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+          <!-- Note: Java 1.6 has an issue parsing an HttpOnly flag in a Set-Cookie header, but
+          otherwise works. -->
+          <compilerArgs>
+            <arg>-Xlint:all,-serial,-deprecation</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+      <!-- For OSGI -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Bundle-Version>${project.version}</Bundle-Version>
+              <Tool>Bundlor ${project.version}</Tool>
+              <Bundle-Name>${project.artifactId}</Bundle-Name>
+              <Bundle-SymbolicName>org.mitre.dsmiley.http-proxy-servlet</Bundle-SymbolicName>
+              <Export-Package>org.mitre.dsmiley.httpproxy;version="0"</Export-Package>
+              <Import-Package>org.apache.http;version="0",
+ org.apache.http.client;version="0",
+ org.apache.http.entity;version="0",
+ org.apache.http.impl.client;version="0",
+ org.apache.http.message;version="0",
+ org.apache.http.util; version="0",
+ org.apache.http.client.utils;version="0",
+ org.apache.http.client.methods;version="0",
+ javax.servlet;version="0",
+ javax.servlet.http;version="0",
+ javax.net.ssl;version="0", org.apache.http.client.config;version="0"</Import-Package>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      <!-- See
+      http://central.sonatype.org/pages/apache-maven.html#nexus-staging-maven-plugin-for-deployment-and-release
+
+      mvn release:clean release:prepare
+      mvn release:perform
+      -->
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <useReleaseProfile>false</useReleaseProfile>
+          <releaseProfiles>release</releaseProfiles>
+          <goals>deploy</goals>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.6.7</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>true</autoReleaseAfterClose>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+
+  <reporting>
+    <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.7</version>
+        <configuration>
+          <!-- slow: -->
+          <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9.1</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>javadoc</report>
+              <!--<report>test-javadoc</report>-->
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+
+    </plugins>
+  </reporting>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>2.4</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.9.1</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+  
+</project>

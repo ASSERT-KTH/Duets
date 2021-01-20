@@ -1,0 +1,775 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+Copyright 2017 Agilx, Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+-->
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>ai.apptuit</groupId>
+  <artifactId>jinsight</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>JInsight</name>
+  <url>https://github.com/ApptuitAI/JInsight/</url>
+  <inceptionYear>2017</inceptionYear>
+  <scm>
+    <url>https://github.com/ApptuitAI/JInsight</url>
+    <connection>scm:git:git://github.com/ApptuitAI/jinsight.git</connection>
+    <developerConnection>scm:git:git@github.com:ApptuitAI/jinsight.git</developerConnection>
+  </scm>
+  <issueManagement>
+    <url>https://github.com/ApptuitAI/JInsight/issues</url>
+    <system>GitHub Issues</system>
+  </issueManagement>
+  <licenses>
+    <license>
+      <name>Apache 2.0</name>
+      <url>https://github.com/ApptuitAI/JInsight/blob/master/LICENSE</url>
+    </license>
+  </licenses>
+
+  <distributionManagement>
+    <repository>
+      <id>bintray-apptuitai-jinsight</id>
+      <name>apptuitai-jinsight</name>
+      <url>https://api.bintray.com/maven/apptuitai/maven/jinsight/;publish=1</url>
+    </repository>
+  </distributionManagement>
+
+  <repositories>
+    <repository>
+      <id>jinsight-bintray</id>
+      <url>https://dl.bintray.com/apptuitai/maven</url>
+    </repository>
+  </repositories>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!-- Aliases -->
+    <built.jar.path>${project.build.directory}/${project.build.finalName}.jar</built.jar.path>
+    <byteman.jar.dir>${project.build.outputDirectory}/META-INF/boot/</byteman.jar.dir>
+    <byteman.merge.dir>${project.build.outputDirectory}/META-INF/btm-scripts/</byteman.merge.dir>
+
+    <jacoco.includes>ai/apptuit/**/*</jacoco.includes>
+    <jacoco.rt.jar.path>${project.build.directory}/jacoco-agent-rt.jar</jacoco.rt.jar.path>
+    <jacoco.dest.path>${project.build.directory}/jacoco.exec</jacoco.dest.path>
+    <jacoco.agent.opts>destfile=${jacoco.dest.path},includes=${jacoco.includes}</jacoco.agent.opts>
+
+    <env.server.ip>jinsight-services</env.server.ip>
+    <env.memcached.addr>${env.server.ip}:11211</env.memcached.addr>
+    <env.redis.addr>${env.server.ip}:6379</env.redis.addr>
+
+    <!-- Debug flags -->
+    <!-- (comment the blank tag to enable the debug flag) -->
+    <jvm.debug.options>
+      -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5050
+    </jvm.debug.options>
+    <jvm.debug.options/>
+    <byteman.debug.options>-Dorg.jboss.byteman.verbose</byteman.debug.options>
+    <byteman.debug.options/>
+
+
+    <!-- Version Properties -->
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <java.version>1.8</java.version>
+    <maven.version>3.2</maven.version>
+    <netty.version>4.1.15.Final</netty.version>
+    <surefire.version>2.20.1</surefire.version>
+    <junit.version>4.12</junit.version>
+    <jacoco.version>0.8.0</jacoco.version>
+    <byteman.version>3.0.11</byteman.version>
+    <metrics.version>3.2.6</metrics.version>
+    <apptuit.reporter.version>0.7.0</apptuit.reporter.version>
+
+    <!-- Acceptance Criteria -->
+    <enforce.code.style>false</enforce.code.style>
+    <ignore.license.checks>false</ignore.license.checks>
+    <enforce.findbugs>true</enforce.findbugs>
+    <minimum.complexity.coverage>0.60</minimum.complexity.coverage>
+    <minimum.instruction.coverage>0.80</minimum.instruction.coverage>
+    <max.agent.file.size>2.5</max.agent.file.size>
+    <skipTests>false</skipTests>
+    <skipVerifications>false</skipVerifications>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>ai.apptuit</groupId>
+      <artifactId>metrics-apptuit</artifactId>
+      <version>${apptuit.reporter.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.byteman</groupId>
+      <artifactId>byteman</artifactId>
+      <version>${byteman.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-core</artifactId>
+      <version>${metrics.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-jvm</artifactId>
+      <version>${metrics.version}</version>
+    </dependency>
+
+
+    <!--
+    BCI Testing related dependencies
+    -->
+
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>1.4.196</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.sf.ehcache</groupId>
+      <artifactId>ehcache</artifactId>
+      <version>2.10.4</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-servlet</artifactId>
+      <version>9.4.8.v20171121</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat.embed</groupId>
+      <artifactId>tomcat-embed-core</artifactId>
+      <version>8.5.27</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat.embed</groupId>
+      <artifactId>tomcat-embed-jasper</artifactId>
+      <version>8.5.27</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.17</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>2.10.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.10.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.2.3</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpasyncclient</artifactId>
+      <version>4.1.3</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.squareup.okhttp3</groupId>
+      <artifactId>okhttp</artifactId>
+      <version>3.10.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.spy</groupId>
+      <artifactId>spymemcached</artifactId>
+      <version>2.12.3</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.whalin</groupId>
+      <artifactId>Memcached-Java-Client</artifactId>
+      <version>3.0.2</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>redis.clients</groupId>
+      <artifactId>jedis</artifactId>
+      <version>2.9.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <!--
+    Unit testing related dependencies
+    -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>1.10.19</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jacoco</groupId>
+      <artifactId>org.jacoco.agent</artifactId>
+      <classifier>runtime</classifier>
+      <version>${jacoco.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <version>3.0.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.googlecode.json-simple</groupId>
+      <artifactId>json-simple</artifactId>
+      <version>1.1.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.zafarkhaja</groupId>
+      <artifactId>java-semver</artifactId>
+      <version>0.9.0</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Plugins for post compile phase -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.0.2</version>
+        <executions>
+          <execution>
+            <id>copy-dependency-jars</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.jboss.byteman</groupId>
+                  <artifactId>byteman</artifactId>
+                  <version>${byteman.version}</version>
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                  <outputDirectory>${byteman.jar.dir}/</outputDirectory>
+                  <destFileName>byteman.jar</destFileName>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.jacoco</groupId>
+                  <artifactId>org.jacoco.agent</artifactId>
+                  <version>${jacoco.version}</version>
+                  <type>jar</type>
+                  <classifier>runtime</classifier>
+                  <overWrite>false</overWrite>
+                  <outputDirectory>${project.build.directory}/</outputDirectory>
+                  <destFileName>jacoco-agent-rt.jar</destFileName>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>merge-btm-files</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <path id="ruleset.path.ref">
+                  <fileset dir="${project.build.outputDirectory}" includes="**/*RuleSet.class"/>
+                </path>
+                <pathconvert pathsep=" " property="ruleset.classes" refid="ruleset.path.ref">
+                  <map from="${project.build.outputDirectory}" to=""/>
+                </pathconvert>
+                <concat destfile="${byteman.merge.dir}/jinsight.btm"
+                  force="yes">
+                  <fileset dir="${project.basedir}/src">
+                    <include name="**/*.btm"/>
+                  </fileset>
+                </concat>
+                <java classname="ai.apptuit.metrics.jinsight.modules.common.RuleScriptGenerator"
+                  classpathref="maven.test.classpath" failonerror="true" fork="true">
+                  <jvmarg value="-javaagent:${jacoco.rt.jar.path}=${jacoco.agent.opts}"/>
+                  <arg value="${byteman.merge.dir}/jinsight.btm"/>
+                  <arg line="${ruleset.classes}"/>
+                </java>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.jboss.byteman</groupId>
+        <artifactId>byteman-rulecheck-maven-plugin</artifactId>
+        <version>${byteman.version}</version>
+        <executions>
+          <execution>
+            <id>check-byteman-rules</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>rulecheck</goal>
+            </goals>
+            <configuration>
+              <scriptDir>${byteman.merge.dir}</scriptDir>
+              <includes>
+                <include>**/*.btm</include>
+              </includes>
+              <verbose>false</verbose>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Plugins for test phase -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.0.2</version>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Premain-Class>ai.apptuit.metrics.jinsight.Agent</Premain-Class>
+              <Agent-Class>ai.apptuit.metrics.jinsight.Agent</Agent-Class>
+              <Agent-Version>${project.version}</Agent-Version>
+              <Can-Redefine-Classes>true</Can-Redefine-Classes>
+              <Can-Retransform-Classes>true</Can-Retransform-Classes>
+            </manifestEntries>
+          </archive>
+        </configuration>
+        <executions>
+          <execution>
+            <id>default-jar</id>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <createDependencyReducedPom>true</createDependencyReducedPom>
+          <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
+          <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
+          <relocations>
+            <relocation>
+              <pattern>com.codahale.metrics</pattern>
+              <shadedPattern>ai.apptuit.metrics.jinsight.relo.codahale</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>org.slf4j</pattern>
+              <shadedPattern>ai.apptuit.metrics.jinsight.relo.slf4j</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>ai.apptuit.metrics.client</pattern>
+              <shadedPattern>ai.apptuit.metrics.jinsight.relo.client</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>ai.apptuit.metrics.dropwizard</pattern>
+              <shadedPattern>ai.apptuit.metrics.jinsight.relo.dwizreporter</shadedPattern>
+            </relocation>
+          </relocations>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>generate-test-resources</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${surefire.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.maven.surefire</groupId>
+            <artifactId>surefire-junit4</artifactId>
+            <version>${surefire.version}</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <!--
+          <includes>
+            <include>ai/apptuit/metrics/client/*.java</include>
+          </includes>
+          -->
+          <argLine>
+            ${jvm.debug.options}
+            -javaagent:${jacoco.rt.jar.path}=${jacoco.agent.opts}
+            -javaagent:${built.jar.path}
+            -Djinsight.config=${project.build.testOutputDirectory}/jinsight-config-test.properties
+            ${byteman.debug.options}
+          </argLine>
+          <systemPropertyVariables>
+            <memcached.addr>${env.memcached.addr}</memcached.addr>
+            <redis.addr>${env.redis.addr}</redis.addr>
+            <project.version>${project.version}</project.version>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+
+      <!-- Plugins for package phase -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.0.1</version>
+        <executions>
+          <execution>
+            <id>generate-sources-jar</id>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Plugins for verify phase -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.17</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>8.5</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <configLocation>google_checks.xml</configLocation>
+          <encoding>UTF-8</encoding>
+          <logViolationsToConsole>true</logViolationsToConsole>
+          <failOnViolation>${enforce.code.style}</failOnViolation>
+          <violationSeverity>warning</violationSeverity>
+          <outputFile>${project.build.directory}/reports/checkstyle-results-java.xml</outputFile>
+          <skip>${skipVerifications}</skip>
+        </configuration>
+        <executions>
+          <execution>
+            <id>java-style-check</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <version>0.12</version>
+        <configuration>
+          <ignoreErrors>${ignore.license.checks}</ignoreErrors>
+          <reportStyle>xml</reportStyle>
+          <reportFile>${project.build.directory}/reports/license-check-results.xml</reportFile>
+          <excludes>
+            <exclude>${project.basedir}/dependency-reduced-pom.xml</exclude>
+            <exclude>pkg/**/*</exclude>
+          </excludes>
+          <skip>${skipVerifications}</skip>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>3.0.5</version>
+        <configuration>
+          <xmlOutput>true</xmlOutput>
+          <effort>Max</effort>
+          <failOnError>${enforce.findbugs}</failOnError>
+          <includeTests>false</includeTests>
+          <xmlOutputDirectory>${project.build.directory}/reports/</xmlOutputDirectory>
+          <outputDirectory>${project.build.directory}/reports/</outputDirectory>
+          <skip>${skipVerifications}</skip>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.version}</version>
+        <configuration>
+          <includes>
+            <include>${jacoco.includes}</include>
+          </includes>
+        </configuration>
+        <executions>
+          <execution>
+            <id>default-report</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>default-check</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <rule>
+                  <element>BUNDLE</element>
+                  <limits>
+                    <limit>
+                      <counter>COMPLEXITY</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>${minimum.complexity.coverage}</minimum>
+                    </limit>
+                    <limit>
+                      <counter>INSTRUCTION</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>${minimum.instruction.coverage}</minimum>
+                    </limit>
+                  </limits>
+                </rule>
+              </rules>
+              <skip>${skipTests}</skip>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.gmaven</groupId>
+        <artifactId>groovy-maven-plugin</artifactId>
+        <version>2.0</version>
+        <executions>
+          <execution>
+            <id>enforce-agent-jar-size</id>
+            <phase>package</phase>
+            <goals>
+              <goal>execute</goal>
+            </goals>
+            <configuration>
+              <properties>
+                <filename>
+                  ${project.build.directory}/${project.build.finalName}.${project.packaging}
+                </filename>
+                <maxSizeMB>${max.agent.file.size}</maxSizeMB>
+              </properties>
+              <source>
+                float maxSize = Float.parseFloat(properties['maxSizeMB'])
+                File file = new File(properties['filename'])
+                log.info("${file} is of size ${file.length()} bytes")
+                if (file.length() > maxSize * 1024 * 1024) {
+                  log.error("Package exceeds maximum size allowed size: ${maxSize} MB")
+                  fail()
+                } else
+                  log.info("File size OK")
+
+              </source>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Plugins for deploy phase -->
+      <plugin>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>2.8.2</version>
+        <configuration>
+          <updateReleaseInfo>true</updateReleaseInfo>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <reporting>
+    <plugins>
+      <plugin>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.9</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.0.0</version>
+        <reportSets>
+          <reportSet>
+            <id>default</id>
+            <reports>
+              <report>javadoc</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <version>2.5</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jdepend-maven-plugin</artifactId>
+        <version>2.0</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.17</version>
+        <configuration>
+          <configLocation>google_checks.xml</configLocation>
+          <encoding>UTF-8</encoding>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>checkstyle</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <version>0.12</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>3.0.5</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>2.20.1</version>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.version}</version>
+        <configuration>
+          <includes>
+            <include>${jacoco.includes}</include>
+          </includes>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>report</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>taglist-maven-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <tagListOptions>
+            <tagClasses>
+              <tagClass>
+                <displayName>Todo List</displayName>
+                <tags>
+                  <tag>
+                    <matchString>todo</matchString>
+                    <matchType>ignoreCase</matchType>
+                  </tag>
+                  <tag>
+                    <matchString>FIXME</matchString>
+                    <matchType>ignoreCase</matchType>
+                  </tag>
+                </tags>
+              </tagClass>
+            </tagClasses>
+          </tagListOptions>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>3.8</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>pmd</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <effort>Max</effort>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>versions-maven-plugin</artifactId>
+        <version>2.5</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>dependency-updates-report</report>
+              <report>plugin-updates-report</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+    </plugins>
+  </reporting>
+</project>

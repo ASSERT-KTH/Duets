@@ -1,0 +1,202 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>nl.jqno.equalsverifier</groupId>
+	<artifactId>equalsverifier</artifactId>
+	<packaging>jar</packaging>
+
+	<name>EqualsVerifier</name>
+	<version>1.5.1-SNAPSHOT</version>
+	<description>EqualsVerifier can be used in JUnit 4 unit tests to verify whether the contract for the equals and hashCode methods is met.</description>
+	<url>http://www.jqno.nl/equalsverifier</url>
+
+	<scm>
+		<url>http://github.com/jqno/equalsverifier</url>
+		<connection>scm:git:https://github.com/jqno/equalsverifier</connection>
+		<developerConnection>scm:git:https://github.com/jqno/equalsverifier</developerConnection>
+	</scm>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<id>Jan</id>
+			<name>Jan Ouwens</name>
+			<email>jan.ouwens@gmail.com</email>
+			<url>http://www.jqno.nl</url>
+			<timezone>Central European Time</timezone>
+		</developer>
+	</developers>
+
+	<ciManagement>
+		<system>Travis CI</system>
+		<url>https://travis-ci.org/jqno/equalsverifier</url>
+	</ciManagement>
+
+	<mailingLists>
+		<mailingList>
+			<name>General Discussion</name>
+			<archive>http://groups.google.com/group/equalsverifier</archive>
+		</mailingList>
+	</mailingLists>
+
+	<issueManagement>
+		<url>https://code.google.com/p/equalsverifier/issues</url>
+	</issueManagement>
+
+	<prerequisites>
+		<maven>3.0.4</maven>
+	</prerequisites>
+
+	<properties>
+		<maven.compiler.source>1.6</maven.compiler.source>
+		<maven.compiler.target>1.6</maven.compiler.target>
+		<encoding>UTF-8</encoding>
+		<jacoco.version>0.7.0.201403182114</jacoco.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.objenesis</groupId>
+			<artifactId>objenesis</artifactId>
+			<version>2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>cglib</groupId>
+			<artifactId>cglib</artifactId>
+			<version>3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm</artifactId>
+			<version>5.0.3</version>
+		</dependency>
+
+		<!-- test dependencies -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.10</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- conditional test dependencies -->
+		<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+			<version>2.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>17.0</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
+						<manifestEntries>
+							<Website>${project.url}</Website>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
+				<executions>
+					<execution>
+						<id>default-prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+					<execution>
+						<id>default-report</id>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<taskdef name="report" classname="org.jacoco.ant.ReportTask" classpathref="maven.plugin.classpath" />
+								<report>
+									<executiondata>
+										<file file="${project.build.directory}/jacoco.exec" />
+									</executiondata>
+									<structure name="EqualsVerifier: external coverage">
+										<classfiles>
+											<fileset dir="${project.build.directory}/test-classes/nl/jqno/equalsverifier/coverage"/>
+										</classfiles>
+										<sourcefiles encoding="UTF-8">
+											<fileset dir="src/test/java"/>
+										</sourcefiles>
+									</structure>
+									<check failonviolation="true" violationsproperty="violation">
+										<rule element="BUNDLE">
+											<limit counter="INSTRUCTION" value="COVEREDRATIO" minimum="1.00" />
+										</rule>
+									</check>
+									<html destdir="${project.build.directory}/jacoco-external"/>
+								</report>
+								<report>
+									<executiondata>
+										<file file="${project.build.directory}/jacoco.exec" />
+									</executiondata>
+									<structure name="EqualsVerifier: internal coverage">
+										<classfiles>
+											<fileset dir="${project.build.directory}/classes"/>
+										</classfiles>
+										<sourcefiles encoding="UTF-8">
+											<fileset dir="src/main/java"/>
+										</sourcefiles>
+									</structure>
+									<check failonviolation="true" violationsproperty="violation">
+										<rule element="BUNDLE">
+											<limit counter="INSTRUCTION" value="COVEREDRATIO" minimum="0.95" />
+										</rule>
+									</check>
+									<html destdir="${project.build.directory}/jacoco-internal"/>
+								</report>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.jacoco</groupId>
+						<artifactId>org.jacoco.ant</artifactId>
+						<version>${jacoco.version}</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+		</plugins>
+	</build>
+</project>
+

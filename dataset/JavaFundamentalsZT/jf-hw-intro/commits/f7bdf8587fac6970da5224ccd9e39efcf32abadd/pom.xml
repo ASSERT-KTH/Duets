@@ -1,0 +1,119 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.zeroturnaround.jf</groupId>
+  <artifactId>homework1</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>jf-${project.artifactId}</name>
+  <url>https://github.com/zeroturnaround/jf-skeleton</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.4</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>${project.name}</finalName>
+    <plugins>
+      <!-- Be sure to have a correct Main class specified here -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.0.2</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>org.zeroturnaround.jf.Main</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+      <!-- This plugin will package all dependencies to the final runtime -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.4.3</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Set Java language level to 8 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.5.1</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>package homework ZIP</id>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <phase>deploy</phase>
+            <configuration>
+              <target>
+                <input message="Your full name (e.g. John Smith): "                        addproperty="full-name" />
+                <input message="Your Student Book Number (matrikli number, e.g. ABCD012345): " addproperty="sbn" />
+                <input message="Comment: "                                    addproperty="comment" />
+                <echo file="homework.properties" append="false">
+                  full-name=${full-name}${line.separator}sbn=${sbn}${line.separator}homework-number=${project.name}${line.separator}comment=${comment}
+                </echo>
+                <basename property="build-directory-name" file="${project.build.directory}"/>
+                <zip destfile="${project.build.directory}/${project.name}-${sbn}.zip">
+                  <zipfileset dir="." prefix="jf-homework" excludes="${build-directory-name}/**,dependency-reduced-pom.xml,.mvn/**,mvnw,mvnw.cmd,.settings/**,.idea/**,*.iml,*.ipr,*.iws"/>
+                </zip>
+                <delete file="homework.properties"/>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant</artifactId>
+            <version>1.9.7</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+    </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <configuration>
+            <skip>true</skip>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+</project>

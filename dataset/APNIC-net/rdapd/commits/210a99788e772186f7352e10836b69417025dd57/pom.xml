@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+      <modelVersion>4.0.0</modelVersion>
+
+    <groupId>net.apnic.whowas</groupId>
+    <artifactId>rdap-history</artifactId>
+    <version>1.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>RDAP History server</name>
+    <description>An RDAP server implementing the RDAP history extension</description>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.4.2.RELEASE</version>
+    </parent>
+
+    <scm>
+      <url>https://github.com/APNIC-net/whowas-service/</url>
+    </scm>
+
+    <properties>
+        <!-- Main class -->
+        <start-class>net.apnic.whowas.App</start-class>
+
+        <!-- Encodings -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- Default target Java version -->
+        <java.version>1.8</java.version>
+
+        <!-- Dependency versions -->
+        <jparsec.version>2.3</jparsec.version>
+        <fst.version>2.48</fst.version>
+        <scala-collections.version>0.6</scala-collections.version>
+        <commons-lang3.version>3.5</commons-lang3.version>
+        <cloud-vault.version>1.0.0.M1</cloud-vault.version>
+        <cucumber.version>1.2.5</cucumber.version>
+        <findbugs.version>3.0.1</findbugs.version>
+
+        <!-- Plugin versions -->
+        <findbugs-maven-plugin.version>3.0.4</findbugs-maven-plugin.version>
+        <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
+        <maven-pmd-plugin.version>3.7</maven-pmd-plugin.version>
+        <docker-maven-plugin.version>0.18.1</docker-maven-plugin.version>
+
+        <!-- Docker settings -->
+        <docker.libraryName>applications</docker.libraryName>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/libs-snapshot</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jparsec</groupId>
+            <artifactId>jparsec</artifactId>
+            <version>${jparsec.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.ruedigermoeller</groupId>
+            <artifactId>fst</artifactId>
+            <version>${fst.version}</version>
+        </dependency>
+        <!-- Persistent data structures, ported from Scala, specifically HAMT map -->
+        <dependency>
+            <groupId>com.github.andrewoma.dexx</groupId>
+            <artifactId>collection</artifactId>
+            <version>${scala-collections.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-smile</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-vault-starter-config -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-vault-starter-config</artifactId>
+            <version>${cloud-vault.version}</version>
+        </dependency>
+
+        <!-- Testing dependencies -->
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>findbugs-annotations</artifactId>
+            <version>${findbugs.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>info.cukes</groupId>
+            <artifactId>cucumber-java8</artifactId>
+            <version>${cucumber.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>info.cukes</groupId>
+            <artifactId>cucumber-junit</artifactId>
+            <version>${cucumber.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>boot-dev</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-devtools</artifactId>
+                    <optional>true</optional>
+                </dependency>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-configuration-processor</artifactId>
+                    <optional>true</optional>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>*.properties</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <!-- maven-pmd-plugin - http://maven.apache.org/plugins/maven-pmd-plugin/ -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>${maven-pmd-plugin.version}</version>
+                <configuration>
+                    <targetJdk>${java.version}</targetJdk>
+                    <verbose>true</verbose>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>pmd-check</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>pmd</goal>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- findbugs-maven-plugin - http://mojo.codehaus.org/findbugs-maven-plugin/ -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>${findbugs-maven-plugin.version}</version>
+                <configuration>
+                    <classFilesDirectory>${project.build.outputDirectory}</classFilesDirectory>
+                    <fork>true</fork>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>findbugs-findbugs</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>findbugs</goal>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <escapeString>\</escapeString>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>docker-extras</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <!-- NOTE: We CANNOT use target/docker as that's being used by the docker-maven-plugin -->
+                            <!-- Recursive copy is not a good thing! -->
+                            <outputDirectory>${project.build.directory}/docker-extras/</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/docker/</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- docker-maven-plugin - https://github.com/fabric8io/docker-maven-plugin -->
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>${docker-maven-plugin.version}</version>
+                <configuration>
+                    <images>
+                        <image>
+                            <name>${docker.libraryName}/${project.artifactId}</name>
+                            <build>
+                                <from>openjdk:8-jre-alpine</from>
+                                <maintainer>noreply@apnic.net</maintainer>
+                                <tags>
+                                    <tag>${project.version}</tag>
+                                    <tag>latest</tag>
+                                </tags>
+                                <ports>
+                                    <port>8080</port>
+                                </ports>
+                                <entryPoint>
+                                    <exec>
+                                        <arg>/app/entrypoint.sh</arg>
+                                    </exec>
+                                </entryPoint>
+                                <runCmds>
+                                    <run>adduser -S -H -D history</run>
+                                </runCmds>
+                                <user>history</user>
+                                <workdir>/app</workdir>
+                                <assembly>
+                                    <targetDir>/app</targetDir>
+                                    <inline>
+                                        <fileSet>
+                                            <directory>${project.build.directory}/docker-extras/</directory>
+                                            <outputDirectory>.</outputDirectory>
+                                            <fileMode>0755</fileMode>
+                                            <includes>
+                                                <include>**/*.sh</include>
+                                            </includes>
+                                        </fileSet>
+                                        <files>
+                                            <file>
+                                                <source>${project.build.directory}/${project.build.finalName}.jar</source>
+                                            </file>
+                                        </files>
+                                    </inline>
+                                </assembly>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

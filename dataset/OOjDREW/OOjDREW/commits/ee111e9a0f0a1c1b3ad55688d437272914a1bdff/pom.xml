@@ -1,0 +1,206 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.ruleml</groupId>
+  <artifactId>oojdrew</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>OO jDREW</name>
+  <url>http://ruleml.org/oojdrew</url>
+  
+  <scm>
+  	<url>https://github.com/OOjDREW/OOjDREW</url>
+  </scm>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+  
+  <profiles>
+    <profile>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <main.class>org.ruleml.oojdrew.TopDown.TopDownApp</main.class>
+        <output.filename>${project.build.finalName}</output.filename>
+      </properties>
+    </profile>
+    <profile>
+      <id>bottom-up</id>
+      <properties>
+        <main.class>org.ruleml.oojdrew.BottomUp.BottomUpApp</main.class>
+        <output.filename>${project.build.finalName}-BU</output.filename>
+      </properties>
+    </profile>
+  </profiles>
+  
+  <repositories>
+    <!--other repositories if any-->
+    <repository>
+        <id>project.local</id>
+        <name>project</name>
+        <url>file:${project.basedir}/repo</url>
+    </repository>
+  </repositories>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+    	<groupId>commons-httpclient</groupId>
+    	<artifactId>commons-httpclient</artifactId>
+    	<version>3.1</version>
+    </dependency>
+    <dependency>
+    	<groupId>xom</groupId>
+    	<artifactId>xom</artifactId>
+    	<version>1.2.5</version>
+    </dependency>
+    <dependency>
+    	<groupId>log4j</groupId>
+    	<artifactId>log4j</artifactId>
+    	<version>1.2.16</version>
+    </dependency>
+    <dependency>
+    	<groupId>antlr</groupId>
+    	<artifactId>antlr</artifactId>
+    	<version>2.7.7</version>
+    </dependency>
+    <dependency>
+      <groupId>edu.berkeley.ptolemy</groupId>
+      <artifactId>ptolemy</artifactId>
+      <version>9999</version>
+    </dependency>
+	<dependency>
+		<groupId>com.ibm.icu</groupId>
+		<artifactId>icu4j</artifactId>
+		<version>4.8.1.1</version>
+	</dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+        <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <configuration>
+                <archive>
+                    <manifest>
+                        <mainClass>${main.class}</mainClass>
+                    </manifest>
+                </archive>
+                <descriptorRefs>
+                    <descriptorRef>jar-with-dependencies</descriptorRef>
+                </descriptorRefs>
+            	<finalName>${output.filename}</finalName>
+            </configuration>
+            <executions>
+                <execution>
+                    <id>package-full-signed</id>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>single</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jarsigner-plugin</artifactId>
+            <version>1.2</version>
+            <executions>
+                <execution>
+                    <id>sign</id>
+                    <goals>
+                        <goal>sign</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>verify</id>
+                    <goals>
+                        <goal>verify</goal>
+                    </goals>
+                </execution>
+            </executions>
+             <configuration>
+                <!-- TODO: Enter the credentials to your keystore to create signed releases -->
+                <skip>true</skip>
+                <keystore>/path/to/the/keystore</keystore>
+                <alias>Alias name</alias>
+                <storepass>Store password</storepass>
+                <keypass>Key password</keypass>
+            </configuration>
+        </plugin>
+        <plugin>
+           <groupId>org.apache.maven.plugins</groupId>
+           <artifactId>maven-compiler-plugin</artifactId>
+           <version>2.3.2</version>
+           <configuration>
+               <source>${java-version}</source>
+               <target>${java-version}</target>
+           </configuration>
+       </plugin>
+       <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-site-plugin</artifactId>
+            <version>3.0</version>
+            <configuration>
+                <reportPlugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-project-info-reports-plugin</artifactId>
+                        <version>2.3.1</version>
+                        <configuration>
+                            <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
+                            <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>javancss-maven-plugin</artifactId>
+                        <version>2.0</version>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>jdepend-maven-plugin</artifactId>
+                        <version>2.0-beta-2</version>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-pmd-plugin</artifactId>
+                        <version>2.6</version>
+                        <configuration>
+                            <linkXRef>false</linkXRef>
+                            <sourceEncoding>utf-8</sourceEncoding>
+                            <minimumTokens>100</minimumTokens>
+                            <targetJdk>${java-version}</targetJdk>
+                            <verbose>true</verbose>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>findbugs-maven-plugin</artifactId>
+                        <version>2.3.2</version>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-checkstyle-plugin</artifactId>
+                        <version>2.6</version>
+                    </plugin>
+                </reportPlugins>
+            </configuration>
+        </plugin>
+    </plugins>
+  </build>
+</project>

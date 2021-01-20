@@ -1,0 +1,809 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	
+	<modelVersion>4.0.0</modelVersion>
+	
+	<groupId>ru.mystamps</groupId>
+	<artifactId>mystamps</artifactId>
+	<version>0.1.2-SNAPSHOT</version>
+	<packaging>war</packaging>
+	
+	<properties>
+		<spring.version>3.1.0.RC2</spring.version>
+		<hibernate.version>3.6.8.Final</hibernate.version>
+		<lombok.version>0.10.2</lombok.version>
+		<mysql.connector.version>5.1.18</mysql.connector.version>
+		<selenium.version>2.11.0</selenium.version>
+		<slf4j.version>1.6.4</slf4j.version>
+		
+		<tomcat.dir>/usr/share/tomcat6</tomcat.dir>
+		<env.dir>src/env</env.dir>
+		
+		<jetty.host>127.0.0.1</jetty.host>
+		<jetty.port>8081</jetty.port>
+		
+		<!--
+			 Stick to Jetty7 because we not ready for servlet
+			 API 3.0. See for details:
+			 http://stackoverflow.com/q/2151075#3172395
+		-->
+		<jetty.plugin.version>7.3.1.v20110307</jetty.plugin.version>
+		
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	</properties>
+	
+	<dependencies>
+		
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+			<scope>provided</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId>
+			<version>1.2</version>
+		</dependency>
+		
+		<!-- @Inject -->
+		<dependency>
+			<groupId>javax.inject</groupId>
+			<artifactId>javax.inject</artifactId>
+			<version>1</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+			<version>1.0.0.GA</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.hibernate.javax.persistence</groupId>
+			<artifactId>hibernate-jpa-2.0-api</artifactId>
+			<version>1.0.1.Final</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-orm</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>cglib</groupId>
+			<artifactId>cglib</artifactId>
+			<version>2.2.2</version>
+			<scope>runtime</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+			<version>${hibernate.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-entitymanager</artifactId>
+			<version>${hibernate.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.16</version>
+			<scope>runtime</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.6</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.5</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>commons-validator</groupId>
+			<artifactId>commons-validator</artifactId>
+			<version>1.3.1</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>${lombok.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.10</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>1.9.0-rc1</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.easytesting</groupId>
+			<artifactId>fest-assert</artifactId>
+			<version>1.4</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>${spring.version}</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<version>${selenium.version}</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.testng</groupId>
+					<artifactId>testng</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.seleniumhq.selenium</groupId>
+					<artifactId>selenium-android-driver</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.seleniumhq.selenium</groupId>
+					<artifactId>selenium-chrome-driver</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.seleniumhq.selenium</groupId>
+					<artifactId>selenium-firefox-driver</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.seleniumhq.selenium</groupId>
+					<artifactId>selenium-ie-driver</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.seleniumhq.selenium</groupId>
+					<artifactId>selenium-iphone-driver</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		
+		<!--
+			 HtmlUnit 2.8 use it but does not have dependency
+			 (also without it, project does not run under Jetty)
+		-->
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+			<version>3.2.1</version>
+		</dependency>
+		
+		<!--
+			Spring try to find validation provider when we use
+			@Valid annotation
+		-->
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>4.2.0.Final</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${slf4j.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		
+		<!-- commons-validator use it to validating e-mails -->
+		<dependency>
+			<groupId>oro</groupId>
+			<artifactId>oro</artifactId>
+			<version>2.0.8</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>10.0.1</version>
+		</dependency>
+		
+	</dependencies>
+	
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		
+		<plugins>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+					<showDeprecation>true</showDeprecation>
+					<showWarnings>true</showWarnings>
+					<verbose>true</verbose>
+					<debug>false</debug>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>native2ascii-maven-plugin</artifactId>
+				<version>1.0-alpha-1</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>native2ascii</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.codehaus.cargo</groupId>
+				<artifactId>cargo-maven2-plugin</artifactId>
+				<version>1.1.1</version>
+				<configuration>
+					<wait>false</wait>
+					<container>
+						<containerId>tomcat6x</containerId>
+						<type>installed</type>
+						<home>${tomcat.dir}</home>
+					</container>
+					<configuration>
+						<type>existing</type>
+						<home>${tomcat.dir}</home>
+					</configuration>
+					<deployer>
+						<type>installed</type>
+						<deployables>
+							<deployable>
+								<groupId>${project.groupId}</groupId>
+								<artifactId>${project.artifactId}</artifactId>
+								<type>${project.packaging}</type>
+							</deployable>
+						</deployables>
+					</deployer>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>deploy</phase>
+						<goals>
+							<goal>deployer-deploy</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>2.9</version>
+				<configuration>
+					<useFile>false</useFile>
+					<disableXmlReport>true</disableXmlReport>
+				</configuration>
+				<executions>
+					<execution>
+						<id>integration-test</id>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.mortbay.jetty</groupId>
+				<artifactId>jetty-maven-plugin</artifactId>
+				<version>${jetty.plugin.version}</version>
+				<configuration>
+					<connectors>
+						<connector
+							implementation="org.eclipse.jetty.server.nio.SelectChannelConnector">
+							<host>${jetty.host}</host>
+							<port>${jetty.port}</port>
+						</connector>
+					</connectors>
+					<stopPort>9966</stopPort>
+					<stopKey>jetty-stop-signal</stopKey>
+					<webAppSourceDirectory>
+						${project.build.directory}/${project.build.finalName}
+					</webAppSourceDirectory>
+				</configuration>
+				<executions>
+					<execution>
+						<id>start-jetty</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>run-war</goal>
+						</goals>
+						<configuration>
+							<daemon>true</daemon>
+						</configuration>
+					</execution>
+					<execution>
+						<id>stop-jetty</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>stop</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<plugin>
+				<groupId>com.mycila.maven-license-plugin</groupId>
+				<artifactId>maven-license-plugin</artifactId>
+				<version>1.9.0</version>
+				<configuration>
+					<basedir>src</basedir>
+					<header>src/main/config/license_header.txt</header>
+					<strictCheck>true</strictCheck>
+					<includes>
+						<include>**/*.java</include>
+					</includes>
+					<mapping>
+						<java>SLASHSTAR_STYLE</java>
+					</mapping>
+					<properties>
+						<copyright.years>${project.inceptionYear}-2011</copyright.years>
+						<author.name>${project.developers[0].name}</author.name>
+						<author.email>${project.developers[0].email}</author.email>
+					</properties>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>2.7</version>
+				<configuration>
+					<enableRSS>false</enableRSS>
+					<consoleOutput>true</consoleOutput>
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
+					<linkXRef>false</linkXRef>
+					<configLocation>
+						${basedir}/src/main/config/checkstyle.xml
+					</configLocation>
+					<suppressionsLocation>
+						${basedir}/src/main/config/checkstyle-suppressions.xml
+					</suppressionsLocation>
+				</configuration>
+				<executions>
+					<execution>
+						<id>run-checkstyle</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>cobertura-maven-plugin</artifactId>
+				<version>2.5.1</version>
+				<configuration>
+					<check>
+						<regexes>
+							<!-- Code coverage of service's classes should be 100% -->
+							<regex>
+								<pattern>ru.mystamps.web.service.*</pattern>
+								<branchRate>100</branchRate>
+								<lineRate>100</lineRate>
+							</regex>
+						</regexes>
+					</check>
+				</configuration>
+				<executions>
+					<execution>
+						<id>run-cobertura</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>clean</goal>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.8</version>
+				<configuration>
+					<nohelp>true</nohelp>
+					<nodeprecatedlist>true</nodeprecatedlist>
+				</configuration>
+			</plugin>
+			
+		</plugins>
+		
+	</build>
+	
+	<reporting>
+		<plugins>
+			
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>cobertura-maven-plugin</artifactId>
+				<version>2.5.1</version>
+			</plugin>
+			
+		</plugins>
+	</reporting>
+	
+	<name>My Stamps</name>
+	<url>my-stamps.ru</url>
+	<inceptionYear>2009</inceptionYear>
+	
+	<developers>
+		<developer>
+			<name>Slava Semushin</name>
+			<email>slava.semushin@gmail.com</email>
+			<url>http://my-stamps.ru</url>
+			<roles>
+				<role>founder</role>
+				<role>developer</role>
+			</roles>
+			<timezone>+6</timezone>
+		</developer>
+	</developers>
+	
+	<licenses>
+		<license>
+			<name>GNU GPL v2</name>
+			<url>http://www.gnu.org/licenses/gpl-2.0.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	
+	<scm>
+		<connection>scm:git:git://github.com/php-coder/mystamps.git</connection>
+		<url>https://github.com/php-coder/mystamps</url>
+	</scm>
+	
+	<repositories>
+		
+		<repository>
+			<id>JBoss Maven Repository</id>
+			<url>https://repository.jboss.org/nexus/content/repositories/public</url>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+				<updatePolicy>never</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</snapshots>
+		</repository>
+		
+		<repository>
+			<id>Spring Framework Milestone Repository</id>
+			<url>http://maven.springframework.org/milestone</url>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+				<updatePolicy>never</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</snapshots>
+		</repository>
+		
+	</repositories>
+	
+	<pluginRepositories>
+		<pluginRepository>
+			<id>mc-repo</id>
+			<url>http://mc-repo.googlecode.com/svn/maven2/releases</url>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+				<updatePolicy>never</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
+	
+	<distributionManagement>
+		<snapshotRepository>
+			<id>localRepository</id>
+			<url>file://${HOME}/.m2/repository</url>
+		</snapshotRepository>
+	</distributionManagement>
+	
+	<!--
+		 There are 2 profiles:
+		 - dev (enabled by default, uses MySQL)
+		 - test (uses HSQL)
+	-->
+	<profiles>
+		
+		<profile>
+			<id>dev</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>commons-dbcp</groupId>
+					<artifactId>commons-dbcp</artifactId>
+					<version>1.4</version>
+				</dependency>
+				<dependency>
+					<groupId>mysql</groupId>
+					<artifactId>mysql-connector-java</artifactId>
+					<version>${mysql.connector.version}</version>
+					<scope>runtime</scope>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<configuration>
+							<excludes>
+								<exclude>**/TestDataSource.java</exclude>
+							</excludes>
+						</configuration>
+					</plugin>
+					
+					<plugin>
+						<artifactId>maven-resources-plugin</artifactId>
+						<version>2.5</version>
+						<executions>
+							<execution>
+								<id>copy-dev-resources</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>
+										${project.build.outputDirectory}
+									</outputDirectory>
+									<resources>
+										<resource>
+											<directory>${env.dir}/dev</directory>
+											<excludes>
+												<exclude>mysql-scheme.sql</exclude>
+											</excludes>
+										</resource>
+									</resources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					
+					<plugin>
+						<groupId>org.mortbay.jetty</groupId>
+						<artifactId>jetty-maven-plugin</artifactId>
+						<version>${jetty.plugin.version}</version>
+						<configuration>
+							<systemProperties>
+								<systemProperty>
+									<name>spring.profiles.active</name>
+									<value>dev</value>
+								</systemProperty>
+							</systemProperties>
+						</configuration>
+					</plugin>
+					
+				</plugins>
+			</build>
+		</profile>
+		
+		<profile>
+			<id>test</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-jdbc</artifactId>
+					<version>${spring.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>org.hsqldb</groupId>
+					<artifactId>hsqldb</artifactId>
+					<version>2.0.0</version>
+					<scope>runtime</scope>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<configuration>
+							<excludes>
+								<exclude>**/DevDataSource.java</exclude>
+							</excludes>
+						</configuration>
+					</plugin>
+					
+					<plugin>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<id>copy-test-sql-data</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<copy
+											file="${env.dir}/test/test-data.sql"
+											todir="${project.build.outputDirectory}"
+											failonerror="yes"
+											verbose="yes"
+											encoding="${project.build.sourceEncoding}">
+											<filterset>
+												<filtersfile
+													file="${env.dir}/test/spring/test-credentials.properties" />
+											</filterset>
+										</copy>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					
+					<plugin>
+						<artifactId>maven-resources-plugin</artifactId>
+						<version>2.5</version>
+						<executions>
+							<execution>
+								<id>copy-test-resources</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>
+										${project.build.outputDirectory}
+									</outputDirectory>
+									<resources>
+										<resource>
+											<directory>${env.dir}/test</directory>
+											<excludes>
+												<exclude>test-data.sql</exclude>
+											</excludes>
+										</resource>
+									</resources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>hibernate3-maven-plugin</artifactId>
+						<version>2.2</version>
+						<configuration>
+							<components>
+								<component>
+									<name>hbm2ddl</name>
+									<implementation>jpaconfiguration</implementation>
+									<outputDirectory>${env.dir}/test</outputDirectory>
+								</component>
+							</components>
+							<componentProperties>
+								<console>false</console>
+								<format>true</format>
+								<jdk5>true</jdk5>
+								<propertyfile>
+									${env.dir}/test/spring/database.properties
+								</propertyfile>
+								<outputfilename>hsql-scheme.sql</outputfilename>
+								
+								<!--
+									Don't try to connect to database. See:
+									http://www.mail-archive.com/users@maven.apache.org/msg61394.html
+								-->
+								<export>false</export>
+							</componentProperties>
+						</configuration>
+						<dependencies>
+							<!--
+								Use latest version of Hibernate. See:
+								http://stackoverflow.com/q/2734971
+							-->
+							<dependency>
+								<groupId>org.hibernate</groupId>
+								<artifactId>hibernate-core</artifactId>
+								<version>${hibernate.version}</version>
+							</dependency>
+							<dependency>
+								<groupId>org.hibernate</groupId>
+								<artifactId>hibernate-entitymanager</artifactId>
+								<version>${hibernate.version}</version>
+							</dependency>
+							<dependency>
+								<groupId>javax.validation</groupId>
+								<artifactId>validation-api</artifactId>
+								<version>1.0.0.GA</version>
+							</dependency>
+						</dependencies>
+					</plugin>
+					
+					<plugin>
+						<groupId>org.mortbay.jetty</groupId>
+						<artifactId>jetty-maven-plugin</artifactId>
+						<version>${jetty.plugin.version}</version>
+						<configuration>
+							<systemProperties>
+								<systemProperty>
+									<name>spring.profiles.active</name>
+									<value>test</value>
+								</systemProperty>
+							</systemProperties>
+						</configuration>
+					</plugin>
+					
+				</plugins>
+			</build>
+		</profile>
+		
+	</profiles>
+	
+</project>

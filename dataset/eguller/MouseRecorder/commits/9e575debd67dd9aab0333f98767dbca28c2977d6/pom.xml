@@ -1,0 +1,151 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.eguller</groupId>
+    <artifactId>mouserecorder</artifactId>
+    <version>1.0.2</version>
+    <packaging>jar</packaging>
+
+    <name>MouseRecorder</name>
+    <url>https://github.com/eguller/MouseRecorder</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jnativehook.artifactId>jnativehook</jnativehook.artifactId>
+        <jnativehook.version>1.1.4</jnativehook.version>
+        <jnativehook.jar>${jnativehook.artifactId}-${jnativehook.version}.jar</jnativehook.jar>
+        <jnativehook.dir>
+            ${project.basedir}/src/local-libs/org/${jnativehook.artifactId}/${jnativehook.artifactId}/${jnativehook.version}
+        </jnativehook.dir>
+        <jnativehook.absolute>
+            ${jnativehook.dir}/${jnativehook.jar}
+        </jnativehook.absolute>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jnativehook</groupId>
+            <artifactId>jnativehook</artifactId>
+            <scope>system</scope>
+            <version>1.1.4</version>
+            <systemPath>${jnativehook.absolute}</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.akathist.maven.plugins.launch4j</groupId>
+            <artifactId>launch4j-maven-plugin</artifactId>
+            <scope>provided</scope>
+            <version>1.5.2</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.tulskiy</groupId>
+            <artifactId>jkeymaster</artifactId>
+            <scope>compile</scope>
+            <version>1.1</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <dependencySets>
+                        <dependencySet>
+                            <excludes>
+                                <exclude>com.akathist.maven.plugins.launch4j:launch4j-maven-plugin</exclude>
+                                <exclude>junit:junit</exclude>
+                            </excludes>
+                            <includes>
+                                <include>org.jnativehook:jnativehook</include>
+                            </includes>
+                        </dependencySet>
+                    </dependencySets>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <configuration>
+                            <target>
+                                <property name="project.jar"
+                                          value="${project.artifactId}-${project.version}-jar-with-dependencies.jar"/>
+                                <property name="jnativehook.jar" value="${jnativehook.jar}"/>
+                                <property name="jnativehook.absolute" value="${jnativehook.absolute}"/>
+                                <property name="jnativehook.dir" value="${jnativehook.dir}"/>
+                                <property name="project.version" value="${project.version}"/>
+                                <ant antfile="ant/build.xml"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.akathist.maven.plugins.launch4j</groupId>
+                <artifactId>launch4j-maven-plugin</artifactId>
+                <version>1.5.2</version>
+                <executions>
+                    <execution>
+                        <id>l4j-gui</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>launch4j</goal>
+                        </goals>
+                        <configuration>
+                            <headerType>gui</headerType>
+                            <outfile>target/MouseRecorder.exe</outfile>
+                            <jar>target/mouserecorder.jar</jar>
+                            <errTitle>Mouse Recorder - Launch Error</errTitle>
+                            <icon>${project.basedir}/src/main/resources/mouse-recorder.ico</icon>
+                            <classPath>
+                                <mainClass>com.eguller.mouserecorder.MouseRecorder</mainClass>
+                            </classPath>
+                            <jre>
+                                <minVersion>1.6.0</minVersion>
+                            </jre>
+                            <versionInfo>
+                                <fileVersion>1.0.0.0</fileVersion>
+                                <txtFileVersion>${project.version}</txtFileVersion>
+                                <fileDescription>Mouse Recorder</fileDescription>
+                                <copyright>eguller 2014</copyright>
+                                <productVersion>1.0.0.0</productVersion>
+                                <txtProductVersion>${project.version}</txtProductVersion>
+                                <productName>Mouse Recorder</productName>
+                                <internalName>MouseRecorder</internalName>
+                                <originalFilename>MouseRecorder.exe</originalFilename>
+                            </versionInfo>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
+</project>

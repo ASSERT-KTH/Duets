@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.jboss.apiviz</groupId>
+  <artifactId>apiviz</artifactId>
+  <version>1.2.4.GA-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>APIviz</name>
+  <description>
+    APIviz is a JavaDoc doclet which extends the Java standard doclet.
+    It generates comprehensive UML-like class and package diagrams
+    that help the quick understanding of the overall API structure.
+  </description>
+
+  <url>http://www.jboss.org/apiviz/</url>
+  <organization>
+    <name>JBoss - a division of Red Hat</name>
+    <url>http://www.jboss.org/</url>
+  </organization>
+
+  <inceptionYear>2008</inceptionYear>
+
+  <licenses>
+    <license>
+      <name>GNU Lesser General Public License</name>
+      <url>http://www.gnu.org/licenses/lgpl.html</url>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:svn:http://anonsvn.jboss.org/repos/apiviz/trunk</connection>
+    <developerConnection>scm:svn:https://svn.jboss.org/repos/apiviz/trunk</developerConnection>
+  </scm>
+
+  <distributionManagement>
+    <repository>
+      <id>repository.jboss.org</id>
+      <name>JBoss.org Release Distribution Repository</name>
+      <url>https://svn.jboss.org/repos/repository.jboss.org/maven2</url>
+    </repository>
+    <snapshotRepository>
+      <id>snapshots.jboss.org</id>
+      <name>JBoss.org Development Snapshot Repository</name>
+      <url>https://snapshots.jboss.org/maven2</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <dependencies>
+    <!-- SUN Standard Doclet -->
+    <dependency>
+      <groupId>com.sun.jdk</groupId>
+      <artifactId>jdk-tools</artifactId>
+      <version>1.5</version>
+      <scope>system</scope>
+      <systemPath>${java.home}/../lib/tools.jar</systemPath>
+      <optional>true</optional>
+    </dependency>
+    
+    <!-- JDepend for package dependency analysis -->
+    <dependency>
+      <groupId>jdepend</groupId>
+      <artifactId>jdepend</artifactId>
+      <version>2.9.1</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <!-- Testing -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.4</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <encoding>UTF-8</encoding>
+          <source>1.5</source>
+          <target>1.5</target>
+          <debug>true</debug>
+          <optimize>true</optimize>
+          <showDeprecations>true</showDeprecations>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/Abstract*</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-source</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <aggregate>true</aggregate>
+          <breakiterator>true</breakiterator>
+          <charset>UTF-8</charset>
+          <docencoding>UTF-8</docencoding>
+          <encoding>UTF-8</encoding>
+          <links>
+            <link>http://java.sun.com/j2se/1.5.0/docs/api/</link>
+          </links>
+          <locale>en_US</locale>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <configuration>
+          <inputEncoding>UTF-8</inputEncoding>
+          <outputEncoding>UTF-8</outputEncoding>
+          <linkJavadoc>false</linkJavadoc>
+        </configuration>
+      </plugin>      
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-license</id>
+            <phase>package</phase>
+            <configuration>
+              <tasks>
+                <taskdef resource="net/sf/antcontrib/antlib.xml" />
+                <if>
+                  <or>
+                    <equals arg1="${project.packaging}" arg2="jar" />
+                    <equals arg1="${project.packaging}" arg2="bundle" />
+                  </or>
+                  <then>
+                    <move file="${project.build.directory}/${project.build.finalName}.jar" tofile="${project.build.directory}/${project.build.finalName}.orig.jar" />
+                    <zip destfile="${project.build.directory}/${project.build.finalName}.jar">
+                      <zipfileset dir="${basedir}" prefix="META-INF/">
+                        <include name="LICENSE.*" />
+                        <include name="NOTICE.*" />
+                        <include name="COPYRIGHT.*" />
+                      </zipfileset>
+                      <zipfileset src="${project.build.directory}/${project.build.finalName}.orig.jar" filemode="644" dirmode="755">
+                        <exclude name="*/*/*/example/**" />
+                        <exclude name="jdepend/**" />
+                      </zipfileset>
+                    </zip>
+                    <delete file="${project.build.directory}/${project.build.finalName}.orig.jar" />
+                    <move file="${project.build.directory}/${project.build.finalName}-sources.jar" tofile="${project.build.directory}/${project.build.finalName}-sources.orig.jar" />
+                    <zip destfile="${project.build.directory}/${project.build.finalName}-sources.jar">
+                      <zipfileset dir="${basedir}" prefix="META-INF/">
+                        <include name="LICENSE.*" />
+                        <include name="NOTICE.*" />
+                        <include name="COPYRIGHT.*" />
+                      </zipfileset>
+                      <zipfileset src="${project.build.directory}/${project.build.finalName}-sources.orig.jar" filemode="644" dirmode="755">
+                        <exclude name="*/*/*/example/**" />
+                      </zipfileset>
+                    </zip>
+                    <delete file="${project.build.directory}/${project.build.finalName}-sources.orig.jar" />
+                  </then>
+                </if>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>ant-contrib</groupId>
+            <artifactId>ant-contrib</artifactId>
+            <version>1.0b2</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <artifactSet>
+            <excludes>
+              <exclude>junit:junit</exclude>
+              <exclude>com.sun.jdk</exclude>
+            </excludes>
+          </artifactSet>
+          <transformers>
+            <transformer implementation="org.apache.maven.plugins.shade.resource.ComponentsXmlResourceTransformer" />
+          </transformers>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-distribution</id>
+            <phase>package</phase>
+            <goals>
+              <goal>attached</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <descriptors>
+            <descriptor>${basedir}/src/assembly/default.xml</descriptor>
+          </descriptors>
+          <appendAssemblyId>true</appendAssemblyId>
+          <tarLongFileMode>gnu</tarLongFileMode>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <tagBase>https://svn.jboss.org/repos/apiviz/tags</tagBase>
+          <!-- We don't want to use the default release profile because it
+               causes the JavaDoc and source jars to be deployed twice. -->
+          <useReleaseProfile>false</useReleaseProfile>
+          <!-- Activate a custom profile called "release" -->
+          <arguments>-Prelease</arguments>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <inherited>true</inherited>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-deploy-plugin</artifactId>
+            <configuration>
+              <updateReleaseInfo>true</updateReleaseInfo>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

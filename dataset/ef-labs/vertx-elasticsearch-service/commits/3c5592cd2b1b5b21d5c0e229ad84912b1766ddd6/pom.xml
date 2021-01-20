@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>vertx-elasticsearch-service</artifactId>
+    <version>2.3.0-SNAPSHOT</version>
+
+    <parent>
+        <groupId>com.englishtown.vertx</groupId>
+        <artifactId>oss-parent-vertx</artifactId>
+        <version>2.2.0</version>
+    </parent>
+
+    <properties>
+        <vertx.version>3.3.3</vertx.version>
+        <es.version>2.2.0</es.version>
+        <lucene.version>5.4.1</lucene.version>
+        <vertx.hk2.version>2.4.0</vertx.hk2.version>
+        <vertx.guice.version>2.3.0</vertx.guice.version>
+        <when.version>4.1.1</when.version>
+
+        <!--Vert.x codegen does not play nice with maven-compiler-plugin 3.2-->
+        <maven.compiler.plugin.version>3.1</maven.compiler.plugin.version>
+
+        <!--Test properties-->
+        <test.es.hostname>localhost</test.es.hostname>
+        <test.es.port>9300</test.es.port>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-dependencies</artifactId>
+                <version>${vertx.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>${es.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.englishtown.vertx</groupId>
+            <artifactId>vertx-hk2</artifactId>
+            <version>${vertx.hk2.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.englishtown.vertx</groupId>
+            <artifactId>vertx-guice</artifactId>
+            <version>${vertx.guice.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-service-proxy</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-codegen</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-lang-js</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!--Test dependencies-->
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>${es.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-test-framework</artifactId>
+            <version>${lucene.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.englishtown.vertx</groupId>
+            <artifactId>vertx-when</artifactId>
+            <version>${when.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-service-factory</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>embedded</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <test.es.port>19300</test.es.port>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <test.embedded>true</test.embedded>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <test.embedded>true</test.embedded>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>localhost</id>
+        </profile>
+        <profile>
+            <id>dockerhost</id>
+            <properties>
+                <test.es.hostname>dockerhost</test.es.hostname>
+            </properties>
+        </profile>
+    </profiles>
+
+    <build>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>
+            </testResource>
+        </testResources>
+
+        <plugins>
+            <!-- Configure the execution of the compiler to execute the codegen processor -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <configuration>
+                            <annotationProcessors>
+                                <annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
+                            </annotationProcessors>
+                            <generatedSourcesDirectory>${project.basedir}/src/main/generated</generatedSourcesDirectory>
+                            <compilerArgs>
+                                <arg>-AoutputDirectory=${project.basedir}/src/main</arg>
+                            </compilerArgs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <scm>
+        <connection>scm:git:https://github.com/englishtown/${project.artifactId}.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/englishtown/${project.artifactId}.git</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://github.com/englishtown/${project.artifactId}</url>
+    </scm>
+
+</project>

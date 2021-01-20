@@ -1,0 +1,160 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>de.unima.dws</groupId>
+	<artifactId>dbpedia-graph</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>${project.artifactId}</name>
+	<description>DBpedia Graph-based Disambiguation with Graph Database</description>
+
+	<properties>
+		<maven.compiler.source>1.7</maven.compiler.source>
+		<maven.compiler.target>1.7</maven.compiler.target>
+		<encoding>UTF-8</encoding>
+		<!-- graph db stuff -->
+		<tinkerpop.version>2.4.0</tinkerpop.version>
+		<neo4j.version>1.9.2</neo4j.version>
+		<sesame.version>2.7.5</sesame.version>
+		<slf4j.version>1.7.5</slf4j.version>
+	</properties>
+
+	<dependencies>
+		<!-- graph related dependencies -->
+		<dependency>
+			<!-- for batch etc. https://github.com/tinkerpop/blueprints/wiki/Batch-Implementation -->
+			<groupId>com.tinkerpop.blueprints</groupId>
+			<artifactId>blueprints-core</artifactId>
+			<version>${tinkerpop.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.tinkerpop</groupId>
+			<artifactId>pipes</artifactId>
+			<version>${tinkerpop.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.tinkerpop.gremlin</groupId>
+			<artifactId>gremlin-java</artifactId>
+			<version>${tinkerpop.version}</version>
+		</dependency>
+		<dependency>
+			<!-- https://github.com/tinkerpop/blueprints/wiki/Sail-Ouplementation -->
+			<groupId>com.tinkerpop.blueprints</groupId>
+			<artifactId>blueprints-graph-sail</artifactId>
+			<version>${tinkerpop.version}</version>
+		</dependency>
+		<dependency>
+			<!-- https://github.com/tinkerpop/blueprints/wiki/Neo4j-Implementation -->
+			<groupId>com.tinkerpop.blueprints</groupId>
+			<artifactId>blueprints-neo4j-graph</artifactId>
+			<version>${tinkerpop.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-classic</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<!-- explicitly include neo4j-kernel to exclude logback dependency -->
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-kernel</artifactId>
+			<version>${neo4j.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-classic</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-access</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<!-- <dependency> -->
+		<!-- https://github.com/tinkerpop/blueprints/wiki/Neo4jBatch-Implementation -->
+		<!-- <groupId>com.tinkerpop.blueprints</groupId> -->
+		<!-- <artifactId>blueprints-neo4jbatch-graph</artifactId> -->
+		<!-- <version>2.2.0</version> -->
+		<!-- </dependency> -->
+		<dependency>
+			<!-- https://github.com/tinkerpop/blueprints/wiki/JUNG-Ouplementation -->
+			<groupId>com.tinkerpop.blueprints</groupId>
+			<artifactId>blueprints-graph-jung</artifactId>
+			<version>${tinkerpop.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sf.jgrapht</groupId>
+			<artifactId>jgrapht</artifactId>
+			<version>0.8.3</version>
+		</dependency>
+
+		<!-- testing -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>15.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.aima-java</groupId>
+			<artifactId>aima-core</artifactId>
+			<version>0.10.5</version>
+		</dependency>
+		<dependency>
+			<groupId>com.esotericsoftware.kryo</groupId>
+			<artifactId>kryo</artifactId>
+			<version>2.23.0</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<!-- build the jar with all dependencies, so that execution from command 
+						line with java -cp target/[...].jar is possible -->
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<!-- define main class in MANIFEST.MF for convenient java -jar execution -->
+					<archive>
+						<manifest>
+							<mainClass>de.unima.dws.dbpediagraph.loader.DBpediaGraphLoader</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+				<!-- for execution during regular package phase -->
+				<!-- <executions> -->
+				<!-- <execution> -->
+				<!-- <id>make-assembly</id> this is used for inheritance merges -->
+				<!-- <phase>package</phase> bind to the packaging phase -->
+				<!-- <goals> -->
+				<!-- <goal>single</goal> -->
+				<!-- </goals> -->
+				<!-- </execution> -->
+				<!-- </executions> -->
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

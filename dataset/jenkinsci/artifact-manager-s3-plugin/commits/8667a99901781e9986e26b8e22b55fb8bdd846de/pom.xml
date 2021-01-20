@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.jenkins-ci.plugins</groupId>
+    <artifactId>plugin</artifactId>
+    <version>3.15</version>
+    <relativePath />
+  </parent>
+  <groupId>io.jenkins.plugins</groupId>
+  <artifactId>artifact-manager-s3</artifactId>
+  <version>${revision}${changelist}</version>
+  <packaging>hpi</packaging>
+
+  <properties>
+    <revision>1.0-alpha-1</revision>
+    <changelist>-SNAPSHOT</changelist>
+    <jclouds.version>2.1.0</jclouds.version>
+    <jenkins.version>2.121.1</jenkins.version>
+    <java.level>8</java.level>
+    <workflow-api-plugin.version>2.28</workflow-api-plugin.version>
+    <useBeta>true</useBeta>
+  </properties>
+
+  <name>Artifact Manager on S3 plugin</name>
+  <description>A Jenkins plugin to keep artifacts and Pipeline stashes in Amazon S3.</description>
+  <url>https://wiki.jenkins.io/display/JENKINS/Artifact+Manager+S3+Plugin</url>
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/licenses/MIT</url>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
+    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+    <tag>${scmTag}</tag>
+  </scm>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.jclouds.provider</groupId>
+      <artifactId>aws-s3</artifactId>
+      <version>${jclouds.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>aws-java-sdk</artifactId>
+      <version>1.11.329</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>apache-httpcomponents-client-4-api</artifactId>
+      <version>4.5.5-3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>2.8.9</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jdt</groupId>
+      <artifactId>org.eclipse.jdt.annotation</artifactId>
+      <version>2.0.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>structs</artifactId>
+        <version>1.14</version>
+    </dependency>
+    <dependency>
+        <groupId>org.jenkins-ci.plugins.workflow</groupId>
+        <artifactId>workflow-api</artifactId>
+        <version>${workflow-api-plugin.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.jenkins-ci.plugins.workflow</groupId>
+        <artifactId>workflow-api</artifactId>
+        <version>${workflow-api-plugin.version}</version>
+        <classifier>tests</classifier>
+        <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.test</groupId>
+      <artifactId>docker-fixtures</artifactId>
+      <version>1.8</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>ssh-slaves</artifactId>
+      <version>1.26</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>jdk-tool</artifactId>
+      <version>1.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-job</artifactId>
+      <version>2.21</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-cps</artifactId>
+      <version>2.54-rc730.05bb1322341d</version> <!-- TODO pending release of https://github.com/jenkinsci/workflow-cps-plugin/pull/231 -->
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-durable-task-step</artifactId>
+      <version>2.19</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-basic-steps</artifactId>
+      <version>2.8-rc353.ae434696120f</version> <!-- TODO pending release of https://github.com/jenkinsci/workflow-basic-steps-plugin/pull/60 -->
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.kohsuke.metainf-services</groupId>
+      <artifactId>metainf-services</artifactId>
+      <version>1.7</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.jenkins-ci.main</groupId>
+        <artifactId>jenkins-core</artifactId>
+        <version>${jenkins-core.version}</version>
+        <exclusions>
+          <exclusion> <!-- JENKINS-50520: pick up 18 from jclouds, which needs at least TypeToken (12+) -->
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency> <!-- JENKINS-50520: picked up from jclouds; to match the Guice version in core -->
+        <groupId>com.google.inject.extensions</groupId>
+        <artifactId>guice-assistedinject</artifactId>
+        <version>4.0</version>
+      </dependency>
+      <dependency>
+        <groupId>joda-time</groupId>
+        <artifactId>joda-time</artifactId>
+        <version>2.8.1</version>
+      </dependency>
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.9</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jenkins-ci.plugins.workflow</groupId>
+        <artifactId>workflow-step-api</artifactId>
+        <version>2.16-rc310.04f07c15faaf</version> <!-- TODO pending release of https://github.com/jenkinsci/workflow-step-api-plugin/pull/37 -->
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.jenkins-ci.plugins.workflow</groupId>
+        <artifactId>workflow-support</artifactId>
+        <version>2.19-rc289.691fb60f3fa6</version> <!-- TODO pending release of https://github.com/jenkinsci/workflow-support-plugin/pull/61 -->
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>scm-api</artifactId>
+        <version>2.2.7</version>
+        <scope>test</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+      <plugins>
+          <plugin>
+            <groupId>org.jenkins-ci.tools</groupId>
+            <artifactId>maven-hpi-plugin</artifactId>
+            <configuration>
+              <!-- JENKINS-50520: since we need a custom version of Guava -->
+              <maskClasses>com.google.common.</maskClasses>
+            </configuration>
+          </plugin>
+
+      </plugins>
+  </build>
+
+  <repositories>
+    <repository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <profiles>
+      <profile>
+          <id>S3-settings</id>
+          <activation>
+              <property>
+                  <name>S3_BUCKET</name>
+              </property>
+          </activation>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <artifactId>maven-surefire-plugin</artifactId>
+                      <configuration>
+                          <environmentVariables>
+                              <AWS_PROFILE>${AWS_PROFILE}</AWS_PROFILE>
+                              <AWS_REGION>${AWS_REGION}</AWS_REGION>
+                              <S3_BUCKET>${S3_BUCKET}</S3_BUCKET>
+                              <S3_DIR>${S3_DIR}</S3_DIR>
+                          </environmentVariables>
+                      </configuration>
+                  </plugin>
+              </plugins>
+          </build>
+      </profile>
+  </profiles>
+</project>

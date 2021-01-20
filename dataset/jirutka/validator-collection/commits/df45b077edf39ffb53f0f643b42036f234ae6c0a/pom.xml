@@ -1,0 +1,186 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>cz.jirutka.maven</groupId>
+        <artifactId>groovy-parent</artifactId>
+        <version>1.3.2</version>
+    </parent>
+
+
+    <!--//////////////////// ABOUT ////////////////////-->
+
+    <groupId>cz.jirutka.validator</groupId>
+    <artifactId>validator-collection</artifactId>
+    <version>2.2.0</version>
+    <packaging>jar</packaging>
+
+    <name>validator-collection</name>
+    <description>Universal bean validator for collection of simple types.</description>
+    <url>https://github.com/jirutka/validator-collection</url>
+    <inceptionYear>2013</inceptionYear>
+
+    <developers>
+        <developer>
+            <name>Jakub Jirutka</name>
+            <email>jakub@jirutka.cz</email>
+            <organization>CTU in Prague</organization>
+            <organizationUrl>http://www.cvut.cz</organizationUrl>
+        </developer>
+    </developers>
+
+
+    <!--//////////////////// DISTRIBUTION ////////////////////-->
+
+    <licenses>
+        <license>
+            <name>MIT</name>
+            <url>http://opensource.org/licenses/MIT</url>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/jirutka/validator-collection</url>
+        <connection>scm:git:git@github.com:jirutka/validator-collection.git</connection>
+    </scm>
+
+    <ciManagement>
+        <system>travis</system>
+        <url>https://travis-ci.org/jirutka/validator-collection</url>
+    </ciManagement>
+
+    <issueManagement>
+        <system>github</system>
+        <url>https://github.com/jirutka/validator-collection/issues</url>
+    </issueManagement>
+
+
+    <!--//////////////////// DEPENDENCIES ////////////////////-->
+
+    <dependencies>
+        <!-- JSR-330 Annotations -->
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>1</version>
+        </dependency>
+
+        <!-- JSR-349 Bean Validator -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <!-- Note: Minimal supported version is 4.3.0.Final. -->
+            <version>5.4.1.Final</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.1</version>
+        </dependency>
+
+        <!-- Required by hibernate-validator -->
+        <dependency>
+            <groupId>javax.el</groupId>
+            <artifactId>javax.el-api</artifactId>
+            <version>2.2.4</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Required by hibernate-validator -->
+        <dependency>
+            <groupId>org.glassfish.web</groupId>
+            <artifactId>javax.el</artifactId>
+            <version>2.2.4</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!--//// Test ////-->
+
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.spockframework</groupId>
+            <artifactId>spock-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Needed only for testing @EachSafeHtml -->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.8.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+
+    <!--//////////////////// PROFILES ////////////////////-->
+
+    <profiles>
+        <!--
+            Profile to run integration tests with different version of Hibernate Validator then the
+            compile version.
+        -->
+        <profile>
+            <id>test-different-hv-version</id>
+
+            <properties>
+                <!-- Should be set from CLI: -Dhv.version.test=VERSION -->
+                <hv.version.test></hv.version.test>
+                <dependency.directory>${project.build.directory}/dependency</dependency.directory>
+            </properties>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${dependency.directory}</outputDirectory>
+                                    <artifactItems>
+                                        <item>
+                                            <groupId>org.hibernate</groupId>
+                                            <artifactId>hibernate-validator</artifactId>
+                                            <version>${hv.version.test}</version>
+                                        </item>
+                                    </artifactItems>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <classpathDependencyExcludes>
+                                <exclude>org.hibernate:hibernate-validator</exclude>
+                            </classpathDependencyExcludes>
+                            <additionalClasspathElements>
+                                <element>${dependency.directory}/hibernate-validator-${hv.version.test}.jar</element>
+                            </additionalClasspathElements>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

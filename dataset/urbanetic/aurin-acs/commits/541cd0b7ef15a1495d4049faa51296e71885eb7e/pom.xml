@@ -1,0 +1,237 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>au.com.mutopia</groupId>
+  <artifactId>aurin-acs</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>Asset Conversion Service</name>
+
+  <!-- Main class and version properties -->
+  <properties>
+    <mainClass>au.com.mutopia.service.AcsRestService</mainClass>
+    <dropwizard.version>0.6.2</dropwizard.version>
+  </properties>
+
+  <!-- Dependencies -->
+  <dependencies>
+    <!-- UTILITIES -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>15.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+      <version>3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.17</version>
+    </dependency>
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>2.3</version>
+    </dependency>
+    <dependency>
+      <groupId>net.sf.flexjson</groupId>
+      <artifactId>flexjson</artifactId>
+      <version>3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.14.8</version>
+    </dependency>
+    
+    <!-- REST -->
+    <dependency>
+      <groupId>com.yammer.dropwizard</groupId>
+      <artifactId>dropwizard-core</artifactId>
+      <version>${dropwizard.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.yammer.dropwizard</groupId>
+      <artifactId>dropwizard-testing</artifactId>
+      <version>${dropwizard.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.yammer.dropwizard</groupId>
+      <artifactId>dropwizard-views</artifactId>
+      <version>${dropwizard.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.yammer.dropwizard</groupId>
+      <artifactId>dropwizard-jdbi</artifactId>
+      <version>${dropwizard.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.jdbi</groupId>
+          <artifactId>jdbi</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- Dropwizard Guice integration -->
+    <dependency>
+      <groupId>com.fiestacabin.dropwizard.guice</groupId>
+      <artifactId>dropwizard-guice</artifactId>
+      <version>${dropwizard.version}</version>
+    </dependency>
+
+    <!-- JERSEY -->
+    <dependency>
+      <groupId>com.sun.jersey.contribs</groupId>
+      <artifactId>jersey-multipart</artifactId>
+      <!-- TODO(aramk) put in parent -->
+      <version>1.17.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jvnet</groupId>
+      <artifactId>mimepull</artifactId>
+      <version>1.6</version>
+    </dependency>
+    <!-- Depends on org.apache.httpcomponents -->
+    <dependency>
+      <groupId>com.sun.jersey.contribs</groupId>
+      <artifactId>jersey-apache-client4</artifactId>
+      <version>1.17.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.2.3</version>
+    </dependency>
+
+    <!-- Test dependencies -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>1.9.5</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.10</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.easytesting</groupId>
+      <artifactId>fest-assert-core</artifactId>
+      <version>2.0M5</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <!-- Build management -->
+  <build>
+    <!-- Include all the resources except DBs and assembly stuff -->
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <includes>
+          <include>**/*</include>
+        </includes>
+        <excludes>
+          <exclude>h2/auth</exclude>
+          <exclude>h2/*.db</exclude>
+          <exclude>h2-test/</exclude>
+          <exclude>assembly.xml</exclude>
+        </excludes>
+      </resource>
+    </resources>
+
+    <plugins>
+      <!-- JAR compilation -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <!-- Copy dependencies to MANIFEST.MF -->
+          <!-- Prevent duplication of dependencies when packaging into an existing shaded JAR. -->
+          <forceCreation>true</forceCreation>
+          <archive>
+            <manifest>
+              <mainClass>${mainClass}</mainClass>
+              <addClasspath>true</addClasspath>
+              <classpathLayoutType>custom</classpathLayoutType>
+              <customClasspathLayout>lib/${artifact.groupId}.${artifact.artifactId}-${artifact.baseVersion}${dashClassifier?}.${artifact.extension}</customClasspathLayout>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <!-- Dependency copying -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.8</version>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <overWriteReleases>true</overWriteReleases>
+              <overWriteSnapshots>true</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <prependGroupId>true</prependGroupId>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.4</version>
+        <executions>
+          <execution>
+            <id>assembly:package</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <appendAssemblyId>false</appendAssemblyId>
+              <descriptors>
+                <descriptor>src/main/resources/assembly.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- JAR execution -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-cli</id>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>${mainClass}</mainClass>
+              <arguments>
+                <argument>server</argument>
+                <argument>configuration.yml</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

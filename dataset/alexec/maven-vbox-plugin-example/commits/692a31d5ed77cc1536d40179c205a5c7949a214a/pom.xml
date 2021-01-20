@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.alexecollins.vbox</groupId>
+    <artifactId>maven-vbox-plugin-example</artifactId>
+    <version>2.0.0-SNAPSHOT</version>
+    <packaging>war</packaging>
+
+    <description>An example of using maven-vbox-plugin.</description>
+
+    <url>https://github.com/alexec/maven-vbox-plugin-example</url>
+
+    <licenses>
+        <license>
+            <name>GNU General Public License, version 3 (GPL-3.0)</name>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>alex.collins</id>
+            <name>Alex Collins</name>
+            <email>alex.e.c@gmail.com</email>
+        </developer>
+    </developers>
+
+
+    <scm>
+        <connection>scm:git:git@github.com/alexec/maven-vbox-plugin-example.git</connection>
+        <developerConnection>scm:git:git@github.com/alexec/maven-vbox-plugin-example.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/alexec/maven-vbox-plugin-example/issues/</url>
+    </issueManagement>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <vbox.version>2.0.0-SNAPSHOT</vbox.version>
+    </properties>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>com.alexecollins.vbox</groupId>
+                <artifactId>vbox-maven-plugin</artifactId>
+                <version>${vbox.version}</version>
+
+                <executions>
+                    <execution>
+                        <id>create-definition</id>
+                        <goals><goal>create-definition</goal></goals>
+                        <configuration>
+                            <templateName>CentOS_6_3</templateName>
+                            <name>app1.domain1</name>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>patch-definition</id>
+                        <goals><goal>patch-definition</goal></goals>
+                        <configuration>
+                            <patches>
+                                <archPatch/>
+                                <predefinedPatch>
+                                    <name>CentOS_6_3--tomcat6</name>
+                                </predefinedPatch>
+                                <!--
+                                <userDefinedPatch>
+                                    <file>src/vbox/patches/user-defined.patch</file>
+                                </userDefinedPatch>
+                                -->
+                            </patches>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>default</id>
+                        <goals>
+                            <goal>clean</goal>
+                            <goal>provision</goal>
+                            <goal>start</goal>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>rpm-maven-plugin</artifactId>
+                <version>2.1-alpha-3-SNAPSHOT</version>
+                <configuration>
+                    <group>Alex Collins</group>
+                    <copyright>-</copyright>
+                    <targetOS>linux</targetOS>
+                    <targetVendor>redhat</targetVendor>
+                    <mappings>
+                        <mapping>
+                            <directory>/usr/share/tomcat6/webapps/${project.artifactId}</directory>
+                            <sources>
+                                <source>
+                                    <location>target/${project.artifactId}</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                    </mappings>
+                    <requires>
+                        <require>tomcat6</require>
+                    </requires>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>rpm</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <id>make-files-unix</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <fixcrlf srcdir="src/main/vbox/app1.domain1/floppy0" eol="unix"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>deploy-rpm-to-vbox</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <!-- note we force trust as new VMs will get new MAC etc. -->
+                                <scp todir="root@192.168.56.2:/root" password="keenbrick" trust="true">
+                                    <fileset dir="${project.build.directory}/rpm/${project.artifactId}/RPMS/noarch"/>
+                                </scp>
+                                <sshexec host="192.168.56.2" username="root" password="keenbrick" trust="true"
+                                         command="yum -y install *.rpm"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <!-- for SSH/SCP -->
+                    <dependency>
+                        <groupId>org.apache.ant</groupId>
+                        <artifactId>ant-jsch</artifactId>
+                        <version>1.8.4</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.12</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <tagNameFormat>@{project.version}</tagNameFormat>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.6.1</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>cache</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.alexecollins.vbox</groupId>
+                        <artifactId>vbox-maven-plugin</artifactId>
+                        <version>${vbox.version}</version>
+                        <configuration>
+                            <!-- use a global cache -->
+                            <cacheDir>${user.home}/.vbox</cacheDir>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>

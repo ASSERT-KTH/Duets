@@ -1,0 +1,202 @@
+<project
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.soebes.maven.guide</groupId>
+    <artifactId>parent</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <relativePath>parent/pom.xml</relativePath>
+  </parent>
+
+  <artifactId>maui</artifactId>
+  <packaging>pom</packaging>
+
+  <name>MaUI Test Guide</name>
+  <description>Maven Unit and Integration Test Guide (MaUI Test Guide)</description>
+
+  <properties>
+    <surefireVersion>2.8</surefireVersion>
+    <failsafeVersion>2.8</failsafeVersion>
+  </properties>
+
+  <!-- <modules> -->
+  <!-- <module>examples</module> -->
+  <!-- </modules> -->
+
+  <build>
+    <plugins>
+      <!-- <plugin> <groupId>com.agilejava.docbkx</groupId> <artifactId>docbkx-maven-plugin</artifactId>
+        <version>2.0.12</version> <dependencies> <dependency> <groupId>docbook</groupId>
+        <artifactId>docbook-xml</artifactId> <version>4.5</version> </dependency>
+        </dependencies> <executions> <execution> <goals> <goal>generate-html</goal>
+        </goals> <phase>pre-site</phase> </execution> </executions> </plugin> -->
+      <plugin>
+        <groupId>com.mycila.maven-license-plugin</groupId>
+        <artifactId>maven-license-plugin</artifactId>
+        <configuration>
+          <header>src/main/etc/header.txt</header>
+          <quiet>false</quiet>
+          <aggregate>true</aggregate>
+          <failIfMissing>false</failIfMissing>
+          <includes>
+            <include>src/**</include>
+            <include>src/site/**</include>
+          </includes>
+          <excludes>
+            <exclude>src/main/resources/**</exclude>
+            <exclude>src/test/resources/**</exclude>
+            <exclude>target/**</exclude>
+            <!-- Currently i have to exclude the following files, based on
+              this issue: http://code.google.com/p/maven-license-plugin/issues/detail?id=89 -->
+            <exclude>src/**/*.apt.vm</exclude>
+          </excludes>
+          <mapping>
+            <g>DOUBLESLASH_STYLE</g>
+            <apt.vm>DOUBLETILDE_STYLE</apt.vm> <!-- This does currently not work! see above issue! -->
+            <apt>DOUBLETILDE_STYLE</apt>
+            <xml>XML_STYLE</xml>
+          </mapping>
+          <properties>
+            <year>2011</year>
+            <email>maui@soebes.de</email>
+          </properties>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.2</version>
+        <configuration>
+          <descriptors>
+            <descriptor>${basedir}/src.xml</descriptor>
+          </descriptors>
+          <tarLongFileMode>gnu</tarLongFileMode>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.2</version>
+        <executions>
+          <execution>
+            <id>copy</id>
+            <phase>site</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>com.soebes.maven.guide</groupId>
+                  <artifactId>maui</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>src</classifier>
+                  <type>tar.gz</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/site/</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>com.soebes.maven.guide</groupId>
+                  <artifactId>maui</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>src</classifier>
+                  <type>tar.bz2</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/site/</outputDirectory>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>com.soebes.maven.guide</groupId>
+                  <artifactId>maui</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>src</classifier>
+                  <type>zip</type>
+                  <overWrite>true</overWrite>
+                  <outputDirectory>${project.build.directory}/site/</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+    <plugin>
+      <groupId>org.apache.maven.doxia</groupId>
+      <artifactId>doxia-maven-plugin</artifactId>
+      <version>1.1.4</version>
+        <executions>
+          <execution>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>render-books</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <books>
+            <book>
+              <directory>src/site/apt</directory>
+              <descriptor>src/site/mauiguide.xml</descriptor>
+              <formats>
+                <format>
+                  <id>latex</id>
+                </format>
+              </formats>
+            </book>
+          </books>
+        </configuration>
+      </plugin>
+<!--
+    Currently uncommented cause of
+    http://jira.codehaus.org/browse/MLATEX-12
+-->
+<!--
+  <plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>latex-maven-plugin</artifactId>
+    <version>1.2-SNAPSHOT</version>
+    <executions>
+      <execution>
+        <phase>pre-site</phase>
+        <goals>
+          <goal>single</goal>
+        </goals>
+        <configuration>
+          <masterFile>${project.build.directory}/generated-site/latex/maui-guide/maui-guide</masterFile>
+          <latexBuildDir>${project.build.directory}/generated-site/latex/maui-guide/</latexBuildDir>
+        </configuration>
+      </execution>
+    </executions>
+  </plugin>
+-->
+    </plugins>
+  </build>
+
+  <scm>
+    <developerConnection>scm:git:git+ssh://git@github.com:khmarbaise/maui.git</developerConnection>
+    <connection>scm:git:git://github.com/khmarbaise/maui.git</connection>
+    <url>https://github.com/khmarbaise/maui</url>
+  </scm>
+
+</project>

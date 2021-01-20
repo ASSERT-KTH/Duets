@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>it.bancaditalia.oss</groupId>
+	<artifactId>sdmx</artifactId>
+	<version>${sdmx.version}</version>
+
+	<name>SDMX</name>
+	<description>Sdmx Connectors for Statistical Software</description>
+	<url>https://github.com/amattioc/SDMX/</url>
+
+	<licenses>
+		<license>
+			<name>European Union Public Licence (EUPL)</name>
+			<url>https://joinup.ec.europa.eu/software/page/eupl/licence-eupl</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Attilio Mattiocco</name>
+			<email>attilio.mattiocco@bancaditalia.it</email>
+			<organization>Banca d'Italia</organization>
+			<organizationUrl>http://www.bancaditalia.it/</organizationUrl>
+		</developer>
+		<developer>
+			<name>Valentino Pinna</name>
+			<email>valentino.pinna@bancaditalia.it</email>
+			<organization>Banca d'Italia</organization>
+			<organizationUrl>http://www.bancaditalia.it/</organizationUrl>
+		</developer>
+	</developers>
+
+	<scm>
+		<connection>scm:git:git://github.com/amattioc/SDMX.git</connection>
+		<developerConnection>scm:git:ssh://github.com:amattioc/SDMX.git</developerConnection>
+		<url>https://github.com/amattioc/SDMX/tree/master</url>
+	</scm>
+
+	<distributionManagement>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</repository>
+	</distributionManagement>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.7</maven.compiler.source>
+		<maven.compiler.target>1.7</maven.compiler.target>
+	</properties>
+
+	<profiles>
+		<profile>
+			<id>compile-stata</id>
+			<activation>
+				<property>
+					<name>sdmx.compile.stata</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>com.stata</groupId>
+					<artifactId>stata-sfi</artifactId>
+					<version>14.0</version>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>build-helper-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<phase>generate-sources</phase>
+								<goals>
+									<goal>add-source</goal>
+								</goals>
+								<configuration>
+									<sources>
+										<source>stata_src</source>
+									</sources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<directory>${project.basedir}/build</directory>
+		<sourceDirectory>${project.basedir}/src</sourceDirectory>
+		<testSourceDirectory>${project.basedir}/test</testSourceDirectory>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>1.4.1</version>
+				<configuration>
+					<goal>enforce</goal>
+					<rules>
+						<requireProperty>
+							<property>sdmx.version</property>
+							<message>You must set the 'sdmx.version' property!</message>
+							<regex>[0-9]+\.[0-9]+\.[0-9]+</regex>
+							<regexMessage>The sdmx.version property must be of the form '1.23.456'.</regexMessage>
+						</requireProperty>
+					</rules>
+				</configuration>
+			</plugin>
+			<plugin>
+				<!-- Build an executable JAR -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.0.1</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>lib/</classpathPrefix>
+							<mainClass>it.bancaditalia.oss.sdmx.helper.SDMXHelper</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.0.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.4</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<additionalparams>-Xdoclint:none</additionalparams>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.6</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.8</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>ossrh</serverId>
+					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<autoReleaseAfterClose>true</autoReleaseAfterClose>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

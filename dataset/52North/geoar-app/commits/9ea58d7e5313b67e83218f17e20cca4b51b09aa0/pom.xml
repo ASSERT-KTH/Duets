@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.n52.geoar</groupId>
+	<artifactId>geoar-app</artifactId>
+	<version>0.5.3</version>
+	<packaging>apk</packaging>
+
+	<name>GeoAR</name>
+	<description>An augmented reality viewer for high dimensional geospatial data.</description>
+
+	<url>http://52north.org/android</url>
+	<inceptionYear>2011</inceptionYear>
+	<organization>
+		<name>52°North Initiative for Geospatial Open Source Software GmbH</name>
+		<url>http://52north.org</url>
+	</organization>
+
+	<scm>
+		<!-- We use the fork & pull development model: https://help.github.com/articles/using-pull-requests -->
+		<connection>scm:git:git://github.com/52North/geoar-app.git</connection>
+		<url>https://github.com/52North/geoar-app</url>
+	</scm>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<comments>A business-friendly OSS license</comments>
+		</license>
+	</licenses>
+	
+	<developers>
+		<developer>
+			<name>Arne de Wall</name>
+			<email>a.dewall@52north.org</email>
+			<organization>${project.organization.name}</organization>
+			<organizationUrl>${project.organization.url}</organizationUrl>
+			<timezone>GMT+1</timezone>
+			<id>dewall</id>
+		</developer>
+		<developer>
+			<name>Holger Hopmann</name>
+			<email>h.hopmann@52north.org</email>
+			<organization>${project.organization.name}</organization>
+			<organizationUrl>${project.organization.url}</organizationUrl>
+			<timezone>GMT+1</timezone>
+			<id>hopmann</id>
+		</developer>
+	</developers>
+
+	<properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+	
+	<dependencies>
+		<dependency>
+			<groupId>com.google.android</groupId>
+			<artifactId>android</artifactId>
+			<version>4.1.1.4</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- using lib-repository, maven will install automatically -->
+		<dependency>
+			<groupId>org.mapsforge</groupId>
+			<artifactId>mapsforge-map-patched</artifactId>
+			<version>0.3.0</version>
+			<classifier>jar-with-dependencies</classifier>
+		</dependency>
+
+		<dependency>
+			<groupId>com.vividsolutions</groupId>
+			<artifactId>jts</artifactId>
+			<version>1.8</version>
+		</dependency>
+
+		<!-- Logging -->
+		<dependency>
+			<groupId>com.github.tony19</groupId>
+			<artifactId>logback-android-core</artifactId>
+			<version>1.0.7-1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.tony19</groupId>
+			<artifactId>logback-android-classic</artifactId>
+			<version>1.0.7-1</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>dom4j</artifactId>
+					<groupId>org.dom4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>org.dom4j.dom4j</artifactId>
+					<groupId>org.apache.directory.studio</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-ext</artifactId>
+			<version>1.7.2</version>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.16</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.actionbarsherlock</groupId>
+			<artifactId>actionbarsherlock</artifactId>
+			<version>4.2.0</version>
+			<type>apklib</type>
+		</dependency>
+
+		<!-- Data Sources -->
+		<dependency>
+			<groupId>org.n52.geoar</groupId>
+			<artifactId>geoar-ds</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
+	</dependencies>
+
+	<profiles>
+		<!-- profile to sign & zipalign apk for uploading to play -->
+		<profile>
+			<id>play52N</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jarsigner-plugin</artifactId>
+						<version>1.2</version>
+						<executions>
+							<execution>
+								<id>signing</id>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+								<phase>package</phase>
+								<inherited>true</inherited>
+								<configuration>
+									<archiveDirectory></archiveDirectory>
+									<includes>
+										<include>target/*.apk</include>
+									</includes>
+									<keystore>${conf.geoar.keystore.location}</keystore>
+									<storepass>${conf.geoar.keystore.storepass}</storepass>
+									<keypass>${conf.geoar.keystore.keypass}</keypass>
+									<alias>geoar</alias>
+									<arguments>
+										<argument>-sigalg</argument>
+										<argument>MD5withRSA</argument>
+										<argument>-digestalg</argument>
+										<argument>SHA1</argument>
+									</arguments>
+								</configuration>
+							</execution>
+							<execution>
+								<id>verify</id>
+								<goals>
+									<goal>verify</goal>
+								</goals>
+								<configuration>
+									<verbose>true</verbose>
+									<certs>true</certs>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>com.jayway.maven.plugins.android.generation2</groupId>
+						<artifactId>android-maven-plugin</artifactId>
+						<version>3.8.2</version>
+						<inherited>true</inherited>
+						<executions>
+							<execution>
+								<id>alignApk</id>
+								<phase>install</phase>
+								<goals>
+									<goal>zipalign</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<sign>
+								<debug>false</debug>
+							</sign>
+							<zipalign>
+								<verbose>true</verbose>
+								<skip>false</skip>
+							</zipalign>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+
+	<build>
+		<resources>
+			<resource>
+				<!-- filter res directory -->
+				<directory>${project.basedir}/res</directory>
+				<filtering>true</filtering>
+				<targetPath>${project.build.directory}/filtered-res</targetPath>
+				<includes>
+					<include>**/*</include>
+				</includes>
+			</resource>
+		</resources>
+
+		<plugins>
+			<plugin>
+				<!-- Shift resource processing to earlier phase -->
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.6</version>
+				<executions>
+					<execution>
+						<phase>initialize</phase>
+						<goals>
+							<goal>resources</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
+				<artifactId>android-maven-plugin</artifactId>
+				<version>3.8.2</version>
+				<configuration>
+					<androidManifestFile>${project.basedir}/AndroidManifest.xml</androidManifestFile>
+					<assetsDirectory>${project.basedir}/assets</assetsDirectory>
+					<resourceDirectory>${project.build.directory}/filtered-res</resourceDirectory>
+					<nativeLibrariesDirectory>${project.basedir}/src/main/native</nativeLibrariesDirectory>
+					<sdk>
+						<platform>15</platform>
+					</sdk>
+					<deleteConflictingFiles>true</deleteConflictingFiles>
+					<undeployBeforeDeploy>false</undeployBeforeDeploy>
+				</configuration>
+				<extensions>true</extensions>
+			</plugin>
+
+			<plugin>
+				<groupId>com.mycila.maven-license-plugin</groupId>
+				<artifactId>maven-license-plugin</artifactId>
+				<version>1.9.0</version>
+				<configuration>
+					<header>src/main/resources/license_header.txt</header>
+					<includes>
+						<include>**/*.java</include>
+					</includes>
+					<excludes>
+						<exclude>**/R.java</exclude>
+						<exclude>**/ext/actionbar/*.java</exclude>
+						<exclude>**/BuildConfig.java</exclude>
+					</excludes>
+					<strictCheck>true</strictCheck>
+					<properties>
+						<year>${project.inceptionYear}</year>
+					</properties>
+				</configuration>
+				<executions>
+					<execution>
+						<id>check-license</id>
+						<phase>initialize</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.jasig.maven</groupId>
+				<artifactId>maven-notice-plugin</artifactId>
+				<version>1.0.6</version>
+				<configuration>
+					<noticeTemplate>src/main/resources/NOTICE.template</noticeTemplate>
+					<licenseMapping>
+						<param>http://52north.github.io/cdn/licenses/license-mappings.xml</param>
+					</licenseMapping>
+					<generateChildNotices>false</generateChildNotices>
+				</configuration>
+				<executions>
+					<execution>
+						<id>check-notice</id>
+						<phase>initialize</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.5.1</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.jasig.maven
+										</groupId>
+										<artifactId>
+											maven-notice-plugin
+										</artifactId>
+										<versionRange>
+											[1.0.6,)
+										</versionRange>
+										<goals>
+											<goal>check</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											com.mycila.maven-license-plugin
+										</groupId>
+										<artifactId>
+											maven-license-plugin
+										</artifactId>
+										<versionRange>
+											[1.9.0,)
+										</versionRange>
+										<goals>
+											<goal>check</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											com.jayway.maven.plugins.android.generation2
+										</groupId>
+										<artifactId>
+											android-maven-plugin
+										</artifactId>
+										<versionRange>
+											[3.8.2,)
+										</versionRange>
+										<goals>
+											<goal>consume-aar</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+	<repositories>
+		<repository> <!-- Tentative local repo for libs that are not migrated to Maven dependency 
+				mechanism and available in online repositories. -->
+			<id>lib-repository</id>
+			<name>Local Repository</name>
+			<url>file:///${basedir}/lib-repository/</url>
+		</repository>
+	</repositories>
+</project>

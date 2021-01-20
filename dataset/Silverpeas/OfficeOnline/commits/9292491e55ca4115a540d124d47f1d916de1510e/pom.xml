@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.silverpeas</groupId>
+    <artifactId>silverpeas-project</artifactId>
+    <version>1-SNAPSHOT</version>
+  </parent>
+  <scm>
+    <connection>scm:git:git@github.com:Silverpeas/OfficeOnline.git</connection>
+    <developerConnection>scm:git:git@github.com:Silverpeas/OfficeOnline.git</developerConnection>
+    <url>https://github.com/Silverpeas/OfficeOnline</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <groupId>org.silverpeas.services</groupId>
+  <artifactId>office-online</artifactId>
+  <packaging>jar</packaging>
+  <version>6.0-SNAPSHOT</version>
+  <name>Online Office Editor - ${project.version}</name>
+  <description>
+    A Java program to find an installation of an Office Suite and to launch it with as argument
+    the webDAV URL of the document to open. Currently, only MS-Office and
+    OpenOffice.org/LibreOffice suites are supported.
+  </description>
+  <build>
+    <finalName>OpenOfficeLauncher</finalName>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.jackrabbit</groupId>
+      <artifactId>jackrabbit-webdav</artifactId>
+    </dependency>
+    <dependency>
+      <artifactId>jackrabbit-jcr-commons</artifactId>
+      <groupId>org.apache.jackrabbit</groupId>
+    </dependency>
+    <dependency>
+      <groupId>xerces</groupId>
+      <artifactId>xercesImpl</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <profiles>
+    <profile>
+      <id>signing</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jar-plugin</artifactId>
+            <configuration>
+              <archive>
+                <index>true</index>
+                <manifest>
+                  <addClasspath>true</addClasspath>
+                  <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                  <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                </manifest>
+                <manifestEntries>
+                  <Permissions>all-permissions</Permissions>
+								  <Codebase>*</Codebase>
+                </manifestEntries>
+              </archive>
+            </configuration>
+          </plugin>
+          <plugin>
+            <artifactId>maven-jarsigner-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>Signing</id>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>SigningDependencies</id>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <archiveDirectory>${project.build.directory}/dependency</archiveDirectory>
+                  <removeExistingSignatures>true</removeExistingSignatures>
+                </configuration>
+              </execution>
+              <execution>
+                <id>verify</id>
+                <goals>
+                  <goal>verify</goal>
+                </goals>
+                <configuration>
+                  <archiveDirectory>${project.build.directory}/dependency</archiveDirectory>
+                </configuration>
+              </execution>
+            </executions>
+            <configuration>
+              <alias>${silverpeas.alias}</alias>
+              <storetype>jks</storetype>
+              <keystore>${silverpeas.keystore}</keystore>
+              <storepass>${silverpeas.storepass}</storepass>
+              <verbose>true</verbose>
+              <keypass>${silverpeas.storepass}</keypass>
+              <tsa>http://tsa.starfieldtech.com/</tsa>
+              <removeExistingSignatures>true</removeExistingSignatures>
+            </configuration>
+          </plugin>
+          <plugin>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>Dependencies</id>
+                <goals>
+                  <goal>copy-dependencies</goal>
+                </goals>
+                <configuration>
+                  <includeScope>runtime</includeScope>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <!-- The properties keystore.filename, keystore.storepass, and keystore.alias
+       should be defined in your settings.xml file. These properties are used
+       to sign the code of the applets and of the webstart applications used in
+       Silverpeas. -->
+  <properties>
+    <silverpeas.keystore>${keystore.filename}</silverpeas.keystore>
+    <silverpeas.storepass>${keystore.storepass}</silverpeas.storepass>
+    <silverpeas.alias>${keystore.alias}</silverpeas.alias>
+  </properties>
+
+
+</project>

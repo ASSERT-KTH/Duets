@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>sample-broker</artifactId>
+  <packaging>jar</packaging>
+
+  <name>sample-broker</name>
+  <description>Standalone or server-resident sample broker implementation</description>
+  <url>http://www.powertac.org/</url>
+
+  <parent>
+    <groupId>org.powertac</groupId>
+    <artifactId>powertac-parent</artifactId>
+    <version>1.6.0-SNAPSHOT</version>
+    <relativePath />
+  </parent>
+
+  <properties>
+    <powertac.version>1.6.0-SNAPSHOT</powertac.version>
+    <maven-shade.version>2.4.3</maven-shade.version>
+    <exec.args></exec.args>
+    <syst.args></syst.args>
+  </properties>
+
+<!-- Sonatype OSS repo for resolving snapshot dependencies -->
+
+  <repositories>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
+  </repositories>
+
+  <dependencies>
+
+    <!-- Power TAC -->
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>broker-core</artifactId>
+      <version>${powertac.version}</version>
+    </dependency>
+
+
+    <!-- Testing; these are NOT transitive -->
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>${mockito.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+
+  <build>
+
+    <plugins>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <executable>java</executable>
+          <commandlineArgs>-server -Xmx512m -classpath %classpath ${syst.args} org.powertac.samplebroker.core.BrokerMain ${exec.args}</commandlineArgs>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <configuration>
+          <createDependencyReducedPom>false</createDependencyReducedPom>
+          <transformers>
+            <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+              <resource>META-INF/spring.handlers</resource>
+            </transformer>
+            <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+              <resource>META-INF/spring.schemas</resource>
+            </transformer>
+            <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+              <mainClass>org.powertac.samplebroker.core.BrokerMain</mainClass>
+            </transformer>
+          </transformers>
+        </configuration>
+      </plugin>
+
+    </plugins>
+
+  </build>
+
+
+  <organization>
+    <name>Power TAC</name>
+    <url>http://www.powertac.org/</url>
+  </organization>
+
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/powertac/powertac-server/issues/</url>
+  </issueManagement>
+
+
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>A business-friendly OSS license</comments>
+    </license>
+  </licenses>
+
+
+  <developers>
+
+    <developer>
+      <id>john</id>
+      <name>John Collins</name>
+      <email>jcollins.cs@gmail.com</email>
+      <url>http://www.cs.umn.edu/~jcollins/</url>
+      <organization>University of Minnesota</organization>
+      <roles>
+        <role>game designer</role>
+        <role>architect</role>
+        <role>project manager</role>
+        <role>developer</role>
+      </roles>
+      <timezone>-6</timezone>
+    </developer>
+
+    <developer>
+      <id>wolf</id>
+      <name>Wolf Ketter</name>
+      <email>wolf.ketter@gmail.com</email>
+      <url>http://ketter.ws/</url>
+      <organization>Rotterdam School of Management, Erasmus University</organization>
+      <roles>
+        <role>project leader</role>
+        <role>game designer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+
+  </developers>
+
+  <reporting>
+
+    <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>javadoc</report>
+              <report>test-javadoc</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+        <configuration>
+          <includeDependencySources>true</includeDependencySources>
+          <includeTransitiveDependencySources>true</includeTransitiveDependencySources>
+          <dependencySourceIncludes>
+            <dependencySourceInclude>org.powertac:*</dependencySourceInclude>
+          </dependencySourceIncludes>
+        </configuration>
+      </plugin>
+
+    </plugins>
+
+  </reporting>
+
+  <scm>
+    <connection>scm:git:git//github.com/powertac/sample-broker.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/sample-broker.git</developerConnection>
+    <url>https://github.com/powertac/sample-broker/</url>
+  </scm>
+
+</project>

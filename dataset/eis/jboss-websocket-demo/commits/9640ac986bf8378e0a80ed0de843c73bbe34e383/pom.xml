@@ -1,0 +1,186 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>fi.eis.applications.jboss72.poc.websocket</groupId>
+  <artifactId>websocket-web-app</artifactId>
+  <version>1.1-SNAPSHOT</version>
+  <packaging>war</packaging>
+  <name>JBoss 7.2 WebSocket POC</name>
+  <description>JBoss 7.2 WebSocket POC</description>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>  
+  <repositories>
+    <repository>
+      <id>jboss-public-repository-group</id>
+      <name>JBoss Public Maven Repository Group</name>
+      <url>https://repository.jboss.org/nexus/content/groups/public-jboss/</url>
+      <layout>default</layout>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>central</id>
+      <name>Maven Central Repository</name>
+      <url>http://repo1.maven.org/maven2</url>
+      <layout>default</layout>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+        <updatePolicy>never</updatePolicy>
+      </snapshots>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>jboss-public-repository-group</id>
+      <name>JBoss Public Maven Repository Group</name>
+      <url>https://repository.jboss.org/nexus/content/groups/public-jboss/</url>
+      <layout>default</layout>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>central</id>
+      <name>Maven Plugin Repository</name>
+      <url>http://repo1.maven.org/maven2</url>
+      <layout>default</layout>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <dependencies>
+        <!-- Import the Common Annotations API (JSR-250), we use provided scope
+         as the API is included in JBoss AS 7 -->
+        <dependency>
+            <groupId>org.jboss.spec.javax.annotation</groupId>
+            <artifactId>jboss-annotations-api_1.1_spec</artifactId>
+            <version>1.0.1.Final</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- websocket needs native jbossweb dependency -->
+        <!-- event servlet provided by jboss -->
+        <dependency>
+            <groupId>org.jboss.web</groupId>
+            <artifactId>jbossweb</artifactId>
+            <version>7.2.0.Final</version>        
+            <scope>provided</scope>
+        </dependency>
+        <!--
+            websocketservlet not provided by JBoss, so needs to be bundled
+            see https://github.com/mikebrock/jboss-websockets for progress
+            0.2.Alpha1 has a bug: https://github.com/mikebrock/jboss-websockets/issues/6
+            atmosphere version is a fork of it that contains bug fixes needed
+            -->
+        <!--     
+        <dependency>
+            <groupId>org.jboss.as</groupId>
+            <artifactId>jboss-as-websockets</artifactId>
+            <version>0.2.Alpha1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        -->
+        <dependency>
+            <groupId>org.atmosphere.jboss.as</groupId>
+            <artifactId>jboss-as-websockets</artifactId>
+            <version>0.3</version>
+            <!--
+            0.4 version of this dependency contains a bug on
+            unrecognized frames (#2), so using 0.3 instead.
+            Version 0.5 should contain revert of that problem,
+            so that one should be ok as well once it gets released.
+             -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        
+
+        <!-- Import the Servlet API, we use provided scope as the API is included
+         in JBoss AS 7 -->
+        <dependency>
+            <groupId>org.jboss.spec.javax.servlet</groupId>
+            <artifactId>jboss-servlet-api_3.0_spec</artifactId>
+            <version>1.0.1.Final</version>
+            <scope>provided</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
+            <version>3.1.1.GA</version>
+            <scope>provided</scope>
+        </dependency>
+        
+        <!-- some helpers -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-core-asl</artifactId>
+            <version>1.9.12</version>
+        </dependency>
+   </dependencies>
+
+    <build>
+        <!-- Set the name of the war, used as the context root when the app
+         is deployed -->
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <!-- JBoss AS plugin to deploy war -->
+            <plugin>
+                <groupId>org.jboss.as.plugins</groupId>
+                <artifactId>jboss-as-maven-plugin</artifactId>
+                <version>7.3.Final</version>
+                <configuration>
+                     <filename>${project.build.finalName}.${project.packaging}</filename>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

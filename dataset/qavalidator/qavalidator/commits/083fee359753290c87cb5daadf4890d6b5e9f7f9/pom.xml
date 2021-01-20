@@ -1,0 +1,425 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>de.qaware.qav</groupId>
+    <artifactId>qav-maven-plugin</artifactId>
+    <version>1.2.7-SNAPSHOT</version>
+    <packaging>maven-plugin</packaging>
+
+    <name>QAvalidator :: Maven Plugin</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <maven-plugin-api.version>3.3.9</maven-plugin-api.version>
+        <maven-plugin-annotations.version>3.4</maven-plugin-annotations.version>
+        <maven-core.version>3.3.9</maven-core.version>
+
+        <maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
+        <maven-release-plugin.version>2.5.2</maven-release-plugin.version>
+        <maven-plugin-plugin.version>3.4</maven-plugin-plugin.version>
+        <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
+        <maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
+        <maven-plugin-testing-harness.version>3.3.0</maven-plugin-testing-harness.version>
+        <maven-compat.version>3.3.9</maven-compat.version>
+
+        <!-- this is the QAvalidator Runner version that this plugin depends on. -->
+        <qav.version>1.2.7-SNAPSHOT</qav.version>
+
+        <!-- this is the QAvalidator Maven Plugin version to be used for mvn -Pself qav:qav -->
+        <qav-plugin-on-self.version>1.2.7-SNAPSHOT</qav-plugin-on-self.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-plugin-api</artifactId>
+                <version>${maven-plugin-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.maven.plugin-tools</groupId>
+                <artifactId>maven-plugin-annotations</artifactId>
+                <version>${maven-plugin-annotations.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-core</artifactId>
+                <version>${maven-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>de.qaware.qav</groupId>
+                <artifactId>qav-runner</artifactId>
+                <version>${qav.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>de.qaware.qav</groupId>
+                <artifactId>qav-server</artifactId>
+                <version>${qav.version}</version>
+            </dependency>
+
+            <!--
+                 Add transitive dependencies explicitly.
+                 The Gradle Plugin for Bintray publication sometimes sets the wrong scope,
+                 so add them explicitly to be sure.
+            -->
+            <dependency>
+                <groupId>de.qaware.qav</groupId>
+                <artifactId>qav-analysis-dsl</artifactId>
+                <version>${qav.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>de.qaware.qav</groupId>
+                <artifactId>qav-analysis-plugins</artifactId>
+                <version>${qav.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>de.qaware.qav</groupId>
+                <artifactId>qav-architecture</artifactId>
+                <version>${qav.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>de.qaware.qav</groupId>
+                <artifactId>qav-architecture-dsl</artifactId>
+                <version>${qav.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>de.qaware.qav</groupId>
+                <artifactId>qav-graph</artifactId>
+                <version>${qav.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>de.qaware.qav</groupId>
+                <artifactId>qav-input-java</artifactId>
+                <version>${qav.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>de.qaware.qav</groupId>
+                <artifactId>qav-input-maven</artifactId>
+                <version>${qav.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>de.qaware.qav</groupId>
+                <artifactId>qav-input-typescript</artifactId>
+                <version>${qav.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>de.qaware.qav</groupId>
+                <artifactId>qav-util</artifactId>
+                <version>${qav.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>de.qaware.qav</groupId>
+                <artifactId>qav-visualization</artifactId>
+                <version>${qav.version}</version>
+            </dependency>
+
+            <!-- Test dependencies -->
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.12</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-integration</artifactId>
+                <version>1.3</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-all</artifactId>
+                <version>1.10.19</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.maven.plugin-testing</groupId>
+                <artifactId>maven-plugin-testing-harness</artifactId>
+                <version>${maven-plugin-testing-harness.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>maven-compat</artifactId>
+                <version>${maven-compat.version}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <profiles>
+        <profile>
+            <!-- To run this plugin on itself, use the profile "self", i.e. call: mvn -Pself qav:qav -->
+            <id>self</id>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>de.qaware.qav</groupId>
+                            <artifactId>qav-maven-plugin</artifactId>
+                            <version>${qav-plugin-on-self.version}</version>
+                            <executions>
+                                <execution>
+                                    <goals>
+                                        <goal>qav</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                            <configuration>
+                                <failOnError>false</failOnError>
+                                <useDefaultInputDirs>true</useDefaultInputDirs>
+                                <outputDir>target/qav-report</outputDir>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+
+                <plugins>
+                    <plugin>
+                        <groupId>de.qaware.qav</groupId>
+                        <artifactId>qav-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>bintray</id>
+
+            <distributionManagement>
+                <repository>
+                    <id>publish-bintray</id>
+                    <url>https://api.bintray.com/maven/qa-tse/qavalidator/qav-maven-plugin/;publish=1</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+
+        <profile>
+            <id>qaware</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+
+            <distributionManagement>
+                <repository>
+                    <id>qaware-internal</id>
+                    <url>https://www.qaware.de/nexus/content/repositories/qaware-internal</url>
+                </repository>
+                <snapshotRepository>
+                    <id>qaware-internal-snapshots</id>
+                    <url>https://www.qaware.de/nexus/content/repositories/qaware-internal-snapshots</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+
+            <!-- explicitly configure the sources plugin to include sources jar with the deployment -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${maven-source-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- explicitly configure the javadoc plugin to include javadoc jar with the deployment -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>${maven-release-plugin.version}</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <version>${maven-plugin-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>default-descriptor</id>
+                        <goals>
+                            <goal>descriptor</goal>
+                        </goals>
+                        <phase>process-classes</phase>
+                    </execution>
+                    <execution>
+                        <id>help-descriptor</id>
+                        <goals>
+                            <goal>helpmojo</goal>
+                        </goals>
+                        <phase>process-classes</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.plugin-tools</groupId>
+            <artifactId>maven-plugin-annotations</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>de.qaware.qav</groupId>
+            <artifactId>qav-analysis-dsl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.qaware.qav</groupId>
+            <artifactId>qav-analysis-plugins</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.qaware.qav</groupId>
+            <artifactId>qav-architecture</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.qaware.qav</groupId>
+            <artifactId>qav-architecture-dsl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.qaware.qav</groupId>
+            <artifactId>qav-graph</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.qaware.qav</groupId>
+            <artifactId>qav-input-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.qaware.qav</groupId>
+            <artifactId>qav-input-maven</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.qaware.qav</groupId>
+            <artifactId>qav-input-typescript</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.qaware.qav</groupId>
+            <artifactId>qav-runner</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.qaware.qav</groupId>
+            <artifactId>qav-util</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.qaware.qav</groupId>
+            <artifactId>qav-visualization</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.qaware.qav</groupId>
+            <artifactId>qav-server</artifactId>
+        </dependency>
+
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-integration</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.maven.plugin-testing</groupId>
+            <artifactId>maven-plugin-testing-harness</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-compat</artifactId>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>Central</id>
+            <url>http://repo1.maven.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+        <repository>
+            <id>qaware-internal</id>
+            <url>https://www.qaware.de/nexus/content/repositories/qaware-internal</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+        <repository>
+            <id>qaware-internal-snapshots</id>
+            <url>https://www.qaware.de/nexus/content/repositories/qaware-internal-snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <scm>
+        <developerConnection>scm:git:https://github.com/qaware/QAvalidator</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+</project>
+

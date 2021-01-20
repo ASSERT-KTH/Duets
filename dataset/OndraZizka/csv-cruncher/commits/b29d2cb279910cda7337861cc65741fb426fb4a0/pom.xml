@@ -1,0 +1,363 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>cz.dynawest.csvcruncher</groupId>
+    <artifactId>CsvCruncher</artifactId>
+    <version>1.8.0</version>
+
+    <name>CsvCruncher</name>
+    <description>Treats CSV files as SQL tables, and exports SQL SELECTs back to CSV or JSON.</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <jvm.args.debug></jvm.args.debug> <!-- Used by the -Pdebug profile. -->
+        <mainClass>Crunch</mainClass>
+        <testRunCmd>${jvm.args.debug} -jar ${project.build.directory}/${project.build.finalName}-single.jar</testRunCmd>
+    </properties>
+
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/java</directory>
+                <excludes><exclude>*.java</exclude></excludes>
+            </resource>
+        </resources>
+
+        <plugins>
+
+            <plugin>
+                <inherited>true</inherited>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <optimize>true</optimize>
+                    <debug>true</debug>
+                    <encoding>utf-8</encoding>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.0</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.21.0</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <test.data.dir>${project.build.testSourceDirectory}/../data</test.data.dir>
+                        <target.dir>${project.build.directory}</target.dir>
+                        <textdb.allow_full_path>true</textdb.allow_full_path>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+
+            <!-- Better - uses the Assembly plugin with built-in jar-with-dependencies descriptor.
+                   mvn install assembly:assembly
+            -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>assembleDistJar</id>
+                        <goals><goal>single</goal></goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <finalName>${project.artifactId}-${project.version}-single</finalName>
+                            <archive>
+                                <manifest>
+                                    <mainClass>${mainClass}</mainClass>
+                                    <addClasspath>false</addClasspath> <!-- false for jar-with-dependencies -->
+                                    <classpathPrefix>lib/</classpathPrefix>
+                                    <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                                    <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                                </manifest>
+                                <manifestEntries>
+                                    <Release-Version>${project.version}</Release-Version>
+                                </manifestEntries>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>assembleDistZip</id>
+                        <goals><goal>single</goal></goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <finalName>${project.artifactId}-${project.version}-dist</finalName>
+                            <archive>
+                                <manifest>
+                                    <mainClass>${mainClass}</mainClass>
+                                    <addClasspath>false</addClasspath>
+                                    <classpathPrefix>lib/</classpathPrefix>
+                                </manifest>
+                            </archive>
+                            <descriptors>
+                                <descriptor>src/main/assembly-dist.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
+                </configuration>
+            </plugin>
+
+            <!-- Try running it. -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <executions>
+                    <execution>
+                        <id>testCrunch-simple</id>
+                        <phase>integration-test</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <skip>true</skip>
+                            <executable>java</executable>
+                            <commandlineArgs>
+                                ${testRunCmd}
+                                --json=entries
+                                --rowNumbers
+                                -in src/test/data/eapBuilds.csv
+                                -out target/results/result.csv
+                                -sql 'SELECT jobName, buildNumber, config, ar, arFile, deployDur, warmupDur, scale,
+                                CAST(warmupDur AS DOUBLE) / CAST(deployDur AS DOUBLE) AS warmupSlower
+                                FROM eapBuilds ORDER BY deployDur'
+                            </commandlineArgs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>testCrunch-combineInputFile</id>
+                        <phase>integration-test</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <skip>true</skip>
+                            <executable>java</executable>
+                            <commandlineArgs>
+                                ${testRunCmd}
+                                --json=entries
+                                --rowNumbers
+                                --combineInputs
+                                -in src/test/data/eapBuilds.csv
+                                -out target/results/result.csv
+                                -sql 'SELECT jobName, buildNumber, config, ar, arFile, deployDur, warmupDur, scale,
+                                CAST(warmupDur AS DOUBLE) / CAST(deployDur AS DOUBLE) AS warmupSlower
+                                FROM concat ORDER BY deployDur'
+                            </commandlineArgs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>testCrunch-combineInputFiles-perRootSubDir</id>
+                        <phase>integration-test</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <skip>true</skip>
+                            <executable>java</executable>
+                            <commandlineArgs>
+                                ${testRunCmd}
+                                --json=entries
+                                --rowNumbers
+                                --combineInputs=concat
+                                --combineDirs=all
+                                -in src/test/data/sampleMultiFilesPerDir/apollo_session/
+                                -out target/results/result.csv
+                                -sql 'SELECT session_uid, name, session_type, created_time, modified_date
+                                FROM concat ORDER BY session_type, created_time DESC'
+                            </commandlineArgs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>testCrunch-combineInputFiles-singleDir</id>
+                        <phase>integration-test</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <skip>true</skip>
+                            <executable>java</executable>
+                            <commandlineArgs>
+                                ${testRunCmd}
+                                --json --combineInputs --rowNumbers
+                                -sql 'SELECT * FROM session_telephony_pins'
+                                -in src/test/data/sampleMultiFilesPerDir/session_telephony_pins/
+                                -out target/results/session_telephony_pins.csv
+                            </commandlineArgs>
+                            <!-- Suppress output. This will fail because the input files don't match. -->
+                            <outputFile>${project.build.outputDirectory}/testOutput</outputFile>
+                            <successCodes>
+                                <code>127</code>
+                            </successCodes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>testCrunch-collab-ARG</id>
+                        <phase>integration-test</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <skip>true</skip>
+                            <executable>java</executable>
+                            <commandlineArgs>
+                                ${testRunCmd}
+                                --json --combineInputs
+                                -sql 'SELECT * FROM apollo_recording_group'
+                                -in src/test/data/sample-collab/apollo_recording_group/
+                                -out target/results/apollo_recording_group.csv
+                            </commandlineArgs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>testCrunch-collab-STP</id>
+                        <phase>integration-test</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <skip>false</skip>
+                            <executable>java</executable>
+                            <commandlineArgs>
+                                ${testRunCmd}
+                                --json --combineInputs
+                                -in src/test/data/sample-collab/session_telephony_pins/
+                                -out target/results/session_telephony_pins.csv
+                                -sql 'SELECT * FROM session_telephony_pins'
+                            </commandlineArgs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>testVersion</id>
+                        <phase>integration-test</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <skip>true</skip>
+                            <executable>java</executable>
+                            <commandlineArgs>${testRunCmd} -v</commandlineArgs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>testHelp</id>
+                        <phase>integration-test</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <skip>true</skip>
+                            <executable>java</executable>
+                            <commandlineArgs>${testRunCmd} -h</commandlineArgs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>codehaus</id>
+            <name>Codehaus Release Repo</name>
+            <url>http://repository.codehaus.org</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>codehaus-snapshot</id>
+            <name>Codehaus Snapshot Repo</name>
+            <url>http://snapshots.repository.codehaus.org</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+
+    <!--
+    <repositories>
+        <repository>
+            <id>ondrazizka</id>
+            <url>http://ondrazizka.googlecode.com/svn/maven</url>
+        </repository>
+    </repositories>
+    -->
+
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <!-- Saxon 9 not found in maven repos. -->
+                <groupId>net.sf.saxon</groupId>
+                <artifactId>saxon</artifactId>
+                <version>8.7</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>2.4.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.7</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
+        </dependency>
+
+        <!-- Just for the JSON encoding. 355 kB.
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.11</version>
+        </dependency>
+         -->
+
+        <!-- Just for the JSON encoding. 16 kB. -->
+        <!-- Not used now, as we use javax.json, see below.
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1</version>
+        </dependency>
+        -->
+
+        <dependency>
+            <groupId>javax.json</groupId>
+            <artifactId>javax.json-api</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.json</artifactId>
+            <version>1.0.4</version>
+        </dependency>
+
+
+
+        <!--
+        <dependency>
+            <groupId>cz.dynawest.lib</groupId>
+            <artifactId>DwLib</artifactId>
+            <version>1.01</version>
+        </dependency>
+        -->
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

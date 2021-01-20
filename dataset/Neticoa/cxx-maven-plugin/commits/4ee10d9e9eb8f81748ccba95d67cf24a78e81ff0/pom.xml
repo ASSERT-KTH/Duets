@@ -1,0 +1,363 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<!--
+Copyright (C) 2011-2016, Neticoa SAS France - Tous droits réservés.
+Author(s) : Franck Bonin, Neticoa SAS France
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <artifactId>maven-plugins</artifactId>
+    <groupId>org.apache.maven.plugins</groupId>
+    <version>22</version>
+    <relativePath>../maven-plugins/pom.xml</relativePath>
+  </parent>
+
+  <groupId>org.codehaus.mojo</groupId>
+  <artifactId>cxx-maven-plugin</artifactId>
+  <packaging>maven-plugin</packaging>
+  <version>0.0.6-SNAPSHOT</version>
+  <name>cxx-maven-plugin Maven Mojo</name>
+  <description>A plugin to allow C++ code compilation and code checking with maven</description>
+  <url>https://github.com/franckbonin/cxx-maven-plugin</url>
+  <inceptionYear>2010</inceptionYear>
+  
+  <organization>
+    <name>Neticoa SAS</name>
+    <url>http://www.neticoa.fr</url>
+  </organization>
+
+  <mailingLists>
+    <mailingList>
+      <name>List</name>
+      <subscribe>none</subscribe>
+      <unsubscribe>none</unsubscribe>
+      <post>none</post>
+      <archive>none</archive>
+    </mailingList>
+  </mailingLists>
+  
+  <developers>
+    <developer>
+      <id>franck</id>
+      <name>Franck Bonin</name>
+      <email>franck.bonin@neticoa.fr</email>
+      <organization>Neticoa SAS</organization>
+      <organizationUrl>http://www.neticoa.fr</organizationUrl>
+      <roles>
+        <role>Java Developer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+  </developers>
+  <contributors/>
+  
+  <licenses>
+    <license>
+      <name>Apache License 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  
+  <!-- activate following for public deployement -->
+  <!--
+  <scm>
+    <connection>scm:git:https://github.com/franckbonin/cxx-maven-plugin.git</connection>
+    <developerConnection>scm:git:https://github.com/franckbonin/cxx-maven-plugin.git</developerConnection>
+    <url>https://github.com/franckbonin/cxx-maven-plugin/</url>
+  </scm>
+  <issueManagement>
+    <system>Github</system>
+    <url>https://github.com/franckbonin/cxx-maven-plugin/issues</url>
+  </issueManagement>
+  -->
+
+  <!-- remove following for public deployement -->
+  <scm>
+    <connection>scm:svn:https://svn.neticoa.ovh/svn/cxxplugin/trunk/cxx-maven-plugin</connection>
+    <developerConnection>scm:svn:https://svn.neticoa.ovh/svn/cxxplugin/trunk/cxx-maven-plugin</developerConnection>
+    <url>https://svn.neticoa.ovh/svn/cxxplugin/trunk/cxx-maven-plugin</url>
+  </scm>
+  <issueManagement>
+    <system>Redmine</system>
+    <url>https://redmine/projects/cxx-plugin</url>
+  </issueManagement>
+  <ciManagement>
+    <system>Jenkins</system>
+    <url>http://hudson/job/cxx-maven-plugin/</url>
+  </ciManagement>
+  
+  <!--Remove following  <profiles>/**/<distributionManagement> for public deployement -->
+  <profiles>
+    <profile>
+      <activation>
+        <property>
+          <!-- this property expression activate public deployment and desactivate internal deployment -->
+          <!-- call maven using 'mvn deploy -D deployment.public' -->
+          <name>deployment.public</name>
+        </property>
+      </activation>
+      <id>public-deployment</id>
+      <distributionManagement>
+        <repository>
+          <id>neticoa-nexus-public</id>
+          <name>neticoa public release</name>
+          <url>http://nexus.neticoa.fr/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+          <id>neticoa-nexus-public</id>
+          <name>neticoa public snapshots</name>
+          <url>http://nexus.neticoa.fr/content/repositories/snapshots</url>
+        </snapshotRepository>
+      </distributionManagement>
+    </profile>
+
+    <profile>
+      <activation>
+        <property>
+          <!-- this property expression activate this profile by default -->
+          <name>!deployment.public</name>
+        </property>
+      </activation>
+      <id>internal-deployment</id>
+      <distributionManagement>
+        <repository>
+          <id>neticoa-nexus</id>
+          <name>neticoa releases</name>
+          <url>http://nexus.neticoa.ovh:8080/nexus/content/repositories/releases</url>
+        </repository>
+        <snapshotRepository>
+          <id>neticoa-nexus</id>
+          <name>neticoa snapshots</name>
+          <url>http://nexus.neticoa.ovh:8080/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+      </distributionManagement>
+    </profile>
+  </profiles>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <version>2.9</version>
+      </plugin>
+    </plugins>
+  </reporting>
+
+  <build>	
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>3.3</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <version>3.2</version>
+        <configuration>
+          <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+        </configuration>
+        <executions> 
+          <execution>
+            <id>default-descriptor</id>
+            <goals>
+              <goal>descriptor</goal>
+            </goals>
+            <phase>process-classes</phase>
+          </execution>	
+          <execution>	
+            <id>generate-helpmojo</id>
+            <goals>
+              <goal>helpmojo</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <!-- 
+      [INFO] Restricted to JDK 1.5 yet org.xerial.snappy:snappy-java:jar:1.1.1.6:compile contains org/xerial/snappy/OSInfo.class targeted to JDK 1.6
+      [WARNING] Rule 0: org.apache.maven.plugins.enforcer.EnforceBytecodeVersion failed with message:
+      Found Banned Dependency: org.xerial.snappy:snappy-java:jar:1.1.1.6
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/src/main/java/**/*Snappy*.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      
+      
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <configuration>
+          <excludes combine.children="append">
+            <!--
+            -->
+            <exclude>generation.txt</exclude>
+            <exclude>deploy.txt</exclude>
+            <exclude>README.md</exclude>
+            <exclude>doc.txt</exclude>
+            <exclude>geany_projet</exclude>
+            <exclude>SAMPLE/**</exclude>
+            <exclude>**/gcovr.py</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      
+    </plugins>
+  </build>
+  
+  <properties>
+    <mavenVersion>2.2.1</mavenVersion>
+    <doxiaVersion>1.4</doxiaVersion>
+    <pluginTestingVersion>2.1</pluginTestingVersion>
+  </properties>
+  
+  <prerequisites>
+    <maven>${mavenVersion}</maven>
+  </prerequisites>
+
+  <dependencies>
+    
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.3</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+       
+    <dependency>
+    	<groupId>org.apache.commons</groupId>
+    	<artifactId>commons-exec</artifactId>
+    	<version>1.1</version>
+    </dependency>
+	  <dependency>
+	    <groupId>org.apache.commons</groupId>
+	    <artifactId>commons-io</artifactId>
+	    <version>1.3.2</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+      <version>${mavenVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact</artifactId>
+      <version>${mavenVersion}</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.maven</groupId>
+    	<artifactId>maven-toolchain</artifactId>
+    	<version>${mavenVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-settings</artifactId>
+      <version>${mavenVersion}</version>
+    </dependency>
+    <!--
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-settings-builder</artifactId>
+      <version>3.0.5</version>
+    </dependency> 
+    -->
+    
+    <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>file-management</artifactId>
+      <version>1.2</version>
+    </dependency>
+    <dependency>    
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-dependency-plugin</artifactId>
+      <version>2.10</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+      <version>3.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+      <version>3.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.plugin-testing</groupId>
+      <artifactId>maven-plugin-testing-harness</artifactId>
+      <version>1.3</version>
+      <scope>test</scope>
+    </dependency>
+  
+    <dependency>
+    	<groupId>org.codehaus.plexus</groupId>
+    	<artifactId>plexus-utils</artifactId>
+    	<version>2.0.5</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.sonatype.plexus</groupId>
+      <artifactId>plexus-sec-dispatcher</artifactId>
+      <version>1.3</version>
+    </dependency>
+
+    <dependency>
+    	<groupId>org.mod4j.org.apache.commons</groupId>
+    	<artifactId>lang</artifactId>
+    	<version>2.1.0</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.python</groupId>
+    	<artifactId>jython</artifactId>
+    	<version>2.5.0</version>
+    </dependency>
+
+    <!-- 
+      [INFO] Restricted to JDK 1.5 yet org.xerial.snappy:snappy-java:jar:1.1.1.6:compile contains org/xerial/snappy/OSInfo.class targeted to JDK 1.6
+      [WARNING] Rule 0: org.apache.maven.plugins.enforcer.EnforceBytecodeVersion failed with message:
+      Found Banned Dependency: org.xerial.snappy:snappy-java:jar:1.1.1.6
+    -->
+    <!--
+    <dependency>
+      <groupId>org.xerial.snappy</groupId>
+      <artifactId>snappy-java</artifactId>
+      <version>1.1.1.6</version>
+    </dependency>
+    -->
+ </dependencies>
+</project>

@@ -1,0 +1,188 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>jp.co.worksap.oss</groupId>
+    <artifactId>worksap-parent</artifactId>
+    <version>1.1.4</version>
+  </parent>
+  <artifactId>findbugs-plugin</artifactId>
+  <version>0.0.3-SNAPSHOT</version>
+  <url>https://github.com/WorksApplications/findbugs-plugin</url>
+  <description>WorksApplications Findbugs plugin set</description>
+  <scm>
+    <url>git@github.com:WorksApplications/findbugs-plugin.git</url>
+    <connection>scm:git:git@github.com:WorksApplications/findbugs-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:WorksApplications/findbugs-plugin.git</developerConnection>
+  </scm>
+  <developers>
+    <developer>
+      <id>eller86</id>
+      <name>Kengo TODA</name>
+      <url>http://skypencil.jp/</url>
+    </developer>
+    <developer>
+      <id>wliyongfeng</id>
+      <name>Yongfeng LI</name>
+      <url>https://github.com/wliyongfeng</url>
+    </developer>
+  </developers>
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+    </license>
+  </licenses>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+          <encoding>${project.build.sourceEncoding}</encoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <!--
+          Copy meta files to default outputDirectory at "prepare-package" phase.
+
+          Because of findbugs specification, an edu.umd.cs.findbugs.PluginDoesntContainMetadataException
+          instance would be thrown at "test" phase if we put these meta files on '/src/main/resources'.
+          We have to copy these meta files after testing.
+
+          See "How to build FindBugs plugin with Maven" thread in FindBugs mailing list
+          (findbugs-discuss@cs.umd.edu) to get detail and other solution.
+
+          Note: You should execute "clean" phase before you execute "test" phase.
+        -->
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/meta</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.2.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.4</version>
+        <executions>
+          <execution>
+            <id>prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.eluder.coveralls</groupId>
+        <artifactId>coveralls-maven-plugin</artifactId>
+        <version>4.3.0</version>
+      </plugin>
+      <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+      <plugin>
+        <groupId>org.eclipse.m2e</groupId>
+        <artifactId>lifecycle-mapping</artifactId>
+        <version>1.0.0</version>
+        <configuration>
+          <lifecycleMappingMetadata>
+            <pluginExecutions>
+              <pluginExecution>
+                <pluginExecutionFilter>
+                  <groupId>org.jacoco</groupId>
+                  <artifactId>
+                    jacoco-maven-plugin
+                  </artifactId>
+                  <versionRange>
+                    [0.6.3.201306030806,)
+                  </versionRange>
+                  <goals>
+                    <goal>prepare-agent</goal>
+                  </goals>
+                </pluginExecutionFilter>
+                <action>
+                  <ignore />
+                </action>
+              </pluginExecution>
+            </pluginExecutions>
+          </lifecycleMappingMetadata>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencies>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>findbugs</artifactId>
+      <version>2.0.1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-library</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.youdevise</groupId>
+      <artifactId>test-driven-detectors4findbugs</artifactId>
+      <version>1.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- dependencies for jp.co.worksap.oss.findbugs.jpa package -->
+    <dependency>
+      <groupId>org.hibernate.javax.persistence</groupId>
+      <artifactId>hibernate-jpa-2.0-api</artifactId>
+      <version>1.0.1.Final</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-entitymanager</artifactId>
+      <version>5.4.4.Final</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.openjpa</groupId>
+      <artifactId>openjpa</artifactId>
+      <version>3.1.0</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <name>opentsdb-elasticsearch</name>
+    <groupId>net.opentsdb</groupId>
+    <artifactId>opentsdb-elasticsearch</artifactId>
+    <version>1.1.0-SNAPSHOT</version>
+    <description>A search plugin for OpenTSDB that works with an Elastic 
+      Search cluster.</description>
+
+    <packaging>jar</packaging>
+
+    <contributors>
+        <contributor>
+            <name>Chris Larsen</name>
+            <email>clarsen@euphoriaaudio.com</email>
+        </contributor>
+        <contributor>
+            <name>Scott Reynolds</name>
+            <email>scott@scottreynolds.us</email>
+        </contributor>
+    </contributors>
+
+    <dependencies>
+        <dependency>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpclient</artifactId>
+          <version>4.5.3</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpasyncclient</artifactId>
+          <version>4.1.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>1.7.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.opentsdb</groupId>
+            <artifactId>opentsdb</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+
+        <!-- test dependencies -->
+        <dependency>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+          <version>13.0.1</version>
+        </dependency>
+
+        <dependency>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
+          <version>2.3.0</version>
+        </dependency>
+
+        <dependency>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+          <version>2.3.3</version>
+        </dependency>
+
+        <dependency>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+          <version>2.3.3</version>
+        </dependency>
+
+        <dependency>
+          <groupId>org.javassist</groupId>
+          <artifactId>javassist</artifactId>
+          <version>3.18.1-GA</version>
+          <scope>test</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+          <version>4.11</version>
+          <scope>test</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>org.mockito</groupId>
+          <artifactId>mockito-core</artifactId>
+          <version>1.10.19</version>          
+          <scope>test</scope>
+        </dependency>
+        
+        <dependency>
+          <groupId>org.powermock</groupId>
+          <artifactId>powermock-api-mockito</artifactId>
+          <version>1.6.5</version>
+          <scope>test</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>org.powermock</groupId>
+          <artifactId>powermock-module-junit4</artifactId>
+          <version>1.6.5</version>
+          <scope>test</scope>
+        </dependency>
+        
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>1.6</version>
+                <configuration>
+                    <minimizeJar>true</minimizeJar>
+                    <createDependencyReducedPom>true</createDependencyReducedPom>
+                    <artifactSet>
+                        <excludes>
+                            <exclude>io.netty:netty</exclude>
+                            <exclude>commons-logging:*</exclude>
+                            <exclude>net.opentsdb:opentsdb</exclude>
+                            <exclude>com.stumbleupon:async</exclude>
+                            <exclude>org.apache.zookeeper:zookeeper</exclude>
+                            <exclude>org.hbase:asynchbase</exclude>
+                            <exclude>com.google.protobuf:protobuf</exclude>
+                            <exclude>com.google.gwt:gwt-user</exclude>
+                        </excludes>
+                    </artifactSet>
+
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                            </excludes>
+                        </filter>
+                        <filter>
+                            <artifact>net.opentsdb:opentsdb</artifact>
+                            <excludes>
+                                <exclude>**</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                    <transformers>
+                        <transformer
+                            implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>reference.conf</resource>
+                        </transformer>
+                    </transformers>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>eu.somatik.serviceloader-maven-plugin</groupId>
+                <artifactId>serviceloader-maven-plugin</artifactId>
+                <version>1.0.2</version>
+                <configuration>
+                    <services>
+                        <param>net.opentsdb.search.SearchPlugin</param>
+                    </services>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <!-- Coveralls plugins -->
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>cobertura-maven-plugin</artifactId>
+              <version>2.7</version>
+             <configuration>
+                <format>xml</format>
+                <maxmem>256m</maxmem>
+                <!-- aggregated reports for multi-module projects -->
+                <aggregate>true</aggregate>
+             </configuration>
+           </plugin>
+
+            <plugin>
+              <groupId>org.eluder.coveralls</groupId>
+              <artifactId>coveralls-maven-plugin</artifactId>
+              <version>4.3.0</version>
+              <configuration>
+                <repoToken>${repoToken}</repoToken>
+             </configuration>
+           </plugin>
+           
+        </plugins>
+    </build>
+    
+    <parent>
+      <groupId>org.sonatype.oss</groupId>
+      <artifactId>oss-parent</artifactId>
+      <version>7</version>
+     </parent>
+</project>

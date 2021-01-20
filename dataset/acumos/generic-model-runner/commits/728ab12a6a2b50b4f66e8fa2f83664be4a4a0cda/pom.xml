@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.acumos</groupId>
+	<artifactId>h2o-genericjava-modelrunner</artifactId>
+	<version>1.0.2-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>Acumos H2O/Generic Java Model Runner</name>
+	<description>Acumos H2O/Generic Java Model Runner</description>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>1.5.4.RELEASE</version>
+	</parent>
+
+	<properties>
+		<encoding>UTF-8</encoding>
+		<!-- Stand-alone RESTFul application -->
+		<start-class>org.acumos.modelrunner.Application</start-class>
+		<!-- Client jar is in nexus repo -->
+		<client.version>${project.version}-SNAPSHOT</client.version>
+		<swagger.version>2.6.1</swagger.version>
+		<!-- URL is overridden by Jenkins settings -->
+		<mlp.nexus.url>http://cognita-nexus01.eastus.cloudapp.azure.com:8081</mlp.nexus.url>
+		<mlp.nexus.snapshot.path>repository/repo_cognita_platform_maven_snapshots</mlp.nexus.snapshot.path>
+		<mlp.nexus.release.path>repository/repo_cognita_platform_maven</mlp.nexus.release.path>
+		<!-- EELF jar is in ONAP nexus repo -->
+		<onap.nexus.url>https://nexus.onap.org</onap.nexus.url>
+		<onap.nexus.snapshot.path>content/repositories/snapshots/</onap.nexus.snapshot.path>
+		<onap.nexus.release.path>content/repositories/releases/</onap.nexus.release.path>
+		<!-- Jenkins invokes mvn with argument -Dbuild.number=${BUILD_NUMBER} -->
+		<build.number>0</build.number>
+		<!-- Docker daemon; overridden by Jenkins settings -->
+		<docker.host.url>unix:/var/run/docker.sock</docker.host.url>
+		<!-- Docker image registry; all overriden by Jenkins settings -->
+		<docker.registry.url>set by Jenkins</docker.registry.url>
+		<docker.registry.login>set by Jenkins</docker.registry.login>
+		<docker.registry.password>set by Jenkins</docker.registry.password>
+	</properties>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<!-- Spring sets the <version>4.11</version> -->
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>2.4.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>2.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>javax.ws.rs-api</artifactId>
+			<version>2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.os72</groupId>
+			<artifactId>protoc-jar</artifactId>
+			<version>3.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>3.4.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.5</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+			<version>1.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>ai.h2o</groupId>
+			<artifactId>h2o-genmodel</artifactId>
+			<version>3.14.0.2</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+			</exclusions>
+
+		</dependency>
+
+		<dependency>
+			<groupId>org.metawidget.modules</groupId>
+			<artifactId>metawidget-all</artifactId>
+			<version>1.20</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-autoconfigure</artifactId>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>1.14</version>
+				<configuration>
+					<licenseName>acumos</licenseName>
+					<licenseResolver>${project.baseUri}/src/license</licenseResolver>
+					<addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
+					<processStartTag>===============LICENSE_START=======================================================</processStartTag>
+					<processEndTag>===============LICENSE_END=========================================================</processEndTag>
+					<sectionDelimiter>===================================================================================</sectionDelimiter>
+					<inceptionYear>2017</inceptionYear>
+					<organizationName><![CDATA[AT&T Intellectual Property & Tech Mahindra. All rights reserved.]]></organizationName>
+					<projectName>Acumos</projectName>
+					<canUpdateCopyright>true</canUpdateCopyright>
+					<canUpdateDescription>true</canUpdateDescription>
+					<canUpdateLicense>true</canUpdateLicense>
+					<emptyLineAfterHeader>true</emptyLineAfterHeader>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<!-- Spring sets the <version></version> -->
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<fork>true</fork>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.7.6.201602180812</version>
+				<executions>
+					<execution>
+						<id>default-prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>default-report</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- https://stackoverflow.com/questions/39126226/fabric8-springboot-full-example -->
+			<plugin>
+				<groupId>io.fabric8</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<version>0.21.0</version>
+				<configuration>
+					<verbose>true</verbose>
+					<dockerHost>${docker.host.url}</dockerHost>
+					<registry>${docker.registry.url}</registry>
+					<authConfig>
+						<username>${docker.registry.login}</username>
+						<password>${docker.registry.password}</password>
+					</authConfig>
+					<images>
+						<image>
+							<name>h2o-genericjava-modelrunner:${project.version}</name>
+							<build>
+								<from>frolvlad/alpine-oraclejdk8:slim</from>
+								<assembly>
+									<descriptorRef>artifact</descriptorRef>
+								</assembly>
+								<cmd>
+									<!-- CDATA prevents Eclipse formatter from breaking line -->
+									<shell><![CDATA[java -Djava.security.egd=file:/dev/./urandom -jar /maven/${project.artifactId}-${project.version}.${project.packaging}]]></shell>
+								</cmd>
+							</build>
+						</image>
+					</images>
+				</configuration>
+			</plugin>
+		</plugins>
+
+	</build>
+
+</project>

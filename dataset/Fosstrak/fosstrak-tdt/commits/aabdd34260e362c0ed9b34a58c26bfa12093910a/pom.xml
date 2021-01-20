@@ -1,0 +1,312 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+
+  <!-- =========================================================== -->
+  <!-- Basics                                                      -->
+  <!-- =========================================================== -->
+
+  <groupId>org.fosstrak.tdt</groupId>
+  <artifactId>tdt</artifactId>
+  <version>1.0.0</version>
+  <packaging>bundle</packaging>
+  <modelVersion>4.0.0</modelVersion>
+   <properties> 
+     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
+   </properties> 
+   <description>Tag Data Translation Engine - implements EPCglobal TDT Spec</description>
+   <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+   </parent>  
+    
+    <developers>
+        <developer>
+            <id>1</id>
+            <name>Mark Harrison</name>
+        </developer>
+        <developer>
+            <id>2</id>
+            <name>Christian Floerkemeier</name>
+        </developer>
+    </developers>   
+
+  <!-- =========================================================== -->
+  <!-- Dependencies                                                -->
+  <!-- =========================================================== -->
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+      <version>2.1</version>
+    </dependency>
+      <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.0.4</version>
+    </dependency>
+    <dependency>
+      <groupId>xerces</groupId>
+      <artifactId>xercesImpl</artifactId>
+      <version>2.2.1</version>
+    </dependency>
+	<dependency>
+      <groupId>net.sf.csv4j</groupId>
+      <artifactId>csv4j</artifactId>
+      <version>0.4.0</version>
+	  <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+
+  <!-- =========================================================== -->
+  <!-- Repositories                                                -->
+  <!-- =========================================================== -->
+  
+  <repositories>
+	<repository>
+      <id>aduna-software</id>
+      <url>http://repository.aduna-software.org/maven2</url>
+      <layout>default</layout>
+    </repository>
+
+  </repositories>
+
+  <!-- =========================================================== -->
+  <!-- Infrastructure                                              -->
+  <!-- =========================================================== -->
+
+    <scm>
+        <connection>https://svn.fosstrak.org/repos/tdt/tags/tdt-1.0.0</connection>
+   		<developerConnection>scm:svn:https://svn.fosstrak.org/repos/tdt/tags/tdt-1.0.0</developerConnection>
+        <url>https://svn.fosstrak.org/repos/tdt/tags/tdt-1.0.0</url>
+  	</scm>
+  
+
+
+  <!-- =========================================================== -->
+  <!-- Project Information                                         -->
+  <!-- =========================================================== -->
+
+  <name>tdt</name>
+  <url>http://www.fosstrak.org/tdt</url>
+  <licenses>
+    <license>
+      <name>GNU Lesser General Public License (LGPL)</name>
+      <url>http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt</url>
+    </license>
+  </licenses>
+
+  
+  <!-- =========================================================== -->
+  <!-- Plugins                                                     -->
+  <!-- =========================================================== -->
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+	    <configuration>
+	      <source>1.6</source>
+          <target>1.6</target>
+        </configuration>
+      </plugin>
+	  <!--
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>  
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>org.fosstrak.tdt.TDTFrontEnd</mainClass>
+              <addClasspath>true</addClasspath>
+              <classpathPrefix>./lib</classpathPrefix>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin> 
+	  <plugin>   
+         <groupId>org.apache.felix</groupId>
+         <artifactId>maven-bundle-plugin</artifactId>
+         <executions>
+          <execution>
+          <id>bundle-manifest</id>
+          <phase>process-classes</phase>
+          <goals>    
+            <goal>manifest</goal>
+          </goals>   
+         </execution>
+        </executions>
+      </plugin>-->
+	<plugin>    
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+			<Export-Package>org.epcglobalinc.tdt;-noimport:=true,org.fosstrak.tdt;-noimport:=true,schemes;-noimport:=true,auxiliary;-noimport:=true</Export-Package>
+			<Import-Package>*</Import-Package> 
+          </instructions>
+        </configuration>
+      </plugin> 
+
+	  <plugin>
+            <groupId>com.sun.tools.xjc.maven2</groupId>
+            <artifactId>maven-jaxb-plugin</artifactId>
+			<version>1.0</version>
+			<executions>
+            <execution>
+            <goals>
+            <goal>generate</goal>
+            </goals>
+            </execution>
+            </executions>
+	    <configuration>
+		<generatePackage>org.epcglobalinc.tdt</generatePackage>
+		<schemaDirectory>src/main/resources/xsd</schemaDirectory>
+	    </configuration> 
+      </plugin>
+	  
+      <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+            <source>1.6</source>
+            </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptors>
+            <descriptor>src/main/assembly/src.xml</descriptor>
+            <descriptor>src/main/assembly/jar-with-dependencies.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <configuration>
+          <locales>en</locales>
+          <publishDate position="left" format="yyyy-MM-dd hh:mm:ss" />
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <!--
+          By default, the surefire plugin automatically includes all test classes
+          with following wildcard patterns:
+            **/Test*.java
+            **/*Test.java
+            **/*TestCase.java
+        -->
+        <configuration>
+          <testFailureIgnore>true</testFailureIgnore>
+        </configuration>
+      </plugin>
+    </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <configuration>
+            <tagBase>https://fosstrak.googlecode.com/svn/tdt/tags</tagBase>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
+
+  <!-- =========================================================== -->
+  <!-- Reporting                                                   -->
+  <!-- =========================================================== -->
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <maxmemory>1024</maxmemory>
+          <aggregate>true</aggregate>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <configuration>
+          <aggregate>true</aggregate>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>2.1</version>
+        <configuration>
+          <linkXref>true</linkXref>
+          <sourceEncoding>utf-8</sourceEncoding>
+          <minimumTokens>100</minimumTokens>
+          <targetJdk>1.6</targetJdk>
+          <excludes>
+            <exclude>**/Test*.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <!--
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <configuration>
+          <threshold>Low</threshold>
+          <effort>Default</effort>
+        </configuration>
+      </plugin>
+      -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>javancss-maven-plugin</artifactId>
+        <version>2.0-beta-2</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>taglist-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-changes-plugin</artifactId>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>changes-report</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+    </plugins>
+  </reporting>
+
+
+</project>

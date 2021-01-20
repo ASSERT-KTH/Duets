@@ -1,0 +1,205 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>jira-suite-utilities</groupId>
+	<artifactId>jira-suite-utilities</artifactId>
+	<name>JIRA Suite Utilities</name>
+	<version>0.7.6</version>
+	<packaging>jar</packaging>
+
+	<organization>
+		<name>Quadratica SRL</name>
+		<url>www.quadratica.com.ar</url>
+	</organization>
+	<inceptionYear>2007</inceptionYear>
+
+	<developers>
+		<developer>
+			<name>Gustavo Martin</name>
+			<id>gmartin</id>
+			<email>gmartin@quadratica.com.ar</email>
+			<organization>Quadratica SRL</organization>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<name>Bettina Zucker</name>
+			<id>bettina</id>
+			<email>bettina.zucker@eu.panasonic.com</email>
+			<organization>PASE GmbH</organization>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<name>Alexey Abashev</name>
+			<id>abashev</id>
+			<email>abashev at gmail dot com</email>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<name>Cristiane Fontana</name>
+			<id>cfontana</id>
+			<email>no_spam@no_spam.com</email>
+			<roles>
+				<role>Developer</role>
+			</roles>
+		</developer>
+	</developers>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
+			<plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>package-source</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>process-classes</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<tasks>
+								<replace file="target/classes/atlassian-plugin.xml" token="@VERSION-REPLACED-BY-MAVEN@" value="${project.version}" />
+							</tasks>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>**/*RemoteTest.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+                <version>2.0-beta-9</version>
+				<configuration>
+					<tagBase>https://jira-suite-utilities.googlecode.com/svn/tags</tagBase>
+					<releaseProfiles>release</releaseProfiles>
+					<goals>gcupload:gcupload</goals>
+				</configuration>
+			</plugin>
+			<plugin>
+    			<groupId>org.riedelcastro</groupId>
+    			<artifactId>gcupload-maven-plugin</artifactId>
+    			<version>0.9</version>
+    			<configuration>
+        			<projectName>jira-suite-utilities</projectName>
+        			<uploads>
+            			<upload>
+                			<summary>${project.name} version ${project.version} (binaries)</summary>
+                			<extensions>jar</extensions>
+							<labels>Type-Package,OpSys-All,Featured</labels>
+            			</upload>
+						<upload>
+							<summary>${project.name} version ${project.version} (sources)</summary>
+							<postfix>sources</postfix>
+							<extensions>jar</extensions>
+							<labels>Type-Source,OpSys-All</labels>
+						</upload>
+        			</uploads>
+    			</configuration>
+			</plugin>
+      	</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.atlassian.jira</groupId>
+			<artifactId>atlassian-jira</artifactId>
+			<version>${atlassian.jira.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>junit</groupId>
+					<artifactId>junit</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.1</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	
+	<scm>
+		<connection>${scm.connection}</connection>
+		<developerConnection>${scm.connection}</developerConnection>
+	</scm>
+	
+	<repositories>
+		<repository>
+			<id>atlassian-m2</id>
+			<url>https://m2proxy.atlassian.com/repository/public</url>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+		</repository>
+	</repositories>
+	
+	<pluginRepositories>
+		<pluginRepository>
+        	<id>repository.riedelcastro.org</id>
+        	<url>http://repository.riedelcastro.org</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<properties>
+		<atlassian.jira.version>4.1</atlassian.jira.version>
+		
+		<scm.connection>scm:hg:file://${basedir}</scm.connection>
+	</properties>
+	
+	<profiles>
+		<profile>
+			<id>release</id>
+			
+			<properties>
+				<scm.connection>scm:hg:ssh://hg@bitbucket.org/abashev/jira-suite-utilities</scm.connection>
+			</properties>
+		</profile>
+	</profiles>
+</project>

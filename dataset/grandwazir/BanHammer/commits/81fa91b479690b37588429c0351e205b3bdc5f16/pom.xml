@@ -1,0 +1,108 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>ban-hammer</artifactId>
+  <version>2.4.1-SNAPSHOT</version>
+  <name>BanHammer</name>
+  <description>Bans, kicks and records</description>
+
+  <properties>
+    <bukkitdevuploader.changeLog>Please see the [changelog](${project.url}wiki/Feature-changes) on GitHub.</bukkitdevuploader.changeLog>
+  </properties>
+
+  <parent>
+     <groupId>name.richardson.james.bukkit</groupId>
+     <artifactId>maven-parent</artifactId>
+     <version>1</version>
+     <relativePath />
+  </parent>
+
+  <repositories>
+    <repository>
+      <id>my-repo</id>
+      <url>http://repository.james.richardson.name/releases</url>
+    </repository>
+    <repository>
+       <id>Plugin Metrics</id>
+       <url>http://repo.mcstats.org/content/repositories/public</url>
+    </repository>
+  </repositories>
+
+  <dependencies>
+     <dependency>
+           <groupId>name.richardson.james.bukkit</groupId>
+           <artifactId>bukkit-utilities</artifactId>
+           <version>7.0.1</version>
+     </dependency>
+     <dependency>
+           <groupId>name.richardson.james.bukkit</groupId>
+           <artifactId>alias</artifactId>
+           <version>1.4.0</version>
+     </dependency>
+     <dependency>
+          <groupId>org.mcstats.bukkit</groupId>
+          <artifactId>metrics</artifactId>
+          <version>R6</version>
+          <scope>compile</scope>
+     </dependency>
+  </dependencies>
+
+  <build>
+      <testResources>
+          <testResource>
+              <directory>${project.basedir}/src/main/java/resources</directory>
+          </testResource>
+      </testResources>
+      <resources>
+          <resource>
+              <directory>src/main/resources</directory>
+              <filtering>true</filtering>
+              <includes>
+                  <include>*.yml</include>
+                  <include>**/*.properties</include>
+              </includes>
+          </resource>
+      </resources>
+      <plugins>
+          <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-shade-plugin</artifactId>
+              <!-- We want to bundle in BukkitUtilities -->
+              <version>2.2</version>
+              <executions>
+                  <execution>
+                      <phase>package</phase>
+                      <goals>
+                          <goal>shade</goal>
+                      </goals>
+                      <configuration>
+                          <shadedArtifactAttached>true</shadedArtifactAttached>
+                          <shadedClassifierName>shaded</shadedClassifierName>
+                          <transformers>
+                              <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                  <resource>localisation/Messages.properties</resource>
+                              </transformer>
+                          </transformers>
+                          <artifactSet>
+                              <includes>
+                                  <include>name.richardson.james.bukkit:bukkit-utilities</include>
+                                  <include>org.mcstats.bukkit:metrics</include>
+                              </includes>
+                          </artifactSet>
+                          <relocations>
+                              <relocation>
+                                  <pattern>name.richardson.james.bukkit.utilities</pattern>
+                                  <shadedPattern>name.richardson.james.bukkit.banhammer.utilities</shadedPattern>
+                              </relocation>
+                              <relocation>
+                                  <pattern>org.mcstats</pattern>
+                                  <shadedPattern>name.richardson.james.bukkit.banhammer.utilities.metrics</shadedPattern>
+                              </relocation>
+                          </relocations>
+                          <minimizeJar>true</minimizeJar>
+                      </configuration>
+                  </execution>
+              </executions>
+          </plugin>
+      </plugins>
+  </build>
+</project>

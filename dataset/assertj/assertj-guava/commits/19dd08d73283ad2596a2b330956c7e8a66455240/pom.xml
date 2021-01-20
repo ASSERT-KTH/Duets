@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd ">
+
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>assertj-guava</artifactId>
+  <version>3.4.1-SNAPSHOT</version>
+  <packaging>bundle</packaging>
+  <name>AssertJ fluent assertions for Guava</name>
+  <url>https://github.com/joel-costigliola/assertj-guava</url>
+
+  <parent>
+    <groupId>org.assertj</groupId>
+    <artifactId>assertj-parent-pom</artifactId>
+    <version>2.2.7</version>
+  </parent>
+
+  <scm>
+    <developerConnection>scm:git:git@github.com:joel-costigliola/assertj-guava.git</developerConnection>
+    <connection>scm:git:git@github.com:joel-costigliola/assertj-guava.git</connection>
+    <url>git@github.com:joel-costigliola/assertj-guava</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/joel-costigliola/assertj-guava/issues</url>
+  </issueManagement>
+
+  <properties>
+    <javadocAdditionalOptions>-html5 --allow-script-in-comments --no-module-directories</javadocAdditionalOptions>
+    <guava.version>29.0-jre</guava.version>
+    <assertj-core.version>3.15.0</assertj-core.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${assertj-core.version}</version>
+    </dependency>
+    <!-- test dependencies -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- required to run JUnit4 tests in eclipse without to explicitly select JUnit 4 runner ... -->
+    <dependency>
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-testkit</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.assertj</groupId>
+          <artifactId>assertj-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.opentest4j</groupId>
+      <artifactId>opentest4j</artifactId>
+      <version>1.2.0</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+          <encoding>${project.build.sourceEncoding}</encoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>3.0.1</version>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Export-Package>org.assertj.guava.api.*,org.assertj.guava.data.*,org.assertj.guava.error.*</Export-Package>
+            <Bundle-RequiredExecutionEnvironment>JavaSE-1.8</Bundle-RequiredExecutionEnvironment>
+            <Bundle-Description>${project.name}</Bundle-Description>
+            <Import-Package>
+              com.google.common*;version="${guava.version}",
+              org.assertj.core*;version="[${assertj-core.version},$(version;+;${assertj-core.version}))"
+            </Import-Package>
+            <_removeheaders>Bnd-LastModified,Built-By</_removeheaders>
+          </instructions>
+        </configuration>
+      </plugin>
+      <!-- generate jacoco report -->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <!-- exclude deprecated classes -->
+            <exclude>org/assertj/guava/data/MapEntry*</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <!-- to get jacoco report we need to set argLine in surefire, without this snippet the jacoco argLine is lost -->
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>${argLine}</argLine>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>net.alchim31.maven</groupId>
+        <artifactId>yuicompressor-maven-plugin</artifactId>
+        <version>1.5.1</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase> <!-- invoked by maven-javadoc-plugin -->
+            <goals>
+              <goal>compress</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <sourceDirectory>src/main/javadoc</sourceDirectory>
+          <outputDirectory>${project.build.directory}/javadoc-stylesheet</outputDirectory>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <!-- needed to fix javadoc on java 11+ https://github.com/joel-costigliola/assertj-core/issues/1403 -->
+          <source>8</source>
+          <!-- (1) CSS file location -->
+          <stylesheetfile>${project.build.directory}/javadoc-stylesheet/assertj-javadoc-min.css</stylesheetfile>
+          <!-- init Highlight -->
+          <additionalOptions>${javadocAdditionalOptions}</additionalOptions>
+          <nohelp>true</nohelp>
+          <show>private</show>
+          <footer><![CDATA[
+            <link rel="stylesheet" href="./assertj-javadoc.css"">
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.10/highlight.min.js"></script>
+            <script type="text/javascript">hljs.initHighlightingOnLoad();</script>
+        ]]></footer>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

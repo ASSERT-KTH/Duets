@@ -1,0 +1,298 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.springrts</groupId>
+	<artifactId>tasserver</artifactId>
+	<packaging>jar</packaging>
+	<version>0.36-SNAPSHOT</version>
+	<name>TASServer</name>
+	<description>A Spring RTS Lobby Server</description>
+	<url>http://springrts.com</url>
+	<inceptionYear>2005</inceptionYear>
+
+	<issueManagement>
+		<system>Mantis</system>
+		<url>http://springrts.com/mantis/</url>
+	</issueManagement>
+
+	<build>
+		<defaultGoal>package</defaultGoal>
+
+		<plugins>
+			<!--
+				Set source compatibility to 1.5, so Annotations are supported.
+			-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
+
+			<!--
+				Modifies the jars manifest file,
+				eg. adds the Main-Class attribute
+			-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>dependency</classpathPrefix>
+							<packageName>com.springrts.tasserver</packageName>
+							<mainClass>com.springrts.tasserver.TASServer</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<!--
+						This copies the dependencies to the target/dependency dir
+						during the package phase.
+					-->
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/dependency</outputDirectory>
+							<excludeArtifactIds>commons-logging,log4j,persistence-api</excludeArtifactIds>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!--
+				This includes the dependencies in the generated jar
+				during the package phase
+			-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>1.2.1</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<artifactSet>
+								<!--
+									Include only the ones that are always needed,
+									like logging. Additional ones, like those required
+									for DB access for example, which is not used
+									in LAN mode, have to be added to the classpath
+									when executing the server.
+								-->
+								<includes>
+									<include>commons-logging:commons-logging</include>
+									<include>log4j:log4j</include>
+									<include>javax.persistence:persistence-api</include>
+								</includes>
+							</artifactSet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<scm>
+		<connection>scm:git:git://github.com/spring/TASServer.git</connection>
+		<url>http://github.com/spring/TASServer</url>
+		<developerConnection>scm:git:ssh://git@github.com:spring/TASServer.git</developerConnection>
+	</scm>
+
+	<dependencies>
+		<!--
+			For finding Maven dependencies, go to:
+			http://www.mvnrepository.com/search.html
+		-->
+
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.1.1</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.15</version>
+			<scope>runtime</scope>
+			<optional>true</optional>
+			<!--
+				Exclude these as they are not needed
+				except for special scenarios,
+				and because Maven can not auto-fetch them,
+				due to copyright restrictions.
+			-->
+			<exclusions>
+				<exclusion>
+					<groupId>javax.mail</groupId>
+					<artifactId>mail</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.sun.jdmk</groupId>
+					<artifactId>jmxtools</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.sun.jmx</groupId>
+					<artifactId>jmxri</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.jms</groupId>
+					<artifactId>jms</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<!-- Used for password encoding (JDK implementation independent) -->
+		<dependency>
+			<groupId>net.iharder</groupId>
+			<artifactId>base64</artifactId>
+			<version>2.3.8</version>
+			<scope>compile</scope>
+		</dependency>
+
+
+		<dependency>
+			<groupId>commons-pool</groupId>
+			<artifactId>commons-pool</artifactId>
+			<version>1.5.2</version>
+			<scope>compile</scope>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-dbcp</groupId>
+			<artifactId>commons-dbcp</artifactId>
+			<version>1.2.2</version>
+			<scope>compile</scope>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.persistence</groupId>
+			<artifactId>persistence-api</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.transaction</groupId>
+			<artifactId>jta</artifactId>
+			<version>1.0.1B</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.7</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+
+	<profiles>
+		<profile>
+			<id>JPA-Hibernate</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>org.hibernate</groupId>
+					<artifactId>hibernate-entitymanager</artifactId>
+					<version>3.3.2.GA</version>
+					<scope>runtime</scope>
+					<optional>true</optional>
+				</dependency>
+				<dependency>
+					<groupId>org.hibernate</groupId>
+					<artifactId>ejb3-persistence</artifactId>
+					<version>1.0.1.GA</version>
+					<scope>runtime</scope>
+					<optional>true</optional>
+				</dependency>
+				<dependency>
+					<!-- used to prevent DB connection timeout -->
+					<groupId>org.hibernate</groupId>
+					<artifactId>hibernate-c3p0</artifactId>
+					<version>3.3.2.GA</version>
+					<scope>runtime</scope>
+					<optional>true</optional>
+				</dependency>
+			</dependencies>
+		</profile>
+
+		<profile>
+			<id>JPA-OpenJPA</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.apache.openjpa</groupId>
+					<artifactId>openjpa</artifactId>
+					<version>1.2.1</version>
+					<scope>runtime</scope>
+					<optional>true</optional>
+				</dependency>
+			</dependencies>
+		</profile>
+
+		<profile>
+			<id>DB-MySQL</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>mysql</groupId>
+					<artifactId>mysql-connector-java</artifactId>
+					<version>5.1.6</version>
+					<scope>runtime</scope>
+					<optional>true</optional>
+				</dependency>
+			</dependencies>
+		</profile>
+
+		<profile>
+			<id>DB-Postgres</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>postgresql</groupId>
+					<artifactId>postgresql</artifactId>
+					<version>8.4-701.jdbc4</version>
+					<scope>runtime</scope>
+					<optional>true</optional>
+				</dependency>
+			</dependencies>
+		</profile>
+	</profiles>
+
+
+	<repositories>
+		<repository>
+			<!-- For javax.transaction.jta -->
+			<id>maven2-repository.dev.java.net</id>
+			<name>Java.net Repository for Maven</name>
+			<url>http://download.java.net/maven/2/</url>
+			<layout>default</layout>
+		</repository>
+	</repositories>
+
+</project>
+

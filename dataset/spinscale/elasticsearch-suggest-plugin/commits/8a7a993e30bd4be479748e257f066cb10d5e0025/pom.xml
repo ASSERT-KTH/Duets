@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <name>elasticsearch-plugin-suggest</name>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>de.spinscale</groupId>
+    <artifactId>elasticsearch-plugin-suggest</artifactId>
+    <version>1.3.2-2.0.2-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <description>Lucene FSTSuggester implementation for ElasticSearch</description>
+    <inceptionYear>2011</inceptionYear>
+    <url>https://github.com/spinscale/elasticsearch-suggest-plugin/</url>
+    <scm>
+        <connection>scm:git:git://github.com/spinscale/elasticsearch-suggest-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:spinscale/elasticsearch-suggest-plugin.git</developerConnection>
+        <url>https://github.com/spinscale/elasticsearch-suggest-plugin</url>
+    </scm>
+
+    <properties>
+        <elasticsearch.version>1.3.2</elasticsearch.version>
+        <lucene.version>4.9.0</lucene.version>
+        <tests.jvms>auto</tests.jvms>
+        <tests.shuffle>true</tests.shuffle>
+        <tests.output>onerror</tests.output>
+        <tests.client.ratio />
+        <es.logger.level>INFO</es.logger.level>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-test-framework</artifactId>
+            <version>${lucene.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>${elasticsearch.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-misc</artifactId>
+            <version>${lucene.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>${elasticsearch.version}</version>
+            <scope>test</scope>
+            <type>test-jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.ning</groupId>
+            <artifactId>async-http-client</artifactId>
+            <version>1.7.19</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+            <version>1.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <version>1.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>1.9.12</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- needed for async http client logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.6.1</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.carrotsearch.randomizedtesting</groupId>
+                <artifactId>junit4-maven-plugin</artifactId>
+                <version>2.0.15</version>
+                <executions>
+                    <execution>
+                        <id>tests</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>junit4</goal>
+                        </goals>
+                        <configuration>
+                            <heartbeat>20</heartbeat>
+                            <jvmOutputAction>pipe,warn</jvmOutputAction>
+                            <leaveTemporary>true</leaveTemporary>
+                            <listeners>
+                                <report-ant-xml mavenExtensions="true" dir="${project.build.directory}/surefire-reports" />
+                                <report-text showThrowable="true" showStackTraces="true" showOutput="${tests.output}" showStatusOk="false" showStatusError="true" showStatusFailure="true" showStatusIgnored="true" showSuiteSummary="true" timestamps="false" />
+                                <report-execution-times file="${basedir}/.local-execution-hints.log" />
+                            </listeners>
+                            <assertions>
+                                <enable />
+                                <disable package="${tests.assertion.disabled}" />  <!-- pass org.elasticsearch to run without assertions -->
+                            </assertions>
+                            <parallelism>${tests.jvms}</parallelism>
+                            <balancers>
+                                <execution-times>
+                                    <fileset dir="${basedir}" includes=".local-execution-hints.log" />
+                                </execution-times>
+                            </balancers>
+                            <argLine>${tests.jvm.argline}</argLine>
+                            <jvmArgs>
+                                <param>-Xmx512m</param>
+                                <param>-Xss256k</param>
+                                <param>-XX:MaxDirectMemorySize=512m</param>
+                                <param>-Des.logger.prefix=</param>
+                            </jvmArgs>
+                            <shuffleOnSlave>${tests.shuffle}</shuffleOnSlave>
+                            <sysouts>${tests.verbose}</sysouts>
+                            <seed>${tests.seed}</seed>
+                            <haltOnFailure>${tests.failfast}</haltOnFailure>
+                            <systemProperties>
+                                <!-- RandomizedTesting library system properties -->
+                                <tests.jvm.argline>${tests.jvm.argline}</tests.jvm.argline>
+                                <tests.appendseed>${tests.appendseed}</tests.appendseed>
+                                <tests.iters>${tests.iters}</tests.iters>
+                                <tests.class>${tests.class}</tests.class>
+                                <tests.method>${tests.method}</tests.method>
+                                <tests.cluster_seed>${tests.cluster_seed}</tests.cluster_seed>
+                                <tests.client.ratio>${tests.client.ratio}</tests.client.ratio>
+                                <tests.enable_mock_modules>${tests.enable_mock_modules}</tests.enable_mock_modules>
+                                <tests.assertion.disabled>${tests.assertion.disabled}</tests.assertion.disabled>
+                                <es.logger.level>${es.logger.level}</es.logger.level>
+                                <java.awt.headless>true</java.awt.headless>
+                            </systemProperties>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <!-- we skip surefire to work with randomized testing above -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.16</version>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.2</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <outputDirectory>${project.build.directory}/releases/</outputDirectory>
+                    <descriptors>
+                        <descriptor>${basedir}/src/main/assemblies/plugin.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.m2e</groupId>
+                <artifactId>lifecycle-mapping</artifactId>
+                <version>1.0.0</version>
+                <configuration>
+                    <lifecycleMappingMetadata>
+                        <pluginExecutions>
+                            <!-- forbidden-apis plugin -->
+                            <pluginExecution>
+                                <pluginExecutionFilter>
+                                    <groupId>de.thetaphi</groupId>
+                                    <artifactId>forbiddenapis</artifactId>
+                                    <versionRange>[1.0.0,)</versionRange>
+                                    <goals>
+                                        <goal>testCheck</goal>
+                                        <goal>check</goal>
+                                    </goals>
+                                </pluginExecutionFilter>
+                                <action>
+                                    <execute />
+                                </action>
+                            </pluginExecution>
+                        </pluginExecutions>
+                    </lifecycleMappingMetadata>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>de.thetaphi</groupId>
+                <artifactId>forbiddenapis</artifactId>
+                <version>1.6.1</version>
+
+                <executions>
+                    <execution>
+                        <id>check-forbidden-apis</id>
+                        <configuration>
+                            <targetVersion>1.7</targetVersion>
+                            <!-- disallow undocumented classes like sun.misc.Unsafe: -->
+                            <internalRuntimeForbidden>true</internalRuntimeForbidden>
+                            <!-- if the used Java version is too new, don't fail, just do nothing: -->
+                            <failOnUnsupportedJava>false</failOnUnsupportedJava>
+                            <excludes>
+                                <exclude>de/spinscale/elasticsearch/service/suggest/ShardSuggestService.class</exclude>
+                            </excludes>
+                            <bundledSignatures>
+                                <!-- This will automatically choose the right signatures based on 'maven.compiler.target': -->
+                                <bundledSignature>jdk-unsafe</bundledSignature>
+                                <bundledSignature>jdk-deprecated</bundledSignature>
+                                <bundledSignaure>jdk-system-out</bundledSignaure>
+                            </bundledSignatures>
+                            <signaturesFiles>
+                                <signaturesFile>core-signatures.txt</signaturesFile>
+                            </signaturesFiles>
+                        </configuration>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>check-forbidden-test-apis</id>
+                        <configuration>
+                            <targetVersion>1.7</targetVersion>
+                            <!-- disallow undocumented classes like sun.misc.Unsafe: -->
+                            <internalRuntimeForbidden>true</internalRuntimeForbidden>
+                            <!-- if the used Java version is too new, don't fail, just do nothing: -->
+                            <failOnUnsupportedJava>false</failOnUnsupportedJava>
+                            <bundledSignatures>
+                                <!-- This will automatically choose the right signatures based on 'maven.compiler.target': -->
+                                <bundledSignature>jdk-unsafe</bundledSignature>
+                                <bundledSignature>jdk-deprecated</bundledSignature>
+                            </bundledSignatures>
+                        </configuration>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>testCheck</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- stuff that has to be here for the sonatype release but is not specific for the build -->
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>alr</id>
+            <name>Alexander Reelsen</name>
+            <email>alr@spinscale.de</email>
+            <url>http://spinscale.github.com/</url>
+            <timezone>+1</timezone>
+        </developer>
+    </developers>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/spinscale/elasticsearch-suggest-plugin/issues/</url>
+    </issueManagement>
+</project>

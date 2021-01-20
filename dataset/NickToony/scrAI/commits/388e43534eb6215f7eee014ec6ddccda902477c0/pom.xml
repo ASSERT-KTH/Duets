@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>nicktoony</groupId>
+    <artifactId>scrAI</artifactId>
+    <version>deploy</version>
+    <packaging>war</packaging>
+    <name>scrAI</name>
+
+    <properties>
+        <stjs.version>3.0.3</stjs.version>
+    </properties>
+
+    <build>
+        <sourceDirectory>src/main/java/</sourceDirectory>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.st-js</groupId>
+                <artifactId>maven-plugin</artifactId>
+                <version>${stjs.version}</version>
+                <executions>
+                    <execution>
+                        <id>main</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includes>
+                        <include>com/nicktoony/scrAI/**</include>
+                    </includes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>com.google.code.maven-replacer-plugin</groupId>
+                <artifactId>maven-replacer-plugin</artifactId>
+                <version>1.4.1</version>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includes>
+                        <include>target/**/scrAI/**/*.js</include>
+                    </includes>
+                    <replacements>
+                        <replacement>
+                            <token>([ ]*)TemporaryVariables.([\S]+[ ]*=[ ]*null)</token>
+                            <value>$1var $2</value>
+                        </replacement>
+                        <!--<replacement>-->
+                            <!--<token>[ ]*\*[ ]+ var(.*)</token>-->
+                            <!--<value>*/var $1/*</value>-->
+                        <!--</replacement>-->
+                        <replacement>
+                            <token>TemporaryVariables.</token>
+                            <value></value>
+                        </replacement>
+                    </replacements>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>yuicompressor-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>compress</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <nosuffix>true</nosuffix>
+                    <aggregations>
+                        <aggregation>
+                            <!-- insert new line after each concatenation (default: false) -->
+                            <insertNewLine>true</insertNewLine>
+                            <output>${project.build.directory}/${project.build.finalName}/main.js</output>
+                            <!-- files to include, path relative to output's directory or absolute path-->
+                            <inputDir>${project.build.directory}/</inputDir>
+                            <includes>
+                                <include>../src/main/javascript/stjs.js</include>
+                                <include>${project.build.finalName}/generated-js/com/nicktoony/scrAI/**/*.js</include>
+                            </includes>
+                        </aggregation>
+                    </aggregations>
+                    <failOnWarning>true</failOnWarning>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>com.samaxes.maven</groupId>
+                <artifactId>minify-maven-plugin</artifactId>
+                <version>1.7.4</version>
+                <executions>
+                    <execution>
+                        <id>default-minify</id>
+                        <phase>prepare-package</phase>
+                        <configuration>
+                            <jsSourceFiles>
+                                <jsSourceFile>main.js</jsSourceFile>
+                            </jsSourceFiles>
+                            <jsSourceDir>${project.build.finalName}</jsSourceDir>
+                            <webappSourceDir>${project.build.directory}</webappSourceDir>
+                            <jsFinalFile>main.js</jsFinalFile>
+                            <nosuffix>true</nosuffix>
+                        </configuration>
+                        <goals>
+                            <goal>minify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>grunt</executable>
+                    <arguments>
+                        <argument>screeps</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <!-- for the java libraries -->
+        <dependency>
+            <groupId>org.st-js.bridge</groupId>
+            <artifactId>html</artifactId>
+            <version>5.0.bv2</version>
+            <scope>provided</scope>
+        </dependency>
+
+    </dependencies>
+
+</project>

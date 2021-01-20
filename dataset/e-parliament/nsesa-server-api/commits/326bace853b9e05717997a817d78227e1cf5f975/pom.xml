@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.nsesa</groupId>
+    <artifactId>nsesa-server-api</artifactId>
+    <packaging>jar</packaging>
+    <name>Server API and DTOs</name>
+    <version>0.7</version>
+
+    <properties>
+        <spring.version>3.2.12.RELEASE</spring.version>
+        <jdk.source>1.6</jdk.source>
+        <jdk.target>1.6</jdk.target>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <project.name.long>DTO and Server API</project.name.long>
+        <maven.build.timestamp.format>yyyyMMdd_HHmm</maven.build.timestamp.format>
+        <build.timestamp>${maven.build.timestamp}</build.timestamp>
+
+        <!-- Make sure to have this entry in your ~/.m2/settings.xml -->
+        <github.global.server>e-parliament.github.com</github.global.server>
+    </properties>
+
+    <dependencies>
+        <!-- core module: use can you it on its own if you are not using Spring 3 -->
+        <dependency>
+            <groupId>com.inspire-software.lib.dto.geda</groupId>
+            <artifactId>geda.core</artifactId>
+            <version>3.1.0</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>services-api</finalName>
+        <plugins>
+            <!-- ***************************** Configure compiler plugin    ***************************** -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>${jdk.source}</source>
+                    <target>${jdk.target}</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codehaus.plexus</groupId>
+                        <artifactId>plexus-compiler-javac</artifactId>
+                        <version>1.8.6</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <!-- ***************************** Maven deployment plugin    ***************************** -->
+            <plugin>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.8.1</version>
+                <configuration>
+                    <altDeploymentRepository>internal.repo::default::file://${project.build.directory}/mvn-repo</altDeploymentRepository>
+                </configuration>
+            </plugin>
+
+            <!-- Github maven plugin to push artifacts -->
+            <plugin>
+                <groupId>com.github.github</groupId>
+                <artifactId>site-maven-plugin</artifactId>
+                <version>0.10</version>
+                <configuration>
+                    <message>Maven artifacts for ${project.version}</message>  <!-- git commit message -->
+                    <noJekyll>true</noJekyll>                                  <!-- disable webpage processing -->
+                    <outputDirectory>${project.build.directory}/mvn-repo</outputDirectory> <!-- matches distribution management repository url above -->
+                    <branch>refs/heads/mvn-repo</branch>                       <!-- remote branch name -->
+                    <includes><include>**/*</include></includes>
+                    <repositoryName>nsesa-server-api</repositoryName>      <!-- github repo name -->
+                    <repositoryOwner>e-parliament</repositoryOwner>    <!-- github username  -->
+                </configuration>
+                <executions>
+                    <!-- run site-maven-plugin's 'site' target as part of the build's normal 'deploy' phase -->
+                    <execution>
+                        <goals>
+                            <goal>site</goal>
+                        </goals>
+                        <phase>deploy</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <distributionManagement>
+        <repository>
+            <id>internal.repo</id>
+            <name>Temporary Staging Repository</name>
+            <url>file://${project.build.directory}/mvn-repo</url>
+        </repository>
+    </distributionManagement>
+
+    <!-- ***************************** Profiles ***************************** -->
+    <profiles>
+        <profile>
+            <!-- local development profile -->
+            <id>local</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>local</name>
+                </property>
+            </activation>
+            <properties>
+                <env>local</env>
+            </properties>
+        </profile>
+        <profile>
+            <!-- Development env. profile -->
+            <id>dev</id>
+            <activation>
+                <property>
+                    <name>dev</name>
+                </property>
+            </activation>
+            <properties>
+                <env>dev</env>
+            </properties>
+        </profile>
+    </profiles>
+</project>

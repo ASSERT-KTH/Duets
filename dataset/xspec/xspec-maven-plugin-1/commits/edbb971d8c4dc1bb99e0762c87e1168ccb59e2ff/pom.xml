@@ -1,0 +1,367 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
+
+    <groupId>uk.org.adamretter.maven</groupId>
+    <artifactId>xspec-maven-plugin</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>maven-plugin</packaging>
+
+
+    <name>XSpec plugin for Maven</name>
+    <description>Maven plugin that executes XSpec tests</description>
+    <inceptionYear>2013</inceptionYear>
+    <url>https://github.com/adamretter/xspec-maven-plugin</url>
+
+
+    <licenses>
+        <license>
+            <name>The BSD 3-Clause License</name>
+            <url>http://opensource.org/licenses/BSD-3-Clause</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:https://github.com/adamretter/xspec-maven-plugin.git</connection>
+        <developerConnection>scm:git:https://github.com/adamretter/xspec-maven-plugin.git</developerConnection>
+        <url>scm:git:https://github.com/adamretter/xspec-maven-plugin.git</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>Adam Retter</name>
+            <email>adam.retter@googlemail.com</email>
+            <organizationUrl>http://www.adamretter.org.uk</organizationUrl>
+            <timezone>GMT</timezone>
+        </developer>
+    </developers>
+
+    <properties>
+        <xspec.groupId>com.google.code.xspec</xspec.groupId>
+        <xspec.artifactId>xspec</xspec.artifactId>
+        <xspec.version>0.4.0rc1</xspec.version>
+        <xspec.packaging>zip</xspec.packaging>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.plugin-plugin.version>3.2</maven.plugin-plugin.version>
+    </properties>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.plugin-tools</groupId>
+            <artifactId>maven-plugin-annotations</artifactId>
+            <version>${maven.plugin-plugin.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.saxon</groupId>
+            <artifactId>Saxon-HE</artifactId>
+            <version>9.5.1-2</version>
+        </dependency>
+
+        <!-- dependency>
+            <groupId>org.apache.maven.plugin-testing</groupId>
+            <artifactId>maven-plugin-testing-harness</artifactId>
+            <version>2.1</version>
+            <scope>test</scope>
+        </dependency -->
+        <!-- dependency>
+            <groupId>org.sonatype.aether</groupId>
+            <artifactId>aether-api</artifactId>
+            <version>1.13.1</version>
+        </dependency -->
+        <!-- dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>1.9.5</version>
+            <scope>test</scope>
+        </dependency -->
+
+    </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>2.6</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>2.2.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>com.mycila</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>2.5</version>
+                </plugin>
+
+                <plugin>
+                    <!-- needed for mojo with annotations -->
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-plugin-plugin</artifactId>
+                    <version>${maven.plugin-plugin.version}</version>
+                    <configuration>
+                        <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>mojo-descriptor</id>
+                            <goals>
+                                <goal>descriptor</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>help-goal</id>
+                            <goals>
+                                <goal>helpmojo</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.1</version>
+                    <configuration>
+                        <source>1.6</source>
+                        <target>1.6</target>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>com.code54.mojo</groupId>
+                    <artifactId>buildversion-plugin</artifactId>
+                    <version>1.0.3</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>2.4</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.4.1</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <groupId>com.savage7.maven.plugins</groupId>
+                <artifactId>maven-external-dependency-plugin</artifactId>
+                <version>0.5</version>
+                <configuration>
+                    <createChecksum>true</createChecksum>
+                    <skipChecksumVerification>false</skipChecksumVerification>
+                    <force>false</force>
+                    <artifactItems>
+                        <artifactItem>
+                            <groupId>${xspec.groupId}</groupId>
+                            <artifactId>${xspec.artifactId}</artifactId>
+                            <version>${xspec.version}</version>
+                            <packaging>${xspec.packaging}</packaging>
+                            <downloadUrl>http://{artifactId}.googlecode.com/files/{artifactId}-{version}.{packaging}</downloadUrl>
+                        </artifactItem>
+                    </artifactItems>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>clean-external-dependencies</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean-external</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>resolve-install-external-dependencies</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>resolve-external</goal>
+                            <goal>install-external</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.8</version>
+                <executions>
+                    <execution>
+                        <id>unpack</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>${xspec.groupId}</groupId>
+                                    <artifactId>${xspec.artifactId}</artifactId>
+                                    <version>${xspec.version}</version>
+                                    <type>${xspec.packaging}</type>
+                                    <overWrite>false</overWrite>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <copy todir="${project.build.directory}/classes/xspec" verbose="true">
+                                    <fileset dir="${project.build.directory}/dependency/${xspec.artifactId}-${xspec.version}/src" includes="compiler/**"/>
+                                    <fileset dir="${project.build.directory}/dependency/${xspec.artifactId}-${xspec.version}/src" includes="reporter/**"/>
+                                    <filelist dir="${project.build.directory}/dependency/${xspec.artifactId}-${xspec.version}">
+                                        <file name="README"/>
+                                        <file name="VERSION"/>
+                                    </filelist>
+                                </copy>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <header>com/mycila/maven/plugin/license/templates/BSD-3.txt</header>
+                    <properties>
+                        <owner>Adam Retter</owner>
+                        <year>${project.inceptionYear}</year>
+                        <email>adam.retter@googlemail.com</email>
+                    </properties>
+                    <excludes>
+                        <exclude>pom.xml</exclude>
+                        <exclude>LICENSE</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.code54.mojo</groupId>
+                <artifactId>buildversion-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>set-properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <Build-Tag>${build-tag}</Build-Tag>
+                            <Git-Commit>${build-commit}</Git-Commit>
+                            <Git-Commit-Abbrev>${build-commit-abbrev}</Git-Commit-Abbrev>
+                            <Build-Version>${build-version}</Build-Version>
+                            <Build-Timestamp>${build-tstamp}</Build-Timestamp>
+                            <Source-Repository>${project.scm.connection}</Source-Repository>
+                            <Description>${project.description}</Description>
+                            <Website>${project.url}</Website>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+    
+    <pluginRepositories>
+        <pluginRepository>
+            <id>sonatype-releases</id>
+            <url>http://oss.sonatype.org/content/repositories/releases</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>clojars.org</id>
+            <url>http://clojars.org/repo</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <!-- performRelease will be true when mvn:release-perform is executed -->
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>

@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.github.nzroller</groupId>
+  <artifactId>awesomeapp</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+
+  <packaging>jar</packaging>
+
+  <name>awesomeapp</name>
+  <description>
+    Example of deploying debian and maven artifacts to an S3 maven and debian
+    repository
+  </description>
+
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/nzroller/apt-s3-jdeb-maven-example/issues</url>
+  </issueManagement>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <dropwizard.version>0.6.1</dropwizard.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.yammer.dropwizard</groupId>
+      <artifactId>dropwizard-core</artifactId>
+      <version>${dropwizard.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.yammer.dropwizard</groupId>
+      <artifactId>dropwizard-testing</artifactId>
+      <version>${dropwizard.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>1.7</version>
+        <configuration>
+          <createDependencyReducedPom>true</createDependencyReducedPom>
+          <filters>
+            <filter>
+              <artifact>*:*</artifact>
+              <excludes>
+                <exclude>META-INF/*.SF</exclude>
+                <exclude>META-INF/*.DSA</exclude>
+                <exclude>META-INF/*.RSA</exclude>
+              </excludes>
+            </filter>
+          </filters>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>com.github.nzroller.awesome.AwesomeService</mainClass>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+          <showDeprecation>true</showDeprecation>
+          <showWarnings>true</showWarnings>
+          <fork>true</fork>
+        </configuration>
+      </plugin>
+    </plugins>
+    <!-- enable distributing to s3 -->
+    <extensions>
+      <extension>
+        <groupId>org.kuali.maven.wagons</groupId>
+        <artifactId>maven-s3-wagon</artifactId>
+        <version>1.1.19</version>
+      </extension>
+    </extensions>
+
+  </build>
+
+  <profiles>
+    <!-- Make a debian package upon release (-DperformRelease) -->
+    <profile>
+      <id>release-debian-package</id>
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <finalName>${project.artifactId}-${project.version}-${maven.build.timestamp}</finalName>
+        <plugins>
+          <!-- Build a deb -->
+          <plugin>
+            <artifactId>jdeb</artifactId>
+            <groupId>org.vafer</groupId>
+            <version>0.11</version>
+            <executions>
+              <execution>
+                <phase>install</phase>
+                <goals>
+                  <goal>jdeb</goal>
+                </goals>
+                <configuration>
+                  <controlDir>${project.basedir}/src/deb/control</controlDir>
+                  <timestamped>true</timestamped>
+                  <dataSet>
+                    <data>
+                      <src>${project.build.directory}/${project.build.finalName}.jar</src>
+                      <type>file</type>
+                      <mapper>
+                        <type>perm</type>
+                        <prefix>/opt/${project.artifactId}</prefix>
+                        <user>www-data</user>
+                        <group>www-data</group>
+                      </mapper>
+                    </data>
+                    <data>
+                      <src>${project.basedir}/${project.artifactId}.yaml</src>
+                      <type>file</type>
+                      <mapper>
+                        <type>perm</type>
+                        <prefix>/etc</prefix>
+                        <filemode>600</filemode>
+                        <user>www-data</user>
+                        <group>www-data</group>
+                      </mapper>
+                    </data>
+                    <data>
+                      <src>${project.basedir}/src/deb/init.d</src>
+                      <type>directory</type>
+                      <mapper>
+                        <type>perm</type>
+                        <prefix>/etc/init.d</prefix>
+                        <filemode>755</filemode>
+                        <user>www-data</user>
+                        <group>www-data</group>
+                      </mapper>
+                    </data>
+                    <data>
+                      <type>template</type>
+                      <paths>
+                        <path>opt/${project.artifactId}</path>
+                        <path>var/log/${project.artifactId}</path>
+                      </paths>
+                      <mapper>
+                        <type>perm</type>
+                        <user>www-data</user>
+                        <group>www-data</group>
+                      </mapper>
+                    </data>
+                  </dataSet>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-release-plugin</artifactId>
+            <version>2.3.2</version>
+            <configuration>
+              <autoVersionSubmodules>true</autoVersionSubmodules>
+              <mavenExecutorId>forked-path</mavenExecutorId>
+              <tagNameFormat>v@{project.version}</tagNameFormat>
+              <preparationGoals>clean verify</preparationGoals>
+              <localCheckout>true</localCheckout>
+              <pushChanges>false</pushChanges>
+              <useReleaseProfile>true</useReleaseProfile>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <version>2.12.4</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>integration-test</goal>
+                  <goal>verify</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <repositories>
+    <repository>
+      <id>aws-release</id>
+      <name>AWS Release Repository</name>
+      <url>s3://repos/release</url>
+    </repository>
+    <repository>
+      <id>aws-snapshot</id>
+      <name>AWS Snapshot Repository</name>
+      <url>s3://repos/snapshot</url>
+    </repository>
+  </repositories>
+
+  <!-- This is where artifacts will be deployed when you run `mvn deploy' -->
+  <distributionManagement>
+    <repository>
+      <id>aws-release</id>
+      <name>AWS Release Repository</name>
+      <url>s3://repos/release</url>
+    </repository>
+    <snapshotRepository>
+      <id>aws-snapshot</id>
+      <name>AWS Snapshot Repository</name>
+      <url>s3://repos/snapshot</url>
+    </snapshotRepository>
+  </distributionManagement>
+</project>

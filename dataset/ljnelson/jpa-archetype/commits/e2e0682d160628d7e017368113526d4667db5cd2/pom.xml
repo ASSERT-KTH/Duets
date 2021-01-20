@@ -1,0 +1,787 @@
+<?xml version="1.0" encoding="utf-8"?><!-- $Id: pom.xml 336 2011-02-26 22:20:22Z ljnelson $ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.edugility</groupId>
+  <artifactId>jpa-archetype</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <name>JPA Archetype</name>
+
+  <dependencyManagement>
+    <dependencies>
+
+      <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+        <version>${h2Version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>javax.validation</groupId>
+        <artifactId>validation-api</artifactId>
+        <version>${javaxValidationVersion}</version>
+        <scope>provided</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junitVersion}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.openjpa</groupId>
+        <artifactId>openjpa</artifactId>
+        <version>${openJPAVersion}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.persistence</groupId>
+        <artifactId>javax.persistence</artifactId>
+        <version>${javaxPersistenceVersion}</version>
+        <scope>provided</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.persistence</groupId>
+        <artifactId>org.eclipse.persistence.jpa</artifactId>
+        <version>${eclipseLinkVersion}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.hibernate</groupId>
+        <artifactId>hibernate-entitymanager</artifactId>
+        <version>${hibernateVersion}</version>
+        <scope>test</scope>
+      </dependency>
+
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.openjpa</groupId>
+      <artifactId>openjpa</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>javax.persistence</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>org.eclipse.persistence.jpa</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-entitymanager</artifactId>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+
+        <plugin>
+          <groupId>com.edugility</groupId>
+          <artifactId>jpa-maven-plugin</artifactId>
+          <version>1.0</version>
+        </plugin>
+
+        <plugin>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>1.6</version>
+        </plugin>
+
+        <plugin>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>2.2.1</version>
+        </plugin>
+
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>2.3.2</version>
+          <configuration>
+            <compilerArgument>-Xlint:all</compilerArgument>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <artifactId>maven-clean-plugin</artifactId>
+          <configuration>
+            <filesets>
+              <fileset>
+                <directory>${basedir}</directory>
+                <includes>
+                  <include>*~</include>
+                  <include>src/**/*~</include>
+                </includes>
+              </fileset>
+            </filesets>
+          </configuration>
+          <version>2.4.1</version>
+        </plugin>
+
+        <plugin>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>2.3</version>
+        </plugin>
+
+        <plugin>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>2.3.2</version>
+        </plugin>
+
+        <plugin>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>2.8</version>
+        </plugin>
+
+        <plugin>
+          <artifactId>maven-resources-plugin</artifactId>
+          <configuration>
+            <delimiters>
+              <delimiter>${*}</delimiter>
+            </delimiters>
+            <useDefaultDelimiters>false</useDefaultDelimiters>
+          </configuration>
+          <version>2.5</version>
+        </plugin>
+
+        <plugin>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>3.0</version>
+        </plugin>
+
+        <plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <configuration>
+            <classpathDependencyExcludes>
+              <!-- Remove transitive JPA specs no matter how this plugin is invoked. -->
+              <classpathDependencyExclude>org.hibernate.javax.persistence:hibernate-jpa-2.0-api</classpathDependencyExclude>
+              <classpathDependencyExclude>org.apache.geronimo.specs:geronimo-jpa_2.0_spec</classpathDependencyExclude>
+            </classpathDependencyExcludes>
+            <skip>true</skip>
+            <systemPropertyVariables>
+              <defaultDatabaseSchema>${defaultDatabaseSchema}</defaultDatabaseSchema>
+              <java.util.logging.config.file>${loggingConfigFile}</java.util.logging.config.file>
+              <maven.project.build.directory>${project.build.directory}</maven.project.build.directory>
+              <testDatabaseCatalog>${testDatabaseCatalog}</testDatabaseCatalog>
+              <testDatabaseConnectionURL>${testDatabaseConnectionURL}</testDatabaseConnectionURL>
+              <testDatabaseDriverClass>${testDatabaseDriverClass}</testDatabaseDriverClass>
+              <testDatabasePassword>${testDatabasePassword}</testDatabasePassword>
+              <testDatabaseSchema>${testDatabaseSchema}</testDatabaseSchema>
+              <testDatabaseSchemaPrefix>${testDatabaseSchemaPrefix}</testDatabaseSchemaPrefix>
+              <testDatabaseUser>${testDatabaseUser}</testDatabaseUser>
+            </systemPropertyVariables>
+          </configuration>
+          <version>2.10</version>
+        </plugin>
+
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+
+      <plugin>
+        <groupId>com.edugility</groupId>
+        <artifactId>jpa-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>Generate regular entity classnames for filtering</id>
+            <goals>
+              <goal>list-entity-classnames</goal>
+            </goals>
+            <phase>process-classes</phase>
+            <configuration>
+              <outputFile>${weavingEntityClassnamesPropertiesFile}</outputFile>
+              <URLs>
+                <URL>file:${project.build.outputDirectory}/</URL>
+              </URLs>
+            </configuration>
+          </execution>
+          <execution>
+            <id>Generate all entity classnames for filtering</id>
+            <goals>
+              <goal>list-entity-classnames</goal>
+            </goals>
+            <phase>process-test-classes</phase>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <!--
+
+After compilation, but before testing, unpack various
+dependencies into the weaving area of the JPA providers.
+
+      -->
+
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>Unpack all dependencies so that weaving, instrumentation and enhancement may run on them prior to testing</id>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <phase>generate-test-resources</phase>
+            <configuration>
+              <includeGroupIds>${weavingDependencyGroupIds}</includeGroupIds>
+              <includes>**/*.class</includes>
+              <excludes>**/*_.class</excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+
+          <execution>
+            <id>Copy src/main/resources/META-INF/persistence.xml with filtering to ${project.build.outputDirectory}</id>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <phase>process-classes</phase>
+            <configuration>
+              <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+              <overwrite>true</overwrite>
+              <filters>
+                <filter>${weavingEntityClassnamesPropertiesFile}</filter>
+              </filters>
+              <resources>
+                <resource>
+                  <directory>${basedir}/src/main/resources</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>META-INF/persistence.xml</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+
+          <!--
+
+              Right after compilation, we copy all the classes and
+              resources into each JPA provider's main area.  We also
+              set them up with a persistence.xml since weaving often
+              needs one.
+
+          -->
+
+          <execution>
+            <id>Copy contents of ${project.build.outputDirectory} and weaving persistence.xmls to JPA provider areas</id>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <phase>process-classes</phase>
+            <configuration>
+              <outputDirectory>${project.build.directory}</outputDirectory>
+              <overwrite>true</overwrite>
+              <filters>
+                <filter>${weavingEntityClassnamesPropertiesFile}</filter>
+              </filters>
+              <resources>
+                <resource>
+                  <directory>${project.build.outputDirectory}</directory>
+                  <filtering>false</filtering>
+                  <targetPath>eclipselink/classes</targetPath>
+                </resource>
+                <resource>
+                  <directory>${project.build.outputDirectory}</directory>
+                  <filtering>false</filtering>
+                  <targetPath>hibernate/classes</targetPath>
+                </resource>
+                <resource>
+                  <directory>${project.build.outputDirectory}</directory>
+                  <filtering>false</filtering>
+                  <targetPath>openjpa/classes</targetPath>
+                </resource>
+                <resource>
+                  <directory>src/weaving/META-INF</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>persistence.xml</include>
+                  </includes>
+                  <targetPath>eclipselink/META-INF</targetPath>
+                </resource>
+                <resource>
+                  <directory>src/weaving/META-INF</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>persistence.xml</include>
+                  </includes>
+                  <targetPath>hibernate/META-INF</targetPath>
+                </resource>
+                <resource>
+                  <directory>src/weaving/META-INF</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>persistence.xml</include>
+                  </includes>
+                  <targetPath>openjpa/META-INF</targetPath>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>Copy dependencies and woven classes into JPA provider test areas</id>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <phase>process-test-resources</phase>
+            <configuration>
+              <outputDirectory>${project.build.directory}</outputDirectory>
+              <overwrite>true</overwrite>
+              <resources>
+                <resource>
+                  <directory>${project.build.directory}/dependency</directory>
+                  <filtering>false</filtering>
+                  <targetPath>eclipselink/test-classes</targetPath>
+                </resource>
+                <resource>
+                  <directory>${project.build.directory}/dependency</directory>
+                  <filtering>false</filtering>
+                  <targetPath>hibernate/test-classes</targetPath>
+                </resource>
+                <resource>
+                  <directory>${project.build.directory}/dependency</directory>
+                  <filtering>false</filtering>
+                  <targetPath>openjpa/test-classes</targetPath>
+                </resource>
+
+                <!-- ...then copy JPA provider classes area on top of those -->
+                <resource>
+                  <directory>${project.build.directory}/eclipselink/classes</directory>
+                  <filtering>false</filtering>
+                  <targetPath>eclipselink/test-classes</targetPath>
+                </resource>
+                <resource>
+                  <directory>${project.build.directory}/hibernate/classes</directory>
+                  <filtering>false</filtering>
+                  <targetPath>hibernate/test-classes</targetPath>
+                </resource>
+                <resource>
+                  <directory>${project.build.directory}/openjpa/classes</directory>
+                  <filtering>false</filtering>
+                  <targetPath>openjpa/test-classes</targetPath>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>Copy test persistence.xml, with filtering, to ${project.build.testOutputDirectory}/META-INF/persistence.xml</id>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <phase>process-test-classes</phase>
+            <configuration>
+              <outputDirectory>${project.build.testOutputDirectory}</outputDirectory>
+              <overwrite>true</overwrite>
+              <filters>
+                <filter>${project.build.directory}/generated-test-sources/jpa-maven-plugin/entityClassnames.properties</filter>
+              </filters>
+              <resources>
+                <resource>
+                  <directory>${basedir}/src/test/resources</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>META-INF/persistence.xml</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>Copy contents of ${project.build.testOutputDirectory} to JPA provider test areas</id>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <phase>process-test-classes</phase>
+            <configuration>
+              <outputDirectory>${project.build.directory}</outputDirectory>
+              <overwrite>true</overwrite>
+              <resources>
+                <resource>
+                  <directory>${project.build.testOutputDirectory}</directory>
+                  <filtering>false</filtering>
+                  <targetPath>eclipselink/test-classes</targetPath>
+                </resource>
+                <resource>
+                  <directory>${project.build.testOutputDirectory}</directory>
+                  <filtering>false</filtering>
+                  <targetPath>hibernate/test-classes</targetPath>
+                </resource>
+                <resource>
+                  <directory>${project.build.testOutputDirectory}</directory>
+                  <filtering>false</filtering>
+                  <targetPath>openjpa/test-classes</targetPath>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <dependencies>
+          <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>${javaxValidationVersion}</version>
+          </dependency>
+          <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernateVersion}</version>
+          </dependency>
+          <dependency>
+            <groupId>org.apache.openjpa</groupId>
+            <artifactId>openjpa</artifactId>
+            <version>${openJPAVersion}</version>
+          </dependency>
+          <dependency>
+            <groupId>org.eclipse.persistence</groupId>
+            <artifactId>org.eclipse.persistence.jpa</artifactId>
+            <version>${eclipseLinkVersion}</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>Weave and enhance regular entities</id>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <phase>process-classes</phase>
+            <configuration>
+              <target name="Weave and enhance regular entities">
+                <taskdef name="weave" classname="org.eclipse.persistence.tools.weaving.jpa.StaticWeaveAntTask"/>
+                <taskdef name="instrument" classname="org.hibernate.tool.instrument.javassist.InstrumentTask"/>
+                <taskdef name="enhance" classname="org.apache.openjpa.ant.PCEnhancerTask"/>
+
+                <weave source="${project.build.directory}/eclipselink/classes" target="${project.build.directory}/eclipselink/classes" persistenceinfo="${project.build.directory}/eclipselink" logLevel="${eclipseLinkLoggingLevel}"/>
+
+                <instrument verbose="${hibernateInstrumentationVerbose}" extended="${hibernateInstrumentationExtended}">
+                  <fileset dir="${project.build.directory}/hibernate">
+                    <include name="classes/**/*.class"/>
+                    <exclude name="**/*_.class"/>
+                  </fileset>
+                </instrument>
+
+                <enhance directory="${project.build.directory}/openjpa/classes">
+                  <config propertiesFile="${project.build.directory}/openjpa/META-INF/persistence.xml" log="${openJPALoggingLevel}"/>
+                  <classpath>
+                    <pathelement location="${project.build.directory}/openjpa/classes"/>
+                    <path refid="maven.compile.classpath"/>
+                  </classpath>
+                  <fileset dir="${project.build.directory}/openjpa/classes">
+                    <include name="**/*.class"/>
+                    <exclude name="**/*_.class"/>
+                  </fileset>
+                </enhance>                
+              </target>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>Weave and enhance test entities</id>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <phase>process-test-classes</phase>
+            <configuration>
+              <target name="Weave and enhance test entities">
+                <taskdef name="weave" classname="org.eclipse.persistence.tools.weaving.jpa.StaticWeaveAntTask"/>
+                <taskdef name="instrument" classname="org.hibernate.tool.instrument.javassist.InstrumentTask"/>
+                <taskdef name="enhance" classname="org.apache.openjpa.ant.PCEnhancerTask"/>
+
+                <weave source="${project.build.directory}/eclipselink/test-classes" target="${project.build.directory}/eclipselink/test-classes" persistenceinfo="${project.build.directory}/eclipselink" logLevel="${eclipseLinkLoggingLevel}"/>
+
+                <instrument verbose="${hibernateInstrumentationVerbose}" extended="${hibernateInstrumentationExtended}">
+                  <fileset dir="${project.build.directory}/hibernate">
+                    <include name="test-classes/**/*.class"/>
+                    <exclude name="**/*_.class"/>
+                  </fileset>
+                </instrument>
+
+                <enhance directory="${project.build.directory}/openjpa/test-classes">
+                  <config propertiesFile="${project.build.directory}/openjpa/META-INF/persistence.xml" log="${openJPALoggingLevel}"/>
+                  <classpath>
+                    <pathelement location="${project.build.directory}/openjpa/test-classes"/>
+                    <path refid="maven.test.classpath"/>
+                  </classpath>
+                  <fileset dir="${project.build.directory}/openjpa/test-classes">
+                    <include name="**/*.class"/>
+                    <exclude name="**/*_.class"/>
+                  </fileset>
+                </enhance>
+
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>SureFire Hibernate run</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <phase>test</phase>
+            <configuration>
+              <classpathDependencyExcludes combine.children="append">
+                <!-- Remove EclipseLink -->
+                <classpathDependencyExclude>org.eclipse.persistence:org.eclipse.persistence.antlr</classpathDependencyExclude>
+                <classpathDependencyExclude>org.eclipse.persistence:org.eclipse.persistence.asm</classpathDependencyExclude>
+                <classpathDependencyExclude>org.eclipse.persistence:org.eclipse.persistence.core</classpathDependencyExclude>
+                <classpathDependencyExclude>org.eclipse.persistence:org.eclipse.persistence.jpa</classpathDependencyExclude>
+
+                <!-- Remove OpenJPA -->
+                <classpathDependencyExclude>commons-collections:commons-collections</classpathDependencyExclude>
+                <classpathDependencyExclude>commons-lang:commons-lang</classpathDependencyExclude>
+                <classpathDependencyExclude>commons-pool:commons-pool</classpathDependencyExclude>
+                <classpathDependencyExclude>net.sourceforge.serp:serp</classpathDependencyExclude>
+                <classpathDependencyExclude>org.apache.geronimo.specs:geronimo-jms_1.1_spec</classpathDependencyExclude>
+                <classpathDependencyExclude>org.apache.geronimo.specs:geronimo-jta_1.1_spec</classpathDependencyExclude>
+                <classpathDependencyExclude>org.apache.openjpa:openjpa</classpathDependencyExclude>
+              </classpathDependencyExcludes>
+              <includes>
+                <include>**/JPATest*.java</include>
+              </includes>
+              <skip>false</skip>
+              <testClassesDirectory>${project.build.directory}/hibernate/test-classes</testClassesDirectory>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>SureFire OpenJPA run</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <phase>test</phase>
+            <configuration>
+              <classpathDependencyExcludes combine.children="append">
+
+                <!-- Remove EclipseLink -->
+                <classpathDependencyExclude>org.eclipse.persistence:org.eclipse.persistence.antlr</classpathDependencyExclude>
+                <classpathDependencyExclude>org.eclipse.persistence:org.eclipse.persistence.asm</classpathDependencyExclude>
+                <classpathDependencyExclude>org.eclipse.persistence:org.eclipse.persistence.core</classpathDependencyExclude>
+                <classpathDependencyExclude>org.eclipse.persistence:org.eclipse.persistence.jpa</classpathDependencyExclude>
+
+                <!-- Remove Hibernate -->
+                <classpathDependencyExclude>antlr:antlr</classpathDependencyExclude>
+                <classpathDependencyExclude>com.fasterxml:classmate</classpathDependencyExclude>
+                <classpathDependencyExclude>dom4j:dom4j</classpathDependencyExclude>
+                <classpathDependencyExclude>javassist:javassist</classpathDependencyExclude>
+                <classpathDependencyExclude>org.hibernate.common:hibernate-commons-annotations</classpathDependencyExclude>
+                <classpathDependencyExclude>org.hibernate:hibernate-core</classpathDependencyExclude>
+                <classpathDependencyExclude>org.hibernate:hibernate-entitymanager</classpathDependencyExclude>
+                <classpathDependencyExclude>org.jboss.logging:jboss-logging</classpathDependencyExclude>
+                <classpathDependencyExclude>org.jboss.spec.javax.transaction:jboss-transaction-api</classpathDependencyExclude>
+                <classpathDependencyExclude>org.jboss:jandex</classpathDependencyExclude>
+                <classpathDependencyExclude>xml-apis:xml-apis</classpathDependencyExclude>              
+              </classpathDependencyExcludes>
+              <includes>
+                <include>**/JPATest*.java</include>
+              </includes>
+              <skip>false</skip>
+              <testClassesDirectory>${project.build.directory}/openjpa/test-classes</testClassesDirectory>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>SureFire EclipseLink run</id>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <phase>test</phase>
+            <configuration>
+              <classpathDependencyExcludes combine.children="append">
+
+                <!-- Remove Hibernate -->
+                <classpathDependencyExclude>antlr:antlr</classpathDependencyExclude>
+                <classpathDependencyExclude>com.fasterxml:classmate</classpathDependencyExclude>
+                <classpathDependencyExclude>dom4j:dom4j</classpathDependencyExclude>
+                <classpathDependencyExclude>javassist:javassist</classpathDependencyExclude>
+                <classpathDependencyExclude>org.hibernate.common:hibernate-commons-annotations</classpathDependencyExclude>
+                <classpathDependencyExclude>org.hibernate:hibernate-core</classpathDependencyExclude>
+                <classpathDependencyExclude>org.hibernate:hibernate-entitymanager</classpathDependencyExclude>
+                <classpathDependencyExclude>org.jboss.logging:jboss-logging</classpathDependencyExclude>
+                <classpathDependencyExclude>org.jboss.spec.javax.transaction:jboss-transaction-api</classpathDependencyExclude>
+                <classpathDependencyExclude>org.jboss:jandex</classpathDependencyExclude>
+                <classpathDependencyExclude>xml-apis:xml-apis</classpathDependencyExclude>              
+
+                <!-- Remove OpenJPA -->
+                <classpathDependencyExclude>commons-collections:commons-collections</classpathDependencyExclude>
+                <classpathDependencyExclude>commons-lang:commons-lang</classpathDependencyExclude>
+                <classpathDependencyExclude>commons-pool:commons-pool</classpathDependencyExclude>
+                <classpathDependencyExclude>net.sourceforge.serp:serp</classpathDependencyExclude>
+                <classpathDependencyExclude>org.apache.geronimo.specs:geronimo-jms_1.1_spec</classpathDependencyExclude>
+                <classpathDependencyExclude>org.apache.geronimo.specs:geronimo-jta_1.1_spec</classpathDependencyExclude>
+                <classpathDependencyExclude>org.apache.openjpa:openjpa</classpathDependencyExclude>
+
+              </classpathDependencyExcludes>
+              <includes>
+                <include>**/JPATest*.java</include>
+              </includes>
+              <skip>false</skip>
+              <testClassesDirectory>${project.build.directory}/eclipselink/test-classes</testClassesDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>Create jar file containing EclipseLink-woven classes</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <classesDirectory>${project.build.directory}/eclipselink/classes</classesDirectory>
+              <classifier>eclipselink</classifier>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>Create jar file containing Hibernate-instrumented classes</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <classesDirectory>${project.build.directory}/hibernate/classes</classesDirectory>
+              <classifier>hibernate</classifier>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>Create jar file containing OpenJPA-enhanced classes</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <classesDirectory>${project.build.directory}/openjpa/classes</classesDirectory>
+              <classifier>openjpa</classifier>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+
+    <resources>
+      <resource>
+        <directory>${basedir}/src/main/resources</directory>
+        <filtering>true</filtering>
+        <excludes>
+          <exclude>META-INF/persistence.xml</exclude>
+        </excludes>
+      </resource>
+    </resources>
+
+    <testResources>
+      <testResource>
+        <directory>${basedir}/src/test/resources</directory>
+        <filtering>true</filtering>
+        <excludes>
+          <exclude>META-INF/persistence.xml</exclude>
+        </excludes>
+      </testResource>
+    </testResources>
+
+  </build>
+
+  <properties>
+
+    <!-- Versions -->
+    <eclipseLinkVersion>2.3.1</eclipseLinkVersion>
+    <h2Version>1.3.162</h2Version>
+    <hibernateVersion>4.0.0.CR7</hibernateVersion>
+    <javaxPersistenceVersion>2.0.3</javaxPersistenceVersion>
+    <junitVersion>4.10</junitVersion>
+    <openJPAVersion>2.1.1</openJPAVersion>
+    <javaxValidationVersion>1.0.0.GA</javaxValidationVersion>
+
+    <!-- Other -->
+    <defaultDatabaseSchema>test</defaultDatabaseSchema>
+    <eclipseLinkLoggingLevel>INFO</eclipseLinkLoggingLevel>
+    <hibernateInstrumentationExtended>false</hibernateInstrumentationExtended>
+    <hibernateInstrumentationVerbose>false</hibernateInstrumentationVerbose>
+    <loggingConfigFile>${basedir}/logging.properties</loggingConfigFile>
+
+
+    <openJPALoggingLevel>false</openJPALoggingLevel>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <testDatabaseCatalog>test</testDatabaseCatalog>
+    <testDatabaseConnectionURL>jdbc:h2:mem:${testDatabaseCatalog};DB_CLOSE_DELAY=-1</testDatabaseConnectionURL>
+    <testDatabaseDriverClass>org.h2.Driver</testDatabaseDriverClass>
+    <testDatabasePassword />
+    <testDatabaseSchema>${defaultDatabaseSchema}</testDatabaseSchema>
+    <testDatabaseSchemaPrefix>${testDatabaseSchema}.</testDatabaseSchemaPrefix>
+    <testDatabaseUser>sa</testDatabaseUser>
+    <testPersistenceUnitName>test</testPersistenceUnitName>
+    <weavingEntityClassnamesPropertiesFile>${project.build.directory}/generated-sources/jpa-maven-plugin/entityClassnames.properties</weavingEntityClassnamesPropertiesFile>
+    <weavingDependencyGroupIds>${project.groupId}</weavingDependencyGroupIds>
+
+    <!-- maven-compiler-plugin properties -->
+    <maven.compiler.showDeprecation>true</maven.compiler.showDeprecation>
+    <maven.compiler.showWarnings>true</maven.compiler.showWarnings>
+    <maven.compiler.source>1.6</maven.compiler.source>
+    <maven.compiler.target>1.6</maven.compiler.target>
+    <maven.compiler.verbose>true</maven.compiler.verbose>
+    <maven.compiler.compilerVersion>1.6</maven.compiler.compilerVersion>
+
+    <!-- maven resources plugin properties -->
+    <maven.resources.escapeString>\</maven.resources.escapeString>
+
+    <!-- maven-surefire-plugin properties -->
+    <forkMode>always</forkMode>
+    <surefire.useFile>false</surefire.useFile>
+
+  </properties>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.8</version>
+      </plugin>
+    </plugins>
+  </reporting>
+
+</project>

@@ -1,0 +1,197 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>de.tudresden.inf.st</groupId>
+	<artifactId>salespoint-framework</artifactId>
+	<version>6.0.0.BUILD-SNAPSHOT</version>
+
+	<name>Salespoint</name>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>1.1.8.RELEASE</version>
+	</parent>
+
+	<properties>
+		<dev>/dev</dev>
+	</properties>
+
+	<profiles>
+		<profile>
+			<id>release</id>
+			<properties>
+				<dev></dev>
+			</properties>
+		</profile>
+	</profiles>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hsqldb</groupId>
+			<artifactId>hsqldb</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-jpamodelgen</artifactId>
+			<version>1.3.0.Final</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.joda</groupId>
+			<artifactId>joda-money</artifactId>
+			<version>0.9.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jadira.usertype</groupId>
+			<artifactId>usertype.extended</artifactId>
+			<version>3.2.0.GA</version>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+
+		<extensions>
+		    <extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ssh</artifactId>
+				<version>2.6</version>
+			</extension>
+		</extensions>
+
+		<plugins>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<compilerArgument>-proc:none</compilerArgument>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>package-javadoc</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<phase>package</phase>
+					</execution>
+				</executions>
+				<configuration>
+	                <additionalparam>-Xdoclint:none</additionalparam>
+	                <outputDirectory>${project.build.directory}/site${dev}/api</outputDirectory>
+	            </configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>com.mysema.maven</groupId>
+				<artifactId>apt-maven-plugin</artifactId>
+				<version>1.1.2</version>
+				<configuration>
+					<processor>org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor</processor>
+				</configuration>
+				<executions>
+					<execution>
+						<id>sources</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>process</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>target/generated-sources/main</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.asciidoctor</groupId>
+				<artifactId>asciidoctor-maven-plugin</artifactId>
+				<version>1.5.0</version>
+				<executions>
+					<execution>
+						<id>website</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>process-asciidoc</goal>
+						</goals>
+						<configuration>
+							<sourceDocumentName>index.adoc</sourceDocumentName>
+							<outputDirectory>${project.build.directory}/site</outputDirectory>
+						</configuration>
+					</execution>
+					<execution>
+						<id>reference</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>process-asciidoc</goal>
+						</goals>
+						<configuration>
+							<sourceDocumentName>salespoint-reference.adoc</sourceDocumentName>
+							<outputDirectory>${project.build.directory}/site${dev}</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+				<configuration>
+					<doctype>book</doctype>
+					<backend>html5</backend>
+					<sourceHighlighter>prettify</sourceHighlighter>
+					<outputDirectory>${project.build.directory}/site</outputDirectory>
+					<attributes>
+						<version>${project.version}</version>
+						<linkcss>true</linkcss>
+						<numbered>true</numbered>
+						<icons>font</icons>
+						<sectanchors>true</sectanchors>
+					</attributes>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+	<distributionManagement>
+		<repository>
+			<id>salespoint</id>
+			<url>sftp://st.inf.tu-dresden.de:44/home/salespnt/salespoint/repository</url>
+		</repository>
+		<site>
+			<id>salespoint</id>
+			<url>sftp://st.inf.tu-dresden.de:44/home/salespnt/salespoint</url>
+		</site>
+	</distributionManagement>
+
+</project>

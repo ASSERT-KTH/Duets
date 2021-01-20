@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2013 Worldpay
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <parent>
+        <groupId>com.worldpay.api.root</groupId>
+        <artifactId>worldpay-root</artifactId>
+        <version>0.0.8</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <version>0.1.14-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <groupId>com.worldpay</groupId>
+    <artifactId>worldpay-lib-java</artifactId>
+
+    <organization>
+        <name>Worldpay</name>
+        <url>https://online.worldpay.com/</url>
+    </organization>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <github.repository>worldpay-lib-java</github.repository>
+        <git.dotGitDirectory>${project.basedir}/.git</git.dotGitDirectory>
+
+        <worldpay-client-core.version>0.8.2</worldpay-client-core.version>
+        <worldpay-client-common.version>0.4.0</worldpay-client-common.version>
+        <worldpay-common-utils.version>0.3.0</worldpay-common-utils.version>
+        <jgiven.version>0.12.1</jgiven.version>
+        <logback-classic.version>1.1.7</logback-classic.version>
+        <maven-javadoc-plugin.version>2.9</maven-javadoc-plugin.version>
+        <wiremock.version>2.2.1</wiremock.version>
+    </properties>
+
+    <scm>
+        <connection>${github.connection}</connection>
+        <developerConnection>${github.developerConnection}</developerConnection>
+        <url>${github.url}</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <dependencies>
+        <!-- Worldpay dependencies -->
+        <dependency>
+            <groupId>com.worldpay.api.client</groupId>
+            <artifactId>worldpay-client-core</artifactId>
+            <version>${worldpay-client-core.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-beans</artifactId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>log4j-over-slf4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jcl-over-slf4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.worldpay.api.client</groupId>
+            <artifactId>worldpay-client-common</artifactId>
+            <version>${worldpay-client-common.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.worldpay.api.commons</groupId>
+            <artifactId>worldpay-common-utils</artifactId>
+            <version>${worldpay-common-utils.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.tngtech.jgiven</groupId>
+            <artifactId>jgiven-junit</artifactId>
+            <version>${jgiven.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback-classic.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>${wiremock.version}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.ow2.asm</groupId>
+                    <artifactId>asm</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <Build-Time>${maven.build.timestamp}</Build-Time>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration combine.self="override">
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <Build-Time>${maven.build.timestamp}</Build-Time>
+                        </manifestEntries>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin.version}</version>
+
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <aggregate>true</aggregate>
+                            <javaApiLinks>
+                                <property>
+                                    <name>api_1.7</name>
+                                    <value>http://download.java.net/jdk7/docs/api/</value>
+                                </property>
+                            </javaApiLinks>
+                            <quiet>true</quiet>
+                            <failOnError>false</failOnError>
+                            <archive>
+                                <manifest>
+                                    <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-integration-test</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includes>
+                        <include>**/IT*.java</include>
+                        <include>**/*IT.java</include>
+                        <include>**/*CT.java</include>
+                        <include>**/CT*.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>com.tngtech.jgiven</groupId>
+                <artifactId>jgiven-maven-plugin</artifactId>
+                <version>${jgiven.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <format>html</format>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

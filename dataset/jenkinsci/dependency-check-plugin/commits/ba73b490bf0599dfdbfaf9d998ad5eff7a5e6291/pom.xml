@@ -1,0 +1,243 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <description>Dependency-Check is a utility that identifies project dependencies and checks if there are any known, publicly disclosed, vulnerabilities. This tool can be part of the solution to the OWASP Top 10 2013: A9 - Using Components with Known Vulnerabilities. This plug-in can independently execute a Dependency-Check analysis and visualize results.</description>
+    <url>http://wiki.jenkins-ci.org/display/JENKINS/OWASP+Dependency-Check+Plugin</url>
+    <parent>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>plugin</artifactId>
+        <version>3.40</version>
+    </parent>
+
+    <!--
+        If artifactId changes, the *.jelly files containing links to help need
+        to be changed. Additionally, the ICONS_PREFIX and PLUGIN_ID in
+        DependencyCheckDescriptor need to be updated as well.
+    -->
+    <artifactId>dependency-check-jenkins-plugin</artifactId>
+
+    <name>OWASP Dependency-Check Plugin</name>
+    <version>5.0.3-SNAPSHOT</version>
+    <packaging>hpi</packaging>
+    <inceptionYear>2012</inceptionYear>
+    <organization>
+        <name>OWASP</name>
+        <url>http://www.owasp.org</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <name>Steve Springett</name>
+            <email>steve.springett@owasp.org</email>
+            <organization>OWASP</organization>
+            <organizationUrl>https://www.owasp.org/index.php/OWASP_Dependency_Check</organizationUrl>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>Apache-2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <properties>
+        <java.level>8</java.level>
+        <jenkins.version>2.121.1</jenkins.version>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <dependency.check.version>5.0.0</dependency.check.version>
+        <workflow-jenkins-plugin.version>1.4</workflow-jenkins-plugin.version>
+        <plugin.webapp.directory>${project.build.sourceDirectory}/../webapp</plugin.webapp.directory>
+    </properties>
+
+    <distributionManagement>
+        <repository>
+            <id>maven.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>maven.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${plugin.webapp.directory}</directory>
+                            <includes>
+                                <include>js/libs/**/*</include>
+                            </includes>
+                            <excludes>
+                                <exclude>js/libs/tipped.js</exclude>
+                            </excludes>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.googlecode.maven-download-plugin</groupId>
+                <artifactId>download-maven-plugin</artifactId>
+                <version>1.4.1</version>
+                <executions>
+                    <execution>
+                        <id>download-echarts-js</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://cdnjs.cloudflare.com/ajax/libs/echarts/4.2.1/echarts.common.min.js</url>
+                            <outputDirectory>${plugin.webapp.directory}/js/libs</outputDirectory>
+                            <sha512>e4492c98805884de5e707bce08c98058594d1e0b32de8c2eeb3f062573c3341d86e7cb41e1dfdded4380c192889797f5277a0e1d0e954f8bf43672d48ced736a</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>download-footable-js</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://cdnjs.cloudflare.com/ajax/libs/jquery-footable/3.1.6/footable.min.js</url>
+                            <outputDirectory>${plugin.webapp.directory}/js/libs</outputDirectory>
+                            <sha512>695918cccd983a6cd08de184584537e6aecf928cd6d2f630117622d0aa34ea8542e0d74dcc02df943132a8c079ff0078c07e740e68b32359cb0f1044eacc05de</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>download-jquery-js</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js</url>
+                            <outputDirectory>${plugin.webapp.directory}/js/libs</outputDirectory>
+                            <sha512>6e722fce1e8553be592b1a741972c7f5b7b0cdafce230e9d2d587d20283482881c96660682e4095a5f14df45a96ec193a9b222030c53b1b7bbe8312b2eae440d</sha512>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>download-jquery-map</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.map</url>
+                            <outputDirectory>${plugin.webapp.directory}/js/libs</outputDirectory>
+                            <sha512>3c4acff92ba438bb8a590752754e7f4926ade1f89314d2670b41540d05647643f331d347a2b5d7f8594b0436001742e2c050839c30ad10d0db569f7087005ec9</sha512>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.17</version>
+                <configuration>
+                    <enableRulesSummary>false</enableRulesSummary>
+                    <configLocation>${basedir}/src/main/config/checkstyle-checks.xml</configLocation>
+                    <headerLocation>${basedir}/src/main/config/checkstyle-header.txt</headerLocation>
+                    <suppressionsLocation>${basedir}/src/main/config/checkstyle-suppressions.xml</suppressionsLocation>
+                    <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
+                </configuration>
+            </plugin>
+            <!-- TODO: Remove once Javadoc is fixed -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-digester3</artifactId>
+            <version>3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-job</artifactId>
+            <version>${workflow-jenkins-plugin.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-cps</artifactId>
+            <version>${workflow-jenkins-plugin.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-basic-steps</artifactId>
+            <version>${workflow-jenkins-plugin.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <scm>
+        <connection>scm:git:git@github.com:jenkinsci/dependency-check-plugin.git</connection>
+        <url>https://github.com/jenkinsci/dependency-check-plugin.git</url>
+        <developerConnection>scm:git:git@github.com:jenkinsci/dependency-check-plugin.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <issueManagement>
+        <system>JIRA</system>
+        <url>http://issues.jenkins-ci.org/</url>
+    </issueManagement>
+
+    <mailingLists>
+        <mailingList>
+            <name>Dependency Check</name>
+            <subscribe>dependency-check+subscribe@googlegroups.com</subscribe>
+            <unsubscribe>dependency-check+unsubscribe@googlegroups.com</unsubscribe>
+            <post>dependency-check@googlegroups.com</post>
+            <archive>https://groups.google.com/forum/?fromgroups#!forum/dependency-check</archive>
+        </mailingList>
+    </mailingLists>
+
+    <repositories>
+        <repository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </repository>
+        <repository>
+            <id>repo.dependency-check.snapshot</id>
+            <url>https://dependencycheck.jfrog.io/dependencycheck/libs-snapshot</url>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+</project>

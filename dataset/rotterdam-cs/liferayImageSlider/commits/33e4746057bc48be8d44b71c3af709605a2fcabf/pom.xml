@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.rcs</groupId>
+	<artifactId>rcs-slider-portlet</artifactId>
+    <version>1.1</version>
+
+	<name>rcs-slider-portlet</name>
+	<description>rcs-slider-portlet</description>
+
+    <packaging>war</packaging>
+
+    <properties>
+        <jdk.target>1.6</jdk.target>
+        <jdk.source>1.6</jdk.source>
+        <show.deprecations>false</show.deprecations>
+
+        <commons.logging.version>1.1.1</commons.logging.version>
+        <log4j.version>1.2.17</log4j.version>
+        <javax.servlet.version>1.2</javax.servlet.version>
+        <javax.servlet-api.version>2.4</javax.servlet-api.version>
+        <javax.servlet-jsp.version>2.0</javax.servlet-jsp.version>
+        <javax.portlet.version>2.0</javax.portlet.version>
+
+        <war.name>rcs-slider-portlet</war.name>
+        <liferay.version>6.1.0</liferay.version>
+    </properties>
+
+    <dependencies>
+
+		<dependency>
+			<groupId>com.liferay.portal</groupId>
+			<artifactId>portal-service</artifactId>
+			<version>${liferay.version}</version>
+			<scope>provided</scope>
+		</dependency>
+        <dependency>
+            <groupId>com.liferay.portal</groupId>
+            <artifactId>portal-impl</artifactId>
+            <version>${liferay.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+		<dependency>
+			<groupId>com.liferay.portal</groupId>
+			<artifactId>util-bridges</artifactId>
+			<version>${liferay.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.liferay.portal</groupId>
+			<artifactId>util-taglib</artifactId>
+			<version>${liferay.version}</version>
+			<scope>compile</scope>
+		</dependency>
+        <dependency>
+            <groupId>com.liferay.portal</groupId>
+            <artifactId>util-java</artifactId>
+            <version>${liferay.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>jstl</artifactId>
+            <version>${javax.servlet.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>${commons.logging.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>${log4j.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+		<dependency>
+			<groupId>javax.portlet</groupId>
+			<artifactId>portlet-api</artifactId>
+			<version>${javax.portlet.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>${javax.servlet-api.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet.jsp</groupId>
+			<artifactId>jsp-api</artifactId>
+			<version>${javax.servlet-jsp.version}</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.0-alpha-2</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>read-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <file>${project.basedir}/src/main/filters/maven.properties</file>
+                            </files>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.5</version>
+                <inherited>true</inherited>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <!-- JournalArticleLocalServiceImpl patch -->
+                            <outputDirectory>${liferay.classes.dir}/com/liferay</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>target/classes/com/liferay</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <inherited>true</inherited>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>${jdk.source}</source>
+                    <target>${jdk.target}</target>
+                    <optimize>true</optimize>
+                    <showDeprecation>${show.deprecations}</showDeprecation>
+                    <showWarnings>true</showWarnings>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <!-- These classes are in /tomcat-7.0.23/lib/ext directory -->
+                    <packagingExcludes>WEB-INF/**/util/webcontent/**</packagingExcludes>
+                    <warName>${war.name}</warName>
+                    <outputDirectory>${liferay.deploy.dir}</outputDirectory>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <finalName>web-content-integration</finalName>
+                    <includes>
+                        <!-- To make available from JournalArticleLocalServiceImpl -->
+                        <include>**/util/webcontent/**</include>
+                    </includes>
+                    <outputDirectory>${liferay.dir}/tomcat-7.0.23/lib/ext</outputDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
+        <filters>
+            <filter>src/main/filters/maven.properties</filter>
+        </filters>
+    </build>
+</project>

@@ -1,0 +1,267 @@
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>net.retakethe</groupId>
+    <artifactId>policy-auction</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>war</packaging>
+    <name>policy-auction Tapestry 5 Application</name>
+
+    <developers>
+        <developer>
+            <name>Nick Clarke</name>
+            <id>memorius</id>
+            <email>memorius@gmail.com</email>
+        </developer>
+        <developer>
+            <name>Mathew Hartley</name>
+            <id>fourseven</id>
+            <email>matt@route66.sytes.net</email>
+        </developer>
+    </developers>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.tapestry</groupId>
+            <artifactId>tapestry-core</artifactId>
+            <version>${tapestry-release-version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.tapestry</groupId>
+            <artifactId>tapestry-ioc</artifactId>
+            <version>${tapestry-release-version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.tapestry</groupId>
+            <artifactId>tapestry5-annotations</artifactId>
+            <version>${tapestry-release-version}</version>
+        </dependency>
+
+        <!-- We use this directly for input and output of JSON-format cassandra column values -->
+        <dependency>
+            <groupId>org.apache.tapestry</groupId>
+            <artifactId>tapestry-json</artifactId>
+            <version>${tapestry-release-version}</version>
+        </dependency>
+
+        <!-- Used for date/time formatting -->
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>me.prettyprint</groupId>
+            <artifactId>hector-core</artifactId>
+            <version>0.8.0-2</version>
+            <!-- I don't think this should be needed, but Eclipse keeps coming up with the 0.8.1 version -->
+            <exclusions>
+                <exclusion><groupId>org.apache.cassandra</groupId><artifactId>cassandra-all</artifactId></exclusion>
+            </exclusions>
+        </dependency>
+        
+        <!-- Password hashing -->
+        <dependency>
+		    <groupId>org.mindrot</groupId>
+		    <artifactId>jbcrypt</artifactId>
+		    <version>0.3m</version>
+		</dependency>
+
+        <!-- Hector dependencies, here so we can set specific versions -->
+        <dependency>
+            <groupId>org.apache.cassandra</groupId>
+            <artifactId>cassandra-all</artifactId>
+            <version>0.8.6</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.cassandra</groupId>
+            <artifactId>cassandra-thrift</artifactId>
+            <version>0.8.6</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.thrift</groupId>
+            <artifactId>libthrift</artifactId>
+            <version>0.6.1</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.6.1</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.6.1</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.16</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Date and time manipulation library -->
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.0</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.1.1</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <version>2.5.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.tapestry</groupId>
+            <artifactId>tapestry-test</artifactId>
+            <version>${tapestry-release-version}</version>
+            <scope>test</scope>
+        </dependency>
+         <dependency>
+             <groupId>org.chenillekit</groupId>
+             <artifactId>chenillekit-tapestry</artifactId>
+             <version>1.3.2</version>
+         </dependency>
+        <!-- Provided by the servlet container, but sometimes referenced in the application
+       code. -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <!-- AmazonAWS library: provides client to SES (Simple Email Service) -->
+        	<groupId>com.amazonaws</groupId>
+        	<artifactId>aws-java-sdk</artifactId>
+        	<version>1.2.4</version>
+        </dependency>
+    </dependencies>
+
+    <!-- Override versions for transitive deps -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <!-- Amazon SES dependency: it specifies a version range; make it specific -->
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>4.1.2</version>
+            </dependency>
+            <dependency>
+                <!-- Amazon SES indirect dependency: override the older httpcore:4.0.1 version pulled in by libthrift:0.6.1,
+                     which doesn't work with SES -->
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore</artifactId>
+                <version>4.1.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <finalName>policy-auction</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                    <optimize>true</optimize>
+                </configuration>
+            </plugin>
+
+            <!-- Run the application using "mvn jetty:run" -->
+            <plugin>
+                <groupId>org.mortbay.jetty</groupId>
+                <artifactId>maven-jetty-plugin</artifactId>
+                <version>6.1.16</version>
+                <configuration>
+                    <!-- Log to the console. -->
+                    <requestLog implementation="org.mortbay.jetty.NCSARequestLog">
+                        <!-- This doesn't do anything for Jetty, but is a workaround for a Maven bug
+                             that prevents the requestLog from being set. -->
+                        <append>true</append>
+                    </requestLog>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.9</version>
+                <configuration>
+                    <!-- Restrict memory usage - the embedded Cassandra executed by the unit tests may try to
+                         allocate and lock the JVM memory max at startup, which may fail if the JVM picks a
+                         large default max limit. -->
+                    <argLine>-Xmx512m</argLine>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <reporting>
+
+        <!-- Adds a report detailing the components, mixins and base classes defined by this module. -->
+        <plugins>
+            <plugin>
+                <groupId>org.apache.tapestry</groupId>
+                <artifactId>tapestry-component-report</artifactId>
+                <version>${tapestry-release-version}</version>
+                <configuration>
+                    <rootPackage>net.retakethe.policyauction</rootPackage>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
+
+    <repositories>
+
+        <!-- This repository is only needed when the tapestry-release-version is a snapshot release. -->
+        <!--
+        <repository>
+            <id>apache-snapshots</id>
+            <url>http://repository.apache.org/snapshots/</url>
+        </repository>
+        -->
+    </repositories>
+
+    <pluginRepositories>
+
+        <!-- As above, this can be commented out when access to the snapshot version
+of a Tapestry Maven plugin is not required.   -->
+        <!--
+        <pluginRepository>
+            <id>apache-snapshots</id>
+            <url>http://repository.apache.org/snapshots/</url>
+        </pluginRepository>
+        -->
+    </pluginRepositories>
+
+    <properties>
+        <tapestry-release-version>5.2.4</tapestry-release-version>
+    </properties>
+</project>

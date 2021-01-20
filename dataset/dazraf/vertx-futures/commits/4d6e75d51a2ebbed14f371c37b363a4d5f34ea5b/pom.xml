@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>io.dazraf</groupId>
+  <artifactId>vertx-futures</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <developers>
+    <developer>
+      <id>dazraf</id>
+      <url>http://dazraf.io</url>
+    </developer>
+  </developers>
+
+  <url>http://www.dazraf.io/vertx-futures/</url>
+
+  <issueManagement>
+    <url>https://github.com/dazraf/vertx-futures/issues</url>
+    <system>GitHub Issues</system>
+  </issueManagement>
+
+  <properties>
+    <vertx.version>3.3.2</vertx.version>
+    <gpg.keyname>BF1D321C</gpg.keyname> <!-- GPG Key ID to use for signing -->
+    <release.username>dazraf</release.username> <!-- username for our git repository -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-core</artifactId>
+      <version>${vertx.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-unit</artifactId>
+      <version>${vertx.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web</artifactId>
+      <version>${vertx.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.1.5</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.5.1</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>3.4</version>
+        <dependencies>
+          <dependency>
+            <groupId>lt.velykis.maven.skins</groupId>
+            <artifactId>reflow-velocity-tools</artifactId>
+            <version>1.1.1</version>
+          </dependency>
+          <dependency>
+            <groupId>org.apache.velocity</groupId>
+            <artifactId>velocity</artifactId>
+            <version>1.7</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>2.8.2</version>
+      </plugin>
+      <plugin>
+        <!--
+        Releasing:
+            mvn release:prepare
+            mvn release:perform
+         -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5.3</version>
+        <configuration>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <releaseProfiles>release-sign-artifacts</releaseProfiles>
+          <arguments>-Dgpg.passphrase=${gpg.passphrase}</arguments>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.maven.scm</groupId>
+            <artifactId>maven-scm-api</artifactId>
+            <version>1.9.4</version>
+          </dependency>
+          <dependency>
+            <groupId>org.apache.maven.scm</groupId>
+            <artifactId>maven-scm-provider-gitexe</artifactId>
+            <version>1.9.4</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>org.eluder.coveralls</groupId>
+        <artifactId>coveralls-maven-plugin</artifactId>
+        <version>4.2.0</version>
+        <configuration>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.7.5.201505241946</version>
+        <configuration>
+          <destFile>${basedir}/target/coverage-reports/jacoco-unit.exec</destFile>
+          <dataFile>${basedir}/target/coverage-reports/jacoco-unit.exec</dataFile>
+        </configuration>
+        <executions>
+          <execution>
+            <id>jacoco-initialize</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>jacoco-site</id>
+            <!--<phase>package</phase>-->
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <distributionManagement>
+    <!-- My project's Sonatype repository to be used by the release plugin -->
+    <repository>
+      <id>nexus-releases</id>
+      <name>Nexus Release Repository</name>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+    </repository>
+    <snapshotRepository>
+      <id>nexus-snapshots</id>
+      <name>My Nexus Snapshots Repository</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.10.4</version>
+      </plugin>
+    </plugins>
+  </reporting>
+
+  <profiles>
+    <profile>
+      <id>release-sign-artifacts</id>
+      <activation>
+        <property>
+          <!--
+            will be set by the release plugin upon performing mvn
+            release:perform
+          -->
+          <name>performRelease</name>
+        </property>
+      </activation>
+
+      <properties>
+        <gpg.keyname>BF1D321C</gpg.keyname> <!-- GPG Key ID to use for signing -->
+        <release.username>dazraf</release.username> <!-- username for our git repository -->
+      </properties>
+
+      <build>
+        <plugins>
+          <!--
+            Enable signing of the artifacts For gpg:sign-and-deploy-file it's
+            necessary to have a <server> with the repositoryId provided or
+            id="remote-repository" defined in settings.xml (it contains the
+            repository's login, psw) Signing: mvn gpg:sign-and-deploy-file
+            -DpomFile=target/myapp-1.0.pom -Dfile=target/myapp-1.0.jar
+            -Durl=http://oss.sonatype.org/content/repositories/malyvelky/
+            -DrepositoryId=sonatype_oss Note normally it uses the defaul key
+            but we can ovveride it by either setting the property gpg.keyname
+            (done in this POM) or by providing -Dkeyname=66AE163A on the
+            command line. OR directly w/ gpg (remove space in - -): gpg -u 66AE163A - -sign -
+            -detach-sign -a target/dbunit-express.jar Note:
+            "mvn gpg:sign" results in NPE with v 1.o-a.-4, use "mvn package
+            gpg:sign" instead; see the issue MGPG-18
+          -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <configuration>
+              <excludes>
+                <exclude>*.png</exclude>
+                <exclude>*.gif</exclude>
+                <passphrase>${gpg.passphrase}</passphrase>
+              </excludes>
+            </configuration>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- Publish also javadocs when releasing - required by Sonatype -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.10.4</version>
+            <configuration>
+              <additionalDependencies>
+                <additionalDependency>
+                  <groupId>io.vertx</groupId>
+                  <artifactId>vertx-codegen</artifactId>
+                  <version>3.1.0</version>
+                </additionalDependency>
+              </additionalDependencies>
+            </configuration>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>include-sources</id>
+      <build>
+        <resources>
+          <resource>
+            <targetPath>/</targetPath>
+            <filtering>true</filtering>
+            <directory>src/main/java</directory>
+            <includes>
+              <include>**/*.java</include>
+            </includes>
+          </resource>
+        </resources>
+      </build>
+    </profile>
+  </profiles>
+</project>

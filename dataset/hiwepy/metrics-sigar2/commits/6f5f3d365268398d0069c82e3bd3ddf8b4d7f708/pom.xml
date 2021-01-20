@@ -1,0 +1,524 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.github.vindell</groupId>
+	<artifactId>metrics-sigar2</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+
+	<name>Metrics Sigar Integration</name>
+	<description>Metrics + Hyperic Sigar for OS-level monitoring</description>
+	<url>https://github.com/vindell/metrics-sigar2</url>
+	<packaging>jar</packaging>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:git:git@github.com:vindell/${project.artifactId}.git</connection>
+		<developerConnection>scm:git:git@github.com:vindell/${project.artifactId}.git</developerConnection>
+		<url>git@github.com:vindell/${project.artifactId}.git</url>
+	</scm>
+
+	<developers>
+		<developer>
+			<id>vindell</id>
+			<name>万大龙</name>
+			<email>hnxyhcwdl1003@163.com</email>
+		</developer>
+	</developers>
+	
+	<build>
+		<pluginManagement>
+			<plugins>
+				<!-- 编译插件：编译主代码至主输出目录 -->  
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.6.1</version> 
+					<!-- 设置源文件编码方式 -->  
+					<configuration>
+						<defaultLibBundleDir>lib</defaultLibBundleDir>
+						<!-- 源代码编译版本 -->
+						<source>1.7</source>
+						<!-- 目标平台编译版本 -->
+						<target>1.7</target>
+						<!-- 字符集编码 -->
+						<encoding>${project.build.sourceEncoding}</encoding>
+						<!--  -->
+						<maxmem>512M</maxmem>
+					</configuration>
+				</plugin>
+				<!-- 资源插件：复制主资源文件至主输出目录 -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>3.0.1</version>
+					<!-- 解决资源文件的编码问题 -->  
+					<configuration>
+						<!-- 字符集编码 -->
+						<encoding>${project.build.sourceEncoding}</encoding>
+					</configuration>
+					<!-- 复制测试资源文件至测试输出目录复制resources到classess -->
+					<executions>
+						<execution>
+							<id>copy-resources</id>
+							<phase>validate</phase>
+							<goals>
+								<goal>copy-resources</goal>
+							</goals>
+							<configuration>
+								<outputDirectory>${basedir}/target/classes</outputDirectory>
+								<resources>
+									<resource>
+										<directory>src/main/resources</directory>
+										<!-- <filtering>true</filtering> -->
+									</resource>
+								</resources>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>findbugs-maven-plugin</artifactId>
+					<version>3.0.4</version>
+					<executions>
+						<execution>
+							<phase>verify</phase>
+							<goals>
+								<goal>check</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<!-- 单元测试插件 ：执行测试用例-->  
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>2.19.1</version>
+					<configuration>
+						<!-- 跳过单元测试 -->
+						<skip>true</skip>
+						<skipTests>true</skipTests>
+						<!--
+							forkMode 可设置值有 “never”， “once”， “always” 和 “pertest”。
+							pretest： 每一个测试创建一个新进程，为每个测试创建新的JVM是单独测试的最彻底方式，但也是最慢的，不适合hudson上持续回归。
+							once：在一个进程中进行所有测试。once为默认设置，在Hudson上持续回归时建议使用默认设置。
+							always：在一个进程中并行的运行脚本，Junit4.7以上版本才可以使用，surefire的版本要在2.6以上提供这个功能，其中 threadCount：执行时，指定可分配的线程数量。只和参数parallel配合使用有效。默认：5。
+						 -->
+						<forkMode>once</forkMode>
+						<argLine>-Xmx1024m -XX:PermSize=256m -XX:MaxPermSize=256m -Dfile.encoding=UTF-8</argLine> 
+						<additionalClasspathElements> 
+			                <additionalClasspathElement>${basedir}/target/test-classes</additionalClasspathElement>  
+			            </additionalClasspathElements>  
+			            <includes>  
+			                <include>**/*Test.java</include> 
+			            </includes> 
+                        <excludes>
+                            <exclude>**/TestBean.java</exclude>
+                        </excludes>
+					</configuration>					
+				</plugin>
+				<!-- <plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-failsafe-plugin</artifactId>
+					<version>2.19.1</version>
+					<executions>
+						<execution>
+							<goals>
+								<goal>integration-test</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<includes>
+							<include>**/*.java</include>
+						</includes>
+						<groups>org.jmxtrans.agent.IntegrationTest</groups>
+					</configuration>
+				</plugin> -->
+				<!-- jar包生成插件 ：创建项目jar包--> 
+				<plugin>  					 
+					<groupId>org.apache.maven.plugins</groupId>  
+					<artifactId>maven-jar-plugin</artifactId>  
+					<version>3.0.2</version>  
+					<configuration> 
+						<encoding>${project.build.sourceEncoding}</encoding>
+						<skipIfEmpty>true</skipIfEmpty> 
+	                    <archive>  
+                    	 	<manifest>
+								<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+								<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+							</manifest>
+							<!-- 打包jar文件时，配置manifest文件，加入lib包的jar依赖  -->
+							<!-- <manifestEntries>
+								<addClasspath>true</addClasspath>  
+	                            <classpathPrefix>lib/</classpathPrefix>  
+								<Main-Class>.....Main</Main-Class>
+								<Premain-Class>.....Main</Premain-Class>
+								<Agent-Class>.....Main</Agent-Class>
+							</manifestEntries> -->
+	                    </archive>  
+	                </configuration>  
+	                <executions>
+						<!-- 增加关于接口打包的配置：配置后会在原有打包的基础上多打包一个api包
+						<execution>
+							<id>package-api</id>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+							<phase>package</phase>
+							<configuration>
+								<classifier>api</classifier>
+								<includes>
+									<include>**/interface/**</include>
+								</includes>
+							</configuration>
+						</execution> -->
+						<!-- <execution>
+							<id>package-all</id>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+							<phase>package</phase>
+							<configuration>
+								<classifier>all</classifier>
+								<includes>
+									<include>**</include>
+								</includes>
+							</configuration>
+						</execution> -->
+					</executions>
+				</plugin> 
+				<!-- jar包生成插件 ：使用模块自身代码和依赖jar包打包最终的jar --> 
+			    <plugin>  
+			        <groupId>org.apache.maven.plugins</groupId>  
+			        <artifactId>maven-shade-plugin</artifactId>  
+			        <version>2.4.3</version>
+			        <executions>  
+			            <execution>  
+			                <phase>package</phase>  
+			                <goals>  
+			                    <goal>shade</goal>  
+			                </goals>  
+			                <configuration>  
+			                    <transformers>
+			                    	<shadedArtifactId></shadedArtifactId>
+			                    	
+			                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">  
+			                            <mainClass>com.chenzhou.examples.Main</mainClass>  
+			                        </transformer> 
+			                       	<!-- 下面这段配置意思是把spring.handlers和spring.schemas文件以append方式加入到构建的jar包中，这样就不会出现xsd找不到的情况。
+			                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">  
+			                            <resource>META-INF/spring.handlers</resource>  
+			                        </transformer> 
+			                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">  
+			                            <resource>META-INF/spring.schemas</resource>  
+			                        </transformer>  
+			                       --> 
+			                    </transformers>  
+			                </configuration>  
+			            </execution>  
+			        </executions>  
+			    </plugin>
+			    <!-- assembly插件打包成jar包  -->
+	            <plugin>
+	                <groupId>org.apache.maven.plugins</groupId>
+	                <artifactId>maven-assembly-plugin</artifactId>
+	                <version>2.4.1</version>
+	                <configuration>
+	                    <!-- get all project dependencies -->
+	                    <descriptorRefs>
+	                        <descriptorRef>jar-with-dependencies</descriptorRef>
+	                    </descriptorRefs>
+	                    <!-- MainClass in mainfest make a executable jar 
+	                    <archive>
+	                      <manifest>
+	                        <mainClass>xxx.xxx</mainClass>
+	                      </manifest>
+	                    </archive>
+	 					-->
+	                </configuration>
+	                <executions>
+	                  <execution>
+	                    <id>make-assembly</id>
+	                    <!-- bind to the packaging phase -->
+	                    <phase>package</phase> 
+	                    <goals>
+	                        <goal>single</goal>
+	                    </goals>
+	                  </execution>
+	                </executions>
+	            </plugin> 
+				<!-- 安装插件：将项目输出构件安装到本地仓库 --> 
+				<plugin>  					 
+					<groupId>org.apache.maven.plugins</groupId>  
+					<artifactId>maven-install-plugin</artifactId>  
+					<version>2.5.2</version>  
+				</plugin> 
+				<!-- 发布插件 ：将项目输出构件部署到远程仓库--> 
+				<plugin>  
+		            <groupId>org.apache.maven.plugins</groupId>  
+		            <artifactId>maven-deploy-plugin</artifactId>  
+		            <version>2.8.2</version>  
+		        </plugin>
+		        <!-- release插件: 自动进行工程版本升级 -->
+	            <plugin>
+	                <groupId>org.apache.maven.plugins</groupId>
+	                <artifactId>maven-release-plugin</artifactId>
+	                <version>2.5.3</version>
+	                <configuration>
+	                    <!-- 设置分支跟里程碑的url -->
+	                    <branchBase>svn://121.43.110.87/jeefw/jeekit/branches</branchBase>
+	                    <tagBase>svn://121.43.110.87/jeefw/jeekit/tags</tagBase>
+	                </configuration>
+	            </plugin>	
+				<!-- 源码插件:发布时自动将源码同时发布 -->				
+				<plugin>
+					 <groupId>org.apache.maven.plugins</groupId>
+					 <artifactId>maven-source-plugin</artifactId>
+					 <version>3.0.1</version> 
+					 <!-- 打包source文件为jar文件 -->
+					 <configuration>  
+					 	 <testFailureIgnore>true</testFailureIgnore>
+					 	 <!-- 打包源码一起发布到maven仓库中 -->
+	                     <attach>true</attach>  
+	                     <encoding>${project.build.sourceEncoding}</encoding>  
+	                 </configuration> 
+					 <executions>
+						 <execution>
+							 <id>attach-sources</id>
+							 <phase>package</phase>
+							 <goals>
+							 	<!-- 
+								 	jar-no-fork与jar的区别
+									jar，在执行goal之前，执行generate-sources阶段，也就是说，如果，jar绑定的目标在generate-sources之后(比如verify)的话，generate-sources会执行两遍。
+									jar-no-fork，没有其余动作，在绑定的phase执行。
+								 -->
+								<!-- <goal>jar</goal> -->
+								<goal>jar-no-fork</goal>
+							 </goals>
+						 </execution>
+					 </executions>
+				</plugin>
+				<!-- 文档插件:发布时自动生成文档 -->	
+				<plugin>  
+		            <groupId>org.apache.maven.plugins</groupId>  
+		            <artifactId>maven-javadoc-plugin</artifactId>  
+		            <version>2.10.4</version> 
+					<configuration>  
+	                    <aggregate>true</aggregate>  
+	                    <argLine>-Dfile.encoding=UTF-8</argLine>
+                       	<charset>${project.build.sourceEncoding}</charset> 
+                        <encoding>${project.build.sourceEncoding}</encoding> 
+                        <docencoding>${project.build.sourceEncoding}</docencoding> 
+	                </configuration>
+					<executions>
+						<execution>
+							<id>attach-javadocs</id>
+							<phase>package</phase>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+						</execution>
+					</executions>				
+		        </plugin>
+		        <!-- 依赖配置生成插件 ：自动复制maven依赖包到lib目录 -->  
+				<plugin>  
+		            <groupId>org.apache.maven.plugins</groupId>  
+		            <artifactId>maven-dependency-plugin</artifactId>  
+		            <version>2.10</version>  
+		        </plugin>
+		        <plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-enforcer-plugin</artifactId>
+					<version>1.4.1</version>
+					<executions>
+						<execution>
+							<id>enforce-maven</id>
+							<goals>
+								<goal>enforce</goal>
+							</goals>
+							<configuration>
+								<rules>
+									<requireMavenVersion>
+										<version>3.3</version>
+									</requireMavenVersion>
+									<requireJavaVersion>
+										<version>1.7</version>
+									</requireJavaVersion>
+								</rules>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.felix</groupId>
+					<artifactId>maven-bundle-plugin</artifactId>
+					<version>1.4.0</version>
+					<extensions>true</extensions>
+					<configuration>
+						<instructions>
+							<Bundle-SymbolicName>${pom.groupId}.${pom.artifactId}</Bundle-SymbolicName>
+							<Bundle-Name>${pom.name}</Bundle-Name>
+							<Bundle-Version>${pom.version}</Bundle-Version>
+							<!-- <Bundle-Activator>com.javaworld.sample.tomcat.webActivator</Bundle-Activator>
+							<Export-Package>com.javaworld.sample.tomcat</Export-Package>
+							<Import-Package>org.osgi.framework</Import-Package> -->
+						</instructions>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<!-- <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				拷贝依赖的jar包到lib目录  
+	            <executions>  
+                    <execution>  
+                        <id>copy-dependencies</id>  
+                        <phase>compile</phase>  
+                        <goals>  
+                            <goal>copy-dependencies</goal>  
+                        </goals>  
+                        <configuration>  
+							<outputDirectory>${basedir}/src/main/webapp/WEB-INF/lib</outputDirectory>  
+			                ${project.build.directory}为Maven内置变量，缺省为target  
+			                <outputDirectory>${project.build.directory}/lib</outputDirectory>  
+			                表示是否不包含间接依赖的包  
+			                <excludeTransitive>false</excludeTransitive>  
+			                表示复制的jar文件去掉版本信息  
+			                <stripVersion>true</stripVersion>  
+                        </configuration>  
+                    </execution>  
+                </executions>  
+				
+			</plugin> -->
+			<!-- 资源插件：复制主资源文件至主输出目录 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+			</plugin>
+			<!-- 编译插件：编译主代码至主输出目录 -->  
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+			</plugin>
+			<!-- 单元测试插件 ：执行测试用例 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<systemPropertyVariables>
+						<org.hyperic.sigar.path>${project.build.directory}/sigar-native-libs</org.hyperic.sigar.path>
+					</systemPropertyVariables>
+					<parallel>classes</parallel>
+				</configuration>
+			</plugin> 
+			<!-- jar包生成插件 ：创建项目jar包 -->
+			<plugin>  					 
+				<groupId>org.apache.maven.plugins</groupId>  
+				<artifactId>maven-jar-plugin</artifactId>  
+			</plugin> 
+			<!-- 安装插件：将项目输出构件安装到本地仓库 --> 
+			<plugin>  					 
+				<groupId>org.apache.maven.plugins</groupId>  
+				<artifactId>maven-install-plugin</artifactId>  
+			</plugin> 
+			<!-- 发布插件 ：将项目输出构件部署到远程仓库--> 
+			<plugin>  
+	            <groupId>org.apache.maven.plugins</groupId>  
+	            <artifactId>maven-deploy-plugin</artifactId>  
+	        </plugin>	
+			<!-- 源码插件:发布时自动将源码同时发布 -->				
+			<plugin>
+				 <groupId>org.apache.maven.plugins</groupId>
+				 <artifactId>maven-source-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+			</plugin>
+		</plugins>
+	</build>
+	
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<commons-lang3.version>3.5</commons-lang3.version>
+		<metrics.version>3.2.1</metrics.version>
+		<sigar.version>1.6.5.132-6</sigar.version><!-- 1.6.4，1.6.5.132-6 -->
+	</properties>
+
+	<dependencies>
+		 
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+			<version>1.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.9.0</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<!-- Commons项目中用来处理Java基本对象方法的工具类包， 可以简化很多平时经常要用到的写法， 例如判断字符串是否为空等等 -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>${commons-lang3.version}</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/io.dropwizard.metrics/metrics-core -->
+		<dependency>
+			<groupId>io.dropwizard.metrics</groupId>
+			<artifactId>metrics-core</artifactId>
+			<version>${metrics.version}</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.fusesource/sigar -->
+		<!-- <dependency>
+			<groupId>org.fusesource</groupId>
+			<artifactId>sigar</artifactId>
+			<version>${sigar.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.gridkit.lab</groupId>
+		    <artifactId>sigar-lib</artifactId>
+		    <version>${sigar.version}</version>
+		</dependency>
+		-->
+		
+		<!-- https://mvnrepository.com/artifact/org.hyperic/sigar -->
+		<dependency>
+		    <groupId>org.hyperic</groupId>
+		    <artifactId>sigar</artifactId>
+		    <version>${sigar.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hyperic</groupId>
+			<artifactId>sigar-native</artifactId>
+			<version>${sigar.version}</version>
+		</dependency>
+
+	</dependencies>
+
+ 
+
+</project>

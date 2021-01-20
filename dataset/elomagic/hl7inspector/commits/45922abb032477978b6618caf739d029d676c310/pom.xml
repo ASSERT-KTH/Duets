@@ -1,0 +1,316 @@
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>de.elomagic</groupId>
+    <artifactId>hl7inspector</artifactId>
+    <version>2.3.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>HL7 Inspector ${project.version}</name>
+    <description>HL7 tool to ease debuging of HL7 messages</description>
+
+    <licenses>
+        <license>
+            <name>GNU Public License, Version 2.0</name>
+            <url>http://www.gnu.org/licenses/gpl.txt</url>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>elomagic</name>
+        <url>http://www.elomagic.de</url>
+    </organization>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        
+        <maven.assembly.plugin.version>2.6</maven.assembly.plugin.version>
+        <maven.compiler.plugin.version>3.5.1</maven.compiler.plugin.version>
+        <maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
+        <maven.resources.plugin.version>3.0.1</maven.resources.plugin.version>
+        <maven.antrun.plugin.version>1.8</maven.antrun.plugin.version>
+        <wagon.maven.plugin.version>1.0</wagon.maven.plugin.version>
+        <exec.maven.plugin.version>1.5.0</exec.maven.plugin.version>
+        <appbundle.maven.plugin.version>1.1.0</appbundle.maven.plugin.version>
+        
+        <nsis.url>https://sourceforge.net</nsis.url>
+        <nsis.path>projects/nsis/files/NSIS%203/3.0/nsis-3.0.zip/download</nsis.path>
+        <nsis.executable>${project.build.directory}/nsis-3.0/makensis.exe</nsis.executable>
+    </properties>
+    
+    <scm>
+        <connection>scm:git:https://github.com/elomagic/hl7inspector.git</connection>
+        <url>https://github.com/elomagic/hl7inspector</url>
+    </scm>
+    
+    <dependencies>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.jgoodies</groupId>
+            <artifactId>looks</artifactId>
+            <version>2.2.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.jgoodies</groupId>
+            <artifactId>forms</artifactId>
+            <version>1.2.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.nuiton.thirdparty</groupId>
+            <artifactId>l2fprod-common</artifactId>
+            <version>0.1</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.airhacks</groupId>
+            <artifactId>afterburner.fx</artifactId>
+            <version>1.7.0</version>
+        </dependency>        
+        
+        <!-- From here only dependencies with scope "test" -->
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.5</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.fxml</include>
+                    <include>**/*.css</include>                    
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+            <resource>
+                <filtering>true</filtering>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*.properties</include>
+                </includes>
+            </resource>
+        </resources>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>${maven.assembly.plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <showDeprecation>true</showDeprecation>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven.resources.plugin.version}</version>
+                <configuration>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${maven.jar.plugin.version}</version>
+                <configuration>
+                    <archive>
+                        <index>true</index>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>de.elomagic.hl7inspector.Hl7Inspector</mainClass>
+                        </manifest>
+                        <!--
+                        <manifestEntries>
+                            <Main-Class>de.elomagic.hl7inspector.Hl7Inspector</Main-Class>
+                        </manifestEntries>
+                        -->
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>${maven.assembly.plugin.version}</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>de.elomagic.hl7inspector.Hl7Inspector</mainClass>
+                        </manifest>
+                    </archive>
+
+                    <finalName>hl7inspector</finalName>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                        <descriptorRef>src</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>make-my-jar-with-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+        
+    <profiles>
+        <profile>
+            <id>windows-setup</id>   
+            
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>        
+                        
+            <build>               
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>wagon-maven-plugin</artifactId>
+                        <version>${wagon.maven.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>download-single</goal>
+                                </goals>
+
+                                <configuration>
+                                    <url>${nsis.url}</url>
+                                    <fromFile>${nsis.path}</fromFile>
+                                    <toFile>${project.build.directory}/nsis.zip</toFile>
+                                </configuration>
+                            </execution>
+                        </executions>                                                
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>${maven.antrun.plugin.version}</version>
+                        
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                
+                                <configuration>
+                                    <tasks>
+                                        <!-- Using an ant task to deflate NSIS.zip  -->
+                                        <unzip src="${project.build.directory}/nsis.zip" dest="${project.build.directory}"/>
+                                    </tasks>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>${exec.maven.plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>${nsis.executable}</executable>                                    
+                                    <arguments>
+                                        <argument>/DPROJECT_PATH=${basedir}</argument>
+                                        <argument>/DAPP_VERSION=${project.version}</argument>
+                                        <argument>"${basedir}/src/setup/winx86/conf/hl7inspector.nsi"</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    
+                    <!-- Sign exe like: ".\tools\signtool.exe" sign /f ".\tools\elomagic.pfx" /p %CERT_PASSWORD% /du www.elomagic.de ".\dist\elomagic HL7Inspector %APP_VERSION% Setup.exe" -->
+                </plugins>
+            </build>
+        </profile>
+        
+        <profile>
+            <id>osx-setup</id>
+            
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>   
+            
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>sh.tak.appbundler</groupId>
+                        <artifactId>appbundle-maven-plugin</artifactId>
+                        <version>${appbundle.maven.plugin.version}</version>
+                        <configuration>
+                            <mainClass>de.elomagic.hl7inspector.Hl7Inspector</mainClass>
+                            <!--<dictionaryFile>YourCustomInfo.plist</dictionaryFile>-->
+                            <iconFile>${basedir}/src/setup/osx/resources/AppIcon.icns</iconFile>
+                            <generateDiskImageFile>true</generateDiskImageFile>
+                            <jvmVersion>1.8+</jvmVersion>
+                        </configuration>
+                        
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>bundle</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>        
+    </profiles>
+</project>

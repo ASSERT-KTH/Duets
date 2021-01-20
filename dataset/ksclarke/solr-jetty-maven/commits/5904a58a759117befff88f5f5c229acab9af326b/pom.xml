@@ -1,0 +1,441 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>solr-jetty-maven</artifactId>
+  <packaging>maven-plugin</packaging>
+  <version>0.1.0-SNAPSHOT</version>
+  <name>Solr-Jetty-Maven</name>
+  <description>A project template that runs Solr in Jetty using Maven.</description>
+  <url>http://projects.freelibrary.info/solr-jetty-maven</url>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:git:git@github.com:ksclarke/solr-jetty-maven.git</connection>
+    <developerConnection>scm:git:git@github.com:ksclarke/solr-jetty-maven.git</developerConnection>
+    <url>git@github.com:ksclarke/solr-jetty-maven.git</url>
+  </scm>
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/ksclarke/solr-jetty-maven/issues</url>
+  </issueManagement>
+
+  <developers>
+    <developer>
+      <email>ksclarke@gmail.com</email>
+      <name>Kevin S. Clarke</name>
+      <url>http://kevinclarke.info</url>
+      <roles>
+        <role>Developer</role>
+      </roles>
+      <timezone>America/New_York</timezone>
+    </developer>
+  </developers>
+  <!-- Contributors have made contributions, but shouldn't be bugged with bug reports, etc. -->
+  <contributors>
+    <contributor>
+      <name>William Hattenhauer</name>
+      <url>http://www.linkedin.com/in/williamhattenhauer/</url>
+      <roles>
+        <role>contributor</role>
+      </roles>
+      <timezone>America/Los_Angeles</timezone>
+    </contributor>
+  </contributors>
+
+  <properties>
+    <!-- Port at which Solr runs (can be overridden on the command line) -->
+    <jetty.port>8983</jetty.port>
+    <!-- Current version of Solr supported by solr-jetty-maven -->
+    <solr.version>4.10.4</solr.version>
+
+    <!-- Dependencies managed in this pom -->
+    <freelib.utils.version>0.5.0</freelib.utils.version>
+    <jcl.over.slf4j.version>1.7.12</jcl.over.slf4j.version>
+  </properties>
+
+  <dependencies>
+    <!-- Here we can add any custom solr filters, analyzers, etc. -->
+    <dependency>
+      <groupId>info.freelibrary</groupId>
+      <artifactId>solr-iso639-filter</artifactId>
+      <version>${solr.version}-r20150615</version>
+    </dependency>
+    <!-- Below here are the dependencies we need to run solr -->
+    <dependency>
+      <groupId>org.apache.solr</groupId>
+      <artifactId>solr</artifactId>
+      <version>${solr.version}</version>
+      <type>war</type>
+    </dependency>
+    <!-- Below here are the dependencies for our Maven mojos -->
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+      <exclusions>
+        <!-- This conflicts with a newer guava in solr; exclude it -->
+        <exclusion>
+          <groupId>org.sonatype.sisu</groupId>
+          <artifactId>sisu-guava</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+    </dependency>
+    <!-- Below here are testing dependencies (test scope defined in parent pom) -->
+    <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>maven-verifier</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+  </dependencies>
+  <build>
+    <!-- We copy files over to target and supply configured values in process -->
+    <filters>
+      <filter>${basedir}/src/main/resources/pom.defaults</filter>
+    </filters>
+    <resources>
+      <resource>
+        <directory>${basedir}/src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>**/*.xml</include>
+          <include>**/*.txt</include>
+          <include>**/*.conf</include>
+          <include>**/*.xsl</include>
+          <include>**/*.vm</include>
+          <include>**/*.css</include>
+          <include>**/*.js</include>
+          <include>**/*.properties</include>
+          <include>**/*.html</include>
+        </includes>
+      </resource>
+    </resources>
+    <!-- Filter the settings.xml file but not the test projects -->
+    <testResources>
+      <testResource>
+        <directory>${basedir}/src/test/resources</directory>
+        <includes>
+          <include>settings.xml</include>
+        </includes>
+        <filtering>true</filtering>
+      </testResource>
+      <testResource>
+        <directory>${basedir}/src/test/resources</directory>
+        <excludes>
+          <exclude>settings.xml</exclude>
+        </excludes>
+        <filtering>false</filtering>
+      </testResource>
+    </testResources>
+    <plugins>
+      <plugin>
+        <groupId>info.freelibrary</groupId>
+        <artifactId>freelib-utils</artifactId>
+        <version>${freelib.utils.version}</version>
+        <executions>
+          <execution>
+            <id>set-stop-key</id>
+            <goals>
+              <goal>set-uuid-property</goal>
+            </goals>
+            <configuration>
+              <name>jetty.stop.key</name>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Jetty plugin is how we run solr from within maven -->
+      <plugin>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>${jetty.version}</version>
+        <dependencies>
+          <!-- Logging dependencies; we'll use logback for our logging -->
+          <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>${jcl.over.slf4j.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <webApp>
+            <contextPath>/solr</contextPath>
+          </webApp>
+          <stopKey>${jetty.stop.key}</stopKey>
+          <stopPort>${http.port.stop}</stopPort>
+          <scanIntervalSeconds>0</scanIntervalSeconds>
+          <requestLog implementation="org.eclipse.jetty.server.NCSARequestLog">
+            <filename>${basedir}/target/yyyy_mm_dd.request.log</filename>
+            <retainDays>30</retainDays>
+            <append>true</append>
+            <extended>false</extended>
+            <logTimeZone>GMT</logTimeZone>
+          </requestLog>
+        </configuration>
+      </plugin>
+      <!-- Properties plugin sets system properties for the jetty plugin -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>properties-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>set-system-properties</goal>
+            </goals>
+            <configuration>
+              <properties>
+                <!-- Logback's configuration file -->
+                <property>
+                  <name>logback.configurationFile</name>
+                  <value>${basedir}/src/main/resources/logback.xml</value>
+                </property>
+                <property>
+                  <name>jetty.port</name>
+                  <value>${jetty.port}</value>
+                </property>
+                <property>
+                  <name>solr.solr.home</name>
+                  <value>${basedir}/target/classes/solr/</value>
+                </property>
+              </properties>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Plugin plugin allows us to be able to run our Solr mojos -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <configuration>
+          <goalPrefix>solr</goalPrefix>
+        </configuration>
+      </plugin>
+      <!-- Checks project's code for conformance to coding standards -->
+      <plugin>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+      </plugin>
+      <!-- Extracts project site's css and js from freelib-build-tools jar -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+      </plugin>
+      <!-- Plugin to generate JavaDocs -->
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+      </plugin>
+      <!-- Plugin to run Sonar analysis -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>sonar-maven-plugin</artifactId>
+      </plugin>
+      <!-- Plugin to enforce some rules about the project -->
+      <plugin>
+        <artifactId>maven-enforcer-plugin</artifactId>
+      </plugin>
+      <!-- Plugin to generate the project's website -->
+      <plugin>
+        <groupId>br.com.ingenieux</groupId>
+        <artifactId>jbake-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+  <!-- Profiles are how we package canned configurations for solr/jetty -->
+  <profiles>
+    <!-- Default profile is a master/standalone Solr instance -->
+    <profile>
+      <id>default</id>
+      <activation>
+        <property>
+          <name>!env.type</name>
+        </property>
+      </activation>
+      <properties>
+        <enable.master>true</enable.master>
+        <commit.reserve.duration>00:00:10</commit.reserve.duration>
+        <test-repo>${project.build.directory}/test-classes/test-repo</test-repo>
+      </properties>
+    </profile>
+    <!-- This covers the case of wanting to specify env.type -->
+    <profile>
+      <id>master</id>
+      <activation>
+        <property>
+          <name>env.type</name>
+          <value>master</value>
+        </property>
+      </activation>
+      <properties>
+        <enable.master>true</enable.master>
+        <commit.reserve.duration>00:00:10</commit.reserve.duration>
+      </properties>
+    </profile>
+    <!-- If you have a master, you'll probably want read-only slaves -->
+    <profile>
+      <id>slave</id>
+      <activation>
+        <property>
+          <name>env.type</name>
+          <value>slave</value>
+        </property>
+      </activation>
+      <properties>
+        <enable.slave>true</enable.slave>
+        <poll.interval>00:00:20</poll.interval>
+        <master.solr.url>http://localhost:${jetty.port}/solr/${solr.core.name}</master.solr.url>
+
+        <!-- If using HTTP auth on master to prevent unauthorized updates -->
+        <master.solr.httpauth.u>username</master.solr.httpauth.u>
+        <master.solr.httpauth.pw>password</master.solr.httpauth.pw>
+
+        <max.number.of.backups>1</max.number.of.backups>
+      </properties>
+    </profile>
+    <!-- A build profile just used on Travis runs to run the integration tests -->
+    <profile>
+      <id>travis</id>
+      <build>
+        <plugins>
+          <!-- Install solr-jetty-maven to the test repository -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-install-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>install-plugin-for-it</id>
+                <goals>
+                  <goal>install-file</goal>
+                </goals>
+                <phase>pre-integration-test</phase>
+                <configuration>
+                  <file>${project.build.directory}/${project.build.finalName}.jar</file>
+                  <generatePom>true</generatePom>
+                  <pomFile>pom.xml</pomFile>
+                  <packaging>jar</packaging>
+                  <version>${project.version}</version>
+                  <localRepositoryPath>${test-repo}</localRepositoryPath>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <!-- Copy solr-jetty-maven dependencies to the test repository -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>copy-it-dependencies</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>copy-dependencies</goal>
+                  <!-- There is a go-offline goal but it's broken
+                     http://jira.codehaus.org/browse/MDEP-82 -->
+                </goals>
+                <configuration>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>${project.groupId}</groupId>
+                      <artifactId>${project.artifactId}</artifactId>
+                      <version>${project.version}</version>
+                      <type>${project.packaging}</type>
+                    </artifactItem>
+                  </artifactItems>
+                  <outputDirectory>${test-repo}</outputDirectory>
+                  <useRepositoryLayout>true</useRepositoryLayout>
+                  <addParentPoms>true</addParentPoms>
+                  <copyPom>true</copyPom>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <systemPropertyVariables>
+                <!-- So we keep test dependencies in sync with this project -->
+                <tested.project.version>${project.version}</tested.project.version>
+              </systemPropertyVariables>
+              <includes>
+                <include>**/*IntegrationTest.java</include>
+              </includes>
+            </configuration>
+          </plugin>
+          <!-- Resources plugin is used for copying report files into site directory -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <configuration>
+              <encoding>${project.build.sourceEncoding}</encoding>
+            </configuration>
+            <executions>
+              <!-- Move this project's base Solr core to the integration test project -->
+              <execution>
+                <id>copy-solr-core</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${basedir}/target/test-classes/mojo-tests-project/src/main/resources/solr</outputDirectory>
+                  <resources>
+                    <resource>
+                      <directory>${basedir}/src/main/resources/solr</directory>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+      <repositories>
+        <repository>
+          <id>maven-restlet</id>
+          <name>Public online Restlet repository</name>
+          <url>http://maven.restlet.org</url>
+        </repository>
+      </repositories>
+    </profile>
+  </profiles>
+
+  <!-- Enables pushing project documentation up to an S3 bucket -->
+  <distributionManagement>
+    <site>
+      <id>s3.site</id>
+      <url>s3://projects.freelibrary.info/solr-jetty-maven</url>
+    </site>
+  </distributionManagement>
+
+  <!-- Pulls in standard FreeLibrary Project configuration options -->
+  <parent>
+    <groupId>info.freelibrary</groupId>
+    <artifactId>freelib-parent</artifactId>
+    <version>0.0.9</version>
+  </parent>
+
+</project>

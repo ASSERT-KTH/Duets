@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.snomed.otf</groupId>
+	<artifactId>snomed-owl-toolkit</artifactId>
+	<version>2.0.0</version>
+
+	<properties>
+		<java.version>1.8</java.version>
+		<owlapi.version>4.1.3</owlapi.version>
+		<elk-owlapi.version>0.4.3</elk-owlapi.version>
+		<slf4j.version>1.7.25</slf4j.version>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencies>
+		<!-- RF2 Loading -->
+		<dependency>
+			<groupId>org.snomed.otf</groupId>
+			<artifactId>snomed-boot</artifactId>
+			<version>1.10.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.collections</groupId>
+					<artifactId>google-collections</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- OWL API -->
+		<dependency>
+			<groupId>net.sourceforge.owlapi</groupId>
+			<artifactId>owlapi-api</artifactId>
+			<version>${owlapi.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sourceforge.owlapi</groupId>
+			<artifactId>owlapi-impl</artifactId>
+			<version>${owlapi.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sourceforge.owlapi</groupId>
+			<artifactId>owlapi-apibinding</artifactId>
+			<version>${owlapi.version}</version>
+		</dependency>
+
+		<!-- ELK OWL API -->
+		<dependency>
+			<groupId>org.semanticweb.elk</groupId>
+			<artifactId>elk-owlapi</artifactId>
+			<version>${elk-owlapi.version}</version>
+		</dependency>
+
+		<!-- Logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.12</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.12</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- Testing -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<!-- Create Executable Application Archive -->
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>1.5.12.RELEASE</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+						<configuration>
+							<classifier>executable</classifier>
+							<mainClass>org.snomed.otf.owltoolkit.Application</mainClass>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Create OSGi Bundle -->
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<version>2.5.3</version>
+				<executions>
+					<execution>
+						<id>create-bundle</id>
+						<phase>package</phase>
+						<goals>
+							<goal>bundle</goal>
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>biz.aQute.bnd</groupId>
+						<artifactId>bndlib</artifactId>
+						<version>2.4.0</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<classifier>bundle</classifier>
+					<instructions>
+						<Build-Name>SNOMED-CT OWL Toolkit</Build-Name>
+						<Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
+						<Embed-Transitive>true</Embed-Transitive>
+						<Export-Package>org.snomed.otf.owltoolkit.conversion,org.snomed.otf.owltoolkit.domain</Export-Package>
+						<Require-Capability>osgi.ee;filter:="(&amp;(osgi.ee=JavaSE)(version=1.8))"</Require-Capability>
+						<Import-Package>
+							javax.naming,
+							org.slf4j;version="1.7.2"
+						</Import-Package>
+					</instructions>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>cobertura-maven-plugin</artifactId>
+				<version>2.7</version>
+				<configuration>
+					<formats>
+						<format>html</format>
+						<format>xml</format>
+					</formats>
+					<check />
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>ihtsdo-releases</id>
+			<releases><enabled>true</enabled></releases>
+			<snapshots><enabled>false</enabled></snapshots>
+			<url>https://maven.ihtsdotools.org/content/repositories/releases/</url>
+		</repository>
+		<repository>
+			<id>ihtsdo-snapshots</id>
+			<releases><enabled>false</enabled></releases>
+			<snapshots><enabled>true</enabled></snapshots>
+			<url>https://maven.ihtsdotools.org/content/repositories/snapshots/</url>
+		</repository>
+		<repository>
+			<id>jcenter-snapshots</id>
+			<name>jcenter</name>
+			<url>https://jcenter.bintray.com/</url>
+		</repository>
+	</repositories>
+
+	<distributionManagement>
+		<repository>
+			<id>ihtsdo-public-nexus</id>
+			<name>IHTSDO Public Nexus Releases</name>
+			<url>https://maven.ihtsdotools.org/content/repositories/releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>ihtsdo-public-nexus</id>
+			<name>IHTSDO Public Nexus Snapshots</name>
+			<url>https://maven.ihtsdotools.org/content/repositories/snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+</project>

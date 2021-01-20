@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>net.java.dev.dcd</groupId>
+	<artifactId>dcd</artifactId>
+	<version>2.0</version>
+	<packaging>jar</packaging>
+	<name>Dead Code Detector</name>
+	<url>https://github.com/evernat/dead-code-detector/wiki</url>
+	<description>Dead Code Detector (DCD) simply finds never used code in your Java/JEE applications</description>
+	<inceptionYear>2008</inceptionYear>
+	<issueManagement>
+		<system>GITHUB</system>
+		<url>https://github.com/evernat/dead-code-detector/issues</url>
+	</issueManagement>
+	<developers>
+		<developer>
+			<name>Emeric Vernat</name>
+			<email>evernat@java.net</email>
+		</developer>
+	</developers>
+	<licenses>
+		<license>
+			<name>ASL</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<scm>
+		<connection>scm:git:git@github.com:evernat/dead-code-detector.git</connection>
+		<developerConnection>scm:git:git@github.com:evernat/dead-code-detector.git</developerConnection>
+		<url>https://github.com/evernat/dead-code-detector</url>
+		<tag>HEAD</tag>
+	</scm>
+	<properties>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	<prerequisites>
+		<maven>3.0.4</maven>
+	</prerequisites>
+	<dependencies>
+		<dependency>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm</artifactId>
+			<version>4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm-tree</artifactId>
+			<version>4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet.jsp</groupId>
+			<artifactId>javax.servlet.jsp-api</artifactId>
+			<version>2.2.1</version>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<!-- Configuration compilation -->
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.6.0</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<phase>site</phase>
+						<configuration>
+							<target>
+								<ant antfile="build.xml" target="zip" />
+								<copy file="dcd.zip" tofile="target/site/dcd.zip" />
+								<copy file="dcd.jar" tofile="target/site/dcd.jar" />
+								<ant antfile="build.xml" target="clean" />
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<!-- nécessaire car maven définit java_home avec le jre pour ant ! -->
+						<groupId>sun.jdk</groupId>
+						<artifactId>tools</artifactId>
+						<version>1.7.0</version>
+						<scope>system</scope>
+						<systemPath>${java.home}/../lib/tools.jar</systemPath>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<!-- Vérification des règles de codage -->
+			<plugin>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>2.17</version>
+				<configuration>
+					<enableRSS>false</enableRSS>
+					<configLocation>${project.basedir}/.checkstyle.xml</configLocation>
+					<linkXRef>false</linkXRef>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>3.0.4</version>
+				<configuration>
+					<xmlOutput>true</xmlOutput>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.8</version>
+				<configuration>
+					<enableRulesSummary>false</enableRulesSummary>
+					<source>1.7</source>
+					<targetJdk>1.7</targetJdk>
+					<linkXref>false</linkXref>
+					<minimumPriority>4</minimumPriority>
+					<minimumTokens>100</minimumTokens>
+					<rulesets>
+						<ruleset>${project.basedir}/.pmd</ruleset>
+					</rulesets>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

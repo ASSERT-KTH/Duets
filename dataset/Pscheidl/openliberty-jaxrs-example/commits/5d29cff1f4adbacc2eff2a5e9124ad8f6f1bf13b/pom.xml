@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>net.wasdev.wlp.maven.parent</groupId>
+        <artifactId>liberty-maven-app-parent</artifactId>
+        <version>2.0</version>
+    </parent>
+
+    <groupId>cool.pavel</groupId>
+    <artifactId>openliberty-jaxrs-example</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>war</packaging>
+
+    <properties>
+        <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <testServerHttpPort>9080</testServerHttpPort>
+        <testServerHttpsPort>9443</testServerHttpsPort>
+        <package.file>${project.build.directory}/${project.artifactId}.zip</package.file>
+        <packaging.type>usr</packaging.type>
+        <openliberty.runtime.version>17.0.0.3</openliberty.runtime.version>
+    </properties>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <version>7.0</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.2</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <compilerArguments>
+                        <endorseddirs>${endorsed.dir}</endorseddirs>
+                    </compilerArguments>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <packagingExcludes>pom.xml</packagingExcludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>net.wasdev.wlp.maven.plugins</groupId>
+                <artifactId>liberty-maven-plugin</artifactId>
+                <version>2.0</version>
+                <configuration>
+                    <assemblyArtifact>
+                        <groupId>io.openliberty</groupId>
+                        <artifactId>openliberty-runtime</artifactId>
+                        <version>${openliberty.runtime.version}</version>
+                        <type>zip</type>
+                    </assemblyArtifact>
+                    <serverName>${project.artifactId}Server</serverName>
+                    <stripVersion>true</stripVersion>
+                    <configFile>src/main/liberty/config/server.xml</configFile>
+                    <packageFile>${package.file}</packageFile>
+                    <include>${packaging.type}</include>
+                    <bootstrapProperties>
+                        <default.http.port>${testServerHttpPort}</default.http.port>
+                        <default.https.port>${testServerHttpsPort}</default.https.port>
+                        <app.context.root>${project.artifactId}</app.context.root>
+                    </bootstrapProperties>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>package-server</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>package-server</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>target/wlp-package</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
+</project>

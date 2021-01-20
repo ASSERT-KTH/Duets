@@ -1,0 +1,111 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>Test</groupId>
+	<artifactId>IntegrationTestServer</artifactId>
+	<version>1.0.0</version>
+	<packaging>war</packaging>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-servlet</artifactId>
+			<version>1.19.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+		</dependency>
+
+		<dependency>
+			<groupId>emma</groupId>
+			<artifactId>maven-emma-plugin</artifactId>
+			<version>0.5</version>
+			<scope>compile</scope>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+
+		<sourceDirectory>src</sourceDirectory>
+
+		<plugins>
+
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.6.1</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>emma</groupId>
+				<artifactId>maven-emma-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+
+					<execution>
+						<id>emma-instr</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<property name="basedir" value="." />
+								<property name="emma.dir" value="${basedir}\emma" />
+								<property name="build.classpath" value="${basedir}/WebContent/WEB-INF/classes" />
+								<!-- <property name="build.classpath" value="${basedir}/target/${artifactId}-${version}/WEB-INF/classes" 
+									/> -->
+								<ant antfile="${emma.dir}\build.xml">
+									<target name="instr" />
+								</ant>
+							</target>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>emma-report</id>
+						<phase>report</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<property name="basedir" value="." />
+								<property name="emma.dir" value="${basedir}\emma" />
+								<ant antfile="${emma.dir}\build.xml">
+									<target name="report" />
+								</ant>
+							</target>
+						</configuration>
+					</execution>
+
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>3.0.0</version>
+				<configuration>
+					<warSourceDirectory>WebContent</warSourceDirectory>
+				</configuration>
+			</plugin>
+
+		</plugins>
+
+	</build>
+
+</project>

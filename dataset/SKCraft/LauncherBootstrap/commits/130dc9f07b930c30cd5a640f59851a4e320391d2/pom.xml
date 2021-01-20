@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ SK's Minecraft Launcher
+  ~ Copyright (C) 2010-2014 Albert Pham <http://www.sk89q.com> and contributors
+  ~ Please see LICENSE.txt for license information.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.skcraft</groupId>
+  <artifactId>launcher-bootstrap</artifactId>
+  <version>1.0.1-SNAPSHOT</version>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.12.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.googlecode.json-simple</groupId>
+      <artifactId>json-simple</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>SKCraftLauncher</finalName>
+
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>**/*.properties</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+        <excludes>
+          <exclude>**/*.properties</exclude>
+        </excludes>
+      </resource>
+    </resources>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.3.1</version>
+        <configuration>
+          <archive>
+            <addMavenDescriptor>false</addMavenDescriptor>
+            <manifest>
+              <mainClass>com.skcraft.launcher.Bootstrap</mainClass>
+            </manifest>
+            <manifestEntries>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <artifactSet>
+                <includes>
+                  <include>com.googlecode.json-simple:json-simple</include>
+                </includes>
+              </artifactSet>
+            </configuration>
+          </execution>
+        </executions>
+        <configuration>
+          <minimizeJar>true</minimizeJar>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>platform-specific</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>osxappbundle-maven-plugin</artifactId>
+            <version>1.0-alpha-2</version>
+            <configuration>
+              <bundleName>${project.name}</bundleName>
+              <version>${project.version}</version>
+              <internetEnable>true</internetEnable>
+              <mainClass>com.skcraft.launcher.Bootstrap</mainClass>
+              <javaApplicationStub>${basedir}/resources/JavaApplicationStub</javaApplicationStub>
+              <jvmVersion>1.6+</jvmVersion>
+              <zipFile>${project.build.directory}/${project.build.finalName}.app.zip</zipFile>
+              <diskImageFile>${project.build.directory}/${project.build.finalName}.dmg</diskImageFile>
+              <iconFile>resources/icon.icns</iconFile>
+            </configuration>
+            <executions>
+              <execution>
+                <phase>package</phase>
+                <goals>
+                  <goal>bundle</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.bluestemsoftware.open.maven.plugin</groupId>
+            <artifactId>launch4j-plugin</artifactId>
+            <version>1.5.0.0</version>
+            <executions>
+              <execution>
+                <id>l4j-gui</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>launch4j</goal>
+                </goals>
+                <configuration>
+                  <headerType>gui</headerType>
+                  <outfile>${project.build.directory}/${project.build.finalName}.exe</outfile>
+                  <jar>target/${project.build.finalName}.jar</jar>
+                  <errTitle>${project.name} Error</errTitle>
+                  <classPath>
+                    <mainClass>com.skcraft.launcher.Bootstrap</mainClass>
+                  </classPath>
+                  <icon>${basedir}/resources/icon.ico</icon>
+                  <jre>
+                    <minVersion>1.6.0</minVersion>
+                    <initialHeapSize>32</initialHeapSize>
+                    <maxHeapSize>1024</maxHeapSize>
+                  </jre>
+                  <splash>
+                    <file>resources/splash.bmp</file>
+                    <waitForWindow>true</waitForWindow>
+                    <timeout>120</timeout>
+                    <timeoutErr>false</timeoutErr>
+                  </splash>
+                  <versionInfo>
+                    <fileVersion>1.0.0.0</fileVersion> <!-- Cannot use ${project.version} -->
+                    <txtFileVersion>1.0.0.0</txtFileVersion>
+                    <productVersion>1.0.0.0</productVersion>
+                    <txtProductVersion>1.0.0.0</txtProductVersion>
+                    <fileDescription>${project.name}</fileDescription>
+                    <copyright>http://www.skcraft.com</copyright>
+                    <productName>${project.name}</productName>
+                    <internalName>SKCraftLauncher</internalName>
+                    <originalFilename>${project.build.finalName}.exe</originalFilename>
+                  </versionInfo>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+
+</project>

@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>uk.ac.tgac.rampart</groupId>
+	<artifactId>rampart</artifactId>
+	<version>0.6.0</version>
+	<packaging>jar</packaging>
+
+	<name>Rampart</name>
+	<url>http://www.tgac.ac.uk</url>
+    <description>RAMPART</description>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java-version>1.7</java-version>
+		<conan-version>2.6.0-X</conan-version>
+		<slf4j-version>1.6.1</slf4j-version>
+        <springframework-version>3.1.3.RELEASE</springframework-version>
+	</properties>
+
+	<!-- Licensing -->
+	<licenses>
+		<license>
+			<name>GNU General Public License v3</name>
+			<url>http://www.gnu.org/licenses/gpl.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<!-- Developer Listing -->
+	<developers>
+		<developer>
+			<id>maplesod</id>
+			<name>Daniel Mapleson</name>
+			<email>daniel.mapleson@tgac.ac.uk</email>
+			<organization>TGAC</organization>
+			<organizationUrl>http://www.tgac.ac.uk</organizationUrl>
+			<roles>
+				<role>Scientific Programmer</role>
+			</roles>
+			<timezone>0</timezone>
+			<properties />
+		</developer>
+	</developers>
+
+
+	<build>
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <testSourceDirectory>src/test/java</testSourceDirectory>
+        <plugins>
+
+            <!-- Creates an executable jar with all dependencies built in -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <manifestEntries>
+                                        <Main-Class>uk.ac.tgac.rampart.RampartCLI</Main-Class>
+                                        <Build-Number>1</Build-Number>
+                                    </manifestEntries>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+            <!-- Unit testing setup (ignores integration tests) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.13</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-junit47</artifactId>
+                        <version>2.13</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <includes>
+                        <include>**/*.class</include>
+                    </includes>
+                    <excludedGroups>uk.ac.tgac.rampart.cli.IntegrationTest</excludedGroups>
+                </configuration>
+            </plugin>
+
+            <!-- Compiler settings -->
+            <plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>${java-version}</source>
+					<target>${java-version}</target>
+					<showDeprecation>true</showDeprecation>
+					<showWarnings>true</showWarnings>
+				</configuration>
+			</plugin>
+
+            <!-- Creates a jar file containing the sources -->
+            <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.2.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+
+            <!-- Creates javadoc -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--<plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.13</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-junit47</artifactId>
+                        <version>2.13</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <groups>uk.ac.tgac.pipeline.cli.IntegrationTest</groups>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>failsafe-integration-tests</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>integration-test</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>**/*IT.class</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin> -->
+
+        </plugins>
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-ssh</artifactId>
+                <version>2.2</version>
+            </extension>
+        </extensions>
+	</build>
+
+
+    <!-- Maven repository deploy -->
+    <distributionManagement>
+        <downloadUrl>https://repos.tgac.ac.uk/maven/repo</downloadUrl>
+        <repository>
+            <id>tgac-repo</id>
+            <name>TGAC repository</name>
+            <url>scp://repos.tgac.ac.uk/storage/html/maven/repo</url>
+        </repository>
+    </distributionManagement>
+
+    <!-- TGAC Maven Repo -->
+    <repositories>
+        <repository>
+            <id>tgac-repo</id>
+            <name>TGAC Maven Repository</name>
+            <url>https://repos.tgac.ac.uk/maven/repo</url>
+        </repository>
+    </repositories>
+
+
+	<dependencies>
+
+        <!-- Testing -->
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.8.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${springframework-version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+            <scope>test</scope>
+        </dependency>
+
+
+        <!-- Conan -->
+
+        <dependency>
+            <groupId>uk.ac.tgac.conan</groupId>
+            <artifactId>tgac-conan</artifactId>
+            <version>0.5.0</version>
+        </dependency>
+
+
+        <!-- Apache -->
+
+        <dependency>
+            <groupId>commons-cli</groupId>
+            <artifactId>commons-cli</artifactId>
+            <version>1.2</version>
+        </dependency>
+
+
+        <!-- Open CSV -->
+
+        <dependency>
+            <groupId>net.sf.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>2.0</version>
+        </dependency>
+
+
+        <!-- MySQL -->
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.21</version>
+        </dependency>
+
+	</dependencies>
+
+</project>

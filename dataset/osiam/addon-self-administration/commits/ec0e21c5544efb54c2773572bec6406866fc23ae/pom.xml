@@ -1,0 +1,246 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.osiam</groupId>
+    <artifactId>addon-self-administration-parent</artifactId>
+    <version>1.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>OSIAM Self Administration Parent</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>1.7</java.version>
+        
+        <org.osiam.connector4java.version>1.1-SNAPSHOT</org.osiam.connector4java.version>
+    </properties>
+    
+    <scm>
+        <connection>scm:git:ssh://git@github.com/osiam/addon-self-administration.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/osiam/addon-self-administration.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>osiam-repository</id>
+            <name>public evolvis release repository</name>
+            <url>scpexe://maven-repo.evolvis.org:/var/www/maven_repo/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>OSIAM-NG-SNAPSHOT-repository</id>
+            <name>public evolvis release repository</name>
+            <url>scpexe://maven-repo.evolvis.org:/var/www/maven_repo/snapshots/</url>
+        </snapshotRepository>
+
+    </distributionManagement>
+
+    <build>    
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <scriptSourceDirectory>src/main/scripts</scriptSourceDirectory>
+        <testSourceDirectory>src/test/java</testSourceDirectory>
+        <outputDirectory>target/classes</outputDirectory>
+        <testOutputDirectory>target/test-classes</testOutputDirectory>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+        </testResources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>1.3.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-versions</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>3.0.4</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Configure the compiler plugin for Groovy -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <compilerId>groovy-eclipse-compiler</compilerId>
+                    <verbose>false</verbose>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-eclipse-batch</artifactId>
+                        <version>2.1.8-01</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-eclipse-compiler</artifactId>
+                        <version>2.8.0-01</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <!-- Surefire: will execute all unit tests including Spock specs and will ignore system tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.16</version>
+                <configuration>
+                    <argLine>-XX:-UseSplitVerifier</argLine>
+                    <parallel>classes</parallel>
+                    <threadCount>3</threadCount>
+                    <includes>
+                        <include>**/*Spec.*</include>
+                    </includes>
+                </configuration>
+            </plugin>
+
+            <!-- Eclipse support -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-eclipse-plugin</artifactId>
+                <version>2.9</version>
+                <configuration>
+                    <additionalProjectnatures>
+                        <projectnature>org.eclipse.jdt.groovy.core.groovyNature</projectnature>
+                    </additionalProjectnatures>
+                    <!-- Source includes is necessary to allow groovy files in the java folder, else eclipse will throw a 
+                        filtering exception -->
+                    <sourceIncludes>
+                        <sourceInclude>**/*.java</sourceInclude>
+                        <sourceInclude>**/*.groovy</sourceInclude>
+                    </sourceIncludes>
+                    <!-- Download sources will make maven download and attach source files where available -->
+                    <downloadSources>true</downloadSources>
+                    <downloadJavadocs>true</downloadJavadocs>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <!-- Needed due to a problem with SSH -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.8.1</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.wagon</groupId>
+                        <artifactId>wagon-ssh-external</artifactId>
+                        <version>2.6</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Extension-Name>${project.artifactId}</Extension-Name>
+                            <Implementation-Description>${project.description}</Implementation-Description>
+                            <Implementation-Copyright>Copyright (c) 2010 tarent GmbH</Implementation-Copyright>
+                            <Implementation-Vendor>tarent GmbH (www.tarent.de)</Implementation-Vendor>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>plugin-api</module>
+                <module>self-administration</module>
+            </modules>
+        </profile>
+        <!-- ==================== Profile: build internally for integration runs ==================== -->
+        <!-- Deployment needs to be run from jenkins server which has credentials to access the internal repository -->
+        <profile>
+            <id>integration</id>
+
+            <modules>
+                <module>plugin-api</module>
+                <module>self-administration</module>
+            </modules>
+
+            <repositories>
+                <repository>
+                    <id>osiam releases repo</id>
+                    <url>https://maven-repo.evolvis.org/releases</url>
+                </repository>
+            </repositories>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <version>2.8.1</version>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.apache.maven.wagon</groupId>
+                                <artifactId>wagon-ssh-external</artifactId>
+                                <version>2.6</version>
+                            </dependency>
+                        </dependencies>
+                        <executions>
+                            <execution>
+                                <id>default-deploy</id>
+                                <phase>deploy</phase>
+                                <goals>
+                                    <goal>deploy</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>        
+    </profiles>
+
+</project>

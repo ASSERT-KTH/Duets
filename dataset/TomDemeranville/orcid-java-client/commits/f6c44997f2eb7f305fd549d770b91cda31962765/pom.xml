@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>uk.bl</groupId>
+  <artifactId>orcid-java-client</artifactId>
+  <packaging>jar</packaging>
+  <version>0.12.2</version>
+  <name>Orcid Java Client</name>
+
+	<properties>
+	    <!-- edition doesn't matter for compile -->
+		<restlet.edition>gae</restlet.edition>
+		<restlet.version>2.2-M6</restlet.version>
+		<github.global.server>github</github.global.server>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties> 
+	
+	<licenses>
+	    <license>
+	      <name>The Apache Software License, Version 2.0</name>
+	      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+	      <distribution>repo</distribution>
+	    </license>
+	</licenses>
+    
+      <repositories>
+        <repository>
+           <id>maven-restlet</id>
+           <name>Public online Restlet repository</name>
+           <url>http://maven.restlet.org</url>
+        </repository>
+    </repositories>
+    
+    <dependencies>
+	
+	<dependency>
+		<groupId>javax.inject</groupId>
+		<artifactId>javax.inject</artifactId>
+		<version>1</version>
+	</dependency>
+    <dependency>
+	    <groupId>com.google.guava</groupId>
+	    <artifactId>guava</artifactId>
+	    <version>15.0</version>
+    </dependency>
+
+	<dependency>
+		<groupId>com.fasterxml.jackson.core</groupId>
+		<artifactId>jackson-databind</artifactId>
+		<version>2.1.0</version>
+	</dependency>
+    
+    <!-- users of this artifact MUST include their own restlet depdendencies -->
+	<dependency>
+		<groupId>org.restlet.${restlet.edition}</groupId>
+		<artifactId>org.restlet</artifactId>
+		<version>${restlet.version}</version>
+		<optional>true</optional>
+		<scope>provided</scope>
+	</dependency>
+
+    <dependency>
+       <groupId>org.restlet.${restlet.edition}</groupId>
+       <artifactId>org.restlet.ext.net</artifactId>
+		<version>${restlet.version}</version>
+		<optional>true</optional>
+		<scope>provided</scope>
+	</dependency>
+    
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+    
+<dependency>
+        <groupId>org.seleniumhq.selenium</groupId>
+        <artifactId>selenium-java</artifactId>
+        <version>2.39.0</version>
+    </dependency>  
+    
+  </dependencies>
+
+    <!-- the below will push the project to Github as a maven repository
+    thanks to: http://stackoverflow.com/questions/14013644/hosting-a-maven-repository-on-github 
+    use 'mvn clean deploy' to push to maven repo -->
+    
+	<distributionManagement>
+	    <repository>
+	        <id>internal.repo</id>
+	        <name>Temporary Staging Repository</name>
+	        <url>file://${project.build.directory}/mvn-repo</url>
+	    </repository>
+	</distributionManagement>
+
+    <build>
+    <plugins>
+        <plugin>
+            <groupId>com.github.github</groupId>
+            <artifactId>site-maven-plugin</artifactId>
+            <version>0.12</version>
+	    <dependencies>
+		    <dependency>
+			    <groupId>org.eclipse.mylyn.github</groupId>
+			    <artifactId>org.eclipse.egit.github.core</artifactId>
+			    <version>2.1.5</version>
+		    </dependency>
+	    </dependencies>
+            <configuration>
+                <message>Maven artifacts for ${project.version}</message>  <!-- git commit message -->
+                <noJekyll>true</noJekyll>                                  <!-- disable webpage processing -->
+                <outputDirectory>${project.build.directory}/mvn-repo</outputDirectory> <!-- matches distribution management repository url above -->
+                <merge>true</merge>
+                <branch>refs/heads/mvn-repo</branch>                       <!-- remote branch name -->
+                <includes><include>**/*</include></includes>
+                <repositoryName>orcid-java-client</repositoryName>      <!-- github repo name -->
+                <repositoryOwner>tomdemeranville</repositoryOwner>    <!-- github username  -->
+            </configuration>
+            <executions>
+              <!-- run site-maven-plugin's 'site' target as part of the build's normal 'deploy' phase -->
+              <execution>
+                <goals>
+                  <goal>site</goal>
+                </goals>
+                <phase>deploy</phase>
+              </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+</project>

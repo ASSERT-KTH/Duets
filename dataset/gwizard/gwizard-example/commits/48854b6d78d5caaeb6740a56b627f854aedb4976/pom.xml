@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.gwizard</groupId>
+	<artifactId>gwizard-example</artifactId>
+	<version>1.0-SNAPSHOT</version>
+
+	<properties>
+		<gwizard.version>0.7</gwizard.version>
+	</properties>
+
+	<dependencies>
+		<!-- If you aren't using lombok, you're really missing out. Be sure to install the IDE plugin. -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.16.10</version>
+			<scope>provided</scope> <!-- only needed at build time -->
+		</dependency>
+
+		<!-- You probably don't use this in your production apps, but it makes a great demo -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.4.182</version>
+		</dependency>
+
+		<!--
+		You may ask yourself, how did I get here? And which of these jars do I need?
+
+		Almost certainly you want gwizard-config and gwizard-logging. If you are building
+		REST services, you want gwizard-rest (or gwizard-web if you don't want JAXRS).
+		gwizard-hibernate is strictly for the masochistic.
+		-->
+		<dependency>
+			<groupId>org.gwizard</groupId>
+			<artifactId>gwizard-config</artifactId>
+			<version>${gwizard.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.gwizard</groupId>
+			<artifactId>gwizard-logging</artifactId>
+			<version>${gwizard.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.gwizard</groupId>
+			<artifactId>gwizard-rest</artifactId>
+			<version>${gwizard.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.gwizard</groupId>
+			<artifactId>gwizard-services</artifactId>
+			<version>${gwizard.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.gwizard</groupId>
+			<artifactId>gwizard-hibernate</artifactId>
+			<version>${gwizard.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.gwizard</groupId>
+			<artifactId>gwizard-metrics</artifactId>
+			<version>${gwizard.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.gwizard</groupId>
+			<artifactId>gwizard-healthchecks</artifactId>
+			<version>${gwizard.version}</version>
+		</dependency>
+
+		<!-- This example uses TestNG, but the JUnit code looks almost identical -->
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>6.8.8</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>1.9.5</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-core</artifactId>
+			<version>1.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-library</artifactId>
+			<version>1.3</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-client</artifactId>
+			<version>3.0.19.Final</version>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.2</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.3</version>
+				<configuration>
+					<createDependencyReducedPom>true</createDependencyReducedPom>
+					<filters>
+						<filter>
+							<artifact>*:*</artifact>
+							<excludes>
+								<exclude>META-INF/*.SF</exclude>
+								<exclude>META-INF/*.DSA</exclude>
+								<exclude>META-INF/*.RSA</exclude>
+							</excludes>
+						</filter>
+					</filters>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>com.example.app.Main</mainClass>
+								</transformer>
+							</transformers>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.18</version>
+				<configuration>
+					<includes>
+						<include>**/*Test*.java</include>
+					</includes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

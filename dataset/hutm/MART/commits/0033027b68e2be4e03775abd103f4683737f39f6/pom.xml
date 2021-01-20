@@ -1,0 +1,290 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.mart</groupId>
+    <artifactId>mart</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <name>mart</name>
+    <url>http://mart.khadkevich.org</url>
+
+
+    <properties>
+        <myapp.jar.name>${name}-${version}.jar</myapp.jar.name>
+        <external.properties.file>mart.properties</external.properties.file>
+    </properties>
+
+
+    <dependencies>
+
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.13</version>
+            <type>jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mart</groupId>
+            <artifactId>martDSP</artifactId>
+            <version>1.0</version>
+            <type>jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>at.ofai.music</groupId>
+            <artifactId>BeatRoot</artifactId>
+            <version>0.5.7</version>
+            <type>jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>com.tulskiy</groupId>
+            <artifactId>musique</artifactId>
+            <version>1.0</version>
+            <type>jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>com.jamal</groupId>
+            <artifactId>jamal</artifactId>
+            <version>2.2</version>
+            <type>jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>org.blinkenlights</groupId>
+            <artifactId>jid3</artifactId>
+            <version>1.0</version>
+            <type>jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>com.jmatio</groupId>
+            <artifactId>jmatio</artifactId>
+            <type>jar</type>
+            <version>1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>edu.columbia.ee</groupId>
+            <artifactId>KaraokeMidiJava</artifactId>
+            <version>1.0</version>
+            <type>jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>rasmus</groupId>
+            <artifactId>rasmusDSP</artifactId>
+            <version>1.0</version>
+            <type>jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math</artifactId>
+            <version>2.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.jssrc</groupId>
+            <artifactId>jssrc</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.imirsel</groupId>
+            <artifactId>nema-analytics</artifactId>
+            <version>0.4.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8</version>
+            <scope>test</scope>
+        </dependency>
+
+
+    </dependencies>
+
+
+    <profiles>
+        <profile>
+            <id>development</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>properties-maven-plugin</artifactId>
+                        <version>1.0-alpha-1</version>
+                        <executions>
+                            <execution>
+                                <phase>initialize</phase>
+                                <goals>
+                                    <goal>read-project-properties</goal>
+                                </goals>
+                                <configuration>
+                                    <files>
+                                        <file>${external.properties.file}</file>
+                                    </files>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <addClasspath>true</addClasspath>
+                                    <!--<classpathPrefix>lib/</classpathPrefix>-->
+                                    <mainClass>org.mart.crs.exec.ExecutionManager</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <configuration>
+                                    <tasks>
+
+                                        <delete dir="${build.dir}" failonerror="false"/>
+
+                                        <copy todir="${build.dir}/bin">
+                                            <fileset dir="bin"/>
+                                        </copy>
+
+                                        <copy todir="${build.dir}/cfg">
+                                            <fileset dir="cfg"/>
+                                        </copy>
+
+                                        <mkdir dir="${build.dir}/logs"/>
+
+                                        <copy file="${build.directory}/${name}-${version}.jar"
+                                              todir="${build.dir}/lib"/>
+
+
+                                        <echo file="${build.dir}/crs.sh">
+                                            java -Xmx1500m -jar ./lib/${name}-${version}.jar $1 $2 $3 $4 $5 $6 $7 $8 $9
+                                        </echo>
+                                        <echo file="${build.dir}/configService.sh">
+                                            ./crs.sh -s $1
+                                        </echo>
+
+                                    </tasks>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>copy-dependencies</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>copy-dependencies</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${build.dir}/lib</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+
+        <profile>
+            <id>jar-server-deploy</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>ssh-upload</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <tasks>
+                                        <echo>Uploading jar to server</echo>
+
+                                        <scp
+                                                toDir="${ssh.username}%${ssh.pc}@${ssh.host}:${ssh.dest.dir}"
+                                                password="${ssh.password}"
+                                                trust="yes"
+                                                sftp="true"
+                                                >
+                                            <fileset dir="${build.dir}/">
+                                                <include name="lib/${myapp.jar.name}"/>
+                                                <include name="cfg/config.cfg"/>
+                                            </fileset>
+                                        </scp>
+                                    </tasks>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.apache.ant</groupId>
+                                <artifactId>ant-jsch</artifactId>
+                                <version>1.7.0</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>com.jcraft</groupId>
+                                <artifactId>jsch</artifactId>
+                                <version>0.1.42</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+
+        </profile>
+
+
+    </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.0.2</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+
+    <distributionManagement>
+        <repository>
+            <id>repo</id>
+            <name>khadkevich</name>
+            <url>file:///home/hut/prg/PROJECTS/WEBPAGES/repository/</url>
+        </repository>
+    </distributionManagement>
+
+</project>

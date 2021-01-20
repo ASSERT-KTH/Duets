@@ -1,0 +1,278 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.goodow.realtime</groupId>
+    <artifactId>realtime-parent</artifactId>
+    <version>0.5.5-SNAPSHOT</version>
+  </parent>
+  <artifactId>realtime-store</artifactId>
+  <url>https://github.com/goodow/realtime-store/</url>
+  <inceptionYear>2013</inceptionYear>
+  
+  <properties>
+    <maven.compiler.source>1.6</maven.compiler.source>
+    <maven.compiler.target>1.6</maven.compiler.target>
+    
+    <!-- Set pullInDeps to true if you want any modules specified in the 'includes' and 'deploys' fields
+        in your mod.json to be automatically pulled in during packaging and added inside your module. Doing this means your
+        module won't download and install those dependencies at run-time when they're first requested. -->
+    <vertx.pullInDeps>false</vertx.pullInDeps>
+    <!-- Set createFatJar to true if you want to create a fat executable jar which contains the Vert.x binaries
+        along with the module so it can be run with java -jar <jarname> -->
+    <vertx.createFatJar>false</vertx.createFatJar>
+  </properties>
+  
+  <repositories>
+    <repository>
+      <id>sonatype-nexus-snapshots</id>
+      <name>Sonatype Nexus Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+  
+  <dependencies>
+    <!-- Internal modules -->
+    <dependency>
+      <groupId>com.goodow.realtime</groupId>
+      <artifactId>realtime-operation</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.goodow.realtime</groupId>
+      <artifactId>realtime-channel</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.goodow.realtime</groupId>
+      <artifactId>realtime-json</artifactId>
+      <version>${project.version}</version>
+      <classifier>sources</classifier>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.goodow.realtime</groupId>
+      <artifactId>realtime-operation</artifactId>
+      <version>${project.version}</version>
+      <classifier>sources</classifier>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.goodow.realtime</groupId>
+      <artifactId>realtime-channel</artifactId>
+      <version>${project.version}</version>
+      <classifier>sources</classifier>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.goodow.vertx</groupId>
+      <artifactId>vertx-mod-guice</artifactId>
+    </dependency>
+
+    <!-- Allow vertx to use these mods in local maven repository -->
+    <dependency>
+      <groupId>com.goodow.vertx</groupId>
+      <artifactId>vertx-mod-elasticsearch</artifactId>
+      <version>${elasticsearch.version}</version>
+      <scope>test</scope>
+      <classifier>mod</classifier>
+      <type>zip</type>
+      <exclusions>
+        <exclusion>
+          <groupId>org.elasticsearch</groupId>
+          <artifactId>elasticsearch</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.goodow.vertx</groupId>
+      <artifactId>vertx-mod-guice</artifactId>
+      <version>${guice.version}</version>
+      <scope>test</scope>
+      <classifier>mod</classifier>
+      <type>zip</type>
+    </dependency>
+    
+    <!-- Redis -->
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>mod-redis-client</artifactId>
+    </dependency>
+    
+    <!-- Google Web Toolkit (GWT) -->
+    <dependency>
+      <groupId>com.google.gwt</groupId>
+      <artifactId>gwt-user</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.gwt</groupId>
+      <artifactId>gwt-codeserver</artifactId>
+    </dependency>
+
+    <!-- Test -->
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>testtools</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-yaml</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  
+  <build>
+    <plugins>
+      <!-- The vert.x Maven plugin -->
+      <plugin>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-maven-plugin</artifactId>
+        <configuration>
+          <configFile>src/main/resources/store.conf</configFile>
+        </configuration>
+        <executions>
+          <execution>
+            <id>PullInDeps</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>pullInDeps</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <!-- Other plugins required by the build -->
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-mod-to-target</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <overwrite>true</overwrite>
+              <outputDirectory>${vertx.mods.directory}/${vertx.module.name}</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>target/classes</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-mod-dependencies-to-target</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${vertx.mods.directory}/${vertx.module.name}/lib</outputDirectory>
+              <includeScope>runtime</includeScope>
+              <excludeGroupIds>com.fasterxml.jackson.core</excludeGroupIds>
+              <excludeArtifactIds>realtime-json</excludeArtifactIds>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-mod-dependencies-to-target-dependencies</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>target/dependencies</outputDirectory>
+              <includeScope>runtime</includeScope>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptors>
+            <descriptor>src/main/assembly/mod.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>assemble</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>mod.json</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-source-plugin</artifactId>
+      </plugin>
+      <!-- GWT Maven Plugin -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>gwt-maven-plugin</artifactId>
+        <configuration>
+          <!--<compileSourcesArtifacts>-->
+            <!--<compileSourcesArtifact>com.goodow.realtime:realtime-json</compileSourcesArtifact>-->
+            <!--<compileSourcesArtifact>com.goodow.realtime:realtime-operation</compileSourcesArtifact>-->
+            <!--<compileSourcesArtifact>com.goodow.realtime:realtime-channel</compileSourcesArtifact>-->
+          <!--</compileSourcesArtifacts>-->
+          <bindAddress>0.0.0.0</bindAddress>
+          <precompile>false</precompile>
+          <!--<extraJvmArgs>-Xmx2048M</extraJvmArgs>-->
+          <!-- <module>${project.groupId}.store.RealtimeProd</module> -->
+        </configuration>
+      </plugin>
+    </plugins>
+    
+    <!-- Required by m2e for import into eclipse. No effect on command line builds -->
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <versionRange>[2.7,)</versionRange>
+                    <goals>
+                      <goal>copy-dependencies</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+</project>

@@ -1,0 +1,191 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.springsource</groupId>
+	<artifactId>greenhouse</artifactId>
+	<version>1.0.0.BUILD-SNAPSHOT</version>
+	<packaging>apk</packaging>
+	<name>greenhouse-android</name>
+	<url>http://www.springsource.org</url>
+	<organization>
+		<name>SpringSource</name>
+		<url>http://www.springsource.org</url>
+	</organization>
+
+	<properties>
+		<env>dev</env>
+		<android-platform>7</android-platform>
+		<android-emulator>7</android-emulator>
+		<maven-resources-plugin-version>2.5</maven-resources-plugin-version>
+		<maven-android-plugin-version>2.8.4</maven-android-plugin-version>
+		<maven-compiler-plugin-version>2.3.2</maven-compiler-plugin-version>
+		<android-version>2.1_r1</android-version>
+		<java-version>1.6</java-version>
+		<spring-android-version>1.0.0.M4</spring-android-version>
+		<spring-social-version>1.0.0.RELEASE</spring-social-version>
+		<spring-security-version>3.1.0.RC3</spring-security-version>
+		<jackson-version>1.8.5</jackson-version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.google.android</groupId>
+			<artifactId>android</artifactId>
+			<version>${android-version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.android</groupId>
+			<artifactId>spring-android-auth</artifactId>
+			<version>${spring-android-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-crypto</artifactId>
+			<version>${spring-security-version}</version>
+			<exclusions>
+				<!-- exclude in favor of spring-android-core -->
+				<exclusion>
+					<artifactId>spring-core</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.social</groupId>
+			<artifactId>spring-social-core</artifactId>
+			<version>${spring-social-version}</version>
+			<exclusions>
+				<!-- exclude in favor of spring-android-rest-template -->
+				<exclusion>
+					<artifactId>spring-web</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-asl</artifactId>
+			<version>${jackson-version}</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<sourceDirectory>src</sourceDirectory>
+		<filters>
+			<filter>${project.basedir}/filters/${env}.properties</filter>
+		</filters>
+		<resources>
+			<!-- copy and filter all xml resource files -->
+			<resource>
+				<directory>${project.basedir}/res</directory>
+				<filtering>true</filtering>
+				<targetPath>${project.build.directory}/filtered-res</targetPath>
+				<includes>
+					<include>**/*.xml</include>
+				</includes>
+			</resource>
+			<!-- copy only. do not filter non-xml resource files -->
+			<resource>
+				<directory>${project.basedir}/res</directory>
+				<filtering>false</filtering>
+				<targetPath>${project.build.directory}/filtered-res</targetPath>
+				<excludes>
+					<exclude>**/*.xml</exclude>
+				</excludes>
+			</resource>
+			<!-- copy and filter the Android Manifest file -->
+			<resource>
+				<directory>${project.basedir}</directory>
+				<filtering>true</filtering>
+				<targetPath>${project.build.directory}/filtered-manifest</targetPath>
+				<includes>
+					<include>AndroidManifest.xml</include>
+				</includes>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>${maven-resources-plugin-version}</version>
+				<executions>
+					<execution>
+						<phase>initialize</phase>
+						<goals>
+							<goal>resources</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
+				<artifactId>maven-android-plugin</artifactId>
+				<version>${maven-android-plugin-version}</version>
+				<configuration>
+					<androidManifestFile>${project.build.directory}/filtered-manifest/AndroidManifest.xml</androidManifestFile>
+					<assetsDirectory>${project.basedir}/assets</assetsDirectory>
+					<resourceDirectory>${project.build.directory}/filtered-res</resourceDirectory>
+					<sdk>
+						<platform>${android-platform}</platform>
+					</sdk>
+					<emulator>
+						<avd>${android-emulator}</avd>
+					</emulator>
+					<deleteConflictingFiles>true</deleteConflictingFiles>
+					<undeployBeforeDeploy>true</undeployBeforeDeploy>
+				</configuration>
+				<extensions>true</extensions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin-version}</version>
+				<configuration>
+					<source>${java-version}</source>
+					<target>${java-version}</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>dev</id>
+			<properties>
+				<env>dev</env>
+			</properties>
+		</profile>
+		<profile>
+			<id>prod</id>
+			<properties>
+				<env>prod</env>
+			</properties>
+		</profile>
+	</profiles>
+
+	<repositories>
+		<!-- For testing against latest Spring snapshots -->
+		<repository>
+			<id>org.springframework.maven.snapshot</id>
+			<name>Spring Maven Snapshot Repository</name>
+			<url>http://maven.springframework.org/snapshot</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<!-- For developing against latest Spring milestones -->
+		<repository>
+			<id>org.springframework.maven.milestone</id>
+			<name>Spring Maven Milestone Repository</name>
+			<url>http://maven.springframework.org/milestone</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
+</project>

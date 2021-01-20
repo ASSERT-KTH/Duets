@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>es.tid.fiware</groupId>
+    <artifactId>keypass</artifactId>
+    <version>1.1.0</version>
+    <description>
+      Keypass is multi-tenant XACML server with PAP (Policy Administration
+      Point) andPDP (Policy Detention Point) capabilities.
+    </description>
+
+    <scm>
+        <connection>scm:git:https://github.com/telefonicaid/fiware-keypass.git</connection>
+        <developerConnection>scm:git:git@github.com:telefonicaid/fiware-keypass.git</developerConnection>
+        <url>https://github.com/telefonicaid/fiware-keypass</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <issueManagement>
+        <url>https://github.com/telefonicaid/fiware-keypass/issues</url>
+        <system>GitHub Issues</system>
+    </issueManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-core</artifactId>
+            <version>${dropwizard.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-migrations</artifactId>
+            <version>${dropwizard.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-hibernate</artifactId>
+            <version>${dropwizard.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-views</artifactId>
+            <version>${dropwizard.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>2.2.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.balana</groupId>
+            <artifactId>org.wso2.balana</artifactId>
+            <version>1.0.0-wso2v7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.1.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.ehcache</groupId>
+            <artifactId>ehcache</artifactId>
+            <version>2.8.4</version>
+            <exclusions>
+                <exclusion>
+                   <groupId>org.slf4j</groupId>
+                   <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+    
+    <properties>
+        <!-- use UTF-8 for everything -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <dropwizard.version>0.7.1</dropwizard.version>
+    </properties>
+
+    <repositories>
+      <repository>
+        <id>wso2</id>
+        <url>http://maven.wso2.org/nexus/content/groups/wso2-public</url>
+      </repository>
+    </repositories>
+
+    <build>
+      <resources>
+        <resource>
+          <directory>src/main/resources</directory>
+          <filtering>true</filtering>
+        </resource>
+      </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <!-- compile for Java 1.6 -->
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>1.6</version>
+                <configuration>
+                    <createDependencyReducedPom>true</createDependencyReducedPom>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>es.tid.fiware.iot.ac.AcService</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+  <profiles>
+    <profile>
+      <id>rpm</id>
+      <properties>
+        <rpm.home>/opt/keypass</rpm.home>
+        <build.path>${project.build.directory}/rpm</build.path>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>rpm-maven-plugin</artifactId>
+            <version>2.1-alpha-4 </version>
+            <configuration>
+              <!-- Basics -->
+              <name>keypass</name>
+              <defaultUsername>keypass</defaultUsername>
+              <defaultGroupname>keypass</defaultGroupname>
+              <defaultDirmode>775</defaultDirmode>
+              <defaultFilemode>664</defaultFilemode>
+
+              <copyright>Copyright 2014 Telefonica Investigación y Desarrollo, S.A.U</copyright>
+              <vendor>Telefonica I+D</vendor>
+              <group>Applications/Communications</group>
+              <description>${project.description}</description>
+              <distribution>noarch</distribution>
+              <packager>Telefonica I+D</packager>
+              <prefix>/opt</prefix>
+
+              <targetOS>linux</targetOS>
+              <needarch>noarch</needarch>
+
+              <mappings>
+                <mapping>
+                  <directory>${rpm.home}</directory>
+                  <filemode>775</filemode>
+                  <sources>
+                    <source>
+                      <location>${basedir}/bin</location>
+                    </source>
+                    <source>
+                      <location>${basedir}/conf</location>
+                    </source>
+                    <source>
+                      <location>${project.build.directory}/${project.build.finalName}.jar</location>
+                      <destination>keypass.jar</destination>
+                    </source>
+                  </sources>
+                </mapping>
+
+                <mapping>
+                  <directory>${rpm.home}</directory>
+                  <filemode>775</filemode>
+                  <configuration>true</configuration>
+                  <sources>
+                    <source>
+                      <location>${basedir}/conf</location>
+                    </source>
+                  </sources>
+                </mapping>
+
+                <mapping>
+                  <directory>${rpm.home}/doc</directory>
+                  <filemode>775</filemode>
+                  <documentation>true</documentation>
+                  <sources>
+                    <source>
+                      <location>${basedir}</location>
+                      <includes>
+                        <include>*.md</include>
+                      </includes>
+                    </source>
+                  </sources>
+                </mapping>
+
+                <mapping>
+                  <directory>${rpm.home}/log</directory>
+                  <filemode>775</filemode>
+                  <username>keypass</username>
+                  <groupname>keypass</groupname>
+                </mapping>
+                <mapping>
+                  <directory>/etc</directory>
+                  <sources>
+                    <softlinkSource>
+                      <location>${rpm.home}/config.yml</location>
+                      <destination>keypass.yml</destination>
+                    </softlinkSource>
+                  </sources>
+                </mapping>
+                <mapping>
+                  <directory>/var/log/keypass</directory>
+                  <sources>
+                    <softlinkSource>
+                      <location>${rpm.home}/log</location>
+                    </softlinkSource>
+                  </sources>
+                </mapping>
+                <mapping>
+                  <directory>/etc/init.d</directory>
+                  <sources>
+                    <softlinkSource>
+                      <location>${rpm.home}/keypass-daemon.sh</location>
+                      <destination>keypass</destination>
+                    </softlinkSource>
+                  </sources>
+                </mapping>
+              </mappings>
+              <preinstallScriptlet>
+                <script>
+                  echo "Adding Keypass user and group..."
+                  getent group keypass >/dev/null || groupadd -r keypass
+                  getent passwd keypass >/dev/null || \
+                    useradd -r -g keypass -s /sbin/nologin \
+                    -d /opt/keypass -c "Keypass" keypass
+                </script>
+              </preinstallScriptlet>
+              <postinstallScriptlet>
+                <script>
+                  echo "Adding Keypass daemon..."
+                  chkconfig --add keypass
+                </script>
+              </postinstallScriptlet>
+              <preremoveScriptlet>
+                <script>
+                  echo "Removing Keypass daemon..."
+                  chkconfig --del keypass
+                </script>
+              </preremoveScriptlet>
+              <requires>
+                <require>java &gt; 1.7</require>
+              </requires>
+            </configuration>
+            <executions>
+              <execution>
+                <id>make-rpm</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>attached-rpm</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>zip</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>2.4.1</version>
+            <inherited>false</inherited>
+            <executions>
+              <execution>
+                <id>keypass-assembly</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <inherited>false</inherited>
+                <configuration>
+                  <finalName>keypass-${project.version}</finalName>
+                  <appendAssemblyId>false</appendAssemblyId>
+                  <attach>true</attach>
+                  <descriptors>
+                    <descriptor>src/assembly/assembly.xml
+                    </descriptor>
+                  </descriptors>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+  </profiles>
+
+</project>

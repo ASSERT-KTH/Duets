@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.bazaarvoice.commons</groupId>
+        <artifactId>bv-opensource-super-pom</artifactId>
+        <version>1.0</version>
+    </parent>
+
+    <groupId>com.bazaarvoice.jackson</groupId>
+    <artifactId>rison</artifactId>
+    <version>2.9.5-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>Rison data format</name>
+    <description>Jackson JSON parser Support for the Rison data format</description>
+    <url>http://github.com/bazaarvoice/rison</url>
+    <licenses>
+        <license>
+            <name>Apache License 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/bazaarvoice/rison</url>
+        <connection>scm:git:git@github.com:bazaarvoice/rison.git</connection>
+        <developerConnection>scm:git:git@github.com:bazaarvoice/rison.git</developerConnection>
+    </scm>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <jackson.version>2.9.8</jackson.version>
+
+        <generatedSourcesDir>${project.build.directory}/generated-sources</generatedSourcesDir>
+        <packageVersion.dir>com/bazaarvoice/jackson/rison</packageVersion.dir>
+        <packageVersion.package>${project.groupId}.json</packageVersion.package>
+        <packageVersion.template.input>src/main/java/${packageVersion.dir}/PackageVersion.java.in</packageVersion.template.input>
+        <packageVersion.template.output>${generatedSourcesDir}/${packageVersion.dir}/PackageVersion.java</packageVersion.template.output>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.3.1</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- Make sure we always turn all warnings on during compilation. -->
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>2.3.2</version>
+                    <configuration>
+                        <compilerArgument>-Xlint:all</compilerArgument>
+                        <showWarnings>true</showWarnings>
+                        <showDeprecation>true</showDeprecation>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${generatedSourcesDir}</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.google.code.maven-replacer-plugin</groupId>
+                <artifactId>replacer</artifactId>
+                <version>1.5.1</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <file>${packageVersion.template.input}</file>
+                    <outputFile>${packageVersion.template.output}</outputFile>
+                    <replacements>
+                        <replacement>
+                            <token>@PACKAGE@</token>
+                            <value>${packageVersion.package}</value>
+                        </replacement>
+                        <replacement>
+                            <token>@PROJECT_VERSION@</token>
+                            <value>${project.version}</value>
+                        </replacement>
+                        <replacement>
+                            <token>@PROJECT_GROUP_ID@</token>
+                            <value>${project.groupId}</value>
+                        </replacement>
+                        <replacement>
+                            <token>@PROJECT_ARTIFACT_ID@</token>
+                            <value>${project.artifactId}</value>
+                        </replacement>
+                    </replacements>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

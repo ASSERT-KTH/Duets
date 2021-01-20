@@ -1,0 +1,148 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.sb.plugins</groupId>
+  <artifactId>avdl2avsc-maven-plugin</artifactId>
+  <version>1.0</version>
+  <packaging>maven-plugin</packaging>
+
+  <name>Avro IDL to Avro Schema Maven Plugin</name>
+
+  <url>https://github.com/sameerbhadouria/avdl2avsc-maven-plugin</url>
+  
+  <scm>
+    <url>https://github.com/sameerbhadouria/avdl2avsc-maven-plugin</url>
+  </scm>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <internal.repo.path>file://${project.build.directory}/mvn-repo</internal.repo.path>
+    <github.global.server>github</github.global.server>
+  </properties>
+  
+  <distributionManagement>
+    <repository>
+        <id>internal-repo</id>
+        <name>Temporary Staging directory</name>
+        <url>${internal.repo.path}</url>
+    </repository>
+  </distributionManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+      <version>3.1.1</version>
+    </dependency>
+    <dependency>
+	    <groupId>org.apache.maven</groupId>
+	    <artifactId>maven-core</artifactId>
+	    <version>3.1.1</version>
+	</dependency>
+    <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+      <version>3.2</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-utils</artifactId>
+      <version>3.0.16</version>
+    </dependency>
+	<dependency>
+      <groupId>org.apache.maven.plugin-testing</groupId>
+      <artifactId>maven-plugin-testing-harness</artifactId>
+      <version>3.0.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+	    <groupId>org.apache.maven</groupId>
+	    <artifactId>maven-compat</artifactId>
+	    <version>3.1.1</version>
+	    <scope>test</scope>
+	</dependency>
+    
+    <dependency>
+        <groupId>org.apache.avro</groupId>
+        <artifactId>avro-compiler</artifactId>
+        <version>1.7.5</version>
+    </dependency>
+	
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.8.2</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.1</version>
+          <configuration>
+              <source>1.6</source>
+              <target>1.6</target>
+          </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <version>3.2</version>
+        <configuration>
+          <goalPrefix>avdl2avsc</goalPrefix>
+          <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+        </configuration>
+        <executions>
+          <execution>
+            <id>mojo-descriptor</id>
+            <goals>
+              <goal>descriptor</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>help-goal</id>
+            <goals>
+              <goal>helpmojo</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>2.8.1</version>
+        <configuration>
+          <altDeploymentRepository>internal-repo::default::file://${project.build.directory}/mvn-repo</altDeploymentRepository>
+        </configuration>
+      </plugin>
+      <plugin>
+          <groupId>com.github.github</groupId>
+          <artifactId>site-maven-plugin</artifactId>
+          <version>0.9</version>
+          <configuration>
+              <message>Maven artifacts for ${project.version}</message>  <!-- git commit message -->
+              <noJekyll>true</noJekyll>                                  <!-- disable webpage processing -->
+              <outputDirectory>${project.build.directory}/mvn-repo</outputDirectory> <!-- matches distribution management repository url above -->
+              <branch>refs/heads/mvn-repo</branch>                       <!-- remote branch name -->
+              <includes><include>**/*</include></includes>
+              <merge>true</merge>
+              <repositoryName>avdl2avsc-maven-plugin</repositoryName>      <!-- github repo name -->
+              <repositoryOwner>sameerbhadouria</repositoryOwner>    <!-- github username  -->
+          </configuration>
+          <executions>
+            <!-- run site-maven-plugin's 'site' target as part of the build's normal 'deploy' phase -->
+            <execution>
+              <goals>
+                <goal>site</goal>
+              </goals>
+              <phase>deploy</phase>
+            </execution>
+          </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

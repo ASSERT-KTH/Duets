@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.docksidestage</groupId>
+	<artifactId>harbor</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<packaging>war</packaging>
+
+	<name>Harbor</name>
+	<description>example project for LastaFlute as single project (with H2)</description>
+	<url>http://dbflute.org/lastaflute</url>
+	<inceptionYear>2015</inceptionYear>
+
+	<properties>
+		<!-- Main Framework -->
+		<dbflute.version>1.1.1</dbflute.version>
+		<h2.jdbc.version>1.4.190</h2.jdbc.version>
+		<lastaflute.version>0.8.2</lastaflute.version>
+		<lasta.thymeleaf.version>0.2.7</lasta.thymeleaf.version>
+
+		<!-- Partner Library -->
+		<slf4j.version>1.7.12</slf4j.version>
+		<logback.version>1.1.3</logback.version>
+		<servlet.version>3.1.0</servlet.version>
+		<jsp.version>2.3.1</jsp.version>
+		<jetty.boot.version>0.4.2</jetty.boot.version>
+
+		<!-- GoodNeighbor Library -->
+		<commons.lang.version>3.4</commons.lang.version>
+		<commons.fileupload.version>1.3.1</commons.fileupload.version>
+
+		<!-- Testing -->
+		<junit.version>4.8.2</junit.version> <!-- is latest version without hamcrest -->
+		<utflute.version>0.6.0F</utflute.version>
+		<javaparser.version>2.2.2</javaparser.version>
+	</properties>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<organization>
+		<name>The DBFlute Project</name>
+		<url>http://dbflute.org/</url>
+	</organization>
+
+	<developers>
+		<developer>
+			<id>jflute</id>
+			<timezone>+9</timezone>
+		</developer>
+	</developers>
+
+	<build>
+		<defaultGoal>war</defaultGoal>
+		<finalName>${project.artifactId}</finalName>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>2.5.1</version>
+					<configuration>
+						<source>1.8</source>
+						<target>1.8</target>
+						<encoding>UTF-8</encoding>
+					</configuration>
+				</plugin>
+				<plugin>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<configuration>
+						<updateReleaseInfo>true</updateReleaseInfo>
+					</configuration>
+				</plugin>
+				<plugin>
+					<artifactId>maven-site-plugin</artifactId>
+					<configuration>
+						<locales>en,ja</locales>
+						<inputEncoding>UTF-8</inputEncoding>
+						<outputEncoding>UTF-8</outputEncoding>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-war-plugin</artifactId>
+					<version>2.1.1</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-source-plugin</artifactId>
+					<version>2.1.2</version>
+					<executions>
+						<execution>
+							<id>source-jar</id>
+							<phase>package</phase>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<version>2.10.1</version>
+					<configuration>
+						<encoding>UTF-8</encoding>
+						<docencoding>UTF-8</docencoding>
+						<charset>UTF-8</charset>
+						<!-- you can avoid self-closing check e.g. br-tag (checked since java8) -->
+						<!-- fixed but comment-out for emergency deploy -->
+						<!-- <additionalparam>-Xdoclint:none</additionalparam> -->
+					</configuration>
+					<executions>
+						<execution>
+							<id>javadoc-jar</id>
+							<phase>package</phase>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+						</execution>
+						<execution>
+							<phase>site</phase>
+							<goals>
+								<goal>javadoc</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.dbflute</groupId>
+					<artifactId>dbflute-maven-plugin</artifactId>
+					<version>1.1.0</version>
+					<configuration>
+						<clientProject>maihamadb</clientProject>
+						<packageBase>org.docksidestage.dbflute</packageBase>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>org.apache.maven.plugins</groupId>
+										<artifactId>maven-dependency-plugin</artifactId>
+										<versionRange>[0,)</versionRange>
+										<goals>
+											<goal>unpack-dependencies</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore /> <!-- to avoid warning -->
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>unpack-boot</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>unpack-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/${project.build.finalName}</outputDirectory>
+							<includeArtifactIds>javax.servlet-api, jetty-boot, jetty-all</includeArtifactIds>
+							<overWriteReleases>true</overWriteReleases>
+							<overWriteSnapshots>true</overWriteSnapshots>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<configuration>
+					<packagingExcludes>WEB-INF/lib/javax.servlet-api-*.jar, WEB-INF/lib/jetty-*.jar</packagingExcludes>
+					<webResources>
+						<resource>
+							<directory>${project.build.outputDirectory}</directory>
+							<includes>
+								<include>**/*Boot*.class</include>
+							</includes>
+						</resource>
+					</webResources>
+					<archive>
+						<manifest>
+							<mainClass>org.docksidestage.HarborBoot</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>sonatype-oss-public</id>
+			<url>https://oss.sonatype.org/content/groups/public/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<!-- = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = -->
+		<!--                                                                Main Framework -->
+		<!--                                                                 = = = = = = = -->
+		<!-- dbflute -->
+		<dependency>
+			<groupId>org.dbflute</groupId>
+			<artifactId>dbflute-runtime</artifactId>
+			<version>${dbflute.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>${h2.jdbc.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- lastaflute -->
+		<dependency>
+			<groupId>org.lastaflute</groupId>
+			<artifactId>lastaflute</artifactId>
+			<version>${lastaflute.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.lastaflute.html</groupId>
+			<artifactId>lasta-thymeleaf</artifactId>
+			<version>${lasta.thymeleaf.version}</version>
+		</dependency>
+
+		<!-- = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = -->
+		<!--                                                               Partner Library -->
+		<!--                                                               = = = = = = = = -->
+		<!-- transaction -->
+		<dependency>
+			<groupId>javax.transaction</groupId>
+			<artifactId>javax.transaction-api</artifactId>
+			<version>1.2</version>
+		</dependency>
+
+		<!-- logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>${logback.version}</version>
+		</dependency>
+
+		<!-- servlet -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>${servlet.version}</version>
+		</dependency>
+
+		<!-- boot -->
+		<dependency>
+			<groupId>org.dbflute.jetty</groupId>
+			<artifactId>jetty-boot</artifactId>
+			<version>${jetty.boot.version}</version>
+		</dependency>
+ 
+		<!-- = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = -->
+		<!--                                                          GoodNeighbor Library -->
+		<!--                                                           = = = = = = = = = = -->
+		<!-- commons -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>${commons.lang.version}</version>
+		</dependency>
+		<dependency> <!-- used for multipart request -->
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+			<version>${commons.fileupload.version}</version>
+		</dependency>
+
+		<!-- = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = -->
+		<!--                                                                       Testing -->
+		<!--                                                                       = = = = -->
+		<!-- unit test -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.dbflute.utflute</groupId>
+			<artifactId>utflute-lastaflute</artifactId>
+			<version>${utflute.version}</version>
+			<scope>test</scope>
+		</dependency>
+       	<dependency> <!-- for lastadoc -->
+           	<groupId>com.github.javaparser</groupId>
+           	<artifactId>javaparser-core</artifactId>
+           	<version>${javaparser.version}</version>
+			<scope>test</scope>
+       	</dependency>
+	</dependencies>
+</project>

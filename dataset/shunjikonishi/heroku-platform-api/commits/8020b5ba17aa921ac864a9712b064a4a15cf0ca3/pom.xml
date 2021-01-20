@@ -1,0 +1,154 @@
+<project 
+	xmlns="http://maven.apache.org/POM/4.0.0" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<groupId>jp.co.flect</groupId>
+	<artifactId>heroku-platform-api</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>heroku-platform-api</name>
+	<url>https://github.com/shunjikonishi/heroku-platform-api</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<github.global.server>github</github.global.server>
+	</properties>
+	
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpmime</artifactId>
+			<version>4.2.4</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.2.4</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.2</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.2.2</version>
+			<scope>provided</scope>
+		</dependency>
+		
+		<!-- Play1 -->
+		<dependency>
+			<groupId>com.google.code.maven-play-plugin.org.playframework</groupId>
+			<artifactId>play</artifactId>
+			<version>1.2.5</version>
+			<scope>provided</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.10</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.4.3</version>
+				<executions>
+					<execution>
+					<id>copy-resources</id>
+					<phase>deploy</phase>
+					<goals>
+						<goal>copy-resources</goal>
+					</goals>
+					<configuration>
+						<outputDirectory>dist</outputDirectory>
+						<resources>
+							<resource>
+								<directory>target</directory>
+								<includes>
+									<include>*.jar</include>
+								</includes>
+							</resource>
+						</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.9.1</version>
+				<configuration>
+					<doclet>jp.co.flect.doclets.github.Standard</doclet>
+					<docletArtifact>
+						<groupId>jp.co.flect</groupId>
+						<artifactId>githubDoclet</artifactId>
+						<version>1.0</version>
+					</docletArtifact>
+					<additionalparam>-github https://github.com/shunjikonishi/heroku-platform-api/tree/version-${project.version}/src/main/java</additionalparam>
+					<useStandardDocletOptions>true</useStandardDocletOptions>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.github.github</groupId>
+				<artifactId>site-maven-plugin</artifactId>
+				<version>0.7</version>
+				<configuration>
+					<message>Maven artifacts for ${project.artifactId}-${project.version}</message>
+					<noJekyll>true</noJekyll>
+					<outputDirectory>${env.MAVEN_LOCAL_REPOSITORY}</outputDirectory>
+					<branch>refs/heads/gh-pages</branch>
+					<includes>
+						<include>jp/**/*</include>
+						<include>.nojekyll</include>
+					</includes>
+					<repositoryName>maven-repo</repositoryName>
+					<repositoryOwner>flect</repositoryOwner>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>site</goal>
+						</goals>
+						<phase>deploy</phase>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>org.eclipse.mylyn.github</groupId>
+						<artifactId>org.eclipse.egit.github.core</artifactId>
+						<version>2.0.3</version>
+					</dependency>                        
+				</dependencies> 
+			</plugin>
+		</plugins>
+	</build>
+	<distributionManagement>
+		<repository>
+			<id>local.repo</id>
+			<name>My Repository</name>
+			<url>file://${env.MAVEN_LOCAL_REPOSITORY}</url>
+		</repository>
+	</distributionManagement>
+</project>
+

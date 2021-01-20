@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>br.com.jonyfs</groupId>
+	<artifactId>credit-card-api</artifactId>
+	<version>0.0.6-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>credit-card-api</name>
+	<description>Credit Card API Spring Boot Application</description>
+	<url>https://github.com/jonyfs/credit-card-api</url>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>1.3.5.RELEASE</version>
+		<relativePath /> <!-- lookup parent from repository -->
+	</parent>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<jdk.version>1.8</jdk.version>
+		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+		<sonar.jacoco.reportsPath>${project.build.directory}/reports/jacoco</sonar.jacoco.reportsPath>
+		<sonar.jacoco.reportPath>${project.build.directory}/reports/jacoco/jacoco-ut.exec</sonar.jacoco.reportPath>
+		<sonar.jacoco.itReportPath>${project.build.directory}/reports/jacoco/jacoco-it.exec</sonar.jacoco.itReportPath>
+		<snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
+		<maven.build.timestamp>${maven.build.timestamp}</maven.build.timestamp>
+		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
+		<timestamp>${maven.build.timestamp}</timestamp>
+	</properties>
+
+	<scm>
+		<connection>scm:git:git@github.com:jonyfs/credit-card-api.git</connection>
+		<url>scm:git:git@github.com:jonyfs/credit-card-api.git</url>
+		<developerConnection>scm:git:git@github.com:jonyfs/credit-card-api.git</developerConnection>
+	</scm>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-mongodb</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-hateoas</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.restdocs</groupId>
+			<artifactId>spring-restdocs-mockmvc</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.flapdoodle.embed</groupId>
+			<artifactId>de.flapdoodle.embed.mongo</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>cz.jirutka.spring</groupId>
+			<artifactId>embedmongo-spring</artifactId>
+			<version>1.3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sourceforge.pjl-comp-filter</groupId>
+			<artifactId>pjl-comp-filter</artifactId>
+			<version>1.7</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.jayway.jsonpath</groupId>
+			<artifactId>json-path-assert</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+		</dependency>
+	</dependencies>
+
+
+	<build>
+		<resources>
+			<resource>
+				<directory>${project.basedir}/src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.0.1</version>
+				<configuration>
+					<delimiters>
+						<delimiter>${*}</delimiter>
+						<delimiter>%%</delimiter>
+					</delimiters>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${jdk.version}</source>
+					<target>${jdk.version}</target>
+					<debug>true</debug>
+					<debuglevel>lines,vars,source</debuglevel>
+				</configuration>
+			</plugin>
+			<plugin>
+				<!-- Separates the unit tests from the integration tests. -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>unit-tests</id>
+						<phase>test</phase>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<configuration>
+							<!-- Sets the VM argument line used when unit tests are run. -->
+							<argLine>${surefireArgLineut}</argLine>
+							<!-- Never skip running the tests when the test phase is invoked -->
+							<skip>false</skip>
+							<includes>
+								<!-- Include unit tests within integration-test phase. -->
+								<include>**/*AllTests.java</include>
+							</includes>
+							<excludes>
+								<exclude>**/*AllIntegrationTests.java</exclude>
+							</excludes>
+						</configuration>
+					</execution>
+					<execution>
+						<id>integration-tests</id>
+						<phase>integration-test</phase>
+						<goals>
+							<goal>test</goal>
+						</goals>
+						<configuration>
+							<!-- Sets the VM argument line used when unit tests are run. -->
+							<argLine>${surefireArgLineit}</argLine>
+							<!-- Never skip running the tests when the integration-test phase 
+								is invoked -->
+							<skip>false</skip>
+							<includes>
+								<!-- Include integration tests within integration-test phase. -->
+								<include>**/*AllIntegrationTests.java</include>
+							</includes>
+							<excludes>
+								<exclude>**/*AllTests.java</exclude>
+							</excludes>
+						</configuration>
+					</execution>
+				</executions>
+				<configuration>
+					<!-- Skip the default running of this plug-in (or everything is run 
+						twice...see below) -->
+					<skip>true</skip>
+					<!-- Show 100% of the lines from the stack trace (doesn't work) -->
+					<trimStackTrace>false</trimStackTrace>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.7.5.201505241946</version>
+				<configuration>
+					<includes>
+						<include>**</include>
+					</includes>
+				</configuration>
+				<executions>
+					<!-- Prepares the property pointing to the JaCoCo runtime agent which 
+						is passed as VM argument when Maven the Surefire plugin is executed. -->
+					<execution>
+						<id>pre-unit-test</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+						<configuration>
+							<!-- Sets the path to the file which contains the execution data. -->
+							<destFile>${sonar.jacoco.reportPath}</destFile>
+							<!-- Sets the name of the property containing the settings for JaCoCo 
+								runtime agent. -->
+							<propertyName>surefireArgLineut</propertyName>
+						</configuration>
+					</execution>
+					<execution>
+						<id>post-unit-test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+						<configuration>
+							<!-- Sets the path to the file which contains the execution data. -->
+							<dataFile>${sonar.jacoco.reportPath}</dataFile>
+							<!-- Sets the output directory for the code coverage report. -->
+							<outputDirectory>${sonar.jacoco.reportsPath}/jacoco-ut</outputDirectory>
+						</configuration>
+					</execution>
+					<execution>
+						<id>pre-integration-test</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+						<configuration>
+							<!-- Sets the path to the file which contains the execution data. -->
+							<destFile>${sonar.jacoco.itReportPath}</destFile>
+							<!-- Sets the name of the property containing the settings for JaCoCo 
+								runtime agent. -->
+							<propertyName>surefireArgLineit</propertyName>
+						</configuration>
+					</execution>
+					<!-- Ensures that the code coverage report for unit tests is created 
+						after unit tests have been run. -->
+					<execution>
+						<id>post-integration-test</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+						<configuration>
+							<!-- Sets the path to the file which contains the execution data. -->
+							<dataFile>${sonar.jacoco.itReportPath}</dataFile>
+							<!-- Sets the output directory for the code coverage report. -->
+							<outputDirectory>${sonar.jacoco.reportsPath}/jacoco-it</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.asciidoctor</groupId>
+				<artifactId>asciidoctor-maven-plugin</artifactId>
+				<version>1.5.2</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.asciidoctor</groupId>
+						<artifactId>asciidoctorj-pdf</artifactId>
+						<version>1.5.0-alpha.9</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<sourceDirectory>src/main/asciidoc</sourceDirectory>
+					<templateDir>src/main/asciidoc</templateDir>
+					<preserveDirectories>true</preserveDirectories>
+					<title>Credit Card API</title>
+					<attributes>
+						<snippets>${snippetsDirectory}</snippets>
+						<project-version>${project.version}</project-version>
+						<dev-endpoint-url>http://localhost:8080/api</dev-endpoint-url>
+						<test-endpoint-url>http://credit-card-api.testserver.com/api</test-endpoint-url>
+						<endpoint-url>https://creditcardapi.herokuapp.com/api</endpoint-url>
+					</attributes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>output-html</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>process-asciidoc</goal>
+						</goals>
+						<configuration>
+							<backend>html5</backend>
+							<doctype>book</doctype>
+						</configuration>
+					</execution>
+					<execution>
+						<id>output-pdf</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>process-asciidoc</goal>
+						</goals>
+						<configuration>
+							<backend>pdf</backend>
+							<sourceHighlighter>rouge</sourceHighlighter>
+							<attributes>
+								<toc>left</toc>
+								<icons>font</icons>
+								<idprefix />
+								<sectanchors>true</sectanchors>
+								<!-- set the idprefix to blank -->
+								<idprefix />
+								<idseparator>-</idseparator>
+								<docinfo1>true</docinfo1>
+							</attributes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- <plugin> -->
+			<!-- <artifactId>maven-resources-plugin</artifactId> -->
+			<!-- <version>2.7</version> -->
+			<!-- <executions> -->
+			<!-- <execution> -->
+			<!-- <id>copy-resources</id> -->
+			<!-- here the phase you need -->
+			<!-- <phase>validate</phase> -->
+			<!-- <goals> -->
+			<!-- <goal>copy-resources</goal> -->
+			<!-- </goals> -->
+			<!-- <configuration> -->
+			<!-- <outputDirectory>${basedir}/target/extra-resources</outputDirectory> -->
+			<!-- <resources> -->
+			<!-- <resource> -->
+			<!-- <directory>src/non-packaged-resources</directory> -->
+			<!-- <filtering>true</filtering> -->
+			<!-- </resource> -->
+			<!-- </resources> -->
+			<!-- </configuration> -->
+			<!-- </execution> -->
+			<!-- </executions> -->
+			<!-- </plugin> -->
+		</plugins>
+	</build>
+</project>

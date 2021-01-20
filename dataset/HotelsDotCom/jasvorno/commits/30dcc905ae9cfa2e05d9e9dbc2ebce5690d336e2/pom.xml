@@ -1,0 +1,143 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.hotels</groupId>
+    <artifactId>hotels-oss-parent</artifactId>
+    <version>6.2.0</version>
+  </parent>
+
+  <artifactId>jasvorno</artifactId>
+  <version>2.0.1-SNAPSHOT</version>
+  <name>JASVORNO: JSON ⟷ Avro converter</name>
+  <description>Marshalls arbitrary vanilla JSON documents to/from Avro using a Schema.</description>
+  <inceptionYear>2016</inceptionYear>
+
+  <scm>
+    <connection>scm:git:https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/HotelsDotCom/jasvorno.git</connection>
+    <developerConnection>scm:git:https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/HotelsDotCom/jasvorno.git</developerConnection>
+    <url>https://github.com/HotelsDotCom/jasvorno</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <developers>
+    <developer>
+      <name>Elliot West</name>
+      <id>teabot</id>
+      <email>teabot@gmail.com</email>
+      <timezone>0</timezone>
+      <organization>Hotels.com</organization>
+      <organizationUrl>http://hotels.com</organizationUrl>
+    </developer>
+  </developers>
+
+  <properties>
+    <jdk.version>1.8</jdk.version>
+    <avro.version>1.8.2</avro.version>
+    <guava.version>30.0-jre</guava.version>
+    <jackson.version>2.11.3</jackson.version>
+    <junit.version>4.13.1</junit.version>
+    <pitest.version>1.5.2</pitest.version>
+    <shade.prefix>com.hotels.jasvorno.shaded</shade.prefix>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+      <version>${avro.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+      <version>${junit.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>3.2.4</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <shadedClassifierName>all</shadedClassifierName>
+              <artifactSet>
+                <includes>
+                  <include>com.google.guava:*</include>
+                  <include>org.apache.avro:*</include>
+                  <include>com.thoughtworks.paranamer:*</include>
+                  <include>com.fasterxml.jackson.core:*</include>
+                  <include>org.codehaus.jackson:*</include>
+                  <include>org.slf4j:*</include>
+                  <include>org.xerial.snappy:*</include>
+                  <include>org.tukaani:*</include>
+                </includes>
+              </artifactSet>
+              <relocations>
+                <relocation>
+                  <shadedPattern>${shade.prefix}.</shadedPattern>
+                  <includes>
+                    <include>com.google.**</include>
+                    <include>com.thoughtworks.**</include>
+                    <include>org.codehaus.jackson.**</include>
+                    <include>org.slf4j.**</include>
+                    <include>org.xerial.snappy.**</include>
+                    <include>org.tukaani.**</include>
+                  </includes>
+                </relocation>
+              </relocations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.pitest</groupId>
+        <artifactId>pitest-maven</artifactId>
+        <version>${pitest.version}</version>
+        <configuration>
+          <avoidCallsTo>
+            <avoidCallsTo>java.util.logging</avoidCallsTo>
+            <avoidCallsTo>org.apache.log4j</avoidCallsTo>
+            <avoidCallsTo>org.slf4j</avoidCallsTo>
+            <avoidCallsTo>org.apache.commons.logging</avoidCallsTo>
+            <avoidCallsTo>com.hotels.jasvorno.JasvornoConverterException</avoidCallsTo>
+          </avoidCallsTo>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

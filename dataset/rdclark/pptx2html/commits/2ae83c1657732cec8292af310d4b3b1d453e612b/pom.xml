@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- This is your organizations normal group name
+         such as org.antlr
+         All the artifacts you create will be under this
+         group id.
+      -->
+    <groupId>net.nextquestion</groupId>
+
+    <!-- This is how maven knows your artifact
+      -->
+    <artifactId>pptx2html</artifactId>
+
+    <!-- This is the human oriented name for the package
+         so you can call it anything you like
+      -->
+    <name>ANTLR3 project: net.nextquestion.pptx2html</name>
+
+    <!-- This is the version of YOUR project -->
+    <version>1.0d1</version>
+
+    <packaging>jar</packaging>
+    <url>http://antlr.org</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr3-maven-plugin</artifactId>
+            <version>3.3</version>
+            <scope>compile</scope>
+        </dependency>
+        <!--
+          We need to have the ANTLR runtime jar when running and compiling.
+        -->
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr-runtime</artifactId>
+            <version>3.3</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>junit</groupId>
+          <artifactId>junit-dep</artifactId>
+          <version>4.8.2</version>
+          <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+            <version>1.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <version>1.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-integration</artifactId>
+            <version>1.2</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <!--
+
+    Tell Maven which other artifacts we need in order to
+    build with the ANTLR Tool. Here we also make the default
+    goal be install so that you can just type mvn at the command
+    line instead of mvn install. And we add the java compiler plugin
+    for convenience to show how you can use 1.6 source files but
+    generate 1.4 compatible .class files (as few people seem to
+    know about the jsr14 target).
+    -->
+    <build>
+
+        <defaultGoal>install</defaultGoal>
+
+        <plugins>
+
+            <plugin>
+
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr3-maven-plugin</artifactId>
+                <version>3.3</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>antlr</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.8.1</version>
+                <dependencies>
+                  <dependency>
+                    <groupId>org.apache.maven.surefire</groupId>
+                    <artifactId>surefire-junit47</artifactId>
+                    <version>2.8.1</version>
+                  </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+
+                <!--
+
+                  Build an uber-jar that is packaged with all the other dependencies,
+                  such as the antlr-runtime and so on. This will be useful
+                  for developers, who then do not need to download anything else or
+                  remember that they need antlr.jar in their CLASSPATH and so
+                  on.
+
+                  You can delete this plugin of course and you will then
+                  get a jar file with only the code generated and included
+                  directly in this project. With this plugin though you will
+                  find that when you build with:
+
+                     mvn install
+
+                  There will be an executable jar generated. You can run this
+                  as:
+
+                    java -jar pptx2html-1.0d1-jar-with-dependencies.jar demosource.dmo
+
+                  assuming you have a file called demosource.dmo to attempt a parse.
+
+                -->
+                <artifactId>maven-assembly-plugin</artifactId>
+
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <!--
+
+                        Specify that we want the resulting jar to be executable
+                        via java -jar, which we do by modifying the manifest
+                        of course.
+                      -->
+                    <archive>
+
+                        <manifest>
+                            <mainClass>net.nextquestion.pptx2html.Main</mainClass>
+                        </manifest>
+                    </archive>
+
+                </configuration>
+
+                <!--
+
+                    We don't want to have to specifically ask for the uber jar, so we attach the
+                    running of this plugin to the execution of the package life-cycle
+                    phase.
+                  -->
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attached</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>

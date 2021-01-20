@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/*
+* DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+*
+* Copyright 2011 Tirasa. All rights reserved.
+*
+* The contents of this file are subject to the terms of either the GNU
+* General Public License Version 2 only ("GPL") or the Common Development
+* and Distribution License("CDDL") (collectively, the "License").  You
+* may not use this file except in compliance with the License. You can obtain
+* a copy of the License at https://glassfish.dev.java.net/public/CDDL+GPL.html
+* or glassfish/bootstrap/legal/LICENSE.txt.  See the License for the specific
+* language governing permissions and limitations under the License.
+*
+* When distributing the software, include this License Header Notice in each
+* file and include the License file at glassfish/bootstrap/legal/LICENSE.txt.
+* Sun designates this particular file as subject to the "Classpath" exception
+* as provided by Sun in the GPL Version 2 section of the License file that
+* accompanied this code.  If applicable, add the following below the License
+* Header, with the fields enclosed by brackets [] replaced by your own
+* identifying information: "Portions Copyrighted [year]
+* [name of copyright owner]"
+*/
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>connid</artifactId>
+        <groupId>org.connid</groupId>
+        <version>1.3.1</version>
+    </parent>
+
+    <groupId>org.connid.bundles</groupId>
+    <artifactId>org.connid.bundles.ldap</artifactId>
+    <version>1.3.1</version>
+
+    <name>ConnId Bundles: LDAP</name>
+
+    <packaging>jar</packaging>
+
+    <scm>
+        <connection>scm:svn:http://connid.googlecode.com/svn/bundles/ldap/tags/org.connid.bundles.ldap-1.3.1</connection>
+        <developerConnection>scm:svn:https://connid.googlecode.com/svn/bundles/ldap/tags/org.connid.bundles.ldap-1.3.1</developerConnection>
+        <url>http://connid.googlecode.com/svn/bundles/ldap/tags/org.connid.bundles.ldap-1.3.1</url>
+    </scm>
+
+    <properties>
+        <base.version>1.3.1</base.version>
+        
+        <opends.setup.dir>${java.io.tmpdir}/opends-setup</opends.setup.dir>
+        <opends.dest.dir>${project.build.directory}/test-classes/org/identityconnectors/ldap/opends</opends.dest.dir>
+        <opends.host>localhost</opends.host>
+        <opends.port>2389</opends.port>
+        <opends.principal>cn=Directory Manager</opends.principal>
+        <opends.credentials>password</opends.credentials>
+        <opends.baseDN>dc=example,dc=com</opends.baseDN>
+        
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.connid</groupId>
+            <artifactId>framework</artifactId>
+            <version>${base.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.connid</groupId>
+            <artifactId>framework-internal</artifactId>
+            <version>${base.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.glassfish.main.external</groupId>
+            <artifactId>ldapbp-repackaged</artifactId>
+            <version>3.1.2</version>
+            <scope>provided</scope>
+        </dependency>
+        
+        <!-- TEST -->
+        <dependency>
+            <groupId>sun-opends</groupId>
+            <artifactId>OpenDS</artifactId>
+            <version>1.0.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>berkeleydb</groupId>
+            <artifactId>je</artifactId>
+            <version>3.2.76</version>
+            <scope>test</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.connid</groupId>
+            <artifactId>test-common</artifactId>
+            <version>${base.version}</version>
+            <scope>test</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <inherited>true</inherited>
+                <executions>
+                    <execution>
+                        <id>prepareOpenDS</id>
+                        <phase>process-test-classes</phase>
+                        <configuration>
+                            <target>
+                                <get src="http://java.net/downloads/opends/promoted-builds/1.0.0/OpenDS-1.0.0.zip" dest="${java.io.tmpdir}" skipexisting="true" />
+                                <delete dir="${opends.setup.dir}" />
+                                <unzip dest="${opends.setup.dir}" src="${java.io.tmpdir}/OpenDS-1.0.0.zip">
+                                     <!-- Remove the "OpenDS-1.x.y" prefix. -->
+                                    <regexpmapper from="[^/\\]+[/\\](.*)" to="\1" />
+                                </unzip>
+                                
+                                <condition property="tool.import-ldif" value="bat/import-ldif.bat" else="bin/import-ldif">
+                                    <os family="windows" />
+                                </condition>
+                                <condition property="tool.ldapmodify" value="bat/ldapmodify.bat" else="bin/ldapmodify">
+                                    <os family="windows" />
+                                </condition>
+                                <condition property="tool.make-ldif" value="bat/make-ldif.bat" else="bin/make-ldif">
+                                    <os family="windows" />
+                                </condition>
+                                <condition property="tool.rebuild-index" value="bat/rebuild-index.bat" else="bin/rebuild-index">
+                                    <os family="windows" />
+                                </condition>
+                                <condition property="tool.start-ds" value="bat/start-ds.bat" else="bin/start-ds">
+                                    <os family="windows" />
+                                </condition>
+                                <condition property="tool.stop-ds" value="bat/stop-ds.bat" else="bin/stop-ds">
+                                    <os family="windows" />
+                                </condition>
+                                <chmod perm="+x">
+                                    <fileset dir="${opends.setup.dir}">
+                                        <include name="${tool.import-ldif}" />
+                                        <include name="${tool.ldapmodify}" />
+                                        <include name="${tool.make-ldif}" />
+                                        <include name="${tool.rebuild-index}" />
+                                        <include name="${tool.start-ds}" />
+                                        <include name="${tool.stop-ds}" />
+                                        <include name="lib/_client-script.sh" />
+                                        <include name="lib/_mixed-script.sh" />
+                                        <include name="lib/_server-script.sh" />
+                                    </fileset>
+                                </chmod>
+                                
+                                <copy tofile="${opends.setup.dir}/config/config.ldif" file="${project.build.directory}/test-classes/opends/config.ldif" />
+                                <copy tofile="${opends.setup.dir}/config/keystore.pin" file="${project.build.directory}/test-classes/opends/keystore.pin" />
+
+                                <!-- Generate a self-signed certificate. The password is the one in opends/password.pin. -->
+                                <genkey alias="server-cert" keyalg="rsa" keystore="${opends.setup.dir}/config/keystore" storetype="JKS" storepass="password" validity="365">
+                                    <dname>
+                                        <param name="CN" value="opends.example.com" />
+                                        <param name="O" value="Example Organization" />
+                                        <param name="C" value="US" />
+                                    </dname>
+                                </genkey>
+
+                                <!-- Generate and import data. -->
+                                <exec executable="${opends.setup.dir}/${tool.make-ldif}" dir="${opends.setup.dir}">
+                                    <arg value="-t" />
+                                    <arg value="${project.build.directory}/test-classes/opends/bigcompany.template" />
+                                    <arg value="-o" />
+                                    <arg value="${opends.setup.dir}/bigcompany.ldif" />
+                                </exec>
+                                <exec executable="${opends.setup.dir}/${tool.import-ldif}" dir="${opends.setup.dir}">
+                                    <arg value="--clearBackend" />
+                                    <arg value="--ldifFile" />
+                                    <arg value="${project.build.directory}/test-classes/opends/data.ldif" />
+                                    <arg value="--backendID" />
+                                    <arg value="userRoot" />
+                                </exec>
+                                <exec executable="${opends.setup.dir}/${tool.import-ldif}" dir="${opends.setup.dir}">
+                                    <arg value="--append" />
+                                    <arg value="--ldifFile" />
+                                    <arg value="${opends.setup.dir}/bigcompany.ldif" />
+                                    <arg value="--backendID" />
+                                    <arg value="userRoot" />
+                                </exec>
+                                <exec executable="${opends.setup.dir}/${tool.rebuild-index}" dir="${opends.setup.dir}">
+                                    <arg value="--baseDN" />
+                                    <arg value="dc=example,dc=com" />
+                                    <arg value="--index" />
+                                    <arg value="vlv.index-uid" />
+                                </exec>
+
+                                <!-- Set up an admin user. -->
+                                <copy tofile="${opends.setup.dir}/${tool.start-ds}" file="${project.build.directory}/test-classes/opends/${tool.start-ds}" />
+                                <copy tofile="${opends.setup.dir}/${tool.stop-ds}" file="${project.build.directory}/test-classes/opends/${tool.stop-ds}" />
+                                
+                                <exec executable="${opends.setup.dir}/${tool.start-ds}" dir="${opends.setup.dir}" />
+                                <exec executable="${opends.setup.dir}/${tool.ldapmodify}" dir="${opends.setup.dir}">
+                                    <arg value="-h" />
+                                    <arg value="${opends.host}" />
+                                    <arg value="-p" />
+                                    <arg value="${opends.port}" />
+                                    <arg value="-D" />
+                                    <arg value="${opends.principal}" />
+                                    <arg value="-w" />
+                                    <arg value="${opends.credentials}" />
+                                    <arg value="-f" />
+                                    <arg value="${project.build.directory}/test-classes/opends/admin.ldif" />
+                                </exec>
+                                <exec executable="${opends.setup.dir}/${tool.stop-ds}" dir="${opends.setup.dir}" />
+                                
+                                <delete dir="${opends.dest.dir}" />
+                                <mkdir dir="${opends.dest.dir}" />
+                                <copy todir="${opends.dest.dir}">
+                                    <fileset dir="${opends.setup.dir}">
+                                        <!-- This needs to be in sync with LdapConnectorTestBase. -->
+                                        <include name="config/schema/*.ldif" />
+                                        <include name="config/admin-backend.ldif" />
+                                        <include name="config/config.ldif" />
+                                        <include name="config/keystore" />
+                                        <include name="config/keystore.pin" />
+                                        <include name="db/userRoot/*.jdb" />
+                                    </fileset>
+                                </copy>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <inherited>true</inherited>
+                <configuration>
+                    <includes>
+                        <include>**/*Tests.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+
+                    <appendAssemblyId>false</appendAssemblyId>
+
+                    <descriptors>
+                        <descriptor>src/assemble/connector.xml</descriptor>
+                    </descriptors>
+
+                    <archive>
+                        <index>true</index>
+                        <manifestEntries>
+
+                            <ConnectorBundle-FrameworkVersion>
+                                ${base.version}
+                            </ConnectorBundle-FrameworkVersion>
+
+                            <ConnectorBundle-Name>
+                                ${project.artifactId}
+                            </ConnectorBundle-Name>
+
+                            <ConnectorBundle-Version>
+                                ${project.version}
+                            </ConnectorBundle-Version>
+
+                        </manifestEntries>
+                    </archive>
+                    
+                </configuration>
+                
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.0</version>
+                <configuration>
+                    <tagBase>https://connid.googlecode.com/svn/bundles/ldap/tags</tagBase>
+                </configuration>
+            </plugin>
+        </plugins>
+        
+    </build>
+</project>

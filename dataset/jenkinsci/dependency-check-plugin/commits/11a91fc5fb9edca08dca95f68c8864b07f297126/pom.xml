@@ -1,0 +1,209 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <description>Dependency-Check is a utility that identifies project dependencies and checks if there are any known, publicly disclosed, vulnerabilities. This tool can be part of the solution to the OWASP Top 10 2013: A9 - Using Components with Known Vulnerabilities. This plug-in can independently execute a Dependency-Check analysis and visualize results.</description>
+    <url>http://wiki.jenkins-ci.org/display/JENKINS/OWASP+Dependency-Check+Plugin</url>
+    <parent>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>plugin</artifactId>
+        <version>3.2</version>
+    </parent>
+
+    <!--
+        If artifactId changes, the *.jelly files containing links to help need
+        to be changed. Additionally, the ICONS_PREFIX and PLUGIN_ID in
+        DependencyCheckDescriptor need to be updated as well.
+    -->
+    <artifactId>dependency-check-jenkins-plugin</artifactId>
+
+    <name>OWASP Dependency-Check Plugin</name>
+    <version>3.3.3-SNAPSHOT</version>
+    <packaging>hpi</packaging>
+    <inceptionYear>2012</inceptionYear>
+    <organization>
+        <name>OWASP</name>
+        <url>http://www.owasp.org</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <name>Steve Springett</name>
+            <email>steve.springett@owasp.org</email>
+            <organization>OWASP</organization>
+            <organizationUrl>https://www.owasp.org/index.php/OWASP_Dependency_Check</organizationUrl>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <properties>
+        <jenkins.version>1.625.3</jenkins.version>
+        <java.level>8</java.level>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <dependency.check.version>3.3.2</dependency.check.version>
+        <workflow-jenkins-plugin.version>1.4</workflow-jenkins-plugin.version>
+        <!-- TODO: Fix FindBugs and enable -->
+        <findbugs.failOnError>false</findbugs.failOnError>
+    </properties>
+
+    <distributionManagement>
+        <repository>
+            <id>maven.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>maven.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.17</version>
+                <configuration>
+                    <enableRulesSummary>false</enableRulesSummary>
+                    <configLocation>${basedir}/src/main/config/checkstyle-checks.xml</configLocation>
+                    <headerLocation>${basedir}/src/main/config/checkstyle-header.txt</headerLocation>
+                    <suppressionsLocation>${basedir}/src/main/config/checkstyle-suppressions.xml</suppressionsLocation>
+                    <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
+                </configuration>
+            </plugin>
+            <!-- TODO: Remove once Javadoc is fixed -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>dependency-track</artifactId>
+            <version>1.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jvnet.hudson.plugins</groupId>
+            <artifactId>analysis-core</artifactId>
+            <version>1.94</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>dashboard-view</artifactId>
+            <version>2.9.4</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>token-macro</artifactId>
+            <version>2.1</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.owasp</groupId>
+            <artifactId>dependency-check-core</artifactId>
+            <version>${dependency.check.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.owasp</groupId>
+            <artifactId>dependency-check-utils</artifactId>
+            <version>${dependency.check.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.main</groupId>
+            <artifactId>maven-plugin</artifactId>
+            <version>3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>mailer</artifactId>
+            <version>1.13</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-job</artifactId>
+            <version>${workflow-jenkins-plugin.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-cps</artifactId>
+            <version>${workflow-jenkins-plugin.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-basic-steps</artifactId>
+            <version>${workflow-jenkins-plugin.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <scm>
+        <connection>scm:git:git@github.com:jenkinsci/dependency-check-plugin.git</connection>
+        <url>https://github.com/jenkinsci/dependency-check-plugin.git</url>
+        <developerConnection>scm:git:git@github.com:jenkinsci/dependency-check-plugin.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <issueManagement>
+        <system>JIRA</system>
+        <url>http://issues.jenkins-ci.org/</url>
+    </issueManagement>
+
+    <mailingLists>
+        <mailingList>
+            <name>Dependency Check</name>
+            <subscribe>dependency-check+subscribe@googlegroups.com</subscribe>
+            <unsubscribe>dependency-check+unsubscribe@googlegroups.com</unsubscribe>
+            <post>dependency-check@googlegroups.com</post>
+            <archive>https://groups.google.com/forum/?fromgroups#!forum/dependency-check</archive>
+        </mailingList>
+    </mailingLists>
+
+    <repositories>
+        <repository>
+            <id>repo.jenkins-ci.org</id>
+            <url>http://repo.jenkins-ci.org/public/</url>
+        </repository>
+        <repository>
+            <id>repo.dependency-check.snapshot</id>
+            <url>https://dependencycheck.jfrog.io/dependencycheck/libs-snapshot</url>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+</project>

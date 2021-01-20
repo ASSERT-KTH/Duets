@@ -1,0 +1,123 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>allr</groupId>
+	<artifactId>fastr</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>fastr</name>
+	<url>http://r.cs.purdue.edu/</url>
+	<scm>
+		<connection>scm:git:ssh://git@bitbucket.org/allr/fastr.git</connection>
+	</scm>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>jline</groupId>
+			<artifactId>jline</artifactId>
+			<version>2.11</version>
+		</dependency>
+		<dependency>
+			<groupId>org.antlr</groupId>
+			<artifactId>antlr-runtime</artifactId>
+			<version>3.5</version>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.netlib-java</groupId>
+			<artifactId>netlib-java</artifactId>
+			<version>0.9.3</version>
+		</dependency>
+		<!-- <dependency> <groupId>com.sun.jna</groupId> <artifactId>jna</artifactId> 
+			<version>3.0.5</version> </dependency> -->
+	</dependencies>
+
+	<build>
+		<sourceDirectory>src</sourceDirectory>
+		<testSourceDirectory>test</testSourceDirectory>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.0</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+					<excludes>
+						<exclude>**/r/parser/R*.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.16</version>
+				<configuration>
+					<argLine>-Duser.language=en -Djava.library.path=${basedir}/native:${basedir}native/netlib-java/jni</argLine>
+					<!--ensure vm is loaded with the good locales -->
+					<systemPropertyVariables>
+						<allr.prefix>${project.build.outputDirectory}</allr.prefix>
+						<java.library.path>${basedir}/native:${basedir}native/netlib-java/jni</java.library.path>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.antlr</groupId>
+				<artifactId>antlr3-maven-plugin</artifactId>
+				<version>3.5</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>antlr</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<sourceDirectory>${basedir}/src</sourceDirectory>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.2.1</version>
+				<configuration>
+					<mainClass>r.Console</mainClass>
+					<systemProperties>
+						<systemProperty>
+							<key>java.library.path</key>
+							<value>${basedir}/native:${basedir}native/netlib-java/jni</value>
+						</systemProperty>
+					</systemProperties>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.5</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.maven.wagon</groupId>
+						<artifactId>wagon-webdav</artifactId>
+						<version>1.0-beta-2</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+		</plugins>
+	</build>
+
+	<distributionManagement>
+		<repository>
+			<id>se</id>
+			<url>dav:https://webdav.labri.fr/vhosts/se.labri.fr/maven/</url>
+		</repository>
+	</distributionManagement>
+</project>

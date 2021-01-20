@@ -1,0 +1,176 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.xlcatlin</groupId>
+	<artifactId>wm-aop</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>wm-aop</name>
+	<url>http://maven.apache.org</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<powermock.version>1.6.2</powermock.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-jexl</artifactId>
+			<version>2.1.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.softwareag.webmethods</groupId>
+			<artifactId>wm-isserver</artifactId>
+			<version>9.8</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/wm-isserver.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>com.softwareag.webmethods</groupId>
+			<artifactId>wm-isclient</artifactId>
+			<version>9.8</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/wm-isclient.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>com.softwareag.webmethods</groupId>
+			<artifactId>wm-g11nutils</artifactId>
+			<version>9.8</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/wm-g11nutils.jar</systemPath>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.3</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<version>2.2.11</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.10.19</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+<!-- 
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.3</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+			-->
+			<!-- Plugin required to build java classes from XSD using XJC -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>jaxb2-maven-plugin</artifactId>
+				<version>2.2</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>xjc</goal>
+						</goals>
+						<configuration>
+							<packageName>com.xlcatlin.wm.interceptor.xsd.bdd</packageName>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>1.9.1</version>
+				<executions>
+					<execution>
+						<id>add-source</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${project.build.directory}/generated-sources/jaxb</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>localServer</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jar-plugin</artifactId>
+						<configuration>
+							<outputDirectory>D:\SoftwareAG\IntegrationServer\instances\default\lib\jars</outputDirectory>
+						</configuration>
+					</plugin>
+
+					<plugin>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<executions>
+							<execution>
+								<phase>install</phase>
+								<goals>
+									<goal>copy-dependencies</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>D:\SoftwareAG\IntegrationServer\instances\default\lib\jars</outputDirectory>
+									<includeScope>runtime</includeScope>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>exec-maven-plugin</artifactId> 
+						<version>1.2</version> <executions> <execution> <id>drop DB => db_name</id> 
+						<phase>pre-integration-test</phase> <goals> <goal>exec</goal> </goals> <configuration> 
+						<executable>powershell</executable> <arguments> <argument>-s</argument> <argument>-S</argument> 
+						<argument>-X</argument> <argument>DELETE</argument> <argument>http://${db.server}:${db.port}/db_name</argument> 
+						</arguments> </configuration> </execution> </executions> </plugin> -->
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>

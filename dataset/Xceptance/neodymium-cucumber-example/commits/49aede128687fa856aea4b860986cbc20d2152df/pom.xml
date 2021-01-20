@@ -1,0 +1,129 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.xceptance.neodymium</groupId>
+	<artifactId>neodymium-cucumber-example</artifactId>
+	<version>0.0.2-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>neodymium-cucumber-example</name>
+	<url>https://github.com/Xceptance/neodymium-cucumber-example</url>
+	<organization>
+		<name>Xceptance Software Technologies</name>
+		<url>https://www.xceptance.com/</url>
+	</organization>
+
+	<licenses>
+		<license>
+			<name>MIT</name>
+			<url>https://opensource.org/licenses/MIT</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<surefire.version>2.21.0</surefire.version>
+		<aspectj.version>1.8.13</aspectj.version> 
+		<neodymium.version>0.2.1</neodymium.version>
+	</properties>
+
+	<build>
+		<resources>
+			<resource>
+				<!-- copy all none java files from src/test/java to target/test-classes -->
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+				<directory>${project.build.testSourceDirectory}</directory>
+				<targetPath>${project.build.testOutputDirectory}</targetPath>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>${surefire.version}</version>
+				<configuration>
+					<forkCount>2</forkCount>
+					<includes>
+						<include>posters/cucumber/tests/AllFeaturesTest.java</include>
+					</includes>
+					<testFailureIgnore>true</testFailureIgnore>
+					<argLine>-javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"</argLine>
+					<systemPropertyVariables>
+						<allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
+						<selenide.reports>${project.build.directory}/selenide-results</selenide.reports>
+						<cucumber.options>--plugin io.qameta.allure.cucumber2jvm.AllureCucumber2Jvm</cucumber.options>
+					</systemPropertyVariables>
+				</configuration>
+
+				<dependencies>
+					<dependency>
+						<groupId>org.aspectj</groupId>
+						<artifactId>aspectjweaver</artifactId>
+						<version>${aspectj.version}</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>io.qameta.allure</groupId>
+				<artifactId>allure-maven</artifactId>
+				<version>2.9</version>
+				<configuration>
+					<reportVersion>2.6.0</reportVersion>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>xc-nexus</id>
+			<url>https://lab.xceptance.de/nexus/content/groups/public</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.xceptance</groupId>
+			<artifactId>neodymium-library</artifactId>
+			<version>${neodymium.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.cucumber</groupId>
+			<artifactId>cucumber-picocontainer</artifactId>
+			<version>2.3.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j-impl</artifactId>
+			<version>2.10.0</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-report-plugin</artifactId>
+				<version>${surefire.version}</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.0.0-M1</version>
+				<configuration>
+					<additionalparam>-Xdoclint:none</additionalparam>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
+</project>

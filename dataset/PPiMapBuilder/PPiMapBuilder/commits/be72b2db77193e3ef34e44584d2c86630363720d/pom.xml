@@ -1,0 +1,285 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <bundle.symbolicName>tk.nomis_tech.ppimapbuilder</bundle.symbolicName>
+        <bundle.namespace>tk.nomis_tech.ppimapbuilder</bundle.namespace>
+
+        <cytoscape.version>3.0.0</cytoscape.version>
+    </properties>
+
+    <groupId>tk.nomis_tech</groupId>
+    <artifactId>PPiMapBuilder</artifactId>
+    <version>0.8-SNAPSHOT</version>
+
+    <name>${bundle.symbolicName} [${bundle.namespace}]</name>
+
+    <packaging>bundle</packaging>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin> <!-- COMPILE -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.0</version>
+                <configuration>    <!-- Cytoscape requires Java 1.6 -->
+                    <source>1.6</source>
+                    <target>1.6</target>
+                    <optimize>true</optimize>
+                    <showWarnings>true</showWarnings>
+                    <showDeprecation>true</showDeprecation>
+                    <compilerArguments>
+                        <Xmaxwarns>10000</Xmaxwarns>
+                        <Xmaxerrs>10000</Xmaxerrs>
+                    </compilerArguments>
+                </configuration>
+            </plugin>
+
+            <!-- SUREFIRE <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.7.1</version> <configuration> <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                </configuration> </plugin> -->
+
+            <plugin> <!-- BUNDLE with OSGI metadata (based on the osgi.bnd file) -->
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>2.3.7</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
+                        <Bundle-Version>${project.version}</Bundle-Version>
+
+                        <Private-Package>${bundle.namespace}.*</Private-Package>
+                        <Bundle-Activator>${bundle.namespace}.PMBActivator</Bundle-Activator>
+                        <Embed-Dependency>*;scope=compile|runtime;groupId=!org.cytoscape</Embed-Dependency>
+                        <Embed-Transitive>true</Embed-Transitive>
+
+                        <Export-Package>${bundle.namespace}.*;version="${project.version}"</Export-Package>
+                        <Import-Package>*;resolution:=optional</Import-Package>
+                    </instructions>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <repositories>
+        <!-- Cytoscape repositories -->
+        <repository>
+            <id>cytoscape_snapshots</id>
+            <snapshots>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <name>Cytoscape Snapshots</name>
+            <url>http://code.cytoscape.org/nexus/content/repositories/snapshots/</url>
+        </repository>
+        <repository>
+            <id>cytoscape_releases</id>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+            </releases>
+            <name>Cytoscape Releases</name>
+            <url>http://code.cytoscape.org/nexus/content/repositories/releases/</url>
+        </repository>
+
+        <!-- PSICQUIC client repository (for external implementation) -->
+        <repository>
+            <id>nexus</id>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <name>European Bioinformatics Institute</name>
+            <url>http://www.ebi.ac.uk/intact/maven/nexus/content/groups/public</url>
+        </repository>
+
+        <!-- MiCluster repository -->
+        <repository>
+            <id>ebi-repo</id>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <name>EBI repository</name>
+            <url>http://www.ebi.ac.uk/~maven/m2repo</url>
+        </repository>
+
+        <!-- <repository> <id>ebi-repo-snapshots</id> <name>EBI snapshots repository</name>
+            <url>http://www.ebi.ac.uk/~maven/m2repo_snapshots</url> </repository> -->
+
+        <!-- Local Repository -->
+        <repository>
+            <id>local-repo</id>
+            <name>Local Repository</name>
+            <url>file:${project.basedir}/local-repo</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <!-- jUnit -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.4</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- OSGI -->
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <version>4.2.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Cytoscape -->
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>service-api</artifactId>
+            <version>${cytoscape.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>swing-application-api</artifactId>
+            <version>${cytoscape.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>session-api</artifactId>
+            <version>${cytoscape.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>layout-api</artifactId>
+            <version>${cytoscape.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>vizmap-api</artifactId>
+            <version>${cytoscape.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>swing-util-api</artifactId>
+            <version>${cytoscape.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>core-task-api</artifactId>
+            <version>${cytoscape.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>work-api</artifactId>
+            <version>${cytoscape.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>viewmodel-api</artifactId>
+            <version>${cytoscape.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>presentation-api</artifactId>
+            <version>${cytoscape.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>model-api</artifactId>
+            <version>${cytoscape.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cytoscape</groupId>
+            <artifactId>application-api</artifactId>
+            <version>${cytoscape.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- MigLayout Swing -->
+        <dependency>
+            <groupId>com.miglayout</groupId>
+            <artifactId>miglayout-swing</artifactId>
+            <version>4.2</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- PSI-MI -->
+        <dependency>
+            <groupId>psidev.psi.mi</groupId>
+            <artifactId>psimitab</artifactId>
+            <version>1.8.4</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hupo.psi.mi.psicquic</groupId>
+            <artifactId>psicquic-simple-client</artifactId>
+            <version>1.3.3</version>
+            <type>bundle</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>uk.ac.ebi.enfin.mi.cluster</groupId>
+            <artifactId>micluster</artifactId>
+            <version>1.7.3</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- jSoup -->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.7.3</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- JSON minimal -->
+        <dependency>
+            <groupId>com.eclipsesource.minimal-json</groupId>
+            <artifactId>minimal-json</artifactId>
+            <version>0.9.1</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Stax XML Stream Parser -->
+        <dependency>
+            <groupId>stax</groupId>
+            <artifactId>stax</artifactId>
+            <version>1.2.0</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.orthoxml</groupId>
+            <artifactId>orthoxml</artifactId>
+            <version>0.1b</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+</project>

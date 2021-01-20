@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>animator</groupId>
+    <artifactId>AnimationEditor</artifactId>
+    <version>1.0</version>
+
+    <properties>
+        <application.title>FX Animation Editor</application.title>
+        <project.organization.name>Robert Fisher</project.organization.name>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <properties>
+                <animation.fullspeed>true</animation.fullspeed>
+            </properties>
+        </profile>
+        <profile>
+            <id>unix</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                </os>
+            </activation>
+            <properties>
+                <animation.fullspeed>false</animation.fullspeed>
+            </properties>
+        </profile>
+    </profiles>
+
+    <build>
+        <finalName>zip/${application.title}-${project.version}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>com.zenjava</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>8.7.0</version>
+                <executions>
+                    <execution>
+                        <id>id</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>native</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <mainClass>animator.AnimationEditorApp</mainClass>
+                    <appName>${application.title}</appName>
+                    <jfxMainAppJarName>${project.artifactId}-${project.version}.jar</jfxMainAppJarName>
+                    <jfxAppOutputDir>${project.build.directory}/executable-jar</jfxAppOutputDir>
+                    <nativeOutputDir>${project.build.directory}/native</nativeOutputDir>
+                    <jvmArgs>
+                        <jvmArg>-Djavafx.animation.fullspeed=${animation.fullspeed}</jvmArg>
+                    </jvmArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <descriptors>
+                        <descriptor>src/main/deploy/package/assembly.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>cleanup</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <delete dir="${project.build.directory}/classes"/>
+                                <delete dir="${project.build.directory}/test-classes"/>
+                                <delete dir="${project.build.directory}/generated-sources"/>
+                                <delete dir="${project.build.directory}/generated-test-sources"/>
+                                <delete dir="${project.build.directory}/surefire"/>
+                                <delete dir="${project.build.directory}/archive-tmp"/>
+                                <delete dir="${project.build.directory}/maven-archiver"/>
+                                <delete dir="${project.build.directory}/maven-status"/>
+                                <delete dir="${project.build.directory}/antrun"/>
+                                <delete file="${project.build.directory}/${project.build.finalName}.jar"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>4.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.0</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>2.7.9</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>

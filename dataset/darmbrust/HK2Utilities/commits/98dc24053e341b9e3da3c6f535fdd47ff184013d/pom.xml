@@ -1,0 +1,214 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>net.sagebits</groupId>
+	<artifactId>HK2Utilities</artifactId>
+	<version>1.6.0</version>
+	<packaging>jar</packaging>
+
+	<name>HK2Utilities</name>
+	
+	<description>
+		Runtime scanning and initializing utilities for HK2 so you don't have to rely on hk2-locator/default files created by the inhabitant-generator.
+	</description>
+	
+	<url>https://bitbucket.org/sagebits/hk2utilities</url>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>
+				Copyright 2018 VetsEZ Inc, Sagebits LLC
+				
+				Licensed under the Apache License, Version 2.0 (the "License");
+				you may not use this file except in compliance with the License.
+				You may obtain a copy of the License at
+				
+				http://www.apache.org/licenses/LICENSE-2.0
+				
+				Unless required by applicable law or agreed to in writing, software
+				distributed under the License is distributed on an "AS IS" BASIS,
+				WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+				See the License for the specific language governing permissions and
+				limitations under the License.
+				
+				Contributions from 2015-2017 where performed either by US government
+				employees, or under US Veterans Health Administration contracts.
+				
+				US Veterans Health Administration contributions by government employees
+				are work of the U.S. Government and are not subject to copyright
+				protection in the United States. Portions contributed by government
+				employees are USGovWork (17USC §105). Not subject to copyright.
+				
+				Contribution by contractors to the US Veterans Health Administration
+				during this period are contractually contributed under the
+				Apache License, Version 2.0.
+				
+				See: https://www.usa.gov/government-works
+			</comments>
+		</license>
+	</licenses>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<scm>
+		<url>https://github.com/darmbrust/HK2Utilities</url>
+	</scm>
+
+	<developers>
+		<developer>
+			<id>darmbrust</id>
+			<name>Dan Armbrust</name>
+			<email>daniel.armbrust.list@sagebits.net</email>
+		</developer>
+	</developers>
+	
+	<!-- For release to maven central via sonatype -->
+	<!-- Requires credentials in settings.xml - see http://central.sonatype.org/pages/apache-maven.html#deploying-to-ossrh-with-apache-maven-introduction -->
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<release>11</release>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.2.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<version>3.2.0</version>
+					<configuration>
+						<failOnError>false</failOnError>
+						<additionalparam>-Xdoclint:none</additionalparam>
+						<javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
+						<detectOfflineLinks>false</detectOfflineLinks>
+					</configuration>
+					<executions>
+						<execution>
+						<phase>package</phase>
+							<goals>
+								<goal>javadoc</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+			<plugin>
+				<groupId>external.atlassian.jgitflow</groupId>
+				<artifactId>jgitflow-maven-plugin</artifactId>
+				<version>1.0-m4.3</version>
+				<configuration>
+					<pushReleases>true</pushReleases>
+					<scmCommentPrefix>[jgitflow-plugin]</scmCommentPrefix>
+					<enableSshAgent>true</enableSshAgent>
+					<enableFeatureVersions>true</enableFeatureVersions>
+					<defaultOriginUrl>https://github.com/darmbrust/HK2Utilities.git</defaultOriginUrl>
+					<flowInitContext>
+						<masterBranchName>master</masterBranchName>
+						<developBranchName>develop</developBranchName>
+					</flowInitContext>
+				</configuration>
+			</plugin>
+			<!-- Used to promote from staging to public -->
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.8</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>ossrh</serverId>
+					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<autoReleaseAfterClose>true</autoReleaseAfterClose>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	
+	<profiles>
+		<profile>
+			<id>publicRelease</id>
+			<build>
+				<plugins>
+					<!-- Required for sonatype release -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.glassfish.hk2</groupId>
+			<artifactId>hk2</artifactId>
+			<version>3.0.0-M2</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>eu.infomas</groupId>
+			<artifactId>annotation-detector</artifactId>
+			<version>3.0.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+			<version>2.13.3</version>
+		</dependency>
+
+		<!-- Test only dependencies -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.13.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<version>5.6.2</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

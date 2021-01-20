@@ -1,0 +1,145 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.kohsuke</groupId>
+    <artifactId>pom</artifactId>
+    <version>10</version>
+  </parent>
+  <artifactId>eiie-logger</artifactId>
+  <version>1.2-SNAPSHOT</version>
+  <name>ExceptionInInitializerError logger</name>
+
+  <url>http://${project.artifactId}.kohsuke.org/</url>
+
+  <scm>
+    <connection>scm:git:git@github.com/kohsuke/${project.artifactId}.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/kohsuke/${project.artifactId}.git</developerConnection>
+    <url>http://${project.artifactId}.kohsuke.org/</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <distributionManagement>
+    <site>
+      <id>github-pages</id>
+      <url>gitsite:git@github.com/kohsuke/${project.artifactId}.git</url>
+    </site>
+  </distributionManagement>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <shadedClassifierName>jar-with-dependencies</shadedClassifierName>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                <manifestEntries>
+                  <Agent-Class>org.kohsuke.eiie_logger.AgentMain</Agent-Class>
+                  <Premain-Class>org.kohsuke.eiie_logger.AgentMain</Premain-Class>
+                  <Main-Class>org.kohsuke.eiie_logger.Main</Main-Class>
+                  <Can-Retransform-Classes>true</Can-Retransform-Classes>
+                  <Can-Redefine-Classes>true</Can-Redefine-Classes>
+                </manifestEntries>
+                </transformer>
+              </transformers>
+              <relocations>
+                <relocation>
+                  <pattern>org.kohsuke.args4j</pattern>
+                  <shadedPattern>org.kohsuke.eiie_logger.args4j</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.kohsuke.asm3</pattern>
+                  <shadedPattern>org.kohsuke.eiie_logger.asm3</shadedPattern>
+                </relocation>
+              </relocations>
+            </configuration>
+          </execution>
+        </executions>
+        <configuration>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.kohsuke</groupId>
+      <artifactId>asm5</artifactId>
+      <version>5.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>args4j</groupId>
+      <artifactId>args4j</artifactId>
+      <version>2.0.16</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun</groupId>
+      <artifactId>tools</artifactId>
+      <version>6.0</version>
+      <scope>system</scope>
+      <systemPath>${toolsjar}</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.0.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.9</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+
+  <profiles>
+    <profile>
+        <id>default-profile</id>
+        <activation>
+            <activeByDefault>true</activeByDefault>
+            <file>
+                <exists>${java.home}/../lib/tools.jar</exists>
+            </file>
+        </activation>
+        <properties>
+            <toolsjar>${java.home}/../lib/tools.jar</toolsjar>
+        </properties>
+    </profile>
+    <profile>
+        <id>mac-profile</id>
+        <activation>
+            <activeByDefault>false</activeByDefault>
+            <file>
+                <exists>${java.home}/../Classes/classes.jar</exists>
+            </file>
+        </activation>
+        <properties>
+            <toolsjar>${java.home}/../Classes/classes.jar</toolsjar>
+        </properties>
+    </profile>
+  </profiles>
+
+  <licenses>
+    <license>
+      <name>The MIT license</name>
+      <url>http://www.opensource.org/licenses/mit-license.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+</project>

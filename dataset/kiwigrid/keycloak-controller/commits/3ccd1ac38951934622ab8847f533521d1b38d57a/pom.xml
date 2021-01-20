@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.kiwigrid.controller</groupId>
+	<artifactId>keycloak-controller</artifactId>
+	<version>1.0</version>
+
+	<name>${project.groupId}:${project.artifactId}</name>
+	<description>
+		A Kubernetes controller for managing clients and realms in Keycloak instances.
+	</description>
+	<url>https://github.com/kiwigrid/keycloak-controller</url>
+	<organization>
+		<name>Kiwigrid GmbH</name>
+		<url>https://www.kiwigrid.com</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>MIT License</name>
+			<url>http://opensource.org/licenses/MIT</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Axel Köhler</name>
+			<email>axel.koehler@kiwigrid.com</email>
+		</developer>
+		<developer>
+			<name>Stephan Schnabel</name>
+			<email>stephan.schnabel@kiwigrid.com</email>
+		</developer>
+	</developers>
+
+	<scm>
+		<connection>scm:git:git://github.com/kiwigrid/keycloak-controller.git</connection>
+		<developerConnection>scm:git:git@github.com:kiwigrid/keycloak-controller.git</developerConnection>
+		<url>https://github.com/kiwigrid/keycloak-controller/tree/master</url>
+		<tag>HEAD</tag>
+	</scm>
+
+	<properties>
+		<version.micronaut>1.1.0.RC2</version.micronaut>
+		<version.micronaut-test-spock>1.0.2</version.micronaut-test-spock>
+		<version.keycloak>4.8.3.Final</version.keycloak>
+		<version.resteasy>3.6.3.Final</version.resteasy>
+		<version.logback>1.2.3</version.logback>
+		<version.logback-contrib>0.1.5</version.logback-contrib>
+		<version.k8s-client>4.3.1</version.k8s-client>
+		<version.lombok>1.18.8</version.lombok>
+		<version.com.spotify.ile>1.4.10</version.com.spotify.ile>
+
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
+		<maven.compiler.parameters>true</maven.compiler.parameters>
+
+		<dockerfile.contextDirectory>${project.build.directory}</dockerfile.contextDirectory>
+		<dockerfile.retryCount>0</dockerfile.retryCount>
+		<dockerfile.googleContainerRegistryEnabled>false</dockerfile.googleContainerRegistryEnabled>
+		<dockerfile.writeTestMetadata>false</dockerfile.writeTestMetadata>
+		<dockerfile.skipDockerInfo>true</dockerfile.skipDockerInfo>
+		<dockerfile.repository>kiwigrid/${project.artifactId}</dockerfile.repository>
+		<!-- Automated versioning for docker image, this is our shippable artifact -->
+		<dockerfile.tag>${git.commit.time}.${git.commit.id.abbrev}</dockerfile.tag>
+
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.micronaut</groupId>
+				<artifactId>micronaut-bom</artifactId>
+				<version>${version.micronaut}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	<dependencies>
+
+		<!-- Micronaut -->
+		<dependency>
+			<groupId>io.micronaut</groupId>
+			<artifactId>micronaut-runtime</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.micronaut</groupId>
+			<artifactId>micronaut-http-server-netty</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- Logging -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>${version.logback}</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback.contrib</groupId>
+			<artifactId>logback-jackson</artifactId>
+			<version>${version.logback-contrib}</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback.contrib</groupId>
+			<artifactId>logback-json-classic</artifactId>
+			<version>${version.logback-contrib}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jul-to-slf4j</artifactId>
+			<!--  reuse version from micronaut -->
+			<version>1.7.25</version>
+		</dependency>
+		<!-- The org.codehaus.janino:commons-compiler:3.0.6 dependency -->
+		<!-- will be automatically pulled in by Maven's transitivity rules -->
+		<dependency>
+			<groupId>org.codehaus.janino</groupId>
+			<artifactId>janino</artifactId>
+			<version>3.0.6</version>
+		</dependency>
+
+		<!-- Keycloak -->
+		<dependency>
+			<groupId>org.keycloak</groupId>
+			<artifactId>keycloak-admin-client</artifactId>
+			<version>${version.keycloak}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-client</artifactId>
+			<version>${version.resteasy}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-jackson2-provider</artifactId>
+			<version>${version.resteasy}</version>
+		</dependency>
+
+		<!-- k8s -->
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>io.fabric8</groupId>
+			<artifactId>kubernetes-client</artifactId>
+			<version>${version.k8s-client}</version>
+		</dependency>
+
+		<!-- Monitoring -->
+		<dependency>
+			<groupId>io.micronaut.configuration</groupId>
+			<artifactId>micronaut-micrometer-registry-prometheus</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.micronaut</groupId>
+			<artifactId>micronaut-management</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- Lazy Developer -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>${version.lombok}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- Test -->
+		<dependency>
+			<groupId>io.fabric8</groupId>
+			<artifactId>kubernetes-server-mock</artifactId>
+			<version>${version.k8s-client}</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>com.sun</groupId>
+					<artifactId>tools</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers</artifactId>
+			<version>1.11.1</version>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.7.0</version>
+					<configuration>
+						<annotationProcessorPaths>
+							<path>
+								<groupId>org.projectlombok</groupId>
+								<artifactId>lombok</artifactId>
+								<version>${version.lombok}</version>
+							</path>
+							<path>
+								<groupId>io.micronaut</groupId>
+								<artifactId>micronaut-inject-java</artifactId>
+								<version>${version.micronaut}</version>
+							</path>
+							<path>
+								<groupId>io.micronaut</groupId>
+								<artifactId>micronaut-validation</artifactId>
+								<version>${version.micronaut}</version>
+							</path>
+						</annotationProcessorPaths>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>3.1.0</version>
+					<configuration>
+						<skip>false</skip>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<configuration>
+						<skip>true</skip> <!--  we push the image instead  -->
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
+				<version>2.2.5</version>
+				<executions>
+					<execution>
+						<id>get-the-git-infos</id>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<dateFormat>yyyyMMdd-HHmmss</dateFormat><!--  human-readable part of the version number -->
+				</configuration>
+			</plugin>
+			<!-- copy project dependencies -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.1.1</version>
+				<executions>
+					<execution>
+						<id>download</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<includeScope>runtime</includeScope>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+							<silent>true</silent>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- configure jar with lib and main class -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.1.1</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>lib/</classpathPrefix>
+							<mainClass>com.kiwigrid.keycloak.controller.Application</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<!-- copy docker stuff -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<resources>
+								<resource>
+									<directory>${project.basedir}/src/main/docker</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+							<outputDirectory>${dockerfile.contextDirectory}</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- package docker stuff -->
+			<plugin>
+				<groupId>com.spotify</groupId>
+				<artifactId>dockerfile-maven-plugin</artifactId>
+				<version>${version.com.spotify.ile}</version>
+				<configuration>
+					<serverId>docker-hub</serverId>
+					<registryUrl>https://index.docker.io/v1/</registryUrl>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>build</goal>
+							<goal>tag</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- create build meta data -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>buildnumber-maven-plugin</artifactId>
+				<version>1.4</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>create-metadata</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.outputDirectory}/META-INF</outputDirectory>
+							<outputName>build-info.properties</outputName>
+							<timezone>UTC</timezone>
+							<applicationName>${project.artifactId}</applicationName>
+							<applicationPropertyName>serviceName</applicationPropertyName>
+							<versionPropertyName>serviceVersion</versionPropertyName>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- fail if pom is dirty -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>tidy-maven-plugin</artifactId>
+				<version>1.1.0</version>
+				<executions>
+					<execution>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+	</build>
+</project>

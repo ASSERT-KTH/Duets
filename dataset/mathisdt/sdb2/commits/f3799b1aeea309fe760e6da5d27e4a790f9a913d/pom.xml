@@ -1,0 +1,494 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.zephyrsoft</groupId>
+	<artifactId>sdb2</artifactId>
+	<version>2.1.0-SNAPSHOT</version>
+
+	<name>Song Database</name>
+	<description>present lyrics on a digital projector (intended for a congregation to sing)</description>
+	<url>https://zephyrsoft.org/sdb</url>
+
+	<licenses>
+	    <license>
+	        <name>GNU General Public License (GPL), Version 2.0</name>
+	        <url>http://www.gnu.org/licenses/gpl-2.0.html</url>
+	        <distribution>repo</distribution>
+	    </license>
+	</licenses>
+
+	<scm>
+		<url>https://github.com/mathisdt/sdb2</url>
+		<connection>scm:git:ssh:git@github.com:mathisdt/sdb2.git</connection>
+		<developerConnection>scm:git:ssh:git@github.com:mathisdt/sdb2.git</developerConnection>
+	</scm>
+
+	<properties>
+		<version.java>11</version.java>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<main.class>org.zephyrsoft.sdb2.Start</main.class>
+
+		<!-- override when building locally using -DskipOwasp=true -->
+		<skipOwasp>false</skipOwasp>
+
+		<!-- dependency versions -->
+		<version.spring>5.2.7.RELEASE</version.spring>
+		<version.slf4j>1.8.0-beta4</version.slf4j>
+		<version.log4j>2.11.0</version.log4j><!-- there was a problem introduced in 2.11.1, don't update! -->
+		<version.args4j>2.33</version.args4j>
+		<version.commons-lang3>3.9</version.commons-lang3>
+		<version.commons-text>1.8</version.commons-text>
+		<version.togglz>2.6.1.Final</version.togglz>
+		<version.itext>5.5.13.1</version.itext>
+		<version.poi>4.1.2</version.poi>
+		<version.jfontchooser>1.0.5-3</version.jfontchooser>
+		<version.timingframework>7.3.1</version.timingframework>
+		<version.lucene>8.5.1</version.lucene>
+		<version.guava>29.0-jre</version.guava>
+		<version.gson>2.8.6</version.gson>
+		<version.junit>4.12</version.junit>
+		<version.mockito>2.27.0</version.mockito>
+		<version.javax-activation-api>1.2.0</version.javax-activation-api>
+		<version.javax.activation>1.1.1</version.javax.activation>
+		<version.jaxb-runtime>2.4.0-b180830.0438</version.jaxb-runtime>
+		<version.jaxb-api>2.4.0-b180830.0359</version.jaxb-api>
+	</properties>
+
+	<dependencies>
+		<!-- application -->
+		<dependency>
+			<groupId>args4j</groupId>
+			<artifactId>args4j</artifactId>
+			<version>${version.args4j}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>${version.commons-lang3}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+			<version>${version.commons-text}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.togglz</groupId>
+			<artifactId>togglz-core</artifactId>
+			<version>${version.togglz}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.togglz</groupId>
+			<artifactId>togglz-slf4j</artifactId>
+			<version>${version.togglz}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.itextpdf</groupId>
+			<artifactId>itextpdf</artifactId>
+			<version>${version.itext}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.rover12421.opensource</groupId>
+			<artifactId>JFontChooser</artifactId>
+			<version>${version.jfontchooser}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>${version.poi}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.java.timingframework</groupId>
+			<artifactId>timingframework-swing</artifactId>
+			<version>${version.timingframework}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-core</artifactId>
+			<version>${version.lucene}</version>
+		</dependency>
+		<!-- this is commented out (and partly repackaged in org.zephyrsoft.sdb2.util.repackaged.lucene.analyzers.common)
+			because Java 9+ modules are not supported by Lucene yet
+			- there are split package issues when using lucene-core AND lucene-analyzers-common -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.lucene</groupId> -->
+<!-- 			<artifactId>lucene-analyzers-common</artifactId> -->
+<!-- 			<version>${version.lucene}</version> -->
+<!-- 		</dependency> -->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>${version.guava}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>failureaccess</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+		    <groupId>com.google.code.gson</groupId>
+		    <artifactId>gson</artifactId>
+		    <version>${version.gson}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${version.spring}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-jcl</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>${version.slf4j}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j-impl</artifactId>
+			<version>${version.log4j}</version>
+		</dependency>
+
+		<!-- XML -->
+		<dependency>
+		    <groupId>javax.xml.bind</groupId>
+		    <artifactId>jaxb-api</artifactId>
+		    <version>${version.jaxb-api}</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.glassfish.jaxb</groupId>
+		    <artifactId>jaxb-runtime</artifactId>
+		    <version>${version.jaxb-runtime}</version>
+		    <scope>runtime</scope>
+		</dependency>
+		<dependency>
+		    <groupId>javax.activation</groupId>
+		    <artifactId>javax.activation-api</artifactId>
+		    <version>${version.javax-activation-api}</version>
+		</dependency>
+
+		<!-- test -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${version.junit}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>${version.mockito}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<organization>
+		<name>ZephyrSoft</name>
+		<url>http://www.zephyrsoft.org</url>
+	</organization>
+
+	<developers>
+	    <developer>
+	        <id>mathis</id>
+	        <name>Mathis Dirksen-Thedens</name>
+	        <email>dev@zephyrsoft.org</email>
+	    </developer>
+	</developers>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>versions-maven-plugin</artifactId>
+				<version>2.5</version>
+			</plugin>
+
+			<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.0.0-M2</version>
+                <executions>
+                    <execution>
+                        <id>enforce-banned-dependencies</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion><version>3.2.0</version></requireMavenVersion>
+                                <bannedDependencies>
+                                  <excludes>
+                                    <exclude>log4j:log4j</exclude>
+                                    <exclude>org.slf4j:slf4j-log4j12</exclude>
+                                    <exclude>org.slf4j:slf4j-jdk14</exclude>
+                                    <exclude>ch.qos.logback:logback-core</exclude>
+                                    <exclude>ch.qos.logback:logback-classic</exclude>
+                                    <exclude>ch.qos.logback:logback-access</exclude>
+                                    <exclude>commons-logging:commons-logging</exclude>
+                                  </excludes>
+                                </bannedDependencies>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>1.20</version>
+				<configuration>
+					<useMissingFile>true</useMissingFile>
+					<useRepositoryMissingFiles>false</useRepositoryMissingFiles>
+					<deployMissingFile>false</deployMissingFile>
+					<licenseMerges>
+						<licenseMerge>
+							Apache 2.0|The Apache Software License, Version 2.0|Apache License Version 2.0|Apache License, Version 2.0|Apache 2
+						</licenseMerge>
+						<licenseMerge>
+							LGPL|Lesser General Public License (LGPL)
+						</licenseMerge>
+						<licenseMerge>
+							MIT License|The MIT License
+						</licenseMerge>
+						<licenseMerge>
+							AGPL 3|GNU Affero General Public License v3
+						</licenseMerge>
+					</licenseMerges>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>add-third-party</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<version>3.0.2</version>
+				<configuration>
+					<skip>${skipOwasp}</skip>
+					<failBuildOnCVSS>3</failBuildOnCVSS>
+					<failOnError>false</failOnError>
+					<suppressionFiles>
+						<suppressionFile>${basedir}/owasp-suppressions.xml</suppressionFile>
+					</suppressionFiles>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<inherited>true</inherited>
+				<configuration>
+					<release>${version.java}</release>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/distribution/lib</outputDirectory>
+							<includeScope>runtime</includeScope>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.1.2</version>
+				<configuration>
+					<outputDirectory>${project.build.directory}/distribution/bin</outputDirectory>
+					<finalName>${project.artifactId}</finalName>
+					<archive>
+						<manifest>
+							<mainClass>${main.class}</mainClass>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>../lib/</classpathPrefix>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+						<manifestEntries>
+							<Build-Jdk>${java.version}</Build-Jdk>
+							<Build-Timestamp>${maven.build.timestamp}</Build-Timestamp>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<plugin>
+			    <groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.2.1</version>
+				<executions>
+				    <execution>
+				        <id>attach-sources</id>
+				        <goals>
+				            <goal>jar</goal>
+				        </goals>
+				    </execution>
+				</executions>
+				<configuration>
+					<outputDirectory>${project.build.directory}/distribution/bin</outputDirectory>
+					<finalName>${project.artifactId}</finalName>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version><!--$NO-MVN-MAN-VER$-->
+				<executions>
+					<execution>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<copy todir="${project.build.directory}/distribution"
+									overwrite="true" verbose="true">
+									<fileset dir="${project.basedir}/src/dist" includes="**" />
+								</copy>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>zip</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<outputDirectory>${project.build.directory}</outputDirectory>
+					<finalName>sdb2-without-jre</finalName>
+					<appendAssemblyId>false</appendAssemblyId>
+					<descriptors>
+						<descriptor>src/main/assembly/assembly.xml</descriptor>
+					</descriptors>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>3.2.0</version>
+				<executions>
+					<execution>
+						<id>attach-distribution</id>
+						<phase>package</phase>
+						<goals>
+							<goal>attach-artifact</goal>
+						</goals>
+						<configuration>
+							<artifacts>
+								<artifact>
+									<file>target/${project.artifactId}-${project.version}.zip</file>
+									<type>zip</type>
+								</artifact>
+							</artifacts>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings
+					only. It has no influence on the Maven build itself. -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.apache.maven.plugins
+										</groupId>
+										<artifactId>
+											maven-dependency-plugin
+										</artifactId>
+										<versionRange>
+											[2.8,)
+										</versionRange>
+										<goals>
+											<goal>
+												copy-dependencies
+											</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore />
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.codehaus.mojo
+										</groupId>
+										<artifactId>
+											license-maven-plugin
+										</artifactId>
+										<versionRange>
+											[1.8,)
+										</versionRange>
+										<goals>
+											<goal>add-third-party</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>

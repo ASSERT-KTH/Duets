@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <artifactId>neo4j-es</artifactId>
+  <version>2.2.2.32.0-SNAPSHOT</version>
+    
+    
+  <parent>
+    <groupId>com.graphaware.neo4j</groupId>
+    <artifactId>module-parent</artifactId>
+    <version>2.2.2.32</version>
+  </parent>
+    
+  <name>GraphAware Neo4J-ES Integration Module</name>
+  <description>GraphAware Neo4J ElasticSearch Integration Module.</description>
+  <url>http://graphaware.com</url>
+  
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.7</maven.compiler.source>
+    <maven.compiler.target>1.7</maven.compiler.target>
+    <!--neo4j.version>2.2.2</neo4j.version-->
+    <es.version>1.6.0</es.version>
+  </properties>
+    
+  <licenses>
+    <license>
+      <name>GNU General Public License, version 3</name>
+      <url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:git:git@github.com:graphaware/neo4j-es.git</connection>
+    <developerConnection>scm:git:git@github.com:graphaware/neo4j-es.git</developerConnection>
+    <url>git@github.com:graphaware/neo4j-es.git</url>
+    <tag>HEAD</tag>
+  </scm>
+  
+  <dependencies>
+    <dependency>
+      <groupId>com.graphaware.neo4j</groupId>
+      <artifactId>runtime</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.graphaware.neo4j</groupId>
+      <artifactId>tx-api</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.graphaware.neo4j</groupId>
+      <artifactId>tx-executor</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.graphaware.neo4j</groupId>
+      <artifactId>server-community</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.elasticsearch</groupId>
+      <artifactId>elasticsearch</artifactId>
+      <version>${es.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy-all</artifactId>
+      <version>2.3.2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-expressions</artifactId>
+      <version>4.10.4</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-codecs</artifactId>
+      <version>4.10.4</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-core</artifactId>
+      <version>3.6.2</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.basedir}/extlib</outputDirectory>
+              <excludeArtifactIds>logback-classic logback-core logback-access</excludeArtifactIds>
+              <overWriteReleases>true</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <includeScope>compile</includeScope>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-model</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <overWriteReleases>true</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.apache.lucene</groupId>
+                  <artifactId>lucene-core</artifactId>
+                  <version>4.10.4</version>
+                  <overWrite>true</overWrite>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>com.graphaware.neo4j</groupId>
+                  <artifactId>neo4j-es</artifactId>
+                  <version>2.2.2.32.0-SNAPSHOT</version>
+                  <overWrite>true</overWrite>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${project.basedir}/extlib</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.18.1</version>
+        <configuration>
+          <skip>true</skip>
+          <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
+          <systemPropertyVariables>
+            <classpath>${project.basedir}/extlib</classpath>
+          </systemPropertyVariables>
+        </configuration>
+        <executions>
+          <execution>
+            <id>unittests</id>
+            <phase>install</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <skip>false</skip>
+              <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
+              <includes>
+                <include>**/**/**/*Test.java</include>
+              </includes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

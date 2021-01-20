@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
+    <groupId>org.ehcache</groupId>
+    <artifactId>sizeof</artifactId>
+    <version>0.2.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>Ehcache SizeOf Engine</name>
+    <description><![CDATA[SizeOf engine, extracted from Ehcache]]></description>
+
+    <url>https://github.com/Terracotta-OSS/ehcache-sizeofengine</url>
+
+    <organization>
+        <name>Terracotta</name>
+        <url>http://terracotta.org</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>net.sf.ehcache</groupId>
+            <artifactId>ehcache</artifactId>
+            <version>2.8.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.5</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <version>1.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
+            <version>1.7.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>4.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.gmaven</groupId>
+                <artifactId>gmaven-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>create-agent-jar</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>
+                                def jarFile = new File(project.build.directory, "/classes/org/ehcache/sizeof/impl/sizeof-agent.jar");
+                                def agentClass = "/org/ehcache/sizeof/impl/SizeOfAgent.class"
+                                def agentDir = project.build.directory + "/agent-jar"
+                                def manifestDir = project.basedir.getAbsolutePath() + "/src/hidden/resources";
+                                ant.move(file: new File(project.build.outputDirectory, agentClass),
+                                        tofile: new File(agentDir, agentClass))
+
+                                ant.jar(destfile: jarFile, basedir: new File(agentDir).getAbsolutePath(), manifest: new File(manifestDir, "/META-INF/MANIFEST.MF"))
+
+                                ant.delete(dir: new File(agentDir))
+                            </source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.16</version>
+                <configuration>
+                    <argLine>-Xms64m -Xmx64m</argLine>
+                    <forkMode>always</forkMode>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.16</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <scm>
+        <url>https://github.com/Terracotta-OSS/ehcache-sizeofengine</url>
+        <connection>scm:git:git@github.com:Terracotta-OSS/ehcache-sizeofengine.git</connection>
+        <developerConnection>scm:git:git@github.com:Terracotta-OSS/ehcache-sizeofengine.git</developerConnection>
+    </scm>
+
+</project>

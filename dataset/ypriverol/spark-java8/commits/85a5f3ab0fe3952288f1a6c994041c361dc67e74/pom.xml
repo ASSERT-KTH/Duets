@@ -1,0 +1,214 @@
+<project>
+    <groupId>org.sps.learning</groupId>
+    <artifactId>spark-java8</artifactId>
+    <modelVersion>4.0.0</modelVersion>
+    <name>Spark Java 8 Learning</name>
+    <packaging>jar</packaging>
+    <version>1.0.0</version>
+
+    <!-- to be able to debug or run the script you need to define the add scala version SDK 2.10.6
+    -->
+    <properties>
+        <java.version>1.8</java.version>
+        <maven-scala-plugin.version>2.15.2</maven-scala-plugin.version>
+        <spark.version>2.1.0</spark.version>
+        <spark-twitter.version>2.0.0</spark-twitter.version>
+    </properties>
+
+  <dependencies>
+      <!-- Spark dependency -->
+      <dependency>
+          <groupId>org.apache.spark</groupId>
+          <artifactId>spark-core_2.11</artifactId>
+          <version>${spark.version}</version>
+          <scope>compile</scope>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.spark</groupId>
+          <artifactId>spark-sql_2.11</artifactId>
+          <version>${spark.version}</version>
+          <scope>compile</scope>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.spark</groupId>
+          <artifactId>spark-streaming_2.11</artifactId>
+          <version>${spark.version}</version>
+          <scope>compile</scope>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.bahir</groupId>
+          <artifactId>spark-streaming-twitter_2.11</artifactId>
+          <version>${spark-twitter.version}</version>
+          <scope>compile</scope>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.spark</groupId>
+          <artifactId>spark-mllib_2.11</artifactId>
+          <version>${spark.version}</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.scala-lang</groupId>
+          <artifactId>scala-library</artifactId>
+          <version>2.11.8</version>
+          <scope>compile</scope>
+      </dependency>
+
+	  <dependency>
+          <groupId>commons-io</groupId>
+		  <artifactId>commons-io</artifactId>
+		  <version>2.4</version>
+	  </dependency>
+
+      <dependency>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+          <version>4.11</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpclient</artifactId>
+          <version>4.3.2</version>
+      </dependency>
+      <dependency>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpcore</artifactId>
+          <version>4.3.1</version>
+      </dependency>
+
+      <dependency>
+          <groupId>org.twitter4j</groupId>
+          <artifactId>twitter4j-core</artifactId>
+          <version>4.0.5</version>
+          <scope>compile</scope>
+      </dependency>
+
+      <dependency>
+          <groupId>org.twitter4j</groupId>
+          <artifactId>twitter4j-stream</artifactId>
+          <version>4.0.5</version>
+          <scope>compile</scope>
+      </dependency>
+
+
+
+  </dependencies>
+
+  <build>
+      <plugins>
+
+          <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-compiler-plugin</artifactId>
+              <version>2.3.2</version>
+              <configuration>
+                  <source>1.8</source>
+                  <target>1.8</target>
+              </configuration>
+          </plugin>
+          <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-dependency-plugin</artifactId>
+              <version>2.8</version>
+              <executions>
+                  <execution>
+                      <id>copy-dependency</id>
+                      <phase>package</phase>
+                      <goals>
+                          <goal>copy-dependencies</goal>
+                      </goals>
+                      <configuration>
+                          <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                          <overWriteReleases>true</overWriteReleases>
+                          <overWriteSnapshots>true</overWriteSnapshots>
+                          <overWriteIfNewer>true</overWriteIfNewer>
+                          <excludeTransitive>false</excludeTransitive>
+                      </configuration>
+                  </execution>
+              </executions>
+          </plugin>
+
+          <!--jar-->
+          <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-jar-plugin</artifactId>
+              <version>2.4</version>
+              <configuration>
+                  <excludes>
+                      <exclude>**/test</exclude>
+                      <exclude>**/test/*.class</exclude>
+                  </excludes>
+                  <archive>
+                      <manifest>
+                          <addClasspath>true</addClasspath>
+                          <classpathPrefix>lib</classpathPrefix>
+                          <useUniqueVersions>false</useUniqueVersions>
+                      </manifest>
+                      <manifestEntries>
+                          <Class-Path>./conf/</Class-Path>
+                      </manifestEntries>
+                  </archive>
+              </configuration>
+          </plugin>
+
+          <!--assembly to zip-->
+          <plugin>
+              <artifactId>maven-assembly-plugin</artifactId>
+              <version>2.4</version>
+              <configuration>
+                  <appendAssemblyId>false</appendAssemblyId>
+                  <descriptors>
+                      <descriptor>${project.basedir}/src/assembly/assembly.xml</descriptor>
+                  </descriptors>
+              </configuration>
+              <executions>
+                  <execution>
+                      <id>assembly</id>
+                      <phase>package</phase>
+                      <goals>
+                          <goal>single</goal>
+                      </goals>
+                  </execution>
+              </executions>
+          </plugin>
+          </plugins>
+  </build>
+
+    <repositories>
+        <repository>
+            <id>Akka repository</id>
+            <url>http://repo.akka.io/releases</url>
+        </repository>
+        <repository>
+            <id>scala</id>
+            <name>Scala Tools</name>
+            <url>http://scala-tools.org/repo-releases/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>scala</id>
+            <name>Scala Tools</name>
+            <url>http://scala-tools.org/repo-releases/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+</project>

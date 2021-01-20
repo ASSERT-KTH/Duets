@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>se.r2m.camel</groupId>
+	<artifactId>camel-hibersap</artifactId>
+	<packaging>bundle</packaging>
+	
+	<name>Camel :: Hibersap</name>
+
+	<parent>
+		<groupId>org.apache.camel</groupId>
+		<artifactId>camel-parent</artifactId>
+		<version>2.10.4</version>
+	</parent>
+	
+	<properties>
+		<hibersap.version>1.1.0</hibersap.version>
+		<sapjco.version>3.0.9</sapjco.version>
+		<camel.osgi.export.pkg>se.r2m.camel.sap.*</camel.osgi.export.pkg>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.hibersap</groupId>
+			<artifactId>hibersap-core</artifactId>
+			<version>${hibersap.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibersap</groupId>
+			<artifactId>hibersap-jco</artifactId>
+			<version>${hibersap.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.sap</groupId>
+			<artifactId>sap-jco</artifactId>
+			<version>${sapjco.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<scope>compile</scope>
+		</dependency>
+		
+		<!-- ################################################## -->
+		<!-- ############## Test Dependencies ################# -->
+		<!-- ################################################## -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context-support</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-test-spring</artifactId>
+		</dependency>
+	</dependencies>
+
+
+
+	<build>
+		<defaultGoal>install</defaultGoal>
+
+		<plugins>
+			<plugin>
+		        <groupId>org.apache.maven.plugins</groupId>
+		        <artifactId>maven-surefire-plugin</artifactId>
+		        <configuration>
+		        	<argLine>-Djava.library.path=target/classes/native/x86_64</argLine>
+		        </configuration>
+      		</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<_failok>true</_failok>
+						<Bundle-NativeCode>
+							native/x86_64/libsapjco3.so;processor=amd64;osname=linux,
+							native/x86_64/sapjco3.dll;processor=amd64;osname=win32,
+							native/x86/sapjco3.dll;processor=x86;osname=win32
+						</Bundle-NativeCode>
+						<Embed-Dependency>
+							hibersap-core;version=${hibersap.version};inline=true,
+							hibersap-jco;version=${hibersap.version};inline=true,
+							sap-jco;version=${sapjco.version};inline=true
+						</Embed-Dependency>
+						<Export-Package>
+							${camel.osgi.export},
+							org.hibersap.*;version="${hibersap.version}"
+						</Export-Package>
+						<Import-Package>!com.sap.*, *</Import-Package>
+						<DynamicImport-Package>*</DynamicImport-Package>
+					</instructions>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+	
+</project>

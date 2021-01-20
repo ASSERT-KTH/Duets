@@ -1,0 +1,244 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>de.codecentric.soap</groupId>
+  <artifactId>soap-spring-boot-cxf</artifactId>
+  <version>0.0.5-SNAPSHOT</version>
+  <name>soap-spring-boot-cxf</name>
+  <description>Sample Project for producing &amp; testing a SOAP-WSDL-driven Service with Spring Boot, Apache CXF &amp; JAXB</description>
+  
+  <parent>
+       <groupId>org.springframework.boot</groupId>
+       <artifactId>spring-boot-starter-parent</artifactId>
+       <version>1.3.0.M4</version>
+   </parent>
+   
+   <properties>
+  		<cxf.version>3.0.4</cxf.version>
+		<!-- use UTF-8 for everything -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<apache.httpclient>4.3.6</apache.httpclient>
+		<easyrules.version>2.0.0</easyrules.version>
+		<!-- Analysis Tools for CI -->
+		<build-plugin.jacoco.version>0.7.5.201505241946</build-plugin.jacoco.version>
+	       <build-plugin.coveralls.version>3.1.0</build-plugin.coveralls.version>
+	       <!-- Exclude generated JAXB-Java-Classes from Sonar-Analysis -->
+		<sonar.exclusions>**/target/generated-sources/wsdlimport/**</sonar.exclusions>
+   </properties>
+   
+   <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+		
+		<!-- Ease development - e.g. with autorestart, see https://spring.io/blog/2015/06/17/devtools-in-spring-boot-1-3 -->
+	    <dependency>
+	        <groupId>org.springframework.boot</groupId>
+	        <artifactId>spring-boot-devtools</artifactId>
+	    </dependency>
+		
+		<!-- Apache CXF -->
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-frontend-jaxws</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-transports-http</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+		
+		<!-- Easyrules -->
+		<dependency>
+			<groupId>org.easyrules</groupId>
+			<artifactId>easyrules-core</artifactId>
+			<version>${easyrules.version}</version>
+		</dependency>
+		
+		<!-- Testing -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>fluent-hc</artifactId>
+			<version>${apache.httpclient}</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<!-- Management -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>		
+		
+		<!-- Spring Boot Admin Client -->
+		 <!--
+		<dependency>
+		    <groupId>de.codecentric</groupId>
+		    <artifactId>spring-boot-admin-starter-client</artifactId>
+		    <version>1.2.2</version>
+		</dependency>
+		 -->
+
+   </dependencies>
+	
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+	        <!-- Generate Java-Classes inkl. JAXB-Bindings from WSDL & imported XSD -->
+	        <!-- See Doku at https://jax-ws-commons.java.net/jaxws-maven-plugin/usage.html -->
+			<plugin>
+				<groupId>org.jvnet.jax-ws-commons</groupId>
+				<artifactId>jaxws-maven-plugin</artifactId>
+				<version>2.3</version>
+				<configuration>
+					<!-- See https://jax-ws-commons.java.net/jaxws-maven-plugin/wsimport-mojo.html -->
+					<wsdlUrls>
+						<wsdlUrl>src/main/resources/Weather1.0.wsdl</wsdlUrl>
+					</wsdlUrls>
+					<sourceDestDir>target/generated-sources/wsdlimport/Weather1.0</sourceDestDir>
+					<!-- For accessing the imported schema, see https://netbeans.org/bugzilla/show_bug.cgi?id=241570 -->
+					<vmArgs>
+			            <vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
+			        </vmArgs>
+			        <!-- the binding.xml in the given directory is found automatically, because the directory is scanned for '.xml'-Files -->
+			       	<bindingDirectory>src/main/resources</bindingDirectory>
+			       	<!-- Arguments for JAXB2-Generator behind JAX-WS-Frontend -->
+			       	<args>
+			            <arg>-extension</arg>
+			            <!-- Thats a tricky parameter: The first '-B' is for passing the following argument to JAXB2-Generator
+			                 the second is needed to generate the human readable Namespace-Prefixes -->
+			            <arg>-B-Xnamespace-prefix</arg>
+			        </args>
+				</configuration>
+				<dependencies>
+			    	<dependency>
+			            <groupId>org.jvnet.jaxb2_commons</groupId>
+			            <artifactId>jaxb2-namespace-prefix</artifactId>
+			            <version>1.1</version>
+			        </dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<goals>
+							<goal>wsimport</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+		        <groupId>org.codehaus.mojo</groupId>
+		        <artifactId>build-helper-maven-plugin</artifactId>
+		        <executions>
+		          <execution>
+		            <id>add-source</id>
+		            <phase>generate-sources</phase>
+		            <goals>
+		              <goal>add-source</goal>
+		            </goals>
+		            <configuration>
+		              <sources>
+		                <source>target/generated-sources/wsdlimport/Weather1.0</source>
+		              </sources>
+		            </configuration>
+		          </execution>
+		        </executions>
+			</plugin>
+			<plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${build-plugin.jacoco.version}</version>
+                <executions>
+                    <!-- Prepares the property pointing to the JaCoCo
+                    runtime agent which is passed as VM argument when Maven the Surefire plugin
+                    is executed. -->
+                    <execution>
+                        <id>pre-unit-test</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+
+                    <!-- Ensures that the code coverage report for
+                    unit tests is created after unit tests have been run. -->
+                    <execution>
+                        <id>post-unit-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+             <plugin>
+                <groupId>org.eluder.coveralls</groupId>
+                <artifactId>coveralls-maven-plugin</artifactId>
+                <version>${build-plugin.coveralls.version}</version>
+            </plugin>
+		</plugins>
+        <pluginManagement>
+        	<!-- Really ugly - neede to solve Maven Eclipse Plugin m2e issue... Argh! -->
+        	<plugins>
+        		<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        		<plugin>
+        			<groupId>org.eclipse.m2e</groupId>
+        			<artifactId>lifecycle-mapping</artifactId>
+        			<version>1.0.0</version>
+        			<configuration>
+        				<lifecycleMappingMetadata>
+        					<pluginExecutions>
+        						<pluginExecution>
+        							<pluginExecutionFilter>
+        								<groupId>
+        									org.jvnet.jax-ws-commons
+        								</groupId>
+        								<artifactId>
+        									jaxws-maven-plugin
+        								</artifactId>
+        								<versionRange>
+        									[2.3,)
+        								</versionRange>
+        								<goals>
+        									<goal>wsimport</goal>
+        								</goals>
+        							</pluginExecutionFilter>
+        							<action>
+        								<execute/>
+        							</action>
+        						</pluginExecution>
+        					</pluginExecutions>
+        				</lifecycleMappingMetadata>
+        			</configuration>
+        		</plugin>
+        	</plugins>
+        </pluginManagement>
+    </build>
+    
+     <repositories>
+        <repository>
+            <id>spring-releases</id>
+            <name>Spring Releases</name>
+            <url>https://repo.spring.io/libs-release</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>spring-releases</id>
+            <url>https://repo.spring.io/libs-release</url>
+        </pluginRepository>
+    </pluginRepositories>
+  
+</project>

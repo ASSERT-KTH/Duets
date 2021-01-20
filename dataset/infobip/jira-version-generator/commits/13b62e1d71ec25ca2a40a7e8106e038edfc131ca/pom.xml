@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.infobip</groupId>
+	<artifactId>jira-version-generator</artifactId>
+	<version>2.0.1</version>
+	<packaging>atlassian-plugin</packaging>
+
+	<name>Jira Version Generator</name>
+
+	<description>
+		Bitbucket (post receive hook) plugin that generates Jira version and links Jira issues to the version.
+	</description>
+
+	<url>https://github.com/infobip/jira-version-generator</url>
+
+	<organization>
+		<name>Infobip Ltd.</name>
+		<url>https://www.infobip.com/</url>
+	</organization>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>A business-friendly OSS license</comments>
+		</license>
+	</licenses>
+
+	<scm>
+		<url>https://github.com/infobip/jira-version-generator.git</url>
+		<connection>scm:git:git://github.com:infobip/jira-version-generator.git</connection>
+		<developerConnection>scm:git:git@github.com:infobip/jira-version-generator.git</developerConnection>
+	</scm>
+
+	<developers>
+		<developer>
+			<id>lpandzic</id>
+			<name>Lovro Pandžić</name>
+			<email>lovro.pandzic@infobip.com</email>
+			<organization>Infobip Ltd.</organization>
+		</developer>
+		<developer>
+			<id>ahula</id>
+			<name>Anja Hula</name>
+			<email>anja.hula@infobip.com</email>
+			<organization>Infobip Ltd.</organization>
+		</developer>
+	</developers>
+
+	<issueManagement>
+		<system>GitHub Issues</system>
+		<url>https://github.com/infobip/jira-version-generator/issues</url>
+	</issueManagement>
+
+	<ciManagement>
+		<system>Travis</system>
+		<url>https://travis-ci.org/infobip/jira-version-generator</url>
+	</ciManagement>
+
+	<properties>
+		<!-- DEPENDENCY VERSIONS -->
+		<bitbucket.version>6.5.1</bitbucket.version>
+		<amps.version>8.0.1</amps.version>
+		<slf4j.version>1.7.21</slf4j.version>
+		<jackson.version>2.8.1</jackson.version>
+		<assertj-core.version>3.5.2</assertj-core.version>
+		<mockito-core.version>1.10.19</mockito-core.version>
+		<bitbucket.data.version>4.8.2</bitbucket.data.version>
+
+		<lombok.version>1.18.10</lombok.version>
+
+		<!-- PLUGIN VERSIONS -->
+		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+		<maven-enforcer-plugin.version>3.0.0-M2</maven-enforcer-plugin.version>
+		<maven-source-plugin.version>3.1.0</maven-source-plugin.version>
+		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+		<cobertura-maven-plugin.version>2.7</cobertura-maven-plugin.version>
+		<coveralls-maven-plugin.version>4.2.0</coveralls-maven-plugin.version>
+		<bitbucket-maven-plugin.version>1.30.5</bitbucket-maven-plugin.version>
+
+		<!-- OTHER PROPERTIES -->
+		<java.version>1.8</java.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.javadoc.skip>true</maven.javadoc.skip>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.atlassian.bitbucket.server</groupId>
+				<artifactId>bitbucket-parent</artifactId>
+				<version>${bitbucket.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jdk8</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.module</groupId>
+			<artifactId>jackson-module-parameter-names</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.atlassian.sal</groupId>
+			<artifactId>sal-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.atlassian.bitbucket.server</groupId>
+			<artifactId>bitbucket-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.atlassian.bitbucket.server</groupId>
+			<artifactId>bitbucket-spi</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.atlassian.applinks</groupId>
+			<artifactId>applinks-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.atlassian.bitbucket.server</groupId>
+			<artifactId>bitbucket-page-objects</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>${lombok.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>${assertj-core.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>${mockito-core.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.atlassian.maven.plugins</groupId>
+				<artifactId>bitbucket-maven-plugin</artifactId>
+				<version>${amps.version}</version>
+				<extensions>true</extensions>
+				<configuration>
+					<products>
+						<product>
+							<id>bitbucket</id>
+							<instanceId>bitbucket</instanceId>
+							<version>${bitbucket.version}</version>
+							<dataVersion>${bitbucket.data.version}</dataVersion>
+						</product>
+					</products>
+					<pluginArtifacts>
+						<pluginArtifact>
+							<groupId>com.atlassian.labs.plugins</groupId>
+							<artifactId>quickreload</artifactId>
+							<version>${bitbucket-maven-plugin.version}</version>
+						</pluginArtifact>
+					</pluginArtifacts>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<compilerArgument>-parameters</compilerArgument>
+					<testCompilerArgument>-parameters</testCompilerArgument>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>${maven-enforcer-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>enforce-java</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireJavaVersion>
+									<version>${java.version}</version>
+								</requireJavaVersion>
+							</rules>
+							<fail>true</fail>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>cobertura-maven-plugin</artifactId>
+				<version>${cobertura-maven-plugin.version}</version>
+				<configuration>
+					<format>xml</format>
+					<aggregate>true</aggregate>
+					<check>true</check>
+					<instrumentation>
+						<exclude>com/fasterxml/**/*.class</exclude>
+					</instrumentation>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.eluder.coveralls</groupId>
+				<artifactId>coveralls-maven-plugin</artifactId>
+				<version>${coveralls-maven-plugin.version}</version>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>${maven-source-plugin.version}</version>
+				<configuration>
+					<skipSource>true</skipSource>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>release-sign-artifacts</id>
+			<activation>
+				<property>
+					<name>performRelease</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>${maven-gpg-plugin.version}</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<repositories>
+		<repository>
+			<id>atlassian-public</id>
+			<url>https://maven.atlassian.com/repository/public</url>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+				<checksumPolicy>warn</checksumPolicy>
+			</snapshots>
+			<releases>
+				<checksumPolicy>warn</checksumPolicy>
+			</releases>
+		</repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>atlassian-public</id>
+			<url>https://maven.atlassian.com/repository/public</url>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+				<checksumPolicy>warn</checksumPolicy>
+			</releases>
+			<snapshots>
+				<checksumPolicy>warn</checksumPolicy>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<distributionManagement>
+		<repository>
+			<id>ossrh-releases</id>
+			<name>SonatypeReleases</name>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+		</repository>
+		<snapshotRepository>
+			<id>ossrh-snapshots</id>
+			<name>SonatypeSnapshots</name>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+</project>

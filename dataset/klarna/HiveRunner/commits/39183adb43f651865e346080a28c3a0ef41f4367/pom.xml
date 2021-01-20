@@ -1,0 +1,298 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.klarna</groupId>
+  <artifactId>hiverunner</artifactId>
+  <version>4.1.0</version>
+  <name>HiveRunner</name>
+  <description>HiveRunner is a unit test framework based on JUnit4 and enables TDD development of HiveQL without the need of any installed dependencies.</description>
+  <url>https://github.com/klarna/HiveRunner</url>
+  <inceptionYear>2013</inceptionYear>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Per Ullberg</name>
+      <organization>Klarna</organization>
+      <organizationUrl>http://www.klarna.com</organizationUrl>
+    </developer>
+    <developer>
+      <name>Thomas Larsson</name>
+      <organization>Klarna</organization>
+      <organizationUrl>http://www.klarna.com</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:https://github.com/klarna/HiveRunner.git</connection>
+    <developerConnection>scm:git:https://github.com/klarna/HiveRunner.git</developerConnection>
+    <url>git@github.com:klarna/HiveRunner.git</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <tez.version>0.9.1</tez.version>
+    <hive.version>2.3.3</hive.version>
+    <license.maven.plugin.version>3.0</license.maven.plugin.version>
+    <hive.execution.engine>mr</hive.execution.engine>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-serde</artifactId>
+      <version>${hive.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-jdbc</artifactId>
+      <version>${hive.version}</version>
+    </dependency>
+
+
+    <dependency>
+      <groupId>org.apache.hive.hcatalog</groupId>
+      <artifactId>hive-webhcat-java-client</artifactId>
+      <version>${hive.version}</version>
+    </dependency>
+
+
+    <dependency>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-service</artifactId>
+      <version>${hive.version}</version>
+    </dependency>
+
+    <dependency>
+      <artifactId>tez-dag</artifactId>
+      <groupId>org.apache.tez</groupId>
+      <version>${tez.version}</version>
+    </dependency>
+
+    <dependency>
+      <artifactId>tez-common</artifactId>
+      <groupId>org.apache.tez</groupId>
+      <version>${tez.version}</version>
+    </dependency>
+
+    <dependency>
+      <artifactId>tez-mapreduce</artifactId>
+      <groupId>org.apache.tez</groupId>
+      <version>${tez.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.hive</groupId>
+      <artifactId>hive-contrib</artifactId>
+      <version>${hive.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+      <version>0.9.8</version>
+    </dependency>
+
+    <!-- Always put this before JUnit or the class loader might load the
+      wrong Matcher -->
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <version>1.3</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>2.18.3</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>provided</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- forkMode:always resolves OOM error when running unit tests -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.21.0</version>
+        <configuration>
+          <!-- Hiverunner need this for some queries (property -XX:MaxPermSize
+            was removed in java 8) -->
+          <argLine>-Xmx2024m</argLine>
+          <!-- below needed due to https://github.com/klarna/HiveRunner/commit/1f9a9b353c3b072f7898a6b4fa277474674d4b54 -->
+          <reuseForks>false</reuseForks>
+          <systemProperties>
+            <!--
+              Any hive conf property may be overridden here by suffixing
+              it with 'hiveconf_'
+            -->
+            <hiveconf_hive.execution.engine>${hive.execution.engine}</hiveconf_hive.execution.engine>
+            <hiveconf_hive.exec.counters.pull.interval>1000</hiveconf_hive.exec.counters.pull.interval>
+            <enableTimeout>false</enableTimeout>
+            <timeoutSeconds>30</timeoutSeconds>
+            <timeoutRetries>2</timeoutRetries>
+          </systemProperties>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.7.0</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Build-Version>${project.version}</Build-Version>
+              <Build-DateTime>${maven.build.timestamp}</Build-DateTime>
+              <Maven-GroupId>${project.groupId}</Maven-GroupId>
+              <Maven-ArtifactId>${project.artifactId}</Maven-ArtifactId>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>${license.maven.plugin.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.mycila</groupId>
+            <artifactId>license-maven-plugin-git</artifactId>
+            <version>${license.maven.plugin.version}</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <header>src/main/license/APACHE-2.txt</header>
+          <properties>
+            <owner>Klarna AB</owner>
+          </properties>
+          <includes>
+            <include>src/main/java/**</include>
+            <include>src/test/java/**</include>
+          </includes>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>validate</phase>
+            <goals>
+              <goal>format</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.6.8</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>true</autoReleaseAfterClose>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+      <distributionManagement>
+        <snapshotRepository>
+          <id>ossrh</id>
+          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+          <id>ossrh</id>
+          <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+      </distributionManagement>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.0.1</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.0.1</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <homedir>${project.basedir}</homedir>
+                  <passphrase>${env.GPG_PASSPHRASE}</passphrase>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>tez</id>
+      <properties>
+        <hive.execution.engine>tez</hive.execution.engine>
+      </properties>
+    </profile>
+  </profiles>
+</project>

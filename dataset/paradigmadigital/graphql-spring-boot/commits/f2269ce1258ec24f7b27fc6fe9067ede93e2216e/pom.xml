@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.paradigma</groupId>
+	<artifactId>poc-grapql-api-gen</artifactId>
+	<version>0.1.0</version>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>1.5.2.RELEASE</version>
+	</parent>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<!-- tag::actuator[] -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<!-- end::actuator[] -->
+		<!-- tag::tests[] -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+
+
+
+		<!-- Own <dependency> <groupId>com.merapar</groupId> <artifactId>spring-boot-starter-graphql</artifactId> 
+			<version>1.0.2-alpha</version> </dependency> -->
+		<!-- end::tests[] <dependency> <groupId>com.merapar</groupId> <artifactId>spring-boot-starter-graphql</artifactId> 
+			<version>1.0.1</version> </dependency> -->
+
+
+
+		<!-- Librerias con utilidades para Spring boot -->
+		<dependency>
+			<groupId>com.graphql-java</groupId>
+			<artifactId>graphql-spring-boot-starter</artifactId>
+			<version>3.3.0</version>
+		</dependency>
+		
+		<!-- to embed GraphiQL tool -->
+		<dependency>
+			<groupId>com.graphql-java</groupId>
+			<artifactId>graphiql-spring-boot-starter</artifactId>
+			<version>3.3.0</version>
+		</dependency>
+
+		<!-- Required by the generated code -->
+		<dependency>
+			<groupId>com.distelli.graphql</groupId>
+			<artifactId>graphql-apigen-deps</artifactId>
+			<version>${apigen.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.graphql-java</groupId>
+			<artifactId>graphql-java</artifactId>
+		</dependency>
+
+	</dependencies>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.graphql-java</groupId>
+				<artifactId>graphql-java</artifactId>
+				<version>${graphql.version}</version>
+			</dependency>
+		</dependencies>
+
+	</dependencyManagement>
+	<profiles>
+		<profile>
+			<id>generation-by-schema</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.distelli.graphql</groupId>
+						<artifactId>graphql-apigen</artifactId>
+						<version>${apigen.version}</version>
+						<configuration>
+							<!-- This is only needed when using Guice <guiceModuleName>com.example.my.MyGuiceModule</guiceModuleName> -->
+							<!-- This is only needed if you omit the @java(package:"...") annotations 
+								from your schema types. Using this feature also means your GraphQL schema 
+								can NOT be depended upon by GraphQL schemas defined in other maven projects. 
+								See: https://github.com/Distelli/graphql-apigen/issues/5#issuecomment-275923555 
+								<defaultPackageName>com.example.my</defaultPackageName> -->
+						</configuration>
+						<executions>
+							<execution>
+								<id>why-is-this-needed-who-knows</id>
+								<goals>
+									<goal>apigen</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>build-helper-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>add-source</id>
+								<phase>generate-sources</phase>
+								<goals>
+									<goal>add-source</goal>
+								</goals>
+								<configuration>
+									<sources>
+										<source>target/generated-sources/apigen</source>
+									</sources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+	<build>
+
+
+
+		<plugins>
+
+
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Plugin de generación de los fuentes -->
+			<plugin>
+				<groupId>com.distelli.graphql</groupId>
+				<artifactId>graphql-apigen</artifactId>
+				<version>${apigen.version}</version>
+				<configuration>
+					<!-- This is only needed when using Guice <guiceModuleName>com.example.my.MyGuiceModule</guiceModuleName> -->
+					<!-- This is only needed if you omit the @java(package:"...") annotations 
+						from your schema types. Using this feature also means your GraphQL schema 
+						can NOT be depended upon by GraphQL schemas defined in other maven projects. 
+						See: https://github.com/Distelli/graphql-apigen/issues/5#issuecomment-275923555 
+						<defaultPackageName>com.example.my</defaultPackageName> -->
+				</configuration>
+				<executions>
+					<execution>
+						<id>why-is-this-needed-who-knows</id>
+						<goals>
+							<goal>apigen</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>add-source</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>target/generated-sources/apigen</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											com.distelli.graphql
+										</groupId>
+										<artifactId>
+											graphql-apigen
+										</artifactId>
+										<versionRange>
+											[2.1.0,)
+										</versionRange>
+										<goals>
+											<goal>apigen</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+
+
+
+	<properties>
+		<java.version>1.8</java.version>
+		<apigen.version>2.3.0</apigen.version>
+		<embedler.version>2.0.0</embedler.version>
+		<graphql.version>3.0.0</graphql.version>
+		
+	</properties>
+
+</project>

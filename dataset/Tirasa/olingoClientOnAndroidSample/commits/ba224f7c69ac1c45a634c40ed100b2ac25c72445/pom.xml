@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (C) 2014 Tirasa
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.tirasa</groupId>
+  <artifactId>olingo4-android-sample</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>apk</packaging>
+  <name>olingoClientOnAndroidSample</name>
+
+  <properties>
+    <olingo4.version>4.0.0-beta-01-SNAPSHOT</olingo4.version>
+    <platform.version>4.1.1.4</platform.version>
+    <android.plugin.version>3.8.2</android.plugin.version>
+    
+    <android.sdk.path>/opt/adt-bundle-linux-x86_64-20130917/sdk</android.sdk.path>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.google.android</groupId>
+      <artifactId>android</artifactId>
+      <version>${platform.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.apache.olingo</groupId>
+      <artifactId>olingo-client-android</artifactId>
+      <version>${olingo4.version}</version>
+    </dependency>
+  </dependencies>
+  
+  <build>
+    <finalName>${project.artifactId}</finalName>
+    
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>com.jayway.maven.plugins.android.generation2</groupId>
+          <artifactId>android-maven-plugin</artifactId>
+          <version>${android.plugin.version}</version>
+          <configuration>
+            <sdk>
+              <platform>18</platform>
+            </sdk>
+            <sign>
+              <debug>auto</debug>
+            </sign>
+            <undeployBeforeDeploy>true</undeployBeforeDeploy>
+          </configuration>
+          <extensions>true</extensions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    
+    <plugins>           
+      <plugin>
+        <groupId>org.apache.olingo</groupId>
+        <artifactId>pojogen-maven-plugin</artifactId>
+        <version>${olingo4.version}</version>
+        <executions>
+          <execution>
+            <configuration>
+              <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
+              <serviceRootURL>http://odatae2etest.azurewebsites.net/javatest/DefaultService</serviceRootURL>
+              <basePackage>net.tirasa.olingo4android.net.azurewebsites.odatae2etest</basePackage>
+            </configuration>
+            <id>v4pojoGen</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>v4pojoGen</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+       
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <phase>process-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-sources/ojc-plugin</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.jayway.maven.plugins.android.generation2</groupId>
+        <artifactId>android-maven-plugin</artifactId>
+        <configuration>
+          <manifest>
+            <debuggable>true</debuggable>
+          </manifest>
+        </configuration>
+        <executions>
+          <execution>
+            <id>manifestUpdate</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>manifest-update</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>alignApk</id>
+            <phase>package</phase>
+            <goals>
+              <goal>zipalign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <repositories>
+    <repository>
+      <id>apache.snapshots</id>
+      <name>Apache Snapshot Repository</name>
+      <url>http://repository.apache.org/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+    </repository>    
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>apache.snapshots</id>
+      <url>http://repository.apache.org/snapshots</url>
+    </pluginRepository>
+  </pluginRepositories>
+</project>

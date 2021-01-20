@@ -1,0 +1,171 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>no.difi</groupId>
+    <artifactId>asic</artifactId>
+    <packaging>jar</packaging>
+    <version>0.1-SNAPSHOT</version>
+    <name>asic</name>
+
+    <scm>
+        <connection>scm:git:git@github.com:difi/asic.git</connection>
+        <url>scm:git:git@github.com:difi/asic.git</url>
+        <developerConnection>scm:git:git@github.com:difi/asic.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <contributors>
+        <contributor>
+            <name>Steinar Overbeck Cook</name>
+            <organization>Difi</organization>
+            <roles>
+                <role>Principal author</role>
+            </roles>
+        </contributor>
+    </contributors>
+
+    <properties>
+        <java.encoding>UTF-8</java.encoding>
+        <java.version>1.7</java.version>
+        <jaxb.version>2.2.11</jaxb.version>
+        <logback.version>1.1.3</logback.version>
+        <testng.version>6.9.4</testng.version>
+    </properties>
+
+    <dependencies>
+
+        <!-- TestNG testing framework -->
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${testng.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.12</version>
+        </dependency>
+
+        <!-- See http://stackoverflow.com/questions/26413431/which-artifacts-should-i-use-for-jaxb-ri-in-my-maven-project
+            For an explanation of the JAXB dependencies
+            -->
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>${jaxb.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.8</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
+        </dependency>
+
+        <!-- Bouncy Castle is used for creating and verifying signatures -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
+            <version>1.52</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <defaultGoal>install</defaultGoal>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>**/*.pdf</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <!-- Explicitly declares which version of Java to use -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.3</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>${java.encoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                    <encoding>${java.encoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.18.1</version>
+                <configuration>
+                    <failIfNoTests>true</failIfNoTests>
+                    <!-- Seems this will alleviate the problem of out-of-memory -->
+                    <useSystemClassLoader>false</useSystemClassLoader>
+                </configuration>
+            </plugin>
+            <plugin>
+                <!-- JAXB plugin generates Java classes corresponding to the XML Schema Definitions found in this project -->
+                <!-- See  https://github.com/highsource/maven-jaxb2-plugin -->
+                <!-- Documentation at https://github.com/highsource/maven-jaxb2-plugin/wiki -->
+                <groupId>org.jvnet.jaxb2.maven2</groupId>
+                <artifactId>maven-jaxb2-plugin</artifactId>
+                <version>0.12.3</version>
+                <executions>
+                    <execution>
+                        <id>xsd</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <schemaDirectory>src/main/xsd</schemaDirectory>
+                            <!-- If you want to generate the classes into a different directory than the default, this is how you do it. -->
+                            <!-- <generateDirectory>${project.build.directory}/generated-sources/xjc-xsd</generateDirectory> -->
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>cobertura-maven-plugin</artifactId>
+                    <version>2.7</version>
+                    <configuration>
+                        <formats>
+                            <format>html</format>
+                            <format>xml</format>
+                        </formats>
+                        <instrumentation>
+                            <excludes>
+                                <exclude>org/etsi/**/*.class</exclude>
+                                <exclude>org/w3/**/*.class</exclude>
+                            </excludes>
+                        </instrumentation>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+</project>

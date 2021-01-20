@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>plugin</artifactId>
+        <version>4.1</version>
+        <relativePath />
+    </parent>
+
+    <groupId>org.biouno</groupId>
+    <artifactId>uno-choice</artifactId>
+    <version>2.3</version>
+    <packaging>hpi</packaging>
+
+    <name>Active Choices Plug-in</name>
+    <description>This plug-in provides additional parameter types for jobs, that allow you to cascade changes and render images or other HTML elements instead of the traditional parameter.</description>
+
+    <url>https://github.com/jenkinsci/active-choices-plugin</url>
+    
+    <licenses>
+        <license>
+            <name>The MIT license</name>
+            <url>http://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <issueManagement>
+        <system>JIRA</system>
+        <url>https://issues.jenkins.io/issues/?jql=project%20%3D%20JENKINS%20AND%20component%20%3D%20active-choices-plugin</url>
+    </issueManagement>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <phantomjs.executable>phantomjs</phantomjs.executable>
+        <jenkins.version>2.204.1</jenkins.version>
+        <java.level>8</java.level>
+    </properties>
+
+    <scm>
+        <connection>scm:git:git://github.com/jenkinsci/active-choices-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:jenkinsci/active-choices-plugin.git</developerConnection>
+        <url>http://github.com/jenkinsci/active-choices-plugin</url>
+        <tag>uno-choice-2.3</tag>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>kinow</id>
+            <name>Bruno P. Kinoshita</name>
+            <timezone>Pacific/Auckland</timezone>
+        </developer>
+        <developer>
+            <id>imoutsatsos</id>
+            <name>Ioannis K. Moutsatsos</name>
+        </developer>
+    </developers>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.jenkins.tools.bom</groupId>
+                <artifactId>bom-2.204.x</artifactId>
+                <version>9</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- Scriptler is used to eval Groovy parameters -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>scriptler</artifactId>
+            <version>3.1</version>
+            <optional>true</optional>
+        </dependency>
+        <!-- JQuery is included only once -->
+        <dependency>
+            <groupId>org.kohsuke.stapler</groupId>
+            <artifactId>stapler-adjunct-jquery</artifactId> <!-- TODO why is this not using org.jenkins-ci.plugins:jquery instead?! -->
+            <version>1.12.4-0</version>
+            <exclusions>
+                <exclusion> <!-- TODO INFRA-1310 pending 1.12.4-0 -->
+                    <groupId>org.kohsuke.stapler</groupId>
+                    <artifactId>stapler</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- script-security plug-in integration -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>script-security</artifactId>
+            <version>1.72</version>
+        </dependency>
+        <!-- escaping output of dynamic reference parameters -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>antisamy-markup-formatter</artifactId>
+            <version>2.0</version>
+        </dependency>
+        <!-- testing -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <!-- running JS tests -->
+    <build>
+        <plugins>
+            <!-- TODO: re-enable, probably with google-chrome headless or qunit/npm instead
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.5.0</version>
+                <executions>
+                    <execution>
+                        <id>PhantomJS Unit Testing</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>${basedir}/src/test/js/runner${file.extension}</executable>
+                    <arguments>
+                        <argument>${basedir}/src/test/js/lib/runner.js</argument>
+                        <argument>${basedir}/src/test/js/lib/tests.html</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+            -->
+            <plugin>
+                <groupId>org.jenkins-ci.tools</groupId>
+                <artifactId>maven-hpi-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <compatibleSinceVersion>2.0</compatibleSinceVersion>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- get every artifact through repo.jenkins-ci.org, which proxies all the artifacts that we need -->
+    <repositories>
+        <repository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <profiles>
+        <profile>
+            <id>Windows</id>
+            <activation>
+                <os>
+                    <family>Windows</family>
+                </os>
+            </activation>
+            <properties>
+                <file.extension>.bat</file.extension>
+            </properties>
+        </profile>
+        <profile>
+            <id>unix</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                </os>
+            </activation>
+            <properties>
+                <file.extension>.sh</file.extension>
+            </properties>
+        </profile>
+    </profiles>
+
+</project>

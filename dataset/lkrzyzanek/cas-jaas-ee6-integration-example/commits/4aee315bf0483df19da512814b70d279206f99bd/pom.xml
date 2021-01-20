@@ -1,0 +1,134 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.krzyzanek</groupId>
+	<artifactId>casjaasexample</artifactId>
+	<packaging>war</packaging>
+	<version>1.0</version>
+	<name>casjaasexample</name>
+	<description>Example how to integrate JBoss EAP 6 with CAS SSO server</description>
+
+	<repositories>
+		<repository>
+			<id>eap</id>
+			<url>http://maven.repository.redhat.com/techpreview/all</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>eap</id>
+			<url>http://maven.repository.redhat.com/techpreview/all</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.7</maven.compiler.source>
+		<maven.compiler.target>1.7</maven.compiler.target>
+		<cas-java-client.version>3.3.1</cas-java-client.version>
+		<cas.property.serverName>http://localhost:8080</cas.property.serverName>
+		<jboss.bom.version>6.2.0.GA</jboss.bom.version>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- Dependency management for JBoss EAP 6.2 artifacts -->
+			<dependency>
+				<groupId>org.jboss.bom</groupId>
+				<artifactId>eap6-supported-artifacts</artifactId>
+				<version>${jboss.bom.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+
+	<dependencies>
+		<dependency>
+			<groupId>org.jboss.spec</groupId>
+			<artifactId>jboss-javaee-6.0</artifactId>
+			<version>3.0.2.Final-redhat-4</version>
+			<type>pom</type>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- CAS Integration -->
+		<!-- More info: https://wiki.jasig.org/display/casc/jaas+integration -->
+		<dependency>
+			<groupId>org.jasig.cas.client</groupId>
+			<artifactId>cas-client-core</artifactId>
+			<version>${cas-java-client.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.opensaml</groupId>
+					<artifactId>opensaml</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- Basic Authentication -->
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+		</dependency>
+		<!-- Needed by UsernamePasswordLoginModule -->
+		<dependency>
+			<groupId>org.picketbox</groupId>
+			<artifactId>picketbox</artifactId>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<finalName>casjaasexample</finalName>
+		<plugins>
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.1.1</version>
+				<configuration>
+					<webResources>
+						<resource>
+							<directory>${basedir}/src/main/webapp/WEB-INF</directory>
+							<filtering>true</filtering>
+							<targetPath>WEB-INF</targetPath>
+						</resource>
+					</webResources>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>openshift</id>
+			<properties>
+				<cas.property.serverName>${env.OPENSHIFT_APP_DNS}</cas.property.serverName>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-war-plugin</artifactId>
+						<version>2.1.1</version>
+						<configuration>
+							<outputDirectory>deployments</outputDirectory>
+							<warName>ROOT</warName>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>

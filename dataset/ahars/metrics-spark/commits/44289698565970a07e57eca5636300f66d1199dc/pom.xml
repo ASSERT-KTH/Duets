@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>fr.ippontech.metrics.spark</groupId>
+    <artifactId>metrics-spark</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>Apache Spark Integration for Metrics</name>
+    <description>A java example implementing the custom receiver for Apache Spark Streaming
+        which reads a stream of measurements from an application using the library Metrics of Dropwizard.</description>
+    <url>https://github.com/ahars/metrics-spark</url>
+
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git@github.com:ahars/metrics-spark.git</connection>
+        <developerConnection>scm:git:git@github.com:ahars/metrics-spark.git</developerConnection>
+        <url>git@github.com:ahars/metrics-spark.git</url>
+    </scm>
+
+    <properties>
+        <java.version>1.8</java.version>
+        <jackson-databind.version>2.4.4</jackson-databind.version>
+        <spark.version>1.2.0</spark.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <elasticsearch-spark_2.10.version>2.1.0.Beta3</elasticsearch-spark_2.10.version>
+        <metrics-spark-receiver.version>1.1</metrics-spark-receiver.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-core_2.11</artifactId>
+            <version>${spark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-streaming_2.11</artifactId>
+            <version>${spark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson-databind.version}</version>
+        </dependency>
+        <!--dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch-spark_2.10</artifactId>
+            <version>${elasticsearch-spark_2.10.version}</version>
+        </dependency-->
+        <dependency>
+            <groupId>fr.ippon.spark.metrics</groupId>
+            <artifactId>metrics-spark-receiver</artifactId>
+            <version>${metrics-spark-receiver.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <minimizeJar>false</minimizeJar>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>reference.conf</resource>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

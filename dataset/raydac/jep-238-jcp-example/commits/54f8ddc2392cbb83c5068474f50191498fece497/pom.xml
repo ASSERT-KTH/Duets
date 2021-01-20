@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.igormaznitsa.examples</groupId>
+    <artifactId>jep-238-jcp-example-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <packaging>pom</packaging>
+
+    <description>Small example how to build a maven project with support of JEP-238 through preprocessing</description>
+    <url>https://github.com/raydac/jep-238-jcp-example</url>
+
+    <prerequisites>
+        <maven>3.0</maven>
+    </prerequisites>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- as default JDK version we use 8 -->
+        <java.version>8</java.version>
+        <!-- Define source and target for compiler -->
+        <maven.compiler.source>1.${java.version}</maven.compiler.source>
+        <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
+    </properties>
+
+    <modules>
+        <!-- The Module is just a pom contains parameters for preprocessing and pointers to source folder in main module, it should be the first one in build process -->
+        <module>java9</module>
+        <!-- It is the main module contains all sources and resources, it should be last in build process because it contains code to assembly result jar -->
+        <module>main</module>
+    </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <defaultGoal>clean install</defaultGoal>
+        <pluginManagement>
+            <plugins>
+                <!-- preprocessor plugin to make preprocessing of code for JDK version -->
+                <plugin>
+                    <groupId>com.igormaznitsa</groupId>
+                    <artifactId>jcp</artifactId>
+                    <version>6.1.2</version>
+                    <executions>
+                        <execution>
+                            <id>preprocessSources</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>preprocess</goal>
+                            </goals>
+                            <configuration>
+                                <globalVars>
+                                    <property>
+                                        <name>java.version</name>
+                                        <value>${java.version}</value>
+                                    </property>
+                                </globalVars>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>preprocessTestSources</id>
+                            <phase>generate-test-sources</phase>
+                            <goals>
+                                <goal>preprocessTests</goal>
+                            </goals>
+                            <configuration>
+                                <globalVars>
+                                    <!-- define java.version global preprocessor variable which contains JDK version for current module 8 or 9 -->
+                                    <property>
+                                        <name>java.version</name>
+                                        <value>${java.version}</value>
+                                    </property>
+                                </globalVars>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>clear-generated-sources</id>
+                            <goals>
+                                <goal>clear</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <!-- Toolchains plugin to provide different JDK for each module -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-toolchains-plugin</artifactId>
+                <version>1.1</version>
+                <configuration>
+                    <toolchains>
+                        <jdk>
+                            <version>${java.version}</version>
+                        </jdk>
+                    </toolchains>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>toolchain</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

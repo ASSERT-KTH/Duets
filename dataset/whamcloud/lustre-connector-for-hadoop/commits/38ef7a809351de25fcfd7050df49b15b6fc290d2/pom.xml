@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Copyright (c) 2017 Intel Corporation. All rights reserved.
+ Use of this source code is governed by a MIT-style
+ license that can be found in the LICENSE file.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.intel.lustre</groupId>
+  <artifactId>hadoop-lustre-plugin</artifactId>
+  <version>3.2.0</version>
+  <name>Lustre Adaptor for Hadoop</name>
+  <description>Lustre Adaptor Plugin for Apache Hadoop </description>
+  <packaging>jar</packaging>
+    
+  <properties>
+    <hadoop.log.dir>${project.build.directory}/log</hadoop.log.dir>
+    <hadoop.version>2.6.0-cdh5.4.0</hadoop.version>
+  </properties>
+  
+  <repositories>
+      <repository>
+          <id>cloudera-repo</id>
+          <url>https://repository.cloudera.com/artifactory/cloudera-repos</url>
+          <name>Cloudera Repositories</name>
+          <snapshots>
+              <enabled>false</enabled>
+          </snapshots>
+      </repository>
+      <repository>
+          <id>cdh.snapshots.repo</id>
+          <url>https://repository.cloudera.com/artifactory/libs-snapshot-local</url>
+          <name>Cloudera Snapshots Repository</name>
+          <snapshots>
+              <enabled>true</enabled>
+          </snapshots>
+          <releases>
+              <enabled>false</enabled>
+          </releases>
+      </repository>
+      <repository>
+          <id>central</id>
+          <!-- This should be at top, it makes maven try the central repo first and then others and hence faster dep resolution -->
+          <name>Maven Repository</name>
+          <url>https://repo1.maven.org/maven2</url>
+          <releases>
+              <enabled>true</enabled>
+          </releases>
+          <snapshots>
+              <enabled>false</enabled>
+          </snapshots>
+      </repository>
+      <repository>
+          <id>apache-repo</id>
+          <name>Apache Repository</name>
+          <url>https://repository.apache.org/content/repositories/releases</url>
+          <releases>
+              <enabled>true</enabled>
+          </releases>
+          <snapshots>
+              <enabled>false</enabled>
+          </snapshots>
+      </repository>
+  </repositories>
+  
+  <pluginRepositories>
+      <pluginRepository>
+          <id>central</id>
+          <url>https://repo1.maven.org/maven2</url>
+          <releases>
+              <enabled>true</enabled>
+          </releases>
+          <snapshots>
+              <enabled>false</enabled>
+          </snapshots>
+      </pluginRepository>
+  </pluginRepositories>
+  
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-annotations</artifactId>
+      <version>${hadoop.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>${hadoop.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-mapreduce-client-core</artifactId>
+      <version>${hadoop.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+  
+  <profiles>
+    <profile>
+      <id>native</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.7</version>
+            <executions>
+              <execution>
+                <id>make</id>
+                <phase>compile</phase>
+                <goals><goal>run</goal></goals>
+                <configuration>
+                  <target>
+                    <mkdir dir="${project.build.directory}/native"/>
+                    <exec executable="cmake" dir="${project.build.directory}/native" 
+                        failonerror="true">
+                      <arg line="${basedir}/src/ -DGENERATED_JAVAH=${project.build.directory}/native/javah -DJVM_ARCH_DATA_MODEL=${sun.arch.data.model}"/>
+                    </exec>
+                    <exec executable="make" dir="${project.build.directory}/native" failonerror="true">
+                      <arg line="VERBOSE=1"/>
+                    </exec>
+                    <!-- The second make is a workaround for HADOOP-9215.  It can
+                         be removed when version 2.6 of cmake is no longer supported . -->
+                    <exec executable="make" dir="${project.build.directory}/native" failonerror="true"></exec>
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles> 
+ </project>

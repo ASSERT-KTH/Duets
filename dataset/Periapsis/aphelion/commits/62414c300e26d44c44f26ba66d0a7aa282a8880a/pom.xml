@@ -1,0 +1,516 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+        <modelVersion>4.0.0</modelVersion>
+        <groupId>aphelion</groupId>
+        <artifactId>aphelion</artifactId>
+        <packaging>jar</packaging>
+        <version>0.2-SNAPSHOT</version>
+        <name>aphelion</name>
+        <url>https://github.com/Periapsis/aphelion</url>
+        
+        <properties>
+                <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+                <sonar.language>java</sonar.language>
+        </properties>
+        
+        <repositories>
+                <repository>
+                        <id>nifty-maven-repo.sourceforge.net</id>
+                        <url>http://nifty-gui.sourceforge.net/nifty-maven-repo</url>
+                </repository>
+        </repositories>
+        
+        <pluginRepositories>
+                <pluginRepository>
+                        <id>dtrott</id>
+                        <url>http://maven.davidtrott.com/repository</url>
+                </pluginRepository>
+        </pluginRepositories>
+        
+        <dependencies>
+                <dependency>
+                        <groupId>junit</groupId>
+                        <artifactId>junit</artifactId>
+                        <version>4.11</version>
+                </dependency>
+                <dependency>
+                        <groupId>org.java-websocket</groupId>
+                        <artifactId>Java-WebSocket</artifactId>
+                        <version>1.3.0</version>
+                </dependency>
+                <dependency>
+                        <groupId>com.google.protobuf</groupId>
+                        <artifactId>protobuf-java</artifactId>
+                        <version>2.5.0</version>
+                </dependency>
+                <dependency>
+                        <groupId>org.lwjgl.lwjgl</groupId>
+                        <artifactId>lwjgl</artifactId>
+                        <version>2.9.0</version>
+                </dependency>
+                <dependency>
+                        <groupId>org.lwjgl.lwjgl</groupId>
+                        <artifactId>lwjgl_util</artifactId>
+                        <version>2.9.0</version>
+                </dependency>
+                <dependency>
+                        <!-- This slick version is not in any repository yet, 
+                             download the jar for version 237 and run this command:
+                        mvn install:install-file -Dfile=slick.jar -DgroupId=slick \
+                        -DartifactId=slick -Dversion=237 -Dpackaging=jar -Dsources=slick-src.jar
+                        -->
+                        <groupId>slick</groupId>
+                        <artifactId>slick</artifactId>
+                        <version>237</version>
+                </dependency>
+                <dependency>
+                        <groupId>org.yaml</groupId>
+                        <artifactId>snakeyaml</artifactId>
+                        <version>1.13</version>
+                </dependency>
+                <dependency>
+                        <groupId>commons-daemon</groupId>
+                        <artifactId>commons-daemon</artifactId>
+                        <version>1.0.15</version>
+                </dependency>
+                <dependency>
+                        <groupId>lessvoid</groupId>
+                        <artifactId>nifty</artifactId>
+                        <version>1.3.3</version>
+                </dependency>
+                <dependency>
+                        <groupId>lessvoid</groupId>
+                        <artifactId>nifty-lwjgl-renderer</artifactId>
+                        <version>1.3.3</version>        
+                </dependency>
+                <dependency>
+                        <groupId>lessvoid</groupId>
+                        <artifactId>nifty-default-controls</artifactId>
+                        <version>1.3.3</version>        
+                </dependency>
+        </dependencies>
+        <build>
+                <plugins>
+                        <plugin>
+                                <groupId>com.google.protobuf.tools</groupId>
+                                <artifactId>maven-protoc-plugin</artifactId>
+                                <version>0.1.10</version>
+                                <!--<configuration>
+                                        <protocExecutable>/bla/protoc</protocExecutable>
+                                </configuration>-->
+                                <executions>
+                                        <execution>
+                                                <goals>
+                                                        <goal>compile</goal>
+                                                        <goal>testCompile</goal>
+                                                </goals>
+                                        </execution>
+                                </executions>
+                        </plugin>
+                        <plugin>
+                                <groupId>org.apache.maven.plugins</groupId>
+                                <artifactId>maven-compiler-plugin</artifactId>
+                                <version>3.1</version>
+                                <configuration>
+                                        <source>1.7</source>
+                                        <target>1.7</target>
+                                </configuration>
+                        </plugin>
+                        <plugin>
+                                <groupId>com.googlecode.mavennatives</groupId>
+                                <artifactId>maven-nativedependencies-plugin</artifactId>
+                                <version>0.0.7</version>
+                                <executions>
+                                        <execution>
+                                                <id>unpacknatives</id>
+                                                <phase>generate-resources</phase>
+                                                <goals>
+                                                        <goal>copy</goal>
+                                                </goals>
+                                        </execution>
+                                </executions>                
+                                <configuration>
+                                        <nativesTargetDir>target/bin/jni</nativesTargetDir>
+                                        <separateDirs>false</separateDirs>
+                                </configuration>
+                        </plugin>
+                        <plugin>
+                                <artifactId>maven-resources-plugin</artifactId>
+                                <version>2.6</version>
+                                
+                                <executions>
+                                        <execution>
+                                                <id>asset-single</id>
+                                                <phase>package</phase>
+                                                <goals>
+                                                        <goal>copy-resources</goal>
+                                                </goals>
+                                                
+                                                <configuration>
+                                                        <outputDirectory>${basedir}/target/assets</outputDirectory>
+                                                        <resources>          
+                                                                <resource>
+                                                                        <directory>src/main/assets</directory>
+                                                                        <includes>
+                                                                                <include>singleplayer.yaml</include>
+                                                                        </includes>
+                                                                </resource>
+                                                        </resources>    
+                                                </configuration>            
+                                        </execution>
+                                </executions>
+                        </plugin>
+                        <plugin>
+                                <!-- default groupId is org.apache.maven.plugins -->
+                                <artifactId>maven-assembly-plugin</artifactId>
+                                <version>2.4</version>
+                                
+                                <executions>
+                                        <execution>
+                                                <id>asset-classic</id>
+                                                <phase>package</phase>
+                                                <goals>
+                                                        <goal>single</goal>
+                                                </goals>
+                                                
+                                                <configuration>
+                                                        <finalName>assets/classic</finalName>
+                                                        <appendAssemblyId>false</appendAssemblyId>
+                                                        <descriptors>
+                                                                <descriptor>src/main/assembly/asset-classic.xml</descriptor>
+                                                        </descriptors>
+                                                </configuration>
+                                        </execution>
+                                        <execution>
+                                                <id>asset-gui</id>
+                                                <phase>package</phase>
+                                                <goals>
+                                                        <goal>single</goal>
+                                                </goals>
+                                                
+                                                <configuration>
+                                                        <finalName>assets/gui</finalName>
+                                                        <appendAssemblyId>false</appendAssemblyId>
+                                                        <descriptors>
+                                                                <descriptor>src/main/assembly/asset-gui.xml</descriptor>
+                                                        </descriptors>
+                                                </configuration>
+                                        </execution>
+                                        <execution>
+                                                <id>asset-singleplayer</id>
+                                                <phase>package</phase>
+                                                <goals>
+                                                        <goal>single</goal>
+                                                </goals>
+                                                
+                                                <configuration>
+                                                        <finalName>assets/singleplayer</finalName>
+                                                        <appendAssemblyId>false</appendAssemblyId>
+                                                        <descriptors>
+                                                                <descriptor>src/main/assembly/asset-singleplayer.xml</descriptor>
+                                                        </descriptors>
+                                                </configuration>
+                                        </execution>
+                                        <execution>
+                                                <id>bin-classes</id>
+                                                <phase>package</phase>
+                                                <goals>
+                                                        <goal>single</goal>
+                                                </goals>
+                                                <configuration>
+                                                        <finalName>bin/classes/aphelion</finalName>
+                                                        <appendAssemblyId>false</appendAssemblyId>
+                                                        <descriptors>
+                                                                <descriptor>src/main/assembly/bin-classes.xml</descriptor>
+                                                        </descriptors>
+                                                </configuration>
+                                        </execution>
+                                        <execution>
+                                                <id>win32</id>
+                                                <phase>package</phase>
+                                                <goals>
+                                                        <goal>single</goal>
+                                                </goals>
+                                                <configuration>
+                                                        <descriptors>
+                                                                <descriptor>src/main/assembly/win32.xml</descriptor>
+                                                        </descriptors>
+                                                </configuration>
+                                        </execution>
+                                        <execution>
+                                                <id>win64</id>
+                                                <phase>package</phase>
+                                                <goals>
+                                                        <goal>single</goal>
+                                                </goals>
+                                                <configuration>
+                                                        <descriptors>
+                                                                <descriptor>src/main/assembly/win64.xml</descriptor>
+                                                        </descriptors>
+                                                </configuration>
+                                        </execution>
+                                </executions>
+                        </plugin>
+                        <plugin>
+                                <groupId>org.apache.maven.plugins</groupId>
+                                <artifactId>maven-eclipse-plugin</artifactId>
+                                <version>2.9</version>
+                                <configuration>
+                                        <downloadJavadocs>true</downloadJavadocs>
+                                        <downloadSources>true</downloadSources>
+                                        <additionalConfig>
+                                                <file>
+                                                        <name>Launcher.launch</name>
+                                                        <content>
+                                                        <![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+                                                        <launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+                                                        <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+                                                        <listEntry value="/aphelion/src/main/java/aphelion/launcher/Main.java"/>
+                                                        </listAttribute>
+                                                        <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+                                                        <listEntry value="1"/>
+                                                        </listAttribute>
+                                                        <stringAttribute key="org.eclipse.debug.ui.ATTR_CONSOLE_ENCODING" value="UTF-8"/>
+                                                        <listAttribute key="org.eclipse.debug.ui.favoriteGroups">
+                                                        <listEntry value="org.eclipse.debug.ui.launchGroup.run"/>
+                                                        </listAttribute>
+                                                        <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="aphelion.launcher.Main"/>
+                                                        <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="aphelion"/>
+                                                        <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-ea -server -XX:+DoEscapeAnalysis -XX:+UseG1GC -XX:MaxGCPauseMillis=15 -XX:+TieredCompilation -Djava.library.path=bin/jni"/>
+                                                        <stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:aphelion/target}"/>
+                                                        </launchConfiguration>
+                                                        ]]>
+                                                        </content>
+                                                </file>
+                                                <file>
+                                                        <name>Server.launch</name>
+                                                        <content>
+                                                        <![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+                                                        <launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+                                                        <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+                                                        <listEntry value="/aphelion/src/main/java/aphelion/server/ServerMain.java"/>
+                                                        </listAttribute>
+                                                        <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+                                                        <listEntry value="1"/>
+                                                        </listAttribute>
+                                                        <stringAttribute key="org.eclipse.debug.ui.ATTR_CONSOLE_ENCODING" value="UTF-8"/>
+                                                        <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="aphelion.server.ServerMain"/>
+                                                        <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="server.yaml"/>
+                                                        <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="aphelion"/>
+                                                        <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-ea -server -XX:+DoEscapeAnalysis -XX:+UseG1GC -XX:MaxGCPauseMillis=15 -XX:+TieredCompilation -Djava.library.path=bin/jni"/>
+                                                        <stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:aphelion/target}"/>
+                                                        </launchConfiguration>
+
+                                                        ]]>
+                                                        </content>
+                                                </file>
+                                                <file>
+                                                        <name>Singleplayer.launch</name>
+                                                        <content>
+                                                        <![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+                                                        <launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+                                                        <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+                                                        <listEntry value="/aphelion/src/main/java/aphelion/client/Client.java"/>
+                                                        </listAttribute>
+                                                        <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+                                                        <listEntry value="1"/>
+                                                        </listAttribute>
+                                                        <stringAttribute key="org.eclipse.debug.ui.ATTR_CONSOLE_ENCODING" value="UTF-8"/>
+                                                        <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="aphelion.client.Client"/>
+                                                        <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="aphelion"/>
+                                                        <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-ea -server -XX:+DoEscapeAnalysis -XX:+UseG1GC -XX:MaxGCPauseMillis=15 -XX:+TieredCompilation -Djava.library.path=bin/jni"/>
+                                                        <stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:aphelion/target}"/>
+                                                        </launchConfiguration>
+                                                        ]]>
+                                                        </content>
+                                                </file>
+                                                <file>
+                                                        <name>Scenario.launch</name>
+                                                        <content>
+                                                        <![CDATA[<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+                                                        <launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+                                                        <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+                                                        <listEntry value="/aphelion/src/test/java/aphelion/client/graphics/ScenarioPlayer.java"/>
+                                                        </listAttribute>
+                                                        <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+                                                        <listEntry value="1"/>
+                                                        </listAttribute>
+                                                        <stringAttribute key="org.eclipse.debug.ui.ATTR_CONSOLE_ENCODING" value="UTF-8"/>
+                                                        <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="aphelion.client.graphics.ScenarioPlayer"/>
+                                                        <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="aphelion"/>
+                                                        <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-ea -server -XX:+DoEscapeAnalysis -XX:+UseG1GC -XX:MaxGCPauseMillis=15 -XX:+TieredCompilation -Djava.library.path=bin/jni"/>
+                                                        <stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="${workspace_loc:aphelion/target}"/>
+                                                        </launchConfiguration>
+                                                        ]]>
+                                                        </content>
+                                                </file>
+                                                <file>
+                                                        <name>.settings/org.eclipse.jdt.core.prefs</name>
+                                                        <content>
+                                                        <![CDATA[eclipse.preferences.version=1
+org.eclipse.jdt.core.compiler.codegen.targetPlatform=1.7
+org.eclipse.jdt.core.compiler.compliance=1.7
+org.eclipse.jdt.core.compiler.problem.forbiddenReference=warning
+org.eclipse.jdt.core.compiler.source=1.7
+org.eclipse.jdt.core.formatter.align_type_members_on_columns=false
+org.eclipse.jdt.core.formatter.alignment_for_arguments_in_allocation_expression=16
+org.eclipse.jdt.core.formatter.alignment_for_arguments_in_annotation=0
+org.eclipse.jdt.core.formatter.alignment_for_arguments_in_enum_constant=16
+org.eclipse.jdt.core.formatter.alignment_for_arguments_in_explicit_constructor_call=16
+org.eclipse.jdt.core.formatter.alignment_for_arguments_in_method_invocation=16
+org.eclipse.jdt.core.formatter.alignment_for_arguments_in_qualified_allocation_expression=16
+org.eclipse.jdt.core.formatter.alignment_for_assignment=0
+org.eclipse.jdt.core.formatter.alignment_for_binary_expression=16
+org.eclipse.jdt.core.formatter.alignment_for_compact_if=16
+org.eclipse.jdt.core.formatter.alignment_for_conditional_expression=80
+org.eclipse.jdt.core.formatter.alignment_for_enum_constants=0
+org.eclipse.jdt.core.formatter.alignment_for_expressions_in_array_initializer=16
+org.eclipse.jdt.core.formatter.alignment_for_method_declaration=0
+org.eclipse.jdt.core.formatter.alignment_for_multiple_fields=16
+org.eclipse.jdt.core.formatter.alignment_for_parameters_in_constructor_declaration=16
+org.eclipse.jdt.core.formatter.alignment_for_parameters_in_method_declaration=16
+org.eclipse.jdt.core.formatter.alignment_for_resources_in_try=80
+org.eclipse.jdt.core.formatter.alignment_for_selector_in_method_invocation=16
+org.eclipse.jdt.core.formatter.alignment_for_superclass_in_type_declaration=16
+org.eclipse.jdt.core.formatter.alignment_for_superinterfaces_in_enum_declaration=16
+org.eclipse.jdt.core.formatter.alignment_for_superinterfaces_in_type_declaration=16
+org.eclipse.jdt.core.formatter.alignment_for_throws_clause_in_constructor_declaration=16
+org.eclipse.jdt.core.formatter.alignment_for_throws_clause_in_method_declaration=16
+org.eclipse.jdt.core.formatter.alignment_for_union_type_in_multicatch=16
+org.eclipse.jdt.core.formatter.blank_lines_after_imports=1
+org.eclipse.jdt.core.formatter.blank_lines_after_package=1
+org.eclipse.jdt.core.formatter.blank_lines_before_field=0
+org.eclipse.jdt.core.formatter.blank_lines_before_first_class_body_declaration=0
+org.eclipse.jdt.core.formatter.blank_lines_before_imports=1
+org.eclipse.jdt.core.formatter.blank_lines_before_member_type=1
+org.eclipse.jdt.core.formatter.blank_lines_before_method=1
+org.eclipse.jdt.core.formatter.blank_lines_before_new_chunk=1
+org.eclipse.jdt.core.formatter.blank_lines_before_package=1
+org.eclipse.jdt.core.formatter.blank_lines_between_import_groups=1
+org.eclipse.jdt.core.formatter.blank_lines_between_type_declarations=1
+org.eclipse.jdt.core.formatter.brace_position_for_annotation_type_declaration=next_line
+org.eclipse.jdt.core.formatter.brace_position_for_anonymous_type_declaration=next_line
+org.eclipse.jdt.core.formatter.brace_position_for_array_initializer=end_of_line
+org.eclipse.jdt.core.formatter.brace_position_for_block=next_line
+org.eclipse.jdt.core.formatter.brace_position_for_block_in_case=next_line
+org.eclipse.jdt.core.formatter.brace_position_for_constructor_declaration=next_line
+org.eclipse.jdt.core.formatter.brace_position_for_enum_constant=next_line
+org.eclipse.jdt.core.formatter.brace_position_for_enum_declaration=next_line
+org.eclipse.jdt.core.formatter.brace_position_for_method_declaration=next_line
+org.eclipse.jdt.core.formatter.brace_position_for_switch=next_line
+org.eclipse.jdt.core.formatter.brace_position_for_type_declaration=next_line
+org.eclipse.jdt.core.formatter.comment.clear_blank_lines_in_block_comment=false
+org.eclipse.jdt.core.formatter.comment.clear_blank_lines_in_javadoc_comment=false
+org.eclipse.jdt.core.formatter.comment.format_block_comments=true
+org.eclipse.jdt.core.formatter.comment.format_header=false
+org.eclipse.jdt.core.formatter.comment.format_html=true
+org.eclipse.jdt.core.formatter.comment.format_javadoc_comments=true
+org.eclipse.jdt.core.formatter.comment.format_line_comments=true
+org.eclipse.jdt.core.formatter.comment.format_source_code=true
+org.eclipse.jdt.core.formatter.comment.indent_parameter_description=true
+org.eclipse.jdt.core.formatter.comment.indent_root_tags=true
+org.eclipse.jdt.core.formatter.comment.insert_new_line_before_root_tags=insert
+org.eclipse.jdt.core.formatter.comment.insert_new_line_for_parameter=insert
+org.eclipse.jdt.core.formatter.comment.line_length=80
+org.eclipse.jdt.core.formatter.comment.new_lines_at_block_boundaries=true
+org.eclipse.jdt.core.formatter.comment.new_lines_at_javadoc_boundaries=true
+org.eclipse.jdt.core.formatter.comment.preserve_white_space_between_code_and_line_comments=false
+org.eclipse.jdt.core.formatter.compact_else_if=true
+org.eclipse.jdt.core.formatter.continuation_indentation=8
+org.eclipse.jdt.core.formatter.continuation_indentation_for_array_initializer=8
+org.eclipse.jdt.core.formatter.disabling_tag=@formatter\:off
+org.eclipse.jdt.core.formatter.enabling_tag=@formatter\:on
+org.eclipse.jdt.core.formatter.format_guardian_clause_on_one_line=false
+org.eclipse.jdt.core.formatter.format_line_comment_starting_on_first_column=true
+org.eclipse.jdt.core.formatter.indent_body_declarations_compare_to_annotation_declaration_header=true
+org.eclipse.jdt.core.formatter.indent_body_declarations_compare_to_enum_constant_header=true
+org.eclipse.jdt.core.formatter.indent_body_declarations_compare_to_enum_declaration_header=true
+org.eclipse.jdt.core.formatter.indent_body_declarations_compare_to_type_header=true
+org.eclipse.jdt.core.formatter.indent_breaks_compare_to_cases=false
+org.eclipse.jdt.core.formatter.indent_empty_lines=true
+org.eclipse.jdt.core.formatter.indent_statements_compare_to_block=true
+org.eclipse.jdt.core.formatter.indent_statements_compare_to_body=true
+org.eclipse.jdt.core.formatter.indent_switchstatements_compare_to_cases=true
+org.eclipse.jdt.core.formatter.indent_switchstatements_compare_to_switch=true
+org.eclipse.jdt.core.formatter.indentation.size=8
+org.eclipse.jdt.core.formatter.insert_new_line_after_annotation_on_field=insert
+org.eclipse.jdt.core.formatter.insert_new_line_after_annotation_on_local_variable=insert
+org.eclipse.jdt.core.formatter.insert_new_line_after_annotation_on_method=insert
+org.eclipse.jdt.core.formatter.insert_new_line_after_annotation_on_package=insert
+org.eclipse.jdt.core.formatter.insert_new_line_after_annotation_on_parameter=do not insert
+org.eclipse.jdt.core.formatter.insert_new_line_after_annotation_on_type=insert
+org.eclipse.jdt.core.formatter.insert_new_line_after_label=do not insert
+org.eclipse.jdt.core.formatter.insert_new_line_after_opening_brace_in_array_initializer=do not insert
+org.eclipse.jdt.core.formatter.insert_new_line_at_end_of_file_if_missing=do not insert
+org.eclipse.jdt.core.formatter.insert_new_line_before_catch_in_try_statement=insert
+org.eclipse.jdt.core.formatter.insert_new_line_before_closing_brace_in_array_initializer=do not insert
+org.eclipse.jdt.core.formatter.insert_new_line_before_else_in_if_statement=insert
+org.eclipse.jdt.core.formatter.insert_new_line_before_finally_in_try_statement=insert
+org.eclipse.jdt.core.formatter.insert_new_line_before_while_in_do_statement=do not insert
+org.eclipse.jdt.core.formatter.insert_new_line_in_empty_annotation_declaration=insert
+org.eclipse.jdt.core.formatter.insert_new_line_in_empty_anonymous_type_declaration=insert
+org.eclipse.jdt.core.formatter.insert_new_line_in_empty_block=insert
+org.eclipse.jdt.core.formatter.insert_new_line_in_empty_enum_constant=insert
+org.eclipse.jdt.core.formatter.insert_new_line_in_empty_enum_declaration=insert
+org.eclipse.jdt.core.formatter.insert_new_line_in_empty_method_body=insert
+org.eclipse.jdt.core.formatter.insert_new_line_in_empty_type_declaration=insert
+org.eclipse.jdt.core.formatter.join_lines_in_comments=true
+org.eclipse.jdt.core.formatter.join_wrapped_lines=true
+org.eclipse.jdt.core.formatter.keep_else_statement_on_same_line=false
+org.eclipse.jdt.core.formatter.keep_empty_array_initializer_on_one_line=false
+org.eclipse.jdt.core.formatter.keep_imple_if_on_one_line=false
+org.eclipse.jdt.core.formatter.keep_then_statement_on_same_line=false
+org.eclipse.jdt.core.formatter.lineSplit=80
+org.eclipse.jdt.core.formatter.never_indent_block_comments_on_first_column=false
+org.eclipse.jdt.core.formatter.never_indent_line_comments_on_first_column=false
+org.eclipse.jdt.core.formatter.number_of_blank_lines_at_beginning_of_method_body=0
+org.eclipse.jdt.core.formatter.number_of_empty_lines_to_preserve=2
+org.eclipse.jdt.core.formatter.put_empty_statement_on_new_line=true
+org.eclipse.jdt.core.formatter.tabulation.char=space
+org.eclipse.jdt.core.formatter.tabulation.size=8
+org.eclipse.jdt.core.formatter.use_on_off_tags=false
+org.eclipse.jdt.core.formatter.use_tabs_only_for_leading_indentations=true
+org.eclipse.jdt.core.formatter.wrap_before_binary_operator=true
+org.eclipse.jdt.core.formatter.wrap_before_or_operator_multicatch=true
+org.eclipse.jdt.core.formatter.wrap_outer_expressions_when_nested=true
+]]>
+                                                        </content>
+                                                </file>
+                                        </additionalConfig>
+                                </configuration>
+                        </plugin>
+                </plugins>
+                <pluginManagement>
+                        <plugins>
+                                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+                                <plugin>
+                                        <groupId>org.eclipse.m2e</groupId>
+                                        <artifactId>lifecycle-mapping</artifactId>
+                                        <version>1.0.0</version>
+                                        <configuration>
+                                                <lifecycleMappingMetadata>
+                                                        <pluginExecutions>
+                                                                <pluginExecution>
+                                                                        <pluginExecutionFilter>
+                                                                                <groupId>com.google.protobuf.tools</groupId>
+                                                                                <artifactId>maven-protoc-plugin</artifactId>
+                                                                                <versionRange>[0.0,)</versionRange>
+                                                                                <goals>
+                                                                                        <goal>compile</goal>
+                                                                                        <goal>testCompile</goal>
+                                                                                </goals>
+                                                                        </pluginExecutionFilter>
+                                                                        <action>
+                                                                                <execute>
+                                                                                        <runOnIncremental>false</runOnIncremental>
+                                                                                </execute>
+                                                                        </action>
+                                                                </pluginExecution>
+                                                        </pluginExecutions>
+                                                </lifecycleMappingMetadata>
+                                        </configuration>
+                                </plugin>
+                        </plugins>
+                </pluginManagement>
+        </build>
+</project>

@@ -1,0 +1,437 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>pdf-metadata-edit</groupId>
+	<artifactId>pdf-metadata-edit</artifactId>
+	<version>2.0.0</version>
+	<name>Pdf Metadata Editor</name>
+	<description>Simple PDF metadata editor</description>
+	<url>http://broken-by.me/pdf-metadata-editor/</url>
+	<packaging>jar</packaging>
+
+	<developers>
+		<developer>
+			<id>zaro</id>
+			<name>Svetlozar Argirov</name>
+			<email>zarrro@gmail.com</email>
+			<url>http://broken-by.me/</url>
+			<properties>
+				<picUrl>http://www.gravatar.com/avatar/75fa519466b509cfea3ef6cfbcbd066b</picUrl>
+			</properties>
+		</developer>
+	</developers>
+
+	<properties>
+		<staging.dir>${project.build.directory}</staging.dir>
+		<appbudle.jre>${java.home}/../../../</appbudle.jre>
+		<vm.location></vm.location>
+		<version.izpack>${project.version}</version.izpack>
+		<arch.64></arch.64>
+		<app.filename>PdfMetadataEditor</app.filename>
+		<native.bundle>image</native.bundle>
+	</properties>
+
+
+	<profiles>
+		<profile>
+			<id>os_win</id>
+			<activation>
+				<os>
+					<family>Windows</family>
+				</os>
+			</activation>
+			<properties>
+				<native.bundle>msi</native.bundle>
+				<appbudle.jre></appbudle.jre>
+			</properties>
+		</profile>
+		<profile>
+			<id>os_mac</id>
+			<activation>
+				<os>
+					<family>mac</family>
+				</os>
+			</activation>
+			<properties>
+				<native.bundle>msi</native.bundle>
+				<appbudle.jre></appbudle.jre>
+			</properties>
+		</profile>
+		<profile>
+			<id>arch64</id>
+			<activation>
+				<os>
+					<arch>x64</arch>
+				</os>
+			</activation>
+			<properties>
+				<arch.64>64</arch.64>
+			</properties>
+		</profile>
+	</profiles>
+
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources/</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<minimizeJar>true</minimizeJar>
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<manifestEntries>
+										<Main-Class>pmedit.Main</Main-Class>
+									</manifestEntries>
+								</transformer>
+							</transformers>
+							<artifactSet>
+								<excludes>
+									<exclude>junit:junit</exclude>
+									<exclude>org.apache.pdfbox:fontbox</exclude>
+								</excludes>
+							</artifactSet>
+							<filters>
+								<filter>
+									<artifact>com.pretty-tools:jdde-jna</artifact>
+									<includes>
+										<include>com/pretty_tools/dde/**</include>
+									</includes>
+								</filter>
+								<filter>
+									<artifact>commons-logging:commons-logging</artifact>
+									<includes>
+										<include>org/apache/commons/logging/**</include>
+									</includes>
+								</filter>
+								<filter>
+									<artifact>org.apache.pdfbox:pdfbox</artifact>
+									<includes>
+										<include>**</include>
+										<include>org/apache/pdfbox/encoding/**</include>
+									</includes>
+									<excludes>
+										<exclude>org/apache/pdfbox/pdfviewer</exclude>
+									</excludes>
+								</filter>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.izpack</groupId>
+				<artifactId>izpack-maven-plugin</artifactId>
+				<version>5.0.9</version>
+				<extensions>true</extensions>
+				<configuration>
+					<installFile>izpack/izpack-install.xml</installFile>
+					<baseDir>${staging.dir}</baseDir>
+					<mkdirs>true</mkdirs>
+					<outputDirectory>${project.build.directory}/bundles/</outputDirectory>
+					<finalName>${app.filename}-${project.version}-installer</finalName>
+					<autoIncludeUrl>true</autoIncludeUrl>
+					<autoIncludeDevelopers>true</autoIncludeDevelopers>
+					<comprLevel>9</comprLevel>
+				</configuration>
+				<executions>
+					<execution>
+						<id>standard-installer</id>
+						<phase>package</phase>
+						<goals>
+							<goal>izpack</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-zip-resources-1</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<encoding>UTF-8</encoding>
+							<outputDirectory>${staging.dir}/zip/</outputDirectory>
+							<nonFilteredFileExtensions>
+            					<nonFilteredFileExtension>exe</nonFilteredFileExtension>
+            					<nonFilteredFileExtension>png</nonFilteredFileExtension>
+            					<nonFilteredFileExtension>ico</nonFilteredFileExtension>
+          					</nonFilteredFileExtensions>
+							<resources>
+								<resource>
+									<directory>package/all/</directory>
+									<includes>
+										<include>*</include>
+									</includes>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>copy-izpack-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<encoding>UTF-8</encoding>
+							<outputDirectory>${staging.dir}/izpack/</outputDirectory>
+							<resources>
+								<resource>
+									<directory>izpack/</directory>
+									<include>*</include>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					
+					<execution>
+						<id>copy-exe-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<encoding>UTF-8</encoding>
+							<outputDirectory>${staging.dir}/win/app</outputDirectory>
+							<resources>
+								<resource>
+									<directory>package/all/</directory>
+									<include>pmedit-cli${arch.64}.exe</include>
+									<include>pmedit-cli.ini</include>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
+						<id>copy-package-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<encoding>UTF-8</encoding>
+							<outputDirectory>${project.build.directory}/package</outputDirectory>
+							<resources>
+								<resource>
+									<directory>package</directory>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptor>package/assembly-zip.xml</descriptor>
+					<finalName>bundles/${app.filename}-${project.version}</finalName>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>fx-test</id>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+  							<tasks>
+								<replace dir="${project.build.directory}/win/app/" value="..\runtime\bin\client\jvm.dll">
+								 	<include name="*.ini"/>
+									<replacetoken>@vm.location@</replacetoken>
+								</replace>
+								<replace dir="${project.build.directory}/win/app/" value="${project.build.finalName}">
+								 	<include name="*.ini"/>
+									<replacetoken>@project.build.finalName@</replacetoken>
+								</replace>
+                        		<property name="staging.dir" value="${project.build.directory}" />
+                        		<property name="dist.dir" value="${project.build.directory}" />
+                        		<property name="app.name" value="${app.filename}" />
+                        		<property name="app.title" value="${project.name}" />
+                        		<property name="app.version" value="${project.version}" />
+		                        <property name="app.main.class" value="pmedit.Main"/>
+		                        <property name="app.main.jar" value="pdf-metadata-edit-${project.version}.jar" />
+		                        <property name="app.bundle.name" value="pdf-metadata-edit-${project.version}" />
+		                        <property name="jre.bundle" value="jre_to_bundle/" />
+		                        <property name="native.bundle" value="${native.bundle}" />
+		                        <ant antfile="build-install.xml">
+		                          <target name="deploy-bundle"/>
+        		                </ant>
+	                      </tasks>
+						</configuration>
+					</execution>
+					<execution>
+						<id>create-dmg</id>
+						<phase>install</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<tasks>
+								<exec executable="javapackager">
+									<arg value="-deploy" />
+									<arg value="-v" />
+									<arg value='-Bruntime=jre_to_bundle/' />
+									<arg value='-BappVersion=${project.version}' />
+									<arg value='-Bmac.CFBundleIdentifier=pmedit.pdf-metadata-editor' />
+									<arg value="-native" />
+									<arg value="dmg" />
+									<arg value="-outdir" />
+									<arg value="${project.build.directory}" />
+									<arg value="-outfile" />
+									<arg value="${project.name}.app" />
+									<arg value="-srcfiles" />
+									<arg value="${project.build.directory}/pdf-metadata-edit-${project.version}.jar" />
+									<arg value="-appclass" />
+									<arg value="pmedit.Main" />
+									<arg value="-name" />
+									<arg value="${app.filename}" />
+									<arg value="-title" />
+									<arg value="${project.name}" />
+								</exec>
+							</tasks>
+						</configuration>
+					</execution>					
+				</executions>
+			</plugin>
+			
+
+	        <plugin>
+	            <groupId>org.apache.maven.plugins</groupId>
+	            <artifactId>maven-dependency-plugin</artifactId>
+	            <executions>
+	                <execution>
+	                    <id>unpack</id>
+	                    <phase>prepare-package</phase>
+	                    <goals>
+	                        <goal>unpack</goal>
+	                    </goals>
+	                    <configuration>
+	                        <artifactItems>
+	                            <artifactItem>
+					                   <groupId>com.pretty-tools</groupId>
+					                   <artifactId>jdde-bundle</artifactId>
+					                   <version>2.0.3</version>
+					                   <type>jar</type>
+	                                <includes>com/pretty_tools/dde/*.dll</includes>
+	                                <outputDirectory>${project.build.directory}/win</outputDirectory>
+	                            </artifactItem>
+	                        </artifactItems>
+	                    </configuration>
+	                </execution>
+	            </executions>
+	        </plugin>
+	        
+	        		       
+		</plugins>
+
+
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>2.0.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>xmpbox</artifactId>
+			<version>2.0.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.miglayout</groupId>
+			<artifactId>miglayout-swing</artifactId>
+			<version>4.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.toedter</groupId>
+			<artifactId>jcalendar</artifactId>
+			<version>1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+			<version>1.14</version>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+		</dependency>
+		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna-platform</artifactId>
+			<version>4.2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpasyncclient</artifactId>
+			<version>4.1</version>
+		</dependency>
+		<dependency>
+		    <groupId>com.pretty-tools</groupId>
+		    <artifactId>jdde-bundle</artifactId>
+		    <version>2.0.3</version>
+		</dependency>
+	</dependencies>
+</project>

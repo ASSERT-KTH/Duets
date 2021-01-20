@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>ru.yandex.clickhouse</groupId>
+    <artifactId>clickhouse-jdbc-bridge</artifactId>
+    <version>1.0</version>
+    <properties>
+        <jetty.version>9.4.26.v20200117</jetty.version>
+        <slf4j.version>1.7.5</slf4j.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+
+    <build>
+        <plugins>
+            <!-- Mark as JRE 8 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.2</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <!-- Point Main class in JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>ru.yandex.clickhouse.jdbcbridge.JdbcBridge</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <!-- Create jar with all the dependencies -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                        </filter>
+                    </filters>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <keepDependenciesWithProvidedScope>false</keepDependenciesWithProvidedScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Create .deb package -->
+            <plugin>
+                <artifactId>jdeb</artifactId>
+                <groupId>org.vafer</groupId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jdeb</goal>
+                        </goals>
+                        <configuration>
+                            <deb>${project.build.directory}/${project.artifactId}.deb</deb>
+                            <verbose>true</verbose>
+                            <snapshotExpand>true</snapshotExpand>
+                            <!-- expand "SNAPSHOT" to what is in the "USER" env variable -->
+                            <snapshotEnv>USER</snapshotEnv>
+                            <verbose>true</verbose>
+                            <controlDir>${basedir}/src/debian/control</controlDir>
+                            <dataSet>
+
+                                <!-- The JAR itself -->
+                                <data>
+                                    <src>${project.build.directory}/${project.build.finalName}.jar</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/usr/share/${project.artifactId}</prefix>
+                                        <user>clickhouse-jdbc-bridge</user>
+                                        <group>clickhouse-jdbc-bridge</group>
+                                        <filemode>644</filemode>
+                                    </mapper>
+                                </data>
+
+                                <!-- Link to a JAR, omitting version -->
+                                <data>
+                                    <type>link</type>
+                                    <symlink>true</symlink>
+                                    <linkName>/usr/share/${project.artifactId}/${project.artifactId}.jar</linkName>
+                                    <linkTarget>/usr/share/${project.artifactId}/${project.build.finalName}.jar</linkTarget>
+                                </data>
+
+                                <!-- Init scripts stuff -->
+                                <data>
+                                    <src>${basedir}/src/debian/init.d</src>
+                                    <type>directory</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/etc/init.d</prefix>
+                                        <user>clickhouse-jdbc-bridge</user>
+                                        <group>clickhouse-jdbc-bridge</group>
+                                        <filemode>755</filemode>
+                                    </mapper>
+                                </data>
+
+                                <!-- Defaults -->
+                                <data>
+                                    <src>${basedir}/src/debian/etc</src>
+                                    <type>directory</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/etc/${project.artifactId}</prefix>
+                                        <user>clickhouse-jdbc-bridge</user>
+                                        <group>clickhouse-jdbc-bridge</group>
+                                        <filemode>644</filemode>
+                                    </mapper>
+                                </data>
+
+                                <!-- Supplementary directories -->
+                                <data>
+                                    <type>template</type>
+                                    <paths>
+                                        <path>etc/${project.artifactId}</path>
+                                        <path>var/cache/${project.artifactId}</path>
+                                        <path>var/log/${project.artifactId}</path>
+                                        <path>var/run/${project.artifactId}</path>
+                                        <path>var/lib/${project.artifactId}</path>
+                                    </paths>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <user>clickhouse-jdbc-bridge</user>
+                                        <group>clickhouse-jdbc-bridge</group>
+                                        <filemode>755</filemode>
+                                    </mapper>
+                                </data>
+
+                            </dataSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <!-- Interaction protocol implementation -->
+        <dependency>
+            <groupId>ru.yandex.clickhouse</groupId>
+            <artifactId>clickhouse-jdbc</artifactId>
+            <version>0.2.4</version>
+        </dependency>
+
+        <!-- Web-service environment -->
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-util</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlet</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+
+        <!-- Command-line parsing stuff -->
+        <dependency>
+            <groupId>com.beust</groupId>
+            <artifactId>jcommander</artifactId>
+            <version>1.72</version>
+        </dependency>
+
+        <!-- Bring me some sugar -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>LATEST</version>
+        </dependency>
+
+        <!-- Logging facility -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+
+        <!-- Test stuff -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.5</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Test connectors to check interaction with different databases -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.4.195</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>RELEASE</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.23.1</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+</project>

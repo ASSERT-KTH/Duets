@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <name>Ted API</name>
+  <packaging>jar</packaging>
+  <groupId>nu.ted</groupId>
+  <artifactId>ted-api</artifactId>
+  <version>0.1-SNAPSHOT</version>
+
+  <repositories>
+    <repository>
+      <id>KMD Consulting Inc.</id>
+      <url>http://code.kmdconsulting.ca/artifactory/repo/</url>
+    </repository>
+  </repositories>
+  <profiles>
+    <profile>
+      <id>thrift</id>
+      <!-- Active by default, run with -P !thrift without thrift -->
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>generate-sources</id>
+                <phase>generate-sources</phase>
+                <configuration>
+                  <!-- The python copy leaves out the __init__.py from the
+                       gen-py directory because we only need ted to be the
+                       module
+                  -->
+                  <tasks>
+                    <delete quiet="true" dir="target/generated-sources"/>
+                    <mkdir dir="target/generated-sources"/>
+                    <exec executable="thrift">
+                      <arg value="--gen"/>
+                      <arg value="java:beans"/>
+                      <arg value="--gen"/>
+                      <arg value="py:new_style"/>
+                      <arg value="--gen" />
+                      <arg value="php" />
+                      <arg value="-o"/>
+                      <arg value="target/generated-sources"/>
+                      <arg value="src/main/thrift/ted.thrift"/>
+                    </exec>
+                    <delete quiet="true">
+                      <fileset dir="src/main/java/nu/ted/generated" includes="**/*"/>
+                      <fileset dir="target/classes/nu/ted/generated" includes="**/*"/>
+                      <fileset dir="src/main/python" includes="**/*"/>
+                    </delete>
+                    <mkdir dir="src/main/java/nu/ted/generated"/>
+                    <mkdir dir="src/main/python/ted"/>
+                    <copy todir="src/main/java/nu/ted/generated">
+                      <fileset dir="target/generated-sources/gen-javabean/nu/ted/generated"/>
+                    </copy>
+                    <copy todir="src/main/python/ted">
+                            <fileset dir="target/generated-sources/gen-py/ted"/>
+                    </copy>
+                  </tasks>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+  <build>
+    <defaultGoal>install</defaultGoal>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache</groupId>
+      <artifactId>thrift</artifactId>
+      <version>0.5.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.5.8</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.5.8</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.4</version>
+    </dependency>
+  </dependencies>
+
+</project>

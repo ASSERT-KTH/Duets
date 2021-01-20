@@ -1,0 +1,383 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>io.github.joht.showcase.quarkuseventsourcing</groupId>
+	<artifactId>showcase-quarkus-eventsourcing</artifactId>
+	<version>1.0-SNAPSHOT</version>
+
+	<properties>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<surefire-plugin.version>2.22.2</surefire-plugin.version>
+
+		<quarkus.version>1.2.0.Final</quarkus.version>
+		<axon.version>4.2.1</axon.version>
+		<reactor.version>3.3.0.RELEASE</reactor.version>
+		<dom4j.version>1.6.1</dom4j.version>
+		<xom.version>1.2.5</xom.version>
+
+		<archunit.version>0.13.0</archunit.version>
+		<equalsverifier.version>3.1.11</equalsverifier.version>
+		<mockito.version>3.0.0</mockito.version>
+		<hamcrest.version>2.1</hamcrest.version>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.quarkus</groupId>
+				<artifactId>quarkus-bom</artifactId>
+				<version>${quarkus.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<dependencies>
+		<!-- Axon - CQRS and EventSourcing Framework -->
+		<dependency>
+			<groupId>org.axonframework</groupId>
+			<artifactId>axon-configuration</artifactId>
+			<version>${axon.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.axonframework</groupId>
+			<artifactId>axon-modelling</artifactId>
+			<version>${axon.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.axonframework</groupId>
+			<artifactId>axon-messaging</artifactId>
+			<version>${axon.version}</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<!-- Axon - Optional dependencies for CQRS and EventSourcing Framework (only needed for native compile) -->
+		<dependency>
+			<groupId>xom</groupId>
+			<artifactId>xom</artifactId>
+			<version>${xom.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-core</artifactId>
+			<version>${reactor.version}</version>
+			<scope>compile</scope>
+			<optional>true</optional>
+		</dependency>
+
+		<!-- Quarkus - Database JDBC driver for PostgreSql -->
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-jdbc-postgresql</artifactId>
+		</dependency>
+
+		<!-- Quarkus - Database JDBC driver for H2 -->
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-jdbc-h2</artifactId>
+		</dependency>
+
+		<!-- Quarkus - Database Schema Migration Tool -->
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-flyway</artifactId>
+		</dependency>
+
+		<!-- Microprofile -->
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-resteasy</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-hibernate-orm</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-jsonb</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-jsonp</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-resteasy-jsonb</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-narayana-jta</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-smallrye-openapi</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-hibernate-validator</artifactId>
+		</dependency>
+
+		<!-- Integration Testing -->
+		<dependency>
+			<groupId>io.rest-assured</groupId>
+			<artifactId>rest-assured</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-client</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-test-h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.quarkus</groupId>
+			<artifactId>quarkus-junit5</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Testing - Architectural Unit Testing Libraries -->
+		<dependency>
+			<groupId>com.tngtech.archunit</groupId>
+			<artifactId>archunit-junit5</artifactId>
+			<version>${archunit.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Testing - Equals and hashcode -->
+		<dependency>
+			<groupId>nl.jqno.equalsverifier</groupId>
+			<artifactId>equalsverifier</artifactId>
+			<version>${equalsverifier.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Testing - event-sourcing -->
+		<dependency>
+			<groupId>org.axonframework</groupId>
+			<artifactId>axon-test</artifactId>
+			<version>${axon.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Testing Libraries -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-junit-jupiter</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest</artifactId>
+			<version>${hamcrest.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.github.searls</groupId>
+				<artifactId>jasmine-maven-plugin</artifactId>
+				<version>2.2</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>bdd</goal>
+							<goal>test</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<sourceExcludes>
+						<exclude>**/startup.js</exclude>
+					</sourceExcludes>
+					<keepServerAlive>true</keepServerAlive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.github.timurstrekalov</groupId>
+				<artifactId>saga-maven-plugin</artifactId>
+				<version>1.5.5</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>coverage</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<baseDir>http://localhost:${jasmine.serverPort}</baseDir>
+					<outputDir>${project.build.directory}/coverage</outputDir>
+					<noInstrumentPatterns>
+						<pattern>.*/spec/.*</pattern> <!-- Don't instrument specs -->
+						<pattern>.*/jasmine/.*</pattern> <!-- Don't instrument jasmine -->
+						<pattern>.*/lib/.*</pattern> <!-- Don't instrument libs -->
+						<pattern>.*/polyfills/.*</pattern> <!-- Don't instrument libs -->
+					</noInstrumentPatterns>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>net.alchim31.maven</groupId>
+				<artifactId>yuicompressor-maven-plugin</artifactId>
+				<version>1.5.1</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>compress</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<preProcessAggregates>true</preProcessAggregates>
+					<aggregations>
+						<aggregation>
+							<insertNewLine>true</insertNewLine>
+							<inputDir>${project.basedir}/src/main/javascript</inputDir>
+							<output>${project.build.directory}/aggregated/javascript/application.js</output>
+							<includes>
+								<include>**/polyfills/*.js</include>
+								<include>**/*.js</include>
+							</includes>
+						</aggregation>
+					</aggregations>
+					<includes>
+						<include>**/*application.js</include>
+					</includes>
+					<jswarn>false</jswarn>
+					<nosuffix>true</nosuffix>
+					<nomunge>true</nomunge>	<!-- disables obfuscation -->
+					<sourceDirectory>${project.build.directory}/aggregated</sourceDirectory>
+					<outputDirectory>${project.build.directory}/classes/META-INF/resources</outputDirectory>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>3.8.2</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>3.0.0</version>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<useIncrementalCompilation>false</useIncrementalCompilation>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>io.quarkus</groupId>
+				<artifactId>quarkus-maven-plugin</artifactId>
+				<version>${quarkus.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>build</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>io.quarkus</groupId>
+				<artifactId>quarkus-bootstrap-maven-plugin</artifactId>
+				<version>${quarkus.version}</version>
+			</plugin>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>${surefire-plugin.version}</version>
+				<configuration>
+					<systemProperties>
+						<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+					</systemProperties>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<profiles>
+		<profile>
+			<id>native</id>
+			<activation>
+				<property>
+					<name>native</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>io.quarkus</groupId>
+						<artifactId>quarkus-maven-plugin</artifactId>
+						<version>${quarkus.version}</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>native-image</goal>
+								</goals>
+								<configuration>
+									<enableHttpUrlHandler>true</enableHttpUrlHandler>
+									<additionalBuildArgs>
+										<additionalBuildArg>
+											-H:ReflectionConfigurationFiles=${project.basedir}/reflection-config.json
+										</additionalBuildArg>
+										<additionalBuildArg>
+											-H:ResourceConfigurationFiles=${project.basedir}/resources-config.json
+										</additionalBuildArg>
+									</additionalBuildArgs>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<version>${surefire-plugin.version}</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>integration-test</goal>
+									<goal>verify</goal>
+								</goals>
+								<configuration>
+									<systemProperties>
+										<native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
+									</systemProperties>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>

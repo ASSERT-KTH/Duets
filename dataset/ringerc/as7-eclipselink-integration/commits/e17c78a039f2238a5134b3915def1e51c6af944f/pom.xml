@@ -1,0 +1,292 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>id.au.ringerc</groupId>
+  <artifactId>jboss-as-jpa-eclipselink</artifactId>
+  <version>1.1.0</version>
+  <packaging>jar</packaging>
+  <name>JBoss Application Server Addon: EclipseLink 2.4.x integration</name>
+  <url>https://community.jboss.org/wiki/HowToUseEclipseLinkWithAS7</url>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <eclipselink.version.2.3.stable>2.3.2</eclipselink.version.2.3.stable>
+    <eclipselink.version.2.3.milestone>2.3.3-M3</eclipselink.version.2.3.milestone>
+    <eclipselink.version.2.4.milestone>2.4.0-RC2</eclipselink.version.2.4.milestone>
+    <eclipselink.version>${eclipselink.version.2.4.milestone}</eclipselink.version>
+    
+    <jboss-version>7.1.1.Final</jboss-version>
+    
+    <as7module.srcdir>${project.basedir}/src/main/as7module</as7module.srcdir>
+    <as7module.destdir>${project.build.directory}/as7module</as7module.destdir>
+    <ECLIPSELINK_JAR_NAME>eclipselink-${eclipselink.version}.jar</ECLIPSELINK_JAR_NAME>
+    <INTEGRATION_JAR_NAME>${project.artifactId}-${project.version}.${project.packaging}</INTEGRATION_JAR_NAME>
+  </properties>
+  <repositories>
+    <repository>
+      <id>eclipselink</id>
+      <url>http://www.eclipse.org/downloads/download.php?r=1&amp;nf=1&amp;file=/rt/eclipselink/maven.repo</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+  <dependencyManagement>
+    <dependencies>
+      <!-- If/when this integration is added to the JBoss AS 7 build, this should become
+           the parent pom. For now we don't want to add it as a parent pom because it
+           refers to archi -->
+	  <dependency>
+	    <groupId>org.jboss.as</groupId>
+	    <artifactId>jboss-as-jpa-parent</artifactId>
+	    <version>${jboss-version}</version>
+	    <type>pom</type>
+	    <scope>import</scope>
+	  </dependency>
+      <dependency>
+        <groupId>org.jboss.arquillian</groupId>
+        <artifactId>arquillian-bom</artifactId>
+        <version>1.0.0.Final</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <dependencies>
+    <!-- 
+         This internal JBoss AS 7 API allows us to implement
+         JBoss AS 7's persistence provider integration API.
+    -->
+    <dependency>
+      <groupId>org.jboss.as</groupId>
+      <artifactId>jboss-as-jpa-spi</artifactId>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>eclipselink</artifactId>
+      <version>${eclipselink.version}</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>javax.persistence</artifactId>
+      <version>2.0.3</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+        <groupId>org.jboss.logging</groupId>
+        <artifactId>jboss-logging</artifactId>
+        <scope>provided</scope>
+        <optional>true</optional>
+    </dependency>
+    <dependency>
+    	<groupId>org.jboss</groupId>
+    	<artifactId>jboss-vfs</artifactId>
+    	<scope>provided</scope>
+    	<optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.arquillian.junit</groupId>
+      <artifactId>arquillian-junit-container</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+        </configuration>
+      </plugin>
+      <plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-surefire-plugin</artifactId>
+		<version>2.12</version>
+		<executions>
+			<execution>
+				<phase>integration-test</phase>
+				<goals>
+					<goal>test</goal>			
+				</goals>
+				<configuration>
+					<includes>
+						<include>**/*IT.java</include>
+					</includes>
+				</configuration>
+			</execution>
+		</executions>
+		<configuration>
+		  <!-- 
+		      Some of our tests require system properties to be set, so we don't want
+		      to fail the build when the tests fail.
+		   -->
+		  <testFailureIgnore>true</testFailureIgnore>
+		</configuration>
+      </plugin>
+      
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.5</version>
+        <executions>
+          <execution>
+            <id>copy-module-skeleton</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${as7module.destdir}</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${as7module.srcdir}</directory>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>              
+            </configuration>            
+          </execution>
+          <execution>
+            <id>copy-integration</id>
+            <phase>install</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${as7module.destdir}/id/au/ringerc/as7/eclipselinkintegration/main</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.build.directory}</directory>
+                  <filtering>false</filtering>
+                  <includes>
+                  	<include>${INTEGRATION_JAR_NAME}</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>            
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+      	<artifactId>maven-dependency-plugin</artifactId>
+      	<version>2.4</version>
+		<executions>
+			<execution>
+				<id>copy-archives</id>
+				<phase>prepare-package</phase>
+				<goals>
+					<goal>copy</goal>
+				</goals>
+				<configuration>
+					<artifactItems>
+						<artifactItem>
+							<groupId>org.eclipse.persistence</groupId>
+							<artifactId>eclipselink</artifactId>
+							<version>${eclipselink.version}</version>
+							<type>jar</type>
+							<overWrite>true</overWrite>
+							<outputDirectory>${as7module.destdir}/org/eclipse/persistence/main</outputDirectory>
+							<destFileName>${ECLIPSELINK_JAR_NAME}</destFileName>
+						</artifactItem>
+					</artifactItems>
+				</configuration>
+			</execution>
+		</executions>
+      </plugin>
+      
+      <!--  phase install -->
+      
+    </plugins>
+  </build>
+  <profiles>
+
+    <!-- 
+             Profile that adds the JBoss AS 7 managed Arquillian container adapter
+             to the runtime classpath so Arquillian can test against JBoss AS 7.
+             
+             This profile retains the test beans.xml and persistence.xml .
+             
+             TODO: Should check out Arquillian Drone to remote control the webui
+             for functional testing.
+        -->
+    <profile>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+        <property>
+          <name>profile.default</name>
+        </property>
+      </activation>
+      <id>jboss7-arq-remote</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.jboss.as</groupId>
+          <artifactId>jboss-as-arquillian-container-remote</artifactId>
+          <version>7.1.1.Final</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <!-- 
+            Provide the Java EE APIs using JBoss's jboss-javaee-6.0 spec artifacts
+         -->
+    <profile>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+        <property>
+          <name>profile.default</name>
+        </property>
+      </activation>
+      <id>jboss-javaee-dependencies</id>
+      <dependencyManagement>
+        <dependencies>
+          <!-- Use the JBoss JavaEE artifacts instead of the javax ones; see below -->
+          <dependency>
+            <groupId>org.jboss.spec</groupId>
+            <artifactId>jboss-javaee-6.0</artifactId>
+            <type>pom</type>
+            <version>3.0.0.Final</version>
+            <scope>import</scope>
+          </dependency>
+        </dependencies>
+      </dependencyManagement>
+      <dependencies>
+        <!-- Use the JBoss java EE API packaging instead of
+             javax:javaee-api because the latter is a screwed up jar
+             with stripped-out methods that breaks with "absent code" errors
+             in exciting ways during certain uses. -->
+        <!-- We shouldn't really pull in the whole spec, only the bits we use, so
+             specify the APIs we use or expect to use explicitly -->
+        <dependency>
+          <groupId>org.jboss.spec.javax.ejb</groupId>
+          <artifactId>jboss-ejb-api_3.1_spec</artifactId>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.jboss.spec.javax.transaction</groupId>
+          <artifactId>jboss-transaction-api_1.1_spec</artifactId>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>javax.enterprise</groupId>
+          <artifactId>cdi-api</artifactId>
+          <scope>provided</scope>
+        </dependency>
+        <dependency>
+          <groupId>javax.inject</groupId>
+          <artifactId>javax.inject</artifactId>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+</project>

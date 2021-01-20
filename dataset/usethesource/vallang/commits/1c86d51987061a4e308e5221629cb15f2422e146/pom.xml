@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>io.usethesource</groupId>
+	<artifactId>vallang</artifactId>
+	<version>0.12.0-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<scm>
+        <developerConnection>scm:git:ssh://git@github.com/usethesource/vallang.git</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
+
+	<!-- deployment configuration (usethesource) -->
+	<distributionManagement>
+		<repository>
+			<id>usethesource-releases</id>
+			<url>http://nexus.usethesource.io/content/repositories/releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>usethesource-snapshots</id>
+			<url>http://nexus.usethesource.io/content/repositories/snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<!-- dependency resolution configuration (usethesource) -->
+	<repositories>
+		<repository>
+			<id>usethesource</id>
+			<url>http://nexus.usethesource.io/content/repositories/public/</url>
+		</repository>
+	</repositories>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.compiler.source>1.8</maven.compiler.source>
+
+		<checkerframework.version>3.1.0</checkerframework.version>
+	</properties>
+
+	 <build>
+	   <resources>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.config</include>
+                </includes>
+            </resource>
+        </resources>
+		 <testResources>
+			 <testResource>
+				 <directory>test/main/resources</directory>
+			 </testResource>
+		 </testResources>
+		<plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
+                <configuration>
+                    <compilerArgument>-parameters</compilerArgument> <!-- make sure parameters are compiled by name into the jar -->
+                </configuration>
+            </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.2.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5.3</version>
+                <configuration>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                </configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.1.1</version>
+				<configuration>
+					<additionalparam>-Xdoclint:none</additionalparam>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.22.2</version>
+				<executions>
+					<execution>
+						<id>test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>test</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+				<trimStackTrace>false</trimStackTrace>
+				<argLine>
+				@{argLine} 
+				-Xmx2G
+				-ea
+				</argLine>
+				</configuration>
+			</plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.4</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+	<dependency>
+		<groupId>org.junit.jupiter</groupId>
+		<artifactId>junit-jupiter-engine</artifactId>
+		<version>5.6.0</version>
+		<scope>test</scope>
+	</dependency>
+	<dependency>
+		<groupId>org.junit.jupiter</groupId>
+		<artifactId>junit-jupiter-params</artifactId>
+		<version>5.6.0</version>
+		<scope>test</scope>
+	</dependency>
+	<dependency>
+		<groupId>io.usethesource</groupId>
+		<artifactId>capsule</artifactId>
+			<version>0.6.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-compress</artifactId>
+			<version>1.18</version>
+		</dependency>
+		<dependency>
+			<groupId>org.tukaani</groupId>
+			<artifactId>xz</artifactId>
+			<version>1.8</version>
+		</dependency>
+        <dependency>
+			<groupId>com.github.luben</groupId>
+			<artifactId>zstd-jni</artifactId>
+			<version>1.4.4-7</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+			<version>2.8.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.checkerframework</groupId>
+			<artifactId>checker-qual</artifactId>
+			<version>${checkerframework.version}</version>
+		</dependency>
+	</dependencies>
+
+	<profiles>
+		<profile> <!-- run with: mvn clean compile -P checker-framework -->
+			<id>checker-framework
+			</id> <!-- Slower but safer profile used to look for errors before pushing to SCM -->
+
+			<properties>
+				<!-- These properties will be set by the Maven Dependency plugin -->
+				<!--suppress UnresolvedMavenProperty -->
+				<annotatedJdk>${org.checkerframework:jdk8:jar}</annotatedJdk>
+			</properties>
+
+			<build>
+				<plugins>
+					<plugin>
+						<!-- This plugin will set properties values using dependency information -->
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<executions>
+							<execution>
+								<goals>
+									<goal>properties</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<version>3.8.0</version>
+						<configuration>
+							<source>1.8</source>
+							<target>1.8</target>
+							<compilerArguments>
+								<Xmaxerrs>1000</Xmaxerrs>
+								<Xmaxwarns>1000</Xmaxwarns>
+							</compilerArguments>
+							<annotationProcessorPaths>
+								<path>
+									<groupId>org.checkerframework</groupId>
+									<artifactId>checker</artifactId>
+									<version>${checkerframework.version}</version>
+								</path>
+							</annotationProcessorPaths>
+							<annotationProcessors>
+								<!-- Add all the checkers you want to enable here -->
+								<annotationProcessor>
+									org.checkerframework.checker.nullness.NullnessChecker
+								</annotationProcessor>
+							</annotationProcessors>
+							<compilerArgs>
+								<!-- checker framework -->
+								<!-- coordinate of the annotated JDK, which comes from a Maven dependency -->
+								<arg>-Xbootclasspath/p:${annotatedJdk}</arg>
+								<!-- -Awarns turns type-checking warnings into errors. -->
+								<!-- <arg>-Awarns</arg> -->
+							</compilerArgs>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+
+			<dependencies>
+				<dependency>
+					<groupId>org.checkerframework</groupId>
+					<artifactId>checker</artifactId>
+					<version>${checkerframework.version}</version>
+					<scope>provided</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.checkerframework</groupId>
+					<artifactId>jdk8</artifactId>
+					<version>${checkerframework.version}</version>
+					<scope>provided</scope>
+				</dependency>
+			</dependencies>
+
+		</profile>
+	</profiles>
+
+</project>

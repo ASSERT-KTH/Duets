@@ -1,0 +1,832 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.rabbitmq.jms</groupId>
+  <artifactId>rabbitmq-jms</artifactId>
+
+  <name>rabbitmq-jms</name>
+  <description>RabbitMQ JMS Client</description>
+  <version>1.6.0-SNAPSHOT</version>
+  <url>http://www.rabbitmq.com</url>
+
+  <packaging>jar</packaging>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+    <license>
+      <name>MPL 1.1</name>
+      <url>http://www.mozilla.org/MPL/MPL-1.1.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <email>info@rabbitmq.com</email>
+      <name>Team RabbitMQ</name>
+      <organization>Pivotal Software, Inc.</organization>
+      <organizationUrl>https://rabbitmq.com</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/rabbitmq/rabbitmq-jms-client</url>
+    <connection>scm:git:git://github.com/rabbitmq/rabbitmq-jms-client.git</connection>
+    <developerConnection>scm:git:git@github.com:rabbitmq/rabbitmq-jms-client.git</developerConnection>
+  </scm>
+
+  <properties>
+    <rabbitmq.version>4.0.0</rabbitmq.version>
+    <awaitility.version>2.0.0</awaitility.version>
+
+    <java-compile-version>1.6</java-compile-version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <surefire.reports.dir>target/surefire-reports</surefire.reports.dir>
+    <failsafe.reports.dir>target/failsafe-reports</failsafe.reports.dir>
+
+    <!--
+    These groovy scripts are used later in this POM file for the
+    testsuite.
+    -->
+    <groovy-scripts.dir>${basedir}/src/main/scripts</groovy-scripts.dir>
+    <!--
+    ${deps.dir} should point to a directory containing a working copy of
+    rabbitmq-server and of the JMS topic exchange plugin, named "rabbit"
+    and "rabbitmq_jms_topic_exchange", respectively.
+
+    "rabbit" and "rabbitmq_jms_topic_exchange" are used to automatically
+    setup a RabbitMQ node with the JMS topic exchange plugin for the testsuite.
+    -->
+    <deps.dir>${basedir}/deps</deps.dir>
+
+    <!-- For testing only -->
+    <make.bin>make</make.bin>
+    <rabbitmq.dir>${deps.dir}/rabbit</rabbitmq.dir>
+    <rabbitmqctl.bin>${rabbitmq.dir}/scripts/rabbitmqctl</rabbitmqctl.bin>
+
+    <test-broker.A.nodename>rabbit@localhost</test-broker.A.nodename>
+    <test-broker.A.node_port>5672</test-broker.A.node_port>
+    <test-broker.A.config_file>${project.build.directory}/test-classes/${test-broker.A.nodename}</test-broker.A.config_file>
+
+    <!-- to sign artifacts when releasing -->
+    <gpg.keyname>6026DFCA</gpg.keyname>
+    <nexus-staging-maven-plugin.version>1.6.4</nexus-staging-maven-plugin.version>
+  </properties>
+
+  <dependencies>
+
+    <!-- compile scope -->
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-jms_1.1_spec</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.rabbitmq</groupId>
+      <artifactId>amqp-client</artifactId>
+      <version>${rabbitmq.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.12</version>
+    </dependency>
+
+    <!-- test scope -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>1.9.5</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.7.10</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <version>${awaitility.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.8</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>${java-compile-version}</source>
+          <target>${java-compile-version}</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.16</version>
+
+        <configuration>
+          <argLine>-Dfile.encoding=UTF-8</argLine>
+          <systemPropertyVariables>
+            <RABBITMQ_VERSION>${rabbitmq.version}</RABBITMQ_VERSION>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>2.16</version>
+
+        <configuration>
+          <encoding>UTF-8</encoding>
+          <systemPropertyVariables>
+            <RABBITMQ_VERSION>${rabbitmq.version}</RABBITMQ_VERSION>
+            <make.bin>${make.bin}</make.bin>
+            <rabbitmq.dir>${rabbitmq.dir}</rabbitmq.dir>
+            <rabbitmqctl.bin>${rabbitmqctl.bin}</rabbitmqctl.bin>
+            <test-broker.A.nodename>${test-broker.A.nodename}</test-broker.A.nodename>
+            <test-broker.A.node_port>${test-broker.A.node_port}</test-broker.A.node_port>
+            <test-broker.A.config_file>${test-broker.A.config_file}</test-broker.A.config_file>
+          </systemPropertyVariables>
+          <argLine>-Xms1024m -Xmx4096m</argLine>
+          <environmentVariables>
+            <DEPS_DIR>${deps.dir}</DEPS_DIR>
+          </environmentVariables>
+        </configuration>
+
+        <executions>
+          <execution>
+            <id>integration-test</id>
+            <goals>
+              <goal>integration-test</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>verify</id>
+            <goals>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.4</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>2.6.1</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.8</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant-junit</artifactId>
+            <version>1.9.4</version>
+          </dependency>
+          <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant</artifactId>
+            <version>1.9.4</version>
+          </dependency>
+        </dependencies>
+
+        <executions>
+          <execution>
+            <id>test-unit-reports</id>
+            <phase>test</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <mkdir dir="${surefire.reports.dir}"/>
+                <junitreport todir="${surefire.reports.dir}">
+                  <fileset dir="${surefire.reports.dir}">
+                    <include name="**/*.xml"/>
+                  </fileset>
+                  <report format="noframes" todir="${surefire.reports.dir}"/>
+                </junitreport>
+              </target>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>test-integration-reports</id>
+            <phase>integration-test</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <mkdir dir="${failsafe.reports.dir}"/>
+                <junitreport todir="${failsafe.reports.dir}">
+                  <fileset dir="${failsafe.reports.dir}">
+                    <include name="**/*.xml"/>
+                  </fileset>
+                  <report format="noframes" todir="${failsafe.reports.dir}"/>
+                </junitreport>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <tagNameFormat>v@{project.version}</tagNameFormat>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <releaseProfiles>releases</releaseProfiles>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+
+    <profile>
+      <!--
+      Java 8's Javadoc is way more sensible to documentation
+      correctness. For now, disable all those errors until we fix them.
+      -->
+      <id>disable-java8-doclint</id>
+      <activation>
+        <jdk>[1.8,)</jdk>
+      </activation>
+      <properties>
+        <javadoc.opts>-Xdoclint:none</javadoc.opts>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>local-release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>${nexus-staging-maven-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>default-deploy</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>deploy</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <serverId>local-release</serverId>
+              <nexusUrl>http://localhost:8081/nexus/</nexusUrl>
+              <skipStaging>true</skipStaging>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.0.1</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.10.4</version>
+            <configuration>
+              <additionalparam>${javadoc.opts}</additionalparam>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <keyname>${gpg.keyname}</keyname>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+      <distributionManagement>
+        <snapshotRepository>
+          <id>local-snapshots</id>
+          <url>http://localhost:8081/repository/maven-snapshots/</url>
+        </snapshotRepository>
+        <repository>
+          <id>local-releases</id>
+          <url>http://localhost:8081/repository/maven-releases/</url>
+        </repository>
+      </distributionManagement>
+    </profile>
+
+    <profile>
+      <id>ossrh-release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>${nexus-staging-maven-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>default-deploy</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>deploy</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <serverId>ossrh</serverId>
+              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+              <skipStaging>false</skipStaging>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.0.1</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.10.4</version>
+            <configuration>
+              <additionalparam>${javadoc.opts}</additionalparam>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <keyname>${gpg.keyname}</keyname>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+      <distributionManagement>
+        <snapshotRepository>
+          <id>ossrh</id>
+          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+          <id>ossrh</id>
+          <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+      </distributionManagement>
+    </profile>
+
+    <profile>
+      <id>spring-release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>${nexus-staging-maven-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>default-deploy</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>deploy</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <serverId>spring-repo</serverId>
+              <nexusUrl>http://repo.spring.io/artifactory/</nexusUrl>
+              <skipStaging>true</skipStaging>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.0.1</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.10.4</version>
+            <configuration>
+              <additionalparam>${javadoc.opts}</additionalparam>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <keyname>${gpg.keyname}</keyname>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+      <distributionManagement>
+        <snapshotRepository>
+          <id>spring-repo</id>
+          <url>http://repo.spring.io/libs-snapshot-local</url>
+        </snapshotRepository>
+        <repository>
+          <id>spring-repo</id>
+          <url>http://repo.spring.io/libs-release-local</url>
+        </repository>
+      </distributionManagement>
+    </profile>
+
+    <!--
+      The "bintray-release" Maven profile is used to push release artifacts to the
+      Bintray Release Maven Repository.
+    -->
+    <profile>
+      <id>bintray-release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.0.1</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.10.4</version>
+            <configuration>
+              <additionalparam>${javadoc.opts}</additionalparam>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <keyname>${gpg.keyname}</keyname>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+      <distributionManagement>
+        <repository>
+          <id>bintray-rabbitmq-maven</id>
+          <name>rabbitmq-maven</name>
+          <url>https://api.bintray.com/maven/rabbitmq/maven/jms-client/;publish=1</url>
+        </repository>
+      </distributionManagement>
+    </profile>
+
+    <!--
+      The "milestone" Maven profile is used to push release artifacts to the
+      Bintray Milestones Maven Repository.
+    -->
+    <profile>
+      <id>milestone</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.0.1</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.10.4</version>
+            <configuration>
+              <additionalparam>${javadoc.opts}</additionalparam>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <keyname>${gpg.keyname}</keyname>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+      <distributionManagement>
+        <repository>
+          <id>bintray-rabbitmq-maven-milestones</id>
+          <name>rabbitmq-maven-milestones</name>
+          <url>https://api.bintray.com/maven/rabbitmq/maven-milestones/jms-client/;publish=1</url>
+        </repository>
+      </distributionManagement>
+    </profile>
+
+    <profile>
+      <!--
+      If we detect the RabbitMQ Umbrella project, use its dependencies
+      directory.
+      -->
+      <id>in-umbrella</id>
+      <activation>
+        <file>
+          <exists>../../UMBRELLA.md</exists>
+        </file>
+      </activation>
+      <properties>
+        <deps.dir>${basedir}/..</deps.dir>
+      </properties>
+    </profile>
+
+    <profile>
+      <!-- On FreeBSD, GNU Make is installed as "gmake". -->
+      <id>use-gmake</id>
+      <activation>
+        <os><name>FreeBSD</name></os>
+      </activation>
+      <properties>
+        <make.bin>gmake</make.bin>
+      </properties>
+    </profile>
+
+    <profile>
+      <!-- On Windows, use the Batch version of rabbitmqctl. -->
+      <id>use-rabbitmqctl.bat</id>
+      <activation>
+        <os><family>Windows</family></os>
+      </activation>
+      <properties>
+        <rabbitmqctl.bin>${rabbitmq.dir}/scripts/rabbitmqctl.bat</rabbitmqctl.bin>
+      </properties>
+    </profile>
+
+    <profile>
+      <!--
+      To ease testing of the Java client, this POM can setup a RabbitMQ
+      node automatically.
+
+      It depends on the presence of ${rabbitmq.dir} which points to
+      a working copy of the rabbitmq-server Git repository. If it
+      is missing, nothing is setup and the testsuite relies on an
+      externally provided broker/cluster.
+
+      If you want to explicitely disable the automatic cluster setup,
+      you must disable this profile:
+
+          mvn verify -P '!setup-test-node'
+
+      -->
+      <id>setup-test-node</id>
+      <activation>
+        <property>
+          <name>!skipTests</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.gmaven</groupId>
+            <artifactId>groovy-maven-plugin</artifactId>
+            <version>2.0</version>
+            <executions>
+              <!--
+              Start a broker.
+
+              Currently, this test broker will listen to the default
+              TCP ports of 5672 for AMQP. Unforunately, this means
+              no other standard RabbitMQ can run on the same host at the same time.
+              -->
+              <execution>
+                <phase>pre-integration-test</phase>
+                <id>start-test-broker-A</id>
+                <goals>
+                  <goal>execute</goal>
+                </goals>
+                <configuration>
+                  <properties>
+                    <nodename>${test-broker.A.nodename}</nodename>
+                    <node_port>${test-broker.A.node_port}</node_port>
+                  </properties>
+                  <source>
+                    ${groovy-scripts.dir}/manage_test_broker.groovy
+                  </source>
+                </configuration>
+              </execution>
+
+              <!--
+              After the testsuite, no matter the result, stop both the test broker.
+              -->
+              <execution>
+                <phase>post-integration-test</phase>
+                <id>stop-test-broker-A</id>
+                <goals>
+                  <goal>execute</goal>
+                </goals>
+                <configuration>
+                  <properties>
+                    <nodename>${test-broker.A.nodename}</nodename>
+                  </properties>
+                  <source>
+                    ${groovy-scripts.dir}/manage_test_broker.groovy
+                  </source>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+        </plugins>
+      </build>
+    </profile>
+
+  </profiles>
+
+  <repositories>
+    <repository>
+      <id>ossrh</id>
+      <url>http://oss.sonatype.org/content/repositories/releases</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </repository>
+    <repository>
+      <id>jboss.org</id>
+      <name>Jboss Maven 2 Repository</name>
+      <url>http://repository.jboss.org/nexus/content/groups/public-jboss/</url>
+    </repository>
+  </repositories>
+</project>

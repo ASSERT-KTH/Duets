@@ -1,0 +1,286 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- Inherit Sonatype OSS parent to publish to Maven Central -->
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
+
+  <groupId>lt.velykis.maven</groupId>
+  <artifactId>pde-target-maven-plugin</artifactId>
+
+  <version>1.0.2-SNAPSHOT</version>
+  <packaging>maven-plugin</packaging>
+
+  <name>Eclipse PDE Target Definition Maven Plugin</name>
+  <description>
+    Maven plugin to generate Eclipse PDE target definitions using POM-first dependencies.
+    Supplements functionality of Eclipse Tycho to use OSGI bundles from Maven repositories
+    in Eclipse Plug-in Development Environment.
+  </description>
+  <inceptionYear>2013</inceptionYear>
+
+  <url>http://andriusvelykis.github.com/pde-target-maven-plugin</url>
+  
+  <prerequisites>
+    <maven>${mavenVersion}</maven>
+  </prerequisites>
+  
+  <properties>
+    <mavenVersion>2.0.9</mavenVersion>
+    <mavenPluginPluginVersion>3.2</mavenPluginPluginVersion>
+
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <github.global.server>github</github.global.server>
+    <repositoryName>pde-target-maven-plugin</repositoryName>
+    <repositoryOwner>andriusvelykis</repositoryOwner>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+      <version>${mavenVersion}</version>
+    </dependency>
+
+    <!-- dependencies to annotations -->
+    <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+      <version>${mavenPluginPluginVersion}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- reuse Dependency plugin -->
+    <dependency>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-dependency-plugin</artifactId>
+      <version>2.6</version>
+    </dependency>
+
+    <!-- Plexus Build API -->
+    <dependency>
+      <groupId>org.sonatype.plexus</groupId>
+      <artifactId>plexus-build-api</artifactId>
+      <version>0.0.7</version>
+    </dependency>
+
+  </dependencies>
+
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <configuration>
+          <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+        </configuration>
+        <executions>
+          <execution>
+            <id>mojo-descriptor</id>
+            <goals>
+              <goal>descriptor</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Configure Maven site plugin for Reflow skin and Markdown support -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>3.2</version>
+        <dependencies>
+          <dependency>
+            <!-- Use Doxia 1.4 SNAPSHOT, because it has the fix for DOXIA-480. Without the
+                 fix, some Markdown symbols are not output at all (e.g. quotes).
+
+                 See http://jira.codehaus.org/browse/DOXIA-480 for details. -->
+            <groupId>org.apache.maven.doxia</groupId>
+            <artifactId>doxia-core</artifactId>
+            <version>1.4-SNAPSHOT</version>
+          </dependency>
+          <dependency>
+            <!-- Markdown support for writing website content -->
+            <groupId>org.apache.maven.doxia</groupId>
+            <artifactId>doxia-module-markdown</artifactId>
+            <version>1.3</version>
+          </dependency>
+          <dependency>
+            <groupId>lt.velykis.maven.skins</groupId>
+            <artifactId>reflow-velocity-tools</artifactId>
+            <version>1.0.0</version>
+          </dependency>
+          <dependency>
+            <!-- Reflow skin requires velocity 1.7 -->
+            <groupId>org.apache.velocity</groupId>
+            <artifactId>velocity</artifactId>
+            <version>1.7</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <generateReports>true</generateReports>
+          <inputEncoding>UTF-8</inputEncoding>
+          <outputEncoding>UTF-8</outputEncoding>
+          <!-- Site deployment done using GitHub site plugin -->
+          <skipDeploy>true</skipDeploy>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <!-- GitHub site plug-in for deployment to GitHub pages -->
+        <groupId>com.github.github</groupId>
+        <artifactId>site-maven-plugin</artifactId>
+        <version>0.7</version>
+        <configuration>
+          <message>Creating site for ${project.artifactId}, ${project.version}</message>
+          <!-- this does the trick to place every module in the correct subfolder -->
+          <path>${project.distributionManagement.site.url}</path>
+          <merge>true</merge>
+        </configuration>
+        <executions>
+          <execution>
+            <id>github-site</id>
+            <goals>
+              <goal>site</goal>
+            </goals>
+            <phase>site-deploy</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <pushChanges>false</pushChanges>
+          <localCheckout>true</localCheckout>
+        </configuration>
+      </plugin>
+    </plugins>
+
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-plugin-plugin</artifactId>
+          <version>${mavenPluginPluginVersion}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>2.5.1</version>
+          <configuration>
+            <source>1.6</source>
+            <target>1.6</target>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.6</version>
+        <configuration>
+          <anonymousConnection>scm:git:git@github.com:andriusvelykis/pde-target-maven-plugin.git</anonymousConnection>
+          <developerConnection>scm:git:git@github.com:andriusvelykis/pde-target-maven-plugin.git</developerConnection>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>summary</report>
+              <report>license</report>
+              <report>modules</report>
+              <report>project-team</report>
+              <report>scm</report>
+              <report>issue-tracking</report>
+              <report>dependencies</report>
+              <report>dependency-convergence</report>
+              <report>plugins</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-changes-plugin</artifactId>
+        <version>2.8</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>changes-report</report>
+              <report>github-report</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <version>${mavenPluginPluginVersion}</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>javadoc</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+    </plugins>
+  </reporting>
+
+
+  <scm>
+    <connection>scm:git:git@github.com:andriusvelykis/pde-target-maven-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:andriusvelykis/pde-target-maven-plugin.git</developerConnection>
+    <url>http://github.com/andriusvelykis/pde-target-maven-plugin/tree/master</url>
+    <tag>HEAD</tag>
+  </scm>
+  <issueManagement>
+    <system>GitHub</system>
+    <url>http://github.com/andriusvelykis/pde-target-maven-plugin/issues/</url>
+  </issueManagement>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>Andrius Velykis</name>
+    <url>http://andrius.velykis.lt</url>
+  </organization>
+
+  <developers>
+    <developer>
+      <id>andriusvelykis</id>
+      <name>Andrius Velykis</name>
+      <timezone>0</timezone>
+      <url>http://andrius.velykis.lt</url>
+    </developer>
+  </developers>
+
+</project>

@@ -1,0 +1,337 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>net.wasdev.wlp.sample</groupId>
+    <artifactId>batch-bonuspayout-application</artifactId>
+    <packaging>war</packaging>
+    <!-- Never released 1.0, but this is a significant rework from 1.0-SNAPSHOT, so reversioning to 2.0-SNAPSHOT -->
+    <version>2.0-SNAPSHOT</version>  
+    <name>WAS Liberty Sample - Batch BonusPayout Sample</name>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>https://raw.github.com/WASdev/sample.batch.bonuspayout/master/LICENSE</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <parent>
+        <groupId>net.wasdev.wlp.maven.parent</groupId>
+        <artifactId>liberty-maven-webapp-parent</artifactId>
+        <version>2.0-SNAPSHOT</version>
+    </parent>
+    
+    <scm>
+        <connection>scm:git:git@github.com:WASdev/sample.batch.bonuspayout.git</connection>
+        <developerConnection>scm:git@github.com:WASdev/sample.batch.bonuspayout.git</developerConnection>
+        <url>git@github.com:WASdev/sample.batch.bonuspayout.git</url>
+    </scm>
+
+    <pluginRepositories>
+        <!-- Configure Sonatype OSS Maven snapshots repository -->
+        <pluginRepository>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Sonatype Nexus Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>
+    
+    <properties>
+
+        <!-- EDIT ME (or override on command line) -->
+       
+        <serverHost>localhost</serverHost>
+        <httpsPort>9443</httpsPort>
+        <libertyVersion>16.0.0.3</libertyVersion>
+        <db.url>${project.build.directory}/liberty/wlp/usr/shared/BatchDB</db.url>                                 
+        <!-- Use commented-out value since empty value doesn't flow as well. -->
+        <startServerJvmOptions>#-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=7777</startServerJvmOptions>
+<outputDirectory>${project.build.directory}/liberty/wlp/usr/shared/resources</outputDirectory>                                 
+
+        <!-- DON'T EDIT after this point -->
+        <batch.props.directory>${project.basedir}/batchprops</batch.props.directory>
+        <shared.resource.directory>${project.build.directory}/liberty/wlp/usr/shared/resources</shared.resource.directory>
+        <ddl.dir>${project.basedir}/ddls</ddl.dir>
+        <wlpServerName>BonusPayout</wlpServerName>
+        <derby.version>10.11.1.1</derby.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+        <package.file>${project.build.directory}/${project.artifactId}.jar</package.file>
+        <packaging.type>minify,runnable</packaging.type>
+    </properties>
+    
+    <profiles>
+        <profile>
+            <id>usr-package</id>
+            <properties>
+                <package.file>${project.build.directory}/${project.artifactId}.zip</package.file>
+                <packaging.type>usr</packaging.type>
+            </properties>        
+        </profile>    
+    </profiles>
+    
+    <dependencies>
+        <dependency>
+            <groupId>commons-httpclient</groupId>
+            <artifactId>commons-httpclient</artifactId>
+            <version>3.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Just add one dependency on all EE 7 APIs -->
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+            <version>7.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>net.sf.expectit</groupId>
+            <artifactId>expectit-core</artifactId>
+            <version>0.8.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    
+    <build>
+        <defaultGoal>install</defaultGoal>
+        <finalName>batch-bonuspayout-application</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.1</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <echo>********</echo>
+                                <echo>******** Database location will be at URL: </echo>
+                                <echo>******** ${db.url}</echo>
+                                <echo>********</echo>
+                            </tasks>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>copy-process-resources</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.apache.derby</groupId>
+                                    <artifactId>derby</artifactId>
+                                    <version>${derby.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${shared.resource.directory}/derby</outputDirectory>
+                                    <destFileName>derby.jar</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Used to create and prime the database with the BonusPayout application-level table. 
+                By calling it "application-level", we're referring to the fact that this 
+                is data written by the application, not by the runtime. Note the runtime 
+                tables may be created in the same database, as we do in this sample execution. -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>sql-maven-plugin</artifactId>
+                <version>1.5</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.derby</groupId>
+                        <artifactId>derby</artifactId>
+                        <version>${derby.version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <driver>org.apache.derby.jdbc.EmbeddedDriver</driver>
+                    <url>jdbc:derby:${db.url};create=true</url>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>drop-db-before-test-if-any</id>
+                        <phase>process-test-resources</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <autocommit>true</autocommit>
+                            <sqlCommand>drop table BONUSPAYOUT.ACCOUNT</sqlCommand>
+                            <onError>continue</onError>
+                            <skip>${reuseDB}</skip>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>create-db</id>
+                        <phase>process-test-resources</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <autocommit>true</autocommit>
+                            <srcFiles>
+                                <srcFile>${ddl.dir}/BonusPayout.derby.ddl</srcFile>
+                            </srcFiles>
+                            <skip>${reuseDB}</skip>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>shutdown-database-so-that-test-can-run</id>
+                        <phase>process-test-resources</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <url>jdbc:derby:${db.url};shutdown=true</url>
+                            <skipOnConnectionError>true</skipOnConnectionError>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <packagingExcludes>pom.xml</packagingExcludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>net.wasdev.wlp.maven.plugins</groupId>
+                <artifactId>liberty-maven-plugin</artifactId>
+                <version>2.0-SNAPSHOT</version>
+                <configuration>
+                    <assemblyArtifact>
+                        <groupId>com.ibm.websphere.appserver.runtime</groupId>
+                        <artifactId>wlp-webProfile7</artifactId>
+                        <version>17.0.0.1</version>
+                        <type>zip</type>
+                    </assemblyArtifact>
+                    <installDirectory>${wlp.install.dir}</installDirectory>
+                    <serverName>${wlpServerName}</serverName>
+                    <bootstrapProperties>
+                         <!-- propagate existing prop -->
+                         <db.url>${db.url}</db.url>
+                    </bootstrapProperties>
+                    <configFile>src/main/liberty/config/server.xml</configFile>
+                    <appsDirectory>apps</appsDirectory>
+                    <installAppPackages>project</installAppPackages>
+                    <looseApplication>true</looseApplication>
+                    <packageFile>${package.file}</packageFile>
+                    <include>${packaging.type}</include>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>install-feature</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>install-feature</goal>
+                        </goals>
+                        <configuration>
+                            <features>
+                                <acceptLicense>true</acceptLicense>
+                                <feature>batchManagement-1.0</feature>
+                            </features>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.19.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <!-- Set up the CLI, which is running outside the server. -->
+                    <systemPropertyVariables>
+                        <batch.props.directory>${batch.props.directory}</batch.props.directory>
+                        <wlp.install.dir>${wlpInstallDir}</wlp.install.dir>
+                        <httpsPort>${httpsPort}</httpsPort>
+                        <serverHost>${serverHost}</serverHost>
+                        <warName>${project.artifactId}</warName>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+        <pluginManagement>
+            <plugins>
+                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.codehaus.mojo</groupId>
+                                        <artifactId>sql-maven-plugin</artifactId>
+                                        <versionRange>[1.5,)</versionRange>
+                                        <goals>
+                                            <goal>execute</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore/>
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+    <profiles>
+        <profile>
+            <id>use-existing-liberty-if-present</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property><name>wlp.install.dir</name></property>
+            </activation>
+            <properties>
+                <wlpInstallDir>${wlp.install.dir}</wlpInstallDir>
+            </properties>
+        </profile>
+    </profiles>
+</project>

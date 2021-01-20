@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>ee.ioc.cs</groupId>
+  <artifactId>cocovila</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <properties>
+    <parser.generated.src>${basedir}/src/main/java/ee/ioc/cs/vsle/parser/generated</parser.generated.src>
+    <parser.generated.package>ee.ioc.cs.vsle.parser.generated</parser.generated.package>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.jfree</groupId>
+      <artifactId>jfreechart</artifactId>
+      <version>1.0.19</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.jdt.core.compiler</groupId>
+      <artifactId>ecj</artifactId>
+      <version>4.4</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.antlr</groupId>
+      <artifactId>antlr4</artifactId>
+      <version>4.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.antlr</groupId>
+        <artifactId>antlr4-maven-plugin</artifactId>
+        <version>4.3</version>
+        <executions>
+          <execution>
+            <id>antlr</id>
+            <goals>
+              <goal>antlr4</goal>
+            </goals>
+            <configuration>
+              <arguments>
+                <argument>-package</argument>
+                <argument>${parser.generated.package}</argument>
+              </arguments>
+              <outputDirectory>${parser.generated.src}</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>ee.ioc.cs.vsle.editor.Editor</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <!-- Setup clean -->
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>2.6.1</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${parser.generated.src}</directory>
+            </fileset>
+            <fileset>
+              <directory>${basedir}/generated</directory>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>properties-maven-plugin</artifactId>
+        <version>1.0-alpha-2</version>
+        <executions>
+          <execution>
+            <phase>initialize</phase>
+            <goals>
+              <goal>read-project-properties</goal>
+            </goals>
+            <configuration>
+              <files>
+                <file>${basedir}/dist.properties</file>
+              </files>
+              <quiet>true</quiet>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <!-- Prepare Java Web Start stuff, use 'mvn deploy' and find the files under target/jnlp -->
+        <!--http://stackoverflow.com/questions/5195545/looking-for-webstart-maven-plugin-sample-application-->
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>webstart-maven-plugin</artifactId>
+        <version>1.0-beta-6</version>
+        <executions>
+          <execution>
+            <phase>deploy</phase>
+            <goals>
+              <goal>jnlp-inline</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <makeArchive>false</makeArchive>
+          <excludeTransitive>false</excludeTransitive>
+          <libPath>lib</libPath>
+          <updateManifestEntries>
+            <Permissions>all-permissions</Permissions>
+            <Codebase>*</Codebase>
+          </updateManifestEntries>
+          <jnlp>
+            <inputTemplateResourcePath>${project.basedir}</inputTemplateResourcePath>
+            <inputTemplate>src/main/jnlp/CoCoViLa.jnlp.vm</inputTemplate>
+            <outputFile>CoCoViLa.jnlp</outputFile>
+            <mainClass>ee.ioc.cs.vsle.editor.Editor</mainClass>
+            <j2seVersion>1.6+</j2seVersion>
+            <offlineAllowed>true</offlineAllowed>
+            <spec>6.0+</spec>
+          </jnlp>
+
+          <sign>
+            <keystore>${basedir}/keystore</keystore>
+            <keypass>${project.dist.keystore.keypass}</keypass>
+            <storepass>${project.dist.keystore.keypass}</storepass>
+            <alias>CoCoViLa</alias>
+            <validity>3650</validity>
+            <!-- only required for generating the keystore -->
+            <dnameCn>${project.dist.keystore.dnameCn}</dnameCn>
+            <dnameOu>Software Lab</dnameOu>
+            <dnameO>Institute of Cybernetics</dnameO>
+            <dnameL>Tallinn</dnameL>
+            <dnameSt>Harjumaa</dnameSt>
+            <dnameC>EE</dnameC>
+
+            <verify>true</verify>
+            <!-- KEYSTORE MANAGEMENT -->
+            <keystoreConfig>
+              <delete>true</delete>
+              <gen>true</gen>
+            </keystoreConfig>
+          </sign>
+          <!-- BUILDING PROCESS -->
+          <gzip>true</gzip>
+          <outputJarVersions>true</outputJarVersions>
+          <verbose>true</verbose>
+        </configuration>
+      </plugin>
+    </plugins>
+
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <configuration>
+            <skip>true</skip>
+          </configuration>
+        </plugin>
+        <!--This plugin's configuration is used to store Eclipse m2e settings
+         only. It has no influence on the Maven build itself. -->
+        <plugin>
+            <groupId>org.eclipse.m2e</groupId>
+            <artifactId>lifecycle-mapping</artifactId>
+            <version>1.0.0</version>
+            <configuration>
+                <lifecycleMappingMetadata>
+                    <pluginExecutions>
+                        <pluginExecution>
+                            <pluginExecutionFilter>
+                                <groupId>org.codehaus.mojo</groupId>
+                                <artifactId>properties-maven-plugin</artifactId>
+                                <versionRange>[0.0,)</versionRange>
+                                <goals>
+                                    <goal>read-project-properties</goal>
+                                </goals>
+                            </pluginExecutionFilter>
+                            <action>
+                                <ignore />
+                            </action>
+                        </pluginExecution>
+                    </pluginExecutions>
+                </lifecycleMappingMetadata>
+            </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>run-se</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>1.3.2</version>
+            <configuration>
+              <executable>java</executable>
+              <arguments>
+                <argument>-classpath</argument>
+                <classpath />
+                <argument>ee.ioc.cs.vsle.editor.Editor</argument>
+              </arguments>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>run-ce</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>1.3.2</version>
+            <configuration>
+              <executable>java</executable>
+              <arguments>
+                <argument>-classpath</argument>
+                <classpath />
+                <argument>ee.ioc.cs.vsle.iconeditor.IconEditor</argument>
+              </arguments>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

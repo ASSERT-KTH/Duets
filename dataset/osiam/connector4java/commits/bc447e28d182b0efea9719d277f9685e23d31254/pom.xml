@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2013 tarent AG
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining
+  ~ a copy of this software and associated documentation files (the
+  ~ "Software"), to deal in the Software without restriction, including
+  ~ without limitation the rights to use, copy, modify, merge, publish,
+  ~ distribute, sublicense, and/or sell copies of the Software, and to
+  ~ permit persons to whom the Software is furnished to do so, subject to
+  ~ the following conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be
+  ~ included in all copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  ~ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  ~ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+  ~ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+  ~ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+  ~ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+  ~ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+    
+    <groupId>org.osiam</groupId>
+    <artifactId>connector4java</artifactId>
+    <version>0.6-SNAPSHOT</version>
+    <name>OSIAM Connector 4 Java</name>
+    <packaging>jar</packaging>
+    
+    <licenses>
+        <license>
+            <name>The MIT License (MIT)</name>
+            <url>http://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.build.timestamp.format>yyyyMMdd'T'HHmmss</maven.build.timestamp.format>
+        <clover.version>3.1.11</clover.version>
+        <java.version>1.7</java.version>
+        <jersey.version>1.17</jersey.version>
+    </properties>
+
+    <scm>
+        <connection>scm:git://git@github.com/osiam/connector4java.git</connection>
+        <url>https://github.com/osiam/connector4java</url>
+        <developerConnection>scm:git:ssh://git@github.com/osiam/connector4java.git</developerConnection>
+        <tag>HEAD</tag>
+  </scm>
+
+    <developers>
+        <developer>
+            <id>trossn</id>
+            <name>Thorsten Rossner</name>
+            <email>info@osiam.org</email>
+            <timezone>+1</timezone>
+            <organization>OSIAM</organization>
+        </developer>
+    </developers>
+    
+    <distributionManagement>
+        <repository>
+            <id>osiam-repository</id>
+            <name>public evolvis release repository</name>
+            <url>sftp://maven-repo.evolvis.org:/var/www/maven_repo/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>OSIAM-NG-SNAPSHOT-repository</id>
+            <name>public evolvis release repository</name>
+            <url>sftp://maven-repo.evolvis.org:/var/www/maven_repo/snapshots/</url>
+        </snapshotRepository>
+
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>osiam releases repo</id>
+            <url>https://maven-repo.evolvis.org/releases</url>
+        </repository>
+    </repositories>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+
+            <!-- Coverage reports for sonar -->
+            <plugin>
+                <groupId>com.atlassian.maven.plugins</groupId>
+                <artifactId>maven-clover2-plugin</artifactId>
+                <version>${clover.version}</version>
+                <configuration>
+                    <generatePdf>true</generatePdf>
+                    <generateXml>true</generateXml>
+                    <generateJson>false</generateJson>
+                    <generateHtml>true</generateHtml>
+                    <jdk>${java.version}</jdk>
+                    <historyDir>${user.home}/history/${project.artifact}</historyDir>
+                </configuration>
+            </plugin>
+            <!-- Needed due to a problem with SSH -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.5</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.wagon</groupId>
+                        <artifactId>wagon-ssh</artifactId>
+                        <version>1.0-beta-7</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <!-- Needed to publish releases to sonatype staging repo -->
+            <!-- which leads to maven central -->
+            <!-- Note: In order for this to work you need to have the -->
+            <!-- appropriate server tag in your .m2/settings.xml -->
+            <!-- with your username/password for the sonatype jira -->
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.4.4</version>
+                <extensions>true</extensions>
+                <executions>
+                    <execution>
+                        <id>default-deploy</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>deploy</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <serverId>sonatype-nexus-staging</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                </configuration>
+            </plugin>
+
+            <!-- parent pom defines old version -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-gpg-plugin</artifactId>
+              <version>1.4</version>
+              <executions>
+                  <execution>
+                      <id>sign-artifacts</id>
+                      <phase>verify</phase>
+                      <goals>
+                          <goal>sign</goal>
+                      </goals>
+                  </execution>
+              </executions>
+            </plugin>
+            <!-- During release:perform, enable the "release" profile -->
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.4.1</version>
+                <configuration>
+                    <!-- During release:perform, enable the "release" profile -->
+                    <releaseProfiles>sonatype-oss-release</releaseProfiles>
+                    <arguments>-Psonatype-oss-release ${release.arguments} </arguments>
+                    <goals>deploy</goals>
+                </configuration>
+            </plugin>
+            
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>org.osiam</groupId>
+            <artifactId>scim-schema</artifactId>
+            <version>0.2</version>
+        </dependency>
+        <!-- Used for access token retrieval -->
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.2.5</version>
+        </dependency>
+        <!-- needed for the REST client -->
+        <!-- <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-json</artifactId>
+            <version>${jersey.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.codehaus.jackson</groupId>
+                    <artifactId>jackson-mapper-asl</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.codehaus.jackson</groupId>
+                    <artifactId>jackson-core-asl</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency> -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>1.28</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.codehaus.jackson</groupId>
+                    <artifactId>jackson-core-asl</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>1.9.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>nl.jqno.equalsverifier</groupId>
+            <artifactId>equalsverifier</artifactId>
+            <version>1.3.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.javax.persistence</groupId>
+            <artifactId>hibernate-jpa-2.0-api</artifactId>
+            <version>1.0.1.Final</version>
+        </dependency>
+        <dependency>
+		    <groupId>joda-time</groupId>
+		    <artifactId>joda-time</artifactId>
+		    <version>2.3</version>
+		</dependency>
+    </dependencies>
+    <profiles>
+        <profile>
+            <id>sign</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <!-- call as "mvn -Psign verify -Dgpg.passphrase=thephrase" or set -Dgpg.skip=true -->
+                    <!-- If not given, gpg passphrase has to be provided interactively -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.4</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

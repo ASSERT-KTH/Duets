@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.qala.java-training</groupId>
+    <artifactId>java-training</artifactId>
+    <version>1-SNAPSHOT</version>
+    <packaging>war</packaging>
+
+    <properties>
+        <sourceJdk>1.8</sourceJdk>
+        <targetJdk>1.8</targetJdk>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring.version>4.3.5.RELEASE</spring.version>
+        <rest-assured.version>2.9.0</rest-assured.version>
+        <slf4j.version>1.7.13</slf4j.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-orm</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-el</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.qala.datagen</groupId>
+            <artifactId>qala-datagen</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.qala.datagen</groupId>
+            <artifactId>qala-datagen-java8types</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.unitils</groupId>
+            <artifactId>unitils-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.jayway.restassured</groupId>
+            <artifactId>rest-assured</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.jayway.restassured</groupId>
+            <artifactId>spring-mock-mvc</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+        </dependency>
+    </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-webmvc</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-orm</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+            <dependency>
+                <!--Is used by Spring MVC to convert objects to/from JSON or XML-->
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>2.8.3</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.datatype</groupId>
+                <artifactId>jackson-datatype-jsr310</artifactId>
+                <version>2.8.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-core</artifactId>
+                <version>5.2.2.Final</version>
+                <exclusions>
+                    <exclusion>
+                        <!--We're not going to use Hibernate annotations in this project-->
+                        <groupId>org.hibernate.common</groupId>
+                        <artifactId>hibernate-commons-annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!--This dependency is provided by servlet container. And for tests we use Tomcat Embed  implementation-->
+                        <groupId>javax.el</groupId>
+                        <artifactId>el-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <!--This seems to be a very slow way to validate things but it's pretty widespread. In the future we
+                should measure the real performance metrics and replace it with manual validation if it's really slow-->
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-validator</artifactId>
+                <version>5.3.4.Final</version>
+            </dependency>
+            <dependency>
+                <!--EL API/Impl is needed at least by Hibernate Validator for message interpolation to work (resolving
+                expressions like "error {0}"-->
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-el</artifactId>
+                <version>8.5.4</version>
+                <!--This API and the implementation is provided by the servlet container. We need it here only for tests.
+                Usually Hibernate Validator is configured with the Glassfish implementation (as it's described in the
+                official doc), but since we're going to use Tomcat as the primary App Server using it in the tests too
+                would make the tests more realistic.-->
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.h2database</groupId>
+                <artifactId>h2</artifactId>
+                <version>1.4.192</version>
+            </dependency>
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-core</artifactId>
+                <version>4.0.3</version>
+            </dependency>
+            <dependency>
+                <!--Compile time since we put some randomization methods into production code.-->
+                <groupId>io.qala.datagen</groupId>
+                <artifactId>qala-datagen</artifactId>
+                <version>1.10.1</version>
+            </dependency>
+            <dependency>
+                <!--Compile time since we put some randomization methods into production code.-->
+                <groupId>io.qala.datagen</groupId>
+                <artifactId>qala-datagen-java8types</artifactId>
+                <version>1.10.1</version>
+            </dependency>
+
+            <dependency>
+                <!--SLF4J is a logging facade that provides an ability to replace the underlying logging mechanism with
+                popular alternatives-->
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <!--A lot of open source libs use Commons Logging API. To replace it with SLF4J we exclude all the
+                Commons Logging dependencies and include this bridge that has the same classes, but instead of doing
+                real JCL work it delegates all the work to SLF4j-->
+                <groupId>org.slf4j</groupId>
+                <artifactId>jcl-over-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <!--Logback is one of the most popular and functionally rich loggers. Log4j 2 is not used because
+                this is something new on the market that the team doesn't have a lot of expertise with. But in the
+                future we may want to switch to it.-->
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>1.1.7</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>1.1.3</version>
+                <!--Configured JCL to be scope=provided - this means that no matter what
+                 dependency adds it transitively, it will still be excluded from the
+                 final binary. The downside of this is that the dependency is still
+                 present while testing. But it doesn't seem to have an impact (at least for now).
+
+                 Alternative could be excluding JCL from all the dependencies
+                 that reference it which is error-prone since people don't often
+                 inspect transitive dependencies. As for now this seems to be working
+                 fine, but can be re-examined in the future.
+
+                 3d alternative (according to http://slf4j.org/faq.html#excludingJCL)
+                 is setting JCL version to `version99` which is an empty JAR, but that
+                 would require extra proxy repos configured in Nexus (both on EPAM and
+                 Merck side).-->
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.testng</groupId>
+                <artifactId>testng</artifactId>
+                <version>6.10</version>
+            </dependency>
+            <dependency>
+                <groupId>org.unitils</groupId>
+                <artifactId>unitils-core</artifactId>
+                <version>3.4.3</version>
+            </dependency>
+            <dependency>
+                <groupId>com.jayway.restassured</groupId>
+                <artifactId>rest-assured</artifactId>
+                <version>${rest-assured.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.jayway.restassured</groupId>
+                <artifactId>spring-mock-mvc</artifactId>
+                <version>${rest-assured.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>3.1.0</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.3</version>
+                    <configuration>
+                        <source>${sourceJdk}</source>
+                        <target>${targetJdk}</target>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>

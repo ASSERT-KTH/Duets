@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.cicomponents</groupId>
+    <artifactId>cicomponents-dist</artifactId>
+    <version>${release.version}</version>
+    <packaging>karaf-assembly</packaging>
+    <name>cicomponents</name>
+
+    <repositories>
+        <repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>central</id>
+            <name>bintray</name>
+            <url>http://jcenter.bintray.com</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <!-- scope is compile so all features (there is only one) are installed into startup.properties and the feature repo itself is not added in etc/org.apache.karaf.features.cfg file -->
+            <groupId>org.apache.karaf.features</groupId>
+            <artifactId>framework</artifactId>
+            <version>4.0.5</version>
+            <type>kar</type>
+        </dependency>
+        <dependency>
+            <!-- scope is runtime so the feature repo is listed in etc/org.apache.karaf.features.cfg file, and features will installed into the system directory -->
+            <groupId>org.apache.karaf.features</groupId>
+            <artifactId>framework</artifactId>
+            <version>4.0.5</version>
+            <classifier>features</classifier>
+            <type>xml</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <!-- scope is runtime so the feature repo is listed in etc/org.apache.karaf.features.cfg file, and features will installed into the system directory -->
+            <groupId>org.apache.karaf.features</groupId>
+            <artifactId>standard</artifactId>
+            <version>4.0.5</version>
+            <classifier>features</classifier>
+            <type>xml</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <!-- scope is runtime so the feature repo is listed in etc/org.apache.karaf.features.cfg file, and features will installed into the system directory -->
+            <groupId>org.apache.karaf.features</groupId>
+            <artifactId>enterprise</artifactId>
+            <version>4.0.5</version>
+            <classifier>features</classifier>
+            <type>xml</type>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cicomponents</groupId>
+            <artifactId>cicomponents</artifactId>
+            <version>${release.version}</version>
+            <classifier>features</classifier>
+            <type>xml</type>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!-- if you want to include resources in the distribution -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/filtered-resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+        </resources>
+
+        <plugins>
+            <!-- if you want to include resources in the distribution -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>process-resources</id>
+                        <goals>
+                            <goal>resources</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- karaf-maven-plugin will call both assembly and archive goals -->
+            <plugin>
+                <groupId>org.apache.karaf.tooling</groupId>
+                <artifactId>karaf-maven-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <installedFeatures>
+                        <feature>wrapper</feature>
+                    </installedFeatures>
+                    <bootFeatures>
+                        <feature>framework</feature>
+                        <feature>wrap</feature>
+                        <feature>aries-blueprint</feature>
+                        <feature>shell</feature>
+                        <feature>shell-compat</feature>
+                        <feature>feature</feature>
+                        <feature>jaas</feature>
+                        <feature>ssh</feature>
+                        <feature>management</feature>
+                        <feature>bundle</feature>
+                        <feature>config</feature>
+                        <feature>deployer</feature>
+                        <feature>diagnostic</feature>
+                        <feature>feature</feature>
+                        <feature>instance</feature>
+                        <feature>kar</feature>
+                        <feature>log</feature>
+                        <feature>package</feature>
+                        <feature>service</feature>
+                        <feature>system</feature>
+                        <feature>cicomponents</feature>
+                    </bootFeatures>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>rename_script</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <move file="target/assembly/bin/karaf"
+                                      tofile="target/assembly/bin/cicomponents"/>
+                                <move file="target/assembly/bin/karaf.bat"
+                                      tofile="target/assembly/bin/cicomponents.bat"/>
+                                <move file="target/assembly/bin/contrib/karaf-service.sh"
+                                      tofile="target/assembly/bin/contrib/cicomponents-service.sh"/>
+                                <move file="target/assembly/bin/contrib/karaf-service-template.conf"
+                                      tofile="target/assembly/bin/contrib/cicomponents-service-template.conf"/>
+                                <move file="target/assembly/bin/contrib/karaf-service-template.init"
+                                      tofile="target/assembly/bin/contrib/cicomponents-service-template.init"/>
+                                <move file="target/assembly/bin/contrib/karaf-service-template.init-debian"
+                                      tofile="target/assembly/bin/contrib/cicomponents-service-template.init-debian"/>
+                                <move file="target/assembly/bin/contrib/karaf-service-template.init-redhat"
+                                      tofile="target/assembly/bin/contrib/cicomponents-service-template.init-redhat"/>
+                                <move file="target/assembly/bin/contrib/karaf-service-template.solaris-smf"
+                                      tofile="target/assembly/bin/contrib/cicomponents-service-template.solaris-smf"/>
+                                <move file="target/assembly/bin/contrib/karaf-service-template.systemd"
+                                      tofile="target/assembly/bin/contrib/cicomponents-service-template.systemd"/>
+                                <move file="target/assembly/bin/contrib/karaf-service-template.systemd-instances"
+                                      tofile="target/assembly/bin/contrib/cicomponents-service-template.systemd-instances"/>
+                                <move file="target/assembly/bin/contrib/karaf-service-win.exe"
+                                      tofile="target/assembly/bin/contrib/cicomponents-service-win.exe"/>
+                                <move file="target/assembly/bin/contrib/karaf-service-win.xml"
+                                      tofile="target/assembly/bin/contrib/cicomponents-service-win.xml"/>
+
+                                <replace dir="target/assembly/bin"
+                                         token="bin/karaf"
+                                         value="bin/cicomponents"/>
+                                <replace dir="target/assembly/bin"
+                                         token="karaf.out"
+                                         value="cicomponents.out"/>
+                                <replace dir="target/assembly/bin"
+                                         token="karaf.bat"
+                                         value="cicomponents.bat"/>
+                                <replace dir="target/assembly/bin"
+                                         token='KARAF_SCRIPT="karaf'
+                                         value='KARAF_SCRIPT="cicomponents'/>
+                                <replace dir="target/assembly/bin"
+                                         token='KARAF_SCRIPT="karaf'
+                                         value='KARAF_SCRIPT="cicomponents'/>
+
+                                <replace dir="target/assembly/bin/contrib"
+                                         token='KARAF'
+                                         value='cicomponents'/>
+
+                                <replace dir="target/assembly/bin/contrib"
+                                         token='Karaf'
+                                         value='cicomponents'/>
+
+                                <replace dir="target/assembly/bin/contrib"
+                                         token='karaf'
+                                         value='cicomponents'/>
+
+                                <chmod dir="target/assembly/bin" perm="ugo+rx" excludes="*.bat" />
+                                <chmod dir="target/assembly/bin/contrib" perm="ugo+rx" />
+                            </tasks>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

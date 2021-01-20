@@ -1,0 +1,196 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.lenis0012.bukkit</groupId>
+    <artifactId>marriage2</artifactId>
+    <version>2.0.20-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>Marriage</name>
+    <url>http://dev.bukkit.org/server-mods/marriage-reloaded/</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <updater.version>1.1</updater.version>
+    </properties>
+
+    <repositories>
+        <!-- Repo for access to CraftBukkit -->
+        <repository>
+            <id>md5-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+        </repository>
+        <!-- Vault -->
+        <repository>
+            <id>vault-repo</id>
+            <url>http://nexus.hc.to/content/repositories/pub_releases</url>
+        </repository>
+        <!-- CodeMC -->
+        <repository>
+            <id>codemc-repo</id>
+            <url>https://repo.codemc.io/repository/maven-public/</url>
+        </repository>
+        <!-- WorldEdit -->
+        <repository>
+            <id>enginehub</id>
+            <url>https://maven.enginehub.org/repo/</url>
+        </repository>
+        <!-- PlotSquared -->
+        <repository>
+            <id>IntellectualSites</id>
+            <url>https://mvn.intellectualsites.com/content/groups/public/</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>1.13.2-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.lenis0012.bukkit</groupId>
+            <artifactId>lenisutils</artifactId>
+            <version>1.0.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.lenis0012.updater</groupId>
+            <artifactId>updater-api</artifactId>
+            <version>${updater.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.milkbowl.vault</groupId>
+            <artifactId>VaultAPI</artifactId>
+            <version>1.7</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- PlotSquared Legacy (before v4)-->
+        <dependency>
+            <groupId>com.plotsquared.bukkit</groupId>
+            <artifactId>PlotSquared</artifactId>
+            <version>3.3.3</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/PlotSquared.jar</systemPath>
+        </dependency>
+        <!-- PlotSquared v5 -->
+        <dependency>
+            <groupId>com.plotsquared</groupId>
+            <artifactId>PlotSquared</artifactId>
+            <version>5.1</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>bukkit</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <project.updaterInfo>44364</project.updaterInfo>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>com.lenis0012.updater</groupId>
+                    <artifactId>updater-bukkit</artifactId>
+                    <version>${updater.version}</version>
+                    <scope>compile</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <finalName>${project.name}-Bukkit-${project.version}</finalName>
+            </build>
+        </profile>
+        <profile>
+            <id>spigot</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <project.updaterInfo>https://raw.githubusercontent.com/lenis0012/Marriage/master/latest_version.json</project.updaterInfo>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>com.lenis0012.updater</groupId>
+                    <artifactId>updater-spigot</artifactId>
+                    <version>${updater.version}</version>
+                    <scope>compile</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <finalName>${project.name}-Spigot-${project.version}</finalName>
+            </build>
+        </profile>
+    </profiles>
+
+    <!-- Build -->
+    <build>
+        <!-- Resources -->
+        <resources>
+            <resource>
+                <directory>src/main/resources/</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>*</include>
+                </includes>
+            </resource>
+        </resources>
+        <!--<defaultGoal>install</defaultGoal>-->
+        <finalName>${project.name}</finalName>
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <!-- Plugins -->
+        <plugins>
+            <!-- Compiler plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                    <showWarnings>true</showWarnings>
+                    <showDeprecation>false</showDeprecation> <!-- TODO: Change back to true when setItemInHand fixed -->
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.3</version>
+                <executions>
+                    <execution>
+                        <id>general</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.lenis0012.pluginutils</pattern>
+                                    <shadedPattern>com.lenis0012.bukkit.marriage2.libs.pluginutils</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.lenis0012.updater</pattern>
+                                    <shadedPattern>com.lenis0012.bukkit.marriage2.libs.updater</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Generate javadoc -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.4</version>
+                <configuration>
+                    <show>public</show>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

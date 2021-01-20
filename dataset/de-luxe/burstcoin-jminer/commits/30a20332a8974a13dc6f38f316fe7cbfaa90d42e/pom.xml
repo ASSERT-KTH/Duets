@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>burstcoin</groupId>
+  <artifactId>burstcoin-jminer</artifactId>
+  <version>0.6.0-RELEASE</version>
+  <packaging>jar</packaging>
+
+  <name>burstcoin-jminer</name>
+
+  <description>Burstcoin (BURST) - GPU assisted PoC-Miner</description>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.1.3.RELEASE</version>
+    <relativePath/>
+  </parent>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <start-class>burstcoin.jminer.JMinerApplication</start-class>
+    <java.version>1.8</java.version>
+    <jocl-blast.version>1.5.0</jocl-blast.version>
+    <saphir-hash.version>3.0.5</saphir-hash.version>
+    <bcprov-jdk15on.version>1.61</bcprov-jdk15on.version>
+  </properties>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jetty</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jocl</groupId>
+      <artifactId>jocl-blast</artifactId>
+      <version>${jocl-blast.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>de.sfuhrm</groupId>
+      <artifactId>saphir-hash-core</artifactId>
+      <version>${saphir-hash.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk15on</artifactId>
+      <version>${bcprov-jdk15on.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+
+    <resources>
+      <resource>
+        <directory>src/main/java</directory>
+        <includes>
+          <include>burstcoin/jminer/core/**/*.cl</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <includes>
+          <include>**/*.txt</include>
+          <include>**/*.properties</include>
+        </includes>
+      </resource>
+    </resources>
+
+
+    <plugins>
+
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>ant-clear</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <!-- clear dist dir -->
+                <delete dir="${project.basedir}/dist"/>
+                <mkdir dir="${project.basedir}/dist"/>
+                <mkdir dir="${project.basedir}/dist/tmp"/>
+              </target>
+            </configuration>
+          </execution>
+          <execution>
+            <id>ant-zip</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <copy file="${project.basedir}/target/${project.build.finalName}.jar" tofile="${project.basedir}/dist/tmp/${project.build.finalName}.jar"/>
+                <copy file="${project.basedir}/libShabal/libshabal.dll" tofile="${project.basedir}/dist/tmp/libshabal.dll"/>
+                <copy file="${project.basedir}/libShabal/libshabal.dylib" tofile="${project.basedir}/dist/tmp/libshabal.dylib"/>
+                <copy file="${project.basedir}/libShabal/libshabal.so" tofile="${project.basedir}/dist/tmp/libshabal.so"/>
+                <copy file="${project.basedir}/jminer.default.properties" tofile="${project.basedir}/dist/tmp/jminer.properties"/>
+                <copy file="${project.basedir}/LICENSE.md" tofile="${project.basedir}/dist/tmp/LICENSE.txt"/>
+                <copy file="${project.basedir}/README.md" tofile="${project.basedir}/dist/tmp/README.txt"/>
+                <copy file="${project.basedir}/run.bat" tofile="${project.basedir}/dist/tmp/run.sh"/>
+                <copy file="${project.basedir}/run.bat" tofile="${project.basedir}/dist/tmp/run.bat"/>
+
+                <!-- create zip file -->
+                <zip destfile="${project.basedir}/dist/${project.build.finalName}.zip" basedir="${project.basedir}/dist/tmp"/>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+
+</project>

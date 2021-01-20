@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>ro.fortsoft.pippo.demo.bdd</groupId>
+	<artifactId>pippo-bdd</artifactId>
+	<packaging>jar</packaging>
+	<version>1.0-SNAPSHOT</version>
+	<name>BDD testing of pippo demo with Cucumber and Serenity</name>
+
+	<properties>
+		<tomcat.hostname>tomcat</tomcat.hostname>
+		<webapp.deploy.context>pippo</webapp.deploy.context>
+		<war.file.location>pippo-demo.war</war.file.location>
+
+		<slf4j.version>1.7.7</slf4j.version>
+		<typesafe.config>1.3.0</typesafe.config>
+		<serenity.core.version>1.1.14</serenity.core.version>
+		<serenity.cucumber.version>1.1.1</serenity.cucumber.version>
+		<assertj-core.version>1.7.0</assertj-core.version>
+	</properties>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>com.typesafe</groupId>
+			<artifactId>config</artifactId>
+			<version>${typesafe.config}</version>
+		</dependency>
+
+		<!-- Logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+
+
+		<!--  SERENITY -->
+		<dependency>
+			<groupId>net.serenity-bdd</groupId>
+			<artifactId>serenity-core</artifactId>
+			<version>${serenity.core.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>net.serenity-bdd</groupId>
+			<artifactId>serenity-cucumber</artifactId>
+			<version>${serenity.cucumber.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>${assertj-core.version}</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<testSourceDirectory>src/main/java</testSourceDirectory>
+
+		<plugins>
+			<plugin>
+				<inherited>true</inherited>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<encoding>UTF-8</encoding>
+					<showWarnings>true</showWarnings>
+					<showDeprecation>true</showDeprecation>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.cargo</groupId>
+				<artifactId>cargo-maven2-plugin</artifactId>
+				<version>1.4.11</version>
+				<configuration>
+					<container>
+						<containerId>tomcat7x</containerId>
+						<type>remote</type>
+					</container>
+					<configuration>
+						<type>runtime</type>
+						<properties>
+							<cargo.hostname>${tomcat.hostname}</cargo.hostname>
+							<cargo.servlet.port>8080</cargo.servlet.port>
+							<cargo.remote.username>admin</cargo.remote.username>
+							<cargo.remote.password>admin</cargo.remote.password>
+						</properties>
+					</configuration>
+					<deployer>
+						<type>remote</type>
+					</deployer>
+					<deployables>
+						<deployable>
+							<type>war</type>
+							<location>${war.file.location}</location>
+							<properties>
+								<context>${webapp.deploy.context}</context>
+							</properties>
+						</deployable>
+					</deployables>
+				</configuration>
+				<executions>
+					<execution>
+						<id>war-deploy</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>deploy</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.18</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>2.18</version>
+				<configuration>
+					<includes>
+						<include>**/runner/*.java</include>
+					</includes>
+					<reuseForks>true</reuseForks>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>net.serenity-bdd.maven.plugins</groupId>
+				<artifactId>serenity-maven-plugin</artifactId>
+				<version>${serenity.core.version}</version>
+				<executions>
+					<execution>
+						<id>serenity-reports</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>aggregate</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
+	</build>
+
+</project>

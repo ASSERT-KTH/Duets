@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
+	<modelVersion>4.0.0</modelVersion>
+	<prerequisites>
+		<maven>3.0.0</maven>
+	</prerequisites>
+
+	<groupId>org.omnifaces</groupId>
+	<artifactId>optimusfaces</artifactId>
+	<version>0.3-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>OptimusFaces</name>
+	<description>Utility library for OmniFaces + PrimeFaces combined</description>
+	<url>http://omnifaces.org</url>
+	<organization>
+		<name>OmniFaces</name>
+		<url>http://omnifaces.org</url>
+	</organization>
+	<inceptionYear>2016</inceptionYear>
+
+	<developers>
+		<developer>
+			<id>balusc</id>
+			<name>Bauke Scholtz</name>
+			<email>balusc@gmail.com</email>
+		</developer>
+		<developer>
+			<id>arjan.tijms</id>
+			<name>Arjan Tijms</name>
+			<email>arjan.tijms@gmail.com</email>
+		</developer>
+	</developers>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<url>https://github.com/omnifaces/optimusfaces</url>
+		<connection>scm:git:git://github.com/omnifaces/optimusfaces.git</connection>
+		<developerConnection>scm:git:git@github.com:omnifaces/optimusfaces.git</developerConnection>
+	</scm>
+
+	<repositories>
+		<repository>
+			<id>ossrh</id>
+			<url>http://oss.sonatype.org/content/repositories/snapshots</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<properties>
+
+		<!-- Java versions. -->
+		<javase.version>1.8</javase.version>
+		<javaee.version>7</javaee.version>
+		
+		<!-- Essential Maven defaults. -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<maven.compiler.source>${javase.version}</maven.compiler.source>
+		<maven.compiler.target>${javase.version}</maven.compiler.target>
+		<maven.source.excludeResources>true</maven.source.excludeResources>
+
+		<!-- Test server versions. -->
+		<test.wildfly.version>10.1.0.Final</test.wildfly.version>
+	</properties>
+
+	<dependencies>
+
+		<!-- Java EE 7 web profile dependencies. -->
+		<dependency>
+			<groupId>javax</groupId>
+			<artifactId>javaee-web-api</artifactId>
+			<version>7.0</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- OmniFaces dependencies. -->
+		<dependency>
+			<groupId>org.omnifaces</groupId>
+			<artifactId>omnifaces</artifactId>
+			<version>2.2</version><!-- minimum version for o:tagAttribute and Servlets#toQueryString() -->
+			<scope>provided</scope><!-- by enduser -->
+		</dependency>
+		<dependency>
+			<groupId>org.omnifaces</groupId>
+			<artifactId>omnipersistence</artifactId>
+			<version>0.2-SNAPSHOT</version>
+		</dependency>
+
+		<!-- PrimeFaces dependencies. -->
+		<dependency>
+			<groupId>org.primefaces</groupId>
+			<artifactId>primefaces</artifactId>
+			<version>5.2</version><!-- minimum version for DataTable#isFilterable() and DataTable#getNullSortOrder() -->
+			<scope>provided</scope><!-- by enduser -->
+		</dependency>
+
+		<!-- Test dependencies.	-->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.arquillian.junit</groupId>
+			<artifactId>arquillian-junit-container</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.arquillian.graphene</groupId>
+			<artifactId>graphene-webdriver</artifactId>
+			<version>2.1.0.Final</version>
+			<type>pom</type>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+
+			<!-- Test dependencies.	-->
+			<dependency>
+				<groupId>org.jboss.arquillian</groupId>
+				<artifactId>arquillian-bom</artifactId>
+				<version>1.1.11.Final</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.jboss.arquillian.extension</groupId>
+				<artifactId>arquillian-drone-bom</artifactId>
+				<version>2.0.0.Final</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.jboss.arquillian.selenium</groupId>
+				<artifactId>selenium-bom</artifactId>
+				<version>2.53.1</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+ 	<build>
+		<resources>
+
+			<!-- Exclude Eclipse's jsfdia from resources. -->
+			<resource>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<exclude>**/*.jsfdia</exclude>
+				</excludes>
+			</resource>
+		</resources>
+
+		<plugins>
+
+			<!-- Add missing license headers to source files. -->
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>2.11</version>
+				<configuration>
+					<header>license.txt</header>
+					<excludes>
+						<exclude>*.*</exclude>
+					</excludes>
+					<mapping>
+						<java>SLASHSTAR_STYLE</java>
+					</mapping>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>process-sources</phase>
+						<goals>
+							<goal>format</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Configure the JavaScript minifier. -->
+			<plugin>
+				<groupId>com.samaxes.maven</groupId>
+				<artifactId>minify-maven-plugin</artifactId>
+				<version>1.7.4</version>
+				<configuration>
+					<webappSourceDir>${basedir}/src/main/resources</webappSourceDir>
+					<webappTargetDir>${project.build.outputDirectory}</webappTargetDir>
+					<jsSourceDir>META-INF/resources/optimusfaces</jsSourceDir>
+					<nosuffix>true</nosuffix>
+					<jsEngine>CLOSURE</jsEngine>
+				</configuration>
+				<executions>
+					<execution>
+						<id>minify</id>
+						<configuration>
+							<skipMerge>true</skipMerge>
+							<jsSourceIncludes>
+								<jsSourceInclude>**/*.js</jsSourceInclude>
+							</jsSourceIncludes>
+						</configuration>
+						<goals>
+							<goal>minify</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Configure the jar with the binaries. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+						<manifestEntries>
+							<URL>${project.url}</URL>
+							<Extension-Name>${project.artifactId}</Extension-Name>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<!-- Configure the jar with the sources. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.0.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Configure the jar with the javadoc. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.4</version>
+				<configuration>
+					<javadocVersion>${javase.version}</javadocVersion>
+					<notimestamp>true</notimestamp>
+					<splitindex>true</splitindex>
+					<doctitle>OptimusFaces API documentation</doctitle>
+					<links>
+						<link>https://docs.oracle.com/javaee/${javaee.version}/api/</link>
+					</links>
+				</configuration>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Configure snapshot deployment to Sonatype. -->
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.5</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>ossrh</serverId>
+					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<autoReleaseAfterClose>true</autoReleaseAfterClose>
+				</configuration>
+			</plugin>
+
+			<!-- Configure git-flow style releases via Maven. -->
+			<plugin>
+				<groupId>external.atlassian.jgitflow</groupId>
+				<artifactId>jgitflow-maven-plugin</artifactId>
+				<version>1.0-m5.1</version>
+				<configuration>
+					<noDeploy>true</noDeploy>
+					<enableFeatureVersions>true</enableFeatureVersions>
+				</configuration>
+			</plugin>
+		</plugins>
+
+		<pluginManagement>
+			<plugins>
+
+				<!-- Make sure Eclipse itself also runs license format and JavaScript minifier during build. -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>com.mycila</groupId>
+										<artifactId>license-maven-plugin</artifactId>
+										<versionRange>[2.11,)</versionRange>
+										<goals>
+											<goal>format</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute>
+											<runOnConfiguration>true</runOnConfiguration>
+										</execute>
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>com.samaxes.maven</groupId>
+										<artifactId>minify-maven-plugin</artifactId>
+										<versionRange>[1.7.4,)</versionRange>
+										<goals>
+											<goal>minify</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<execute>
+											<runOnConfiguration>true</runOnConfiguration>
+										</execute>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+
+				<!-- Global configuration for integration test profiles. -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-dependency-plugin</artifactId>
+					<version>2.10</version>
+					<executions>
+						<execution>
+							<phase>process-test-classes</phase>
+							<goals>
+								<goal>unpack</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<outputDirectory>${project.build.directory}</outputDirectory>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-failsafe-plugin</artifactId>
+					<version>2.19.1</version>
+					<executions>
+						<execution>
+							<goals>
+								<goal>integration-test</goal>
+								<goal>verify</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<systemPropertyVariables>
+							<profile.id>${project.activeProfiles[0].id}</profile.id>
+							<optimusfaces.jar>${project.build.directory}/${project.build.finalName}.jar</optimusfaces.jar>
+						</systemPropertyVariables>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<profiles>
+		<!-- NOTE: If Eclipse+M2E shows "Plugin execution not covered by lifecycle configuration" error in one of -->
+		<!-- below sections, then you need to add a default lifecycle mapping as instructed in M2E documentation: -->
+		<!-- https://www.eclipse.org/m2e/documentation/m2e-execution-not-covered.html#common-problems -->
+
+		<!-- WildFly integration test profile: mvn verify -P wildfly -->
+		<profile>
+			<id>wildfly</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<dependencies>
+				<dependency>
+					<groupId>org.wildfly.arquillian</groupId>
+					<artifactId>wildfly-arquillian-container-managed</artifactId>
+					<version>2.0.0.Final</version>
+					<scope>test</scope>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<executions>
+							<execution>
+								<configuration>
+									<artifactItems>
+										<artifactItem>
+											<groupId>org.wildfly</groupId>
+											<artifactId>wildfly-dist</artifactId>
+											<version>${test.wildfly.version}</version>
+											<type>zip</type>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<jboss.home>${project.build.directory}/wildfly-${test.wildfly.version}</jboss.home>
+								<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- Release deploy: mvn clean deploy -P release -->
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+
+					<!-- Signing with GPG is a requirement for a release deployment to Maven central. -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+</project>

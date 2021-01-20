@@ -1,0 +1,759 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.springframework.session</groupId>
+	<artifactId>spring-session-data-mongodb</artifactId>
+	<version>2.3.0.BUILD-SNAPSHOT</version>
+
+	<name>Spring Session MongoDB</name>
+	<url>https://spring.io/projects/spring-session-data-mongodb</url>
+	<description>
+		Persist session data in MongoDB
+	</description>
+
+	<inceptionYear>2014-2019</inceptionYear>
+
+	<organization>
+		<name>Pivotal, Inc.</name>
+		<url>https://www.spring.io</url>
+	</organization>
+
+	<developers>
+		<developer>
+			<id>rwinch</id>
+			<name>Rob Winch</name>
+			<email>rwinch(at)pivotal.io</email>
+			<organization>Pivotal Software, Inc.</organization>
+			<roles>
+				<role>Creator</role>
+			</roles>
+			<timezone>-6</timezone>
+		</developer>
+		<developer>
+			<id>gturnquist</id>
+			<name>Greg Turnquist</name>
+			<email>gturnquist(at)pivotal.io</email>
+			<organization>Pivotal Software, Inc.</organization>
+			<roles>
+				<role>Project Lead</role>
+			</roles>
+			<timezone>-6</timezone>
+		</developer>
+	</developers>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0</url>
+			<comments>
+				Copyright 2011-2019 the original author or authors.
+
+				Licensed under the Apache License, Version 2.0 (the "License");
+				you may not use this file except in compliance with the License.
+				You may obtain a copy of the License at
+
+				https://www.apache.org/licenses/LICENSE-2.0
+
+				Unless required by applicable law or agreed to in writing, software
+				distributed under the License is distributed on an "AS IS" BASIS,
+				WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+				implied.
+				See the License for the specific language governing permissions and
+				limitations under the License.
+			</comments>
+		</license>
+	</licenses>
+
+	<properties>
+		<source.level>1.8</source.level>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		
+		<assertj.version>3.13.1</assertj.version>
+		<flapdoodle.version>2.2.0</flapdoodle.version>
+		<jackson-bom.version>2.10.0</jackson-bom.version>
+		<jsr305.version>3.0.2</jsr305.version>
+		<junit-bom.version>5.6.0</junit-bom.version>
+		<mockito.version>2.28.2</mockito.version>
+		<mongo.version>3.11.2</mongo.version>
+		<mongo-reactivestreams.version>1.12.0</mongo-reactivestreams.version>
+		<reactor-bom.version>Dysprosium-SR4</reactor-bom.version>
+		<spring-bom.version>5.2.3.RELEASE</spring-bom.version>
+		<spring-data-bom.version>Neumann-M2</spring-data-bom.version>
+		<spring-security-bom.version>5.2.1.RELEASE</spring-security-bom.version>
+		<spring-session.version>2.2.0.RELEASE</spring-session.version>
+	</properties>
+
+	<profiles>
+
+		<profile>
+			<id>spring-next</id>
+			<properties>
+				<reactor.version>Dysprosium-BUILD-SNAPSHOT</reactor.version>
+				<spring-bom.version>5.2.4.BUILD-SNAPSHOT</spring-bom.version>
+				<spring-data-bom.version>Neumann-BUILD-SNAPSHOT</spring-data-bom.version>
+				<spring-security-bom.version>5.2.2.BUILD-SNAPSHOT</spring-security-bom.version>
+				<spring-session.version>2.2.0.BUILD-SNAPSHOT</spring-session.version>
+			</properties>
+			<repositories>
+				<repository>
+					<id>spring-libs-snapshot</id>
+					<url>https://repo.spring.io/libs-snapshot</url>
+				</repository>
+			</repositories>
+		</profile>
+
+		<profile>
+			<id>convergence</id>
+
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-enforcer-plugin</artifactId>
+						<version>3.0.0-M2</version>
+						<executions>
+							<execution>
+								<id>default-cli</id>
+								<goals>
+									<goal>enforce</goal>
+								</goals>
+								<phase>validate</phase>
+								<configuration>
+									<rules>
+										<bannedDependencies>
+											<excludes>
+												<exclude>commons-logging:*:*</exclude>
+											</excludes>
+											<searchTransitive>true</searchTransitive>
+										</bannedDependencies>
+										<dependencyConvergence />
+									</rules>
+									<fail>true</fail>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>distribute</id>
+
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>3.0.0</version>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar-no-fork</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<configuration>
+							<additionalparam>-Xdoclint:none</additionalparam>
+						</configuration>
+						<executions>
+							<execution>
+								<id>attach-javadocs</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		
+		<profile>
+			<id>docs</id>
+
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.asciidoctor</groupId>
+						<artifactId>asciidoctor-maven-plugin</artifactId>
+						<version>1.5.3</version>
+						<executions>
+							<execution>
+								<id>output-html</id>
+								<phase>generate-resources</phase>
+								<goals>
+									<goal>process-asciidoc</goal>
+								</goals>
+								<configuration>
+									<sourceDirectory>${basedir}/src/main/asciidoc</sourceDirectory>
+									<outputDirectory>${project.build.directory}/content/reference/htmlsingle</outputDirectory>
+									<backend>html</backend>
+									<doctype>book</doctype>
+									<attributes>
+										<allow-uri-read>true</allow-uri-read>
+										<docinfo>true</docinfo>
+										<github-tag>v${project.version}</github-tag>
+										<code-dir>${basedir}</code-dir>
+										<samples-dir>https://raw.githubusercontent.com/spring-projects/spring-session-data-mongodb-examples/master</samples-dir>
+										<spring-session-version>${spring-session.version}</spring-session-version>
+									</attributes>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<configuration>
+							<additionalparam>-Xdoclint:none</additionalparam>
+						</configuration>
+						<executions>
+							<execution>
+								<id>attach-javadocs</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<dependencies>
+							<dependency>
+								<groupId>ant-contrib</groupId>
+								<artifactId>ant-contrib</artifactId>
+								<version>1.0b3</version>
+								<exclusions>
+									<exclusion>
+										<groupId>ant</groupId>
+										<artifactId>ant</artifactId>
+									</exclusion>
+								</exclusions>
+							</dependency>
+							<dependency>
+								<groupId>org.apache.ant</groupId>
+								<artifactId>ant-nodeps</artifactId>
+								<version>1.8.1</version>
+							</dependency>
+							<dependency>
+								<groupId>org.tigris.antelope</groupId>
+								<artifactId>antelopetasks</artifactId>
+								<version>3.2.10</version>
+							</dependency>
+						</dependencies>
+						<executions>
+							<execution>
+								<id>package-and-attach-docs-zip</id>
+								<phase>package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<tasks>
+										<zip destfile="${project.build.directory}/${project.artifactId}-${project.version}.zip">
+											<zipfileset src="${project.build.directory}/${project.artifactId}-${project.version}-javadoc.jar" prefix="api" />
+											<fileset dir="${project.build.directory}/content"/>
+										</zip>
+									</tasks>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>build-helper-maven-plugin</artifactId>
+						<version>1.10</version>
+						<executions>
+							<execution>
+								<id>attach-zip</id>
+								<goals>
+									<goal>attach-artifact</goal>
+								</goals>
+								<configuration>
+									<artifacts>
+										<artifact>
+											<file>${project.build.directory}/${project.artifactId}-${project.version}.zip</file>
+											<type>zip;zip.type=docs;zip.deployed=false</type>
+										</artifact>
+									</artifacts>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>snapshot</id>
+
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jfrog.buildinfo</groupId>
+						<artifactId>artifactory-maven-plugin</artifactId>
+						<version>2.6.1</version>
+						<inherited>false</inherited>
+						<executions>
+							<execution>
+								<id>build-info</id>
+								<goals>
+									<goal>publish</goal>
+								</goals>
+								<configuration>
+									<buildInfo>
+										<buildUrl>{{BUILD_URL}}</buildUrl>
+									</buildInfo>
+									<deployProperties>
+										<zip.name>spring-session-data-mongodb</zip.name>
+										<zip.displayname>spring-session-data-mongodb</zip.displayname>
+										<zip.deployed>false</zip.deployed>
+										<zip.type>docs</zip.type>
+										<archives>*:*:*:*@zip</archives>
+									</deployProperties>
+									<publisher>
+										<contextUrl>https://repo.spring.io</contextUrl>
+										<username>{{ARTIFACTORY_USR}}</username>
+										<password>{{ARTIFACTORY_PSW}}</password>
+										<repoKey>libs-snapshot-local</repoKey>
+										<snapshotRepoKey>libs-snapshot-local</snapshotRepoKey>
+									</publisher>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>milestone</id>
+
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jfrog.buildinfo</groupId>
+						<artifactId>artifactory-maven-plugin</artifactId>
+						<version>2.6.1</version>
+						<inherited>false</inherited>
+						<executions>
+							<execution>
+								<id>build-info</id>
+								<goals>
+									<goal>publish</goal>
+								</goals>
+								<configuration>
+									<buildInfo>
+										<buildUrl>{{BUILD_URL}}</buildUrl>
+									</buildInfo>
+									<deployProperties>
+										<zip.name>spring-session-data-mongodb</zip.name>
+										<zip.displayname>spring-session-data-mongodb</zip.displayname>
+										<zip.deployed>false</zip.deployed>
+										<zip.type>docs</zip.type>
+										<archives>*:*:*:*@zip</archives>
+									</deployProperties>
+									<publisher>
+										<contextUrl>https://repo.spring.io</contextUrl>
+										<username>{{ARTIFACTORY_USR}}</username>
+										<password>{{ARTIFACTORY_PSW}}</password>
+										<repoKey>libs-milestone-local</repoKey>
+										<snapshotRepoKey>libs-milestone-local</snapshotRepoKey>
+									</publisher>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>release</id>
+
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.jfrog.buildinfo</groupId>
+						<artifactId>artifactory-maven-plugin</artifactId>
+						<version>2.6.1</version>
+						<inherited>false</inherited>
+						<executions>
+							<execution>
+								<id>build-info</id>
+								<goals>
+									<goal>publish</goal>
+								</goals>
+								<configuration>
+									<buildInfo>
+										<buildUrl>{{BUILD_URL}}</buildUrl>
+									</buildInfo>
+									<deployProperties>
+										<zip.name>spring-session-data-mongodb</zip.name>
+										<zip.displayname>spring-session-data-mongodb</zip.displayname>
+										<zip.deployed>false</zip.deployed>
+										<zip.type>docs</zip.type>
+										<archives>*:*:*:*@zip</archives>
+									</deployProperties>
+									<publisher>
+										<contextUrl>https://repo.spring.io</contextUrl>
+										<username>{{ARTIFACTORY_USR}}</username>
+										<password>{{ARTIFACTORY_PSW}}</password>
+										<repoKey>libs-release-local</repoKey>
+										<snapshotRepoKey>libs-release-local</snapshotRepoKey>
+									</publisher>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+
+	</profiles>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.data</groupId>
+				<artifactId>spring-data-releasetrain</artifactId>
+				<version>${spring-data-bom.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-framework-bom</artifactId>
+				<version>${spring-bom.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework.security</groupId>
+				<artifactId>spring-security-bom</artifactId>
+				<version>${spring-security-bom.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>io.projectreactor</groupId>
+				<artifactId>reactor-bom</artifactId>
+				<version>${reactor-bom.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>com.fasterxml.jackson</groupId>
+				<artifactId>jackson-bom</artifactId>
+				<version>${jackson-bom.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>org.junit</groupId>
+				<artifactId>junit-bom</artifactId>
+				<version>${junit-bom.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.springframework.session</groupId>
+			<artifactId>spring-session-core</artifactId>
+			<version>${spring-session.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-mongodb</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.mongodb</groupId>
+					<artifactId>mongo-java-driver</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>jcl-over-slf4j</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongodb-driver</artifactId>
+			<version>${mongo.version}</version>
+			<optional>true</optional>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-core</artifactId>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-core</artifactId>
+		</dependency>
+
+		<!-- Test dependencies -->
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webflux</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-config</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-web</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>de.flapdoodle.embed</groupId>
+			<artifactId>de.flapdoodle.embed.mongo</artifactId>
+			<version>${flapdoodle.version}</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>jsr305</artifactId>
+			<version>${jsr305.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>${assertj.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-params</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest</artifactId>
+			<version>2.1</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.2.3</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+			<version>1.2.3</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-junit-jupiter</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongodb-driver-async</artifactId>
+			<version>${mongo.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongodb-driver-reactivestreams</artifactId>
+			<version>${mongo-reactivestreams.version}</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.mongodb</groupId>
+					<artifactId>mongodb-driver-async</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.1.0</version>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+
+		<plugins>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.3</version>
+				<configuration>
+					<source>${source.level}</source>
+					<target>${source.level}</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<useDefaultManifestFile>true</useDefaultManifestFile>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.4</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.3</version>
+				<configuration>
+					<breakiterator>true</breakiterator>
+					<header>${project.name}</header>
+					<source>${source.level}</source>
+					<quiet>true</quiet>
+					<additionalparam>-Xdoclint:none</additionalparam>
+					<links>
+						<link>https://docs.spring.io/spring/docs/4.1.x/javadoc-api</link>
+						<link>https://docs.oracle.com/javase/6/docs/api</link>
+					</links>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.22.1</version>
+				<configuration>
+					<useSystemClassLoader>false</useSystemClassLoader>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-plugins-release</id>
+			<url>https://repo.spring.io/plugins-release</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<repositories>
+		<repository>
+			<id>spring-libs-snapshot</id>
+			<url>https://repo.spring.io/libs-snapshot</url>
+			<snapshots><enabled>true</enabled></snapshots>
+		</repository>
+	</repositories>
+
+	<scm>
+		<url>https://github.com/spring-projects/spring-session-mongodb</url>
+		<connection>scm:git:git://github.com/spring-projects/spring-session-mongodb.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com:spring-projects/spring-session-mongodb.git</developerConnection>
+	</scm>
+
+</project>

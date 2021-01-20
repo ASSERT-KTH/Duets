@@ -1,0 +1,376 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>ch.uzh.ifi.seal</groupId>
+	<artifactId>changedistiller</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+
+	<!-- Project information -->
+	<name>ChangeDistiller</name>
+	<description>Fine-grained source code change extractor</description>
+	<inceptionYear>2011</inceptionYear>
+	<url>https://bitbucket.org/sealuzh/tools-changedistiller/</url>
+
+	<organization>
+		<name>Software Architecture and Evolution Lab, Department of Informatics, UZH</name>
+		<url>http://seal.ifi.uzh.ch</url>
+	</organization>
+
+	<developers>
+		<developer>
+			<id>fluri</id>
+			<name>Beat Fluri</name>
+			<organization>Department of Informatics, UZH</organization>
+		</developer>
+		<developer>
+			<id>zubi</id>
+			<name>Jonas Zuberbühler</name>
+			<organization>Department of Informatics, UZH</organization>
+		</developer>
+
+		<developer>
+			<id>ghezzi</id>
+			<name>Giacomo Ghezzi</name>
+			<organization>Department of Informatics, UZH</organization>
+		</developer>
+
+		<developer>
+			<id>wuersch</id>
+			<name>Michael Würsch</name>
+			<organization>Department of Informatics, UZH</organization>
+		</developer>
+	</developers>
+
+	<issueManagement>
+		<system>Bitbucket</system>
+		<url>https://bitbucket.org/sealuzh/tools-changedistiller/issues/</url>
+	</issueManagement>
+
+	<ciManagement>
+		<system>jenkins</system>
+		<url>https://seal-team.ifi.uzh.ch/jenkins/job/changedistiller/</url>
+	</ciManagement>
+
+	<scm>
+		<connection>scm:git:git@bitbucket.org:sealuzh/tools-changedistiller.git</connection>
+		<developerConnection>scm:git:git@bitbucket.org:sealuzh/tools-changedistiller.git</developerConnection>
+		<url>https://bitbucket.org/sealuzh/tools-changedistiller/</url>
+	</scm>
+
+	<!-- Global properties -->
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.resources.sourceEncoding>UTF-8</project.resources.sourceEncoding>
+
+		<compiler.source>1.7</compiler.source>
+
+		<changedistiller.api.version>0.0.1</changedistiller.api.version>
+	</properties>
+
+	<dependencies>
+		<!-- Testing -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.hamcrest</groupId>
+					<artifactId>hamcrest-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+			<version>1.3</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Dependency Injection with Guice -->
+		<dependency>
+			<groupId>com.google.inject.extensions</groupId>
+			<artifactId>guice-assistedinject</artifactId>
+			<version>3.0</version>
+		</dependency>
+
+		<!-- JDT Compiler -->
+		<dependency>
+			<groupId>org.eclipse.jdt.core.compiler</groupId>
+			<artifactId>ecj</artifactId>
+			<version>4.2.2</version>
+		</dependency>
+
+		<!-- Apache Commons -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.1</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<!-- License header -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>1.4</version>
+				<configuration>
+					<verbose>false</verbose>
+				</configuration>
+				<executions>
+					<execution>
+						<id>first</id>
+						<goals>
+							<goal>update-file-header</goal>
+						</goals>
+						<phase>process-sources</phase>
+						<configuration>
+							<licenseName>apache_v2</licenseName>
+							<roots>
+								<root>src/main/java</root>
+								<root>src/test/java</root>
+							</roots>
+							<excludes>
+								<!-- Eclipse Public License (EPL) -->
+								<exclude>**/CommentRecorderParser.java</exclude>
+							</excludes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Compilation -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>${compiler.source}</source>
+					<target>${compiler.source}</target>
+				</configuration>
+			</plugin>
+
+			<!-- Add OSGI Manifest -->
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<archive>
+						<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<!-- Test Execution -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.8</version>
+				<configuration>
+					<includes>
+						<include>**/When*.java</include>
+					</includes>
+				</configuration>
+			</plugin>
+
+			<!-- Create jar with sources -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.2.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Create jar with Javadoc -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.9</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Copy dependencies -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.6</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Embedd dependencies -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.4</version>
+
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+				</configuration>
+
+				<executions>
+					<execution>
+						<id>make-my-jar-with-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Build OSGI plug-in -->
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>2.3.7</version>
+
+				<configuration>
+					<instructions>
+						<Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
+						<Bundle-Name>${project.name} OSGI Bundle</Bundle-Name>
+						<Bundle-Vendor>${project.organization.name}</Bundle-Vendor>
+
+						<Bundle-RequiredExecutionEnvironment>
+							J2SE-1.5,JavaSE-1.6,JavaSE-1.7
+						</Bundle-RequiredExecutionEnvironment>
+						
+						<Export-Package>
+							${project.groupId}.${project.artifactId}.*;version="${changedistiller.api.version}"
+						</Export-Package>
+						
+						
+						<Import-Package>
+							org.eclipse.jdt.core.compiler,
+							org.eclipse.jdt.internal.compiler,
+							org.eclipse.jdt.internal.compiler.ast,
+							org.eclipse.jdt.internal.compiler.batch,
+							org.eclipse.jdt.internal.compiler.env,
+							org.eclipse.jdt.internal.compiler.impl,
+							org.eclipse.jdt.internal.compiler.lookup,
+							org.eclipse.jdt.internal.compiler.parser,
+							org.eclipse.jdt.internal.compiler.problem
+						</Import-Package>
+						
+						<!-- Will be replaced with package-imports at a later stage -->
+						<Require-Bundle>com.google.inject;bundle-version="3.0.0"</Require-Bundle>
+						
+						<_removeheaders>
+							Embed-Dependency,Embed-Transitive,
+							Built-By,Tool,Created-By,Build-Jdk,
+							Originally-Created-By,Archiver-Version,
+							Include-Resource,Private-Package,
+							Ignore-Package,Bnd-LastModified
+						</_removeheaders>
+
+						<_nouses>true</_nouses>
+					</instructions>
+				</configuration>
+
+				<executions>
+					<execution>
+						<id>bundle-manifest</id>
+						<phase>process-classes</phase>
+						<goals>
+							<goal>manifest</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.codehaus.mojo
+										</groupId>
+										<artifactId>
+											license-maven-plugin
+										</artifactId>
+										<versionRange>
+											[1.4,)
+										</versionRange>
+										<goals>
+											<goal>
+												update-file-header
+											</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.apache.maven.plugins
+										</groupId>
+										<artifactId>
+											maven-dependency-plugin
+										</artifactId>
+										<versionRange>
+											[2.6,)
+										</versionRange>
+										<goals>
+											<goal>
+												copy-dependencies
+											</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+</project>

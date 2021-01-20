@@ -1,0 +1,310 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>net.i2cat</groupId>
+	<artifactId>netconf-server</artifactId>
+	<version>0.0.3b</version>
+	<packaging>bundle</packaging>
+	<name>Netconf Server</name>
+
+	<url>http://www.i2cat.net</url>
+	<description>Netconf Server</description>
+	<organization>
+		<name>Fundació Privada i2CAT, Internet i Innovació a Catalunya</name>
+		<url>http://www.i2cat.net/en</url>
+	</organization>
+
+	<licenses>
+		<license>
+			<name>GNU Lesser General Public License 3</name>
+			<url>http://www.gnu.org/licenses/lgpl-3.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>1.6</java.version>
+		<!-- dependencies versions -->
+		<netconf4j.version>0.0.9b</netconf4j.version>
+		<pax-logging.version>1.6.10</pax-logging.version>
+		<commons-io.version>1.4</commons-io.version>
+		<sshd.version>0.9.0</sshd.version>
+		<junit.version>4.10</junit.version>
+	</properties>
+
+	<dependencies>
+		<!-- Netconf4j library -->
+		<dependency>
+			<groupId>net.i2cat.netconf</groupId>
+			<artifactId>netconf4j</artifactId>
+			<version>${netconf4j.version}</version>
+		</dependency>
+
+		<!-- Pax logging -->
+		<dependency>
+			<groupId>org.ops4j.pax.logging</groupId>
+			<artifactId>pax-logging-api</artifactId>
+			<version>${pax-logging.version}</version>
+		</dependency>
+
+		<!-- Apache SSHD -->
+		<dependency>
+			<groupId>org.apache.sshd</groupId>
+			<artifactId>sshd-core</artifactId>
+			<version>${sshd.version}</version>
+		</dependency>
+
+		<!-- Apache commons-io -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>${commons-io.version}</version>
+		</dependency>
+
+		<!-- JUnit -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>3.3</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-source-plugin</artifactId>
+					<version>2.2.1</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>2.4</version>
+					<configuration>
+						<archive>
+							<manifest>
+								<addClasspath>true</addClasspath>
+								<mainClass>net.i2cat.netconf.testserver.Server</mainClass>
+							</manifest>
+						</archive>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
+		<plugins>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.6</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/target</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/main/resources</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<id>attach-artifacts</id>
+						<phase>package</phase>
+						<goals>
+							<goal>attach-artifact</goal>
+						</goals>
+						<configuration>
+							<artifacts>
+								<artifact>
+									<file>${basedir}/target/features.xml</file>
+									<type>xml</type>
+									<classifier>features</classifier>
+								</artifact>
+							</artifacts>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.4.1</version>
+				<configuration>
+					<autoVersionSubmodules>true</autoVersionSubmodules>
+					<tagNameFormat>v@{project.version}</tagNameFormat>
+					<pushChanges>false</pushChanges>
+					<localCheckout>true</localCheckout>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>2.3.7</version>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Export-Package>
+							net.i2cat.netconf.server;version="${project.version}",
+							net.i2cat.netconf.server.exceptions;version="${project.version}"
+						</Export-Package>
+					</instructions>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>maven.i2cat.net</id>
+			<name>maven.i2cat.net-releases</name>
+			<url>http://maven.i2cat.net:8081/artifactory/libs-release-local</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>i2cat</id>
+			<name>i2cat maven repository</name>
+			<url>http://maven.i2cat.net:8081/artifactory/libs-release</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>i2cat ext-release-local</id>
+			<name>i2cat maven repository for third party libraries</name>
+			<url>http://maven.i2cat.net:8081/artifactory/ext-release-local</url>
+		</repository>
+		<repository>
+			<id>i2cat libs-snapshot-local</id>
+			<name>maven.i2cat.net-snapshots</name>
+			<url>http://maven.i2cat.net:8081/artifactory/libs-snapshot-local</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>interval:1</updatePolicy>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>apache</id>
+			<name>Apache Releases</name>
+			<url>https://repository.apache.org/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>Maven-central</id>
+			<name>Maven central</name>
+			<url>http://repo1.maven.org/maven2</url>
+		</repository>
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>central</id>
+			<url>http://maven.i2cat.net:8081/artifactory/plugins-release</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</pluginRepository>
+		<pluginRepository>
+			<id>snapshots</id>
+			<url>http://maven.i2cat.net:8081/artifactory/plugins-snapshot</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<scm>
+		<connection>scm:git:git://github.com/dana-i2cat/netconf-server.git</connection>
+		<developerConnection>scm:git:git@github.com:dana-i2cat/netconf-server.git</developerConnection>
+		<url>http://github.com/dana-i2cat/netconf-server</url>
+		<tag>0.0.3b</tag>
+	</scm>
+	
+	<distributionManagement>
+		<repository>
+			<uniqueVersion>false</uniqueVersion>
+			<id>maven.i2cat.net</id>
+			<name>maven.i2cat.net-releases</name>
+			<url>http://maven.i2cat.net:8081/artifactory/libs-release-local</url>
+		</repository>
+		<snapshotRepository>
+			<uniqueVersion>true</uniqueVersion>
+			<id>i2cat-snapshot</id>
+			<name>libs-snapshot-local</name>
+			<url>http://maven.i2cat.net:8081/artifactory/libs-snapshot-local</url>
+		</snapshotRepository>
+		<site>
+			<id>github</id>
+			<name>netconf-server</name>
+			<url>http://github.com/dana-i2cat/netconf-server/</url>
+		</site>
+	</distributionManagement>
+
+	<issueManagement>
+		<system>JIRA</system>
+		<url>http://jira.i2cat.net/browse/OPENNAAS</url>
+	</issueManagement>
+
+	<mailingLists>
+		<mailingList>
+			<name>opennaas-dev</name>
+			<subscribe>http://lists.opennaas.org/cgi-bin/mailman/listinfo/dev</subscribe>
+			<unsubscribe>http://lists.opennaas.org/cgi-bin/mailman/listinfo/dev</unsubscribe>
+			<post>dev@lists.opennaas.org</post>
+			<archive>http://lists.opennaas.org/pipermail/dev/</archive>
+		</mailingList>
+		<mailingList>
+			<name>opennaas-user</name>
+			<subscribe>http://lists.opennaas.org/cgi-bin/mailman/listinfo/users</subscribe>
+			<unsubscribe>http://lists.opennaas.org/cgi-bin/mailman/listinfo/users</unsubscribe>
+			<post>users@lists.opennaas.org</post>
+			<archive>http://lists.opennaas.org/pipermail/users/</archive>
+		</mailingList>
+	</mailingLists>
+
+</project>

@@ -1,0 +1,324 @@
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
+	
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.apache.tapestry</groupId>
+	<artifactId>tapestry5-portlet</artifactId>
+	<version>5.2.0</version>
+	<name>Tapestry5 Portlet 2.0 Integration</name>
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.tapestry</groupId>
+			<artifactId>tapestry-core</artifactId>
+			<version>${tapestry-release-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tapestry</groupId>
+			<artifactId>tapestry-upload</artifactId>
+			<version>${tapestry-release-version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>commons-io</artifactId>
+					<groupId>commons-io</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<artifactId>commons-io</artifactId>
+			<groupId>commons-io</groupId>
+			<version>1.3.1</version>
+		</dependency>
+
+		<!-- A dependency on either JUnit or TestNG is required, or the surefire 
+			plugin (which runs the tests) will fail, preventing Maven from packaging 
+			the WAR. Tapestry includes a large number of testing facilities designed 
+			for use with TestNG (http://testng.org/), so it's recommended. -->
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>5.8</version>
+			<classifier>jdk15</classifier>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.easymock</groupId>
+			<artifactId>easymock</artifactId>
+			<version>2.4</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- tapestry-test will conflict with RunJettyRun inside Eclipse. tapestry-test 
+			brings in Selenium, which is based on Jetty 5.1; RunJettyRun uses Jetty 6. 
+			<dependency> <groupId>org.apache.tapestry</groupId> <artifactId>tapestry-test</artifactId> 
+			<version>${tapestry-release-version}</version> <scope>test</scope> </dependency> -->
+
+		<!-- Provided by the servlet container, but sometimes referenced in the 
+			application code. -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.portlet</groupId>
+			<artifactId>portlet-api</artifactId>
+			<version>2.0</version>
+			<type>jar</type>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.liferay.portal</groupId>
+			<artifactId>portal-service</artifactId>
+			<version>${liferay.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.liferay.portal</groupId>
+			<artifactId>util-bridges</artifactId>
+			<version>${liferay.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.liferay.portal</groupId>
+			<artifactId>util-taglib</artifactId>
+			<version>${liferay.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.liferay.portal</groupId>
+			<artifactId>util-java</artifactId>
+			<version>${liferay.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- Pluto dependencies -->
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.1.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.portals.pluto</groupId>
+			<artifactId>pluto-container</artifactId>
+			<version>2.0.3</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.portals.pluto</groupId>
+			<artifactId>pluto-portal-driver-impl</artifactId>
+			<version>2.0.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.portals.pluto</groupId>
+			<artifactId>pluto-container-api</artifactId>
+			<version>2.0.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.portals.pluto</groupId>
+			<artifactId>pluto-container-driver-api</artifactId>
+			<version>2.0.3</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+					<optimize>true</optimize>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.portals.pluto</groupId>
+				<artifactId>maven-pluto-plugin</artifactId>
+				<version>2.0.3</version>
+				<configuration>
+					<webXml>${basedir}/src/main/webapp/WEB-INF/pluto-web.xml</webXml>
+					<portletXml>${basedir}/src/main/webapp/WEB-INF/portlet.xml</portletXml>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>assemble</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Run the application using "mvn jetty:run" -->
+			<plugin>
+				<groupId>org.mortbay.jetty</groupId>
+				<artifactId>maven-jetty-plugin</artifactId>
+				<version>6.1.9</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.portals.pluto</groupId>
+						<artifactId>pluto-taglib</artifactId>
+						<version>2.0.3</version>
+					</dependency>
+					<dependency>
+						<groupId>org.apache.portals.pluto</groupId>
+						<artifactId>pluto-container-api</artifactId>
+						<version>2.0.3</version>
+					</dependency>
+					<dependency>
+						<groupId>org.apache.portals.pluto</groupId>
+						<artifactId>pluto-container-driver-api</artifactId>
+						<version>2.0.3</version>
+					</dependency>
+					<dependency>
+						<groupId>javax.portlet</groupId>
+						<artifactId>portlet-api</artifactId>
+						<version>2.0</version>
+					</dependency>
+					<dependency>
+						<groupId>javax.ccpp</groupId>
+						<artifactId>ccpp</artifactId>
+						<version>1.0</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<webAppSourceDirectory>src/main/webapp</webAppSourceDirectory>
+					<webXml>${basedir}/target/pluto-resources/web.xml</webXml>
+					<useTestClasspath>true</useTestClasspath>
+					<systemProperty>
+						<name>org.apache.pluto.embedded.portletIds</name>
+						<value>Index</value>
+					</systemProperty>
+					<!-- Log to the console. -->
+					<requestLog implementation="org.mortbay.jetty.NCSARequestLog">
+						<!-- This doesn't do anything for Jetty, but is a workaround for a 
+							Maven bug that prevents the requestLog from being set. -->
+						<append>true</append>
+					</requestLog>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifestEntries>
+							<tapestry-Module-Classes>
+								org.apache.tapestry5.portlet.services.PortletModule
+							</tapestry-Module-Classes>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.apache.portals.pluto
+										</groupId>
+										<artifactId>
+											maven-pluto-plugin
+										</artifactId>
+										<versionRange>
+											[2.0.3,)
+										</versionRange>
+										<goals>
+											<goal>assemble</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<reporting>
+
+		<!-- Adds a report detailing the components, mixins and base classes defined 
+			by this module. -->
+		<plugins>
+			<plugin>
+				<groupId>org.apache.tapestry</groupId>
+				<artifactId>tapestry-component-report</artifactId>
+				<version>${tapestry-release-version}</version>
+				<configuration>
+					<rootPackage>org.apache.tapestry5.portlet</rootPackage>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
+
+	<repositories>
+
+		<!-- This repository is only needed if the Tapestry released artifacts 
+			haven't made it to the central Maven repository yet. -->
+		<repository>
+			<id>tapestry</id>
+			<url>http://tapestry.formos.com/maven-repository/</url>
+		</repository>
+
+		<!-- This repository is only needed when the tapestry-release-version is 
+			a snapshot release. -->
+		<repository>
+			<id>tapestry-snapshots</id>
+			<url>http://tapestry.formos.com/maven-snapshot-repository/</url>
+		</repository>
+
+		<repository>
+			<id>codehaus.snapshots</id>
+			<url>http://snapshots.repository.codehaus.org</url>
+		</repository>
+		<repository>
+			<id>OpenQA_Release</id>
+			<name>OpenQA Release Repository</name>
+			<url>http://archiva.openqa.org/repository/releases/</url>
+		</repository>
+	</repositories>
+
+	<pluginRepositories>
+
+		<!-- As above, this can be commented out when access to the snapshot version 
+			of a Tapestry Maven plugin is not required. -->
+		<pluginRepository>
+			<id>tapestry-snapshots</id>
+			<url>http://tapestry.formos.com/maven-snapshot-repository/</url>
+		</pluginRepository>
+
+
+	</pluginRepositories>
+
+	<properties>
+		<tapestry-release-version>5.2.6</tapestry-release-version>
+		<liferay.version>6.1.0</liferay.version>
+	</properties>
+</project>

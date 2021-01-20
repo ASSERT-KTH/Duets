@@ -1,0 +1,208 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2011-2014 The original author or authors
+  ~
+  ~  All rights reserved. This program and the accompanying materials
+  ~  are made available under the terms of the Eclipse Public License v1.0
+  ~  and Apache License v2.0 which accompanies this distribution.
+  ~
+  ~      The Eclipse Public License is available at
+  ~      http://www.eclipse.org/legal/epl-v10.html
+  ~
+  ~      The Apache License v2.0 is available at
+  ~      http://www.opensource.org/licenses/apache2.0.php
+  ~
+  ~  You may elect to redistribute this code under either of these licenses.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.vertx</groupId>
+    <artifactId>vertx-parent</artifactId>
+    <version>8</version>
+  </parent>
+
+  <artifactId>vertx-http-service-factory</artifactId>
+  <version>3.2.0-SNAPSHOT</version>
+
+  <name>Vert.x Http Service Factory</name>
+
+  <properties>
+    <asciidoc.dir>${project.basedir}/src/main/asciidoc</asciidoc.dir>
+    <stack.version>3.2.0-SNAPSHOT</stack.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-dependencies</artifactId>
+        <version>${stack.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-service-factory</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcpg-jdk15on</artifactId>
+      <version>1.52</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-docgen</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-unit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-lang-js</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-server</artifactId>
+      <version>9.3.2.v20150730</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-servlet</artifactId>
+      <version>9.3.2.v20150730</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-proxy</artifactId>
+      <version>9.3.2.v20150730</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>default-compile</id>
+              <configuration>
+                <annotationProcessors>
+                  <annotationProcessor>io.vertx.docgen.JavaDocGenProcessor</annotationProcessor>
+                </annotationProcessors>
+                <compilerArgs>
+                  <arg>-Adocgen.output=${asciidoc.dir}</arg>
+                  <arg>-Amaven.groupId=${project.groupId}</arg>
+                  <arg>-Amaven.artifactId=${project.artifactId}</arg>
+                  <arg>-Amaven.version=${project.version}</arg>
+                </compilerArgs>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <phase>process-test-classes</phase>
+            <configuration>
+              <descriptors>
+                <descriptor>src/test/assembly/verticle.xml</descriptor>
+                <descriptor>src/test/assembly/verticle-with-main.xml</descriptor>
+              </descriptors>
+              <finalName>test</finalName>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.asciidoctor</groupId>
+        <artifactId>asciidoctor-maven-plugin</artifactId>
+        <version>1.5.2</version>
+        <configuration>
+          <sourceDirectory>${asciidoc.dir}</sourceDirectory>
+          <outputDirectory>${project.build.directory}/docs/${project.artifactId}</outputDirectory>
+          <preserveDirectories>true</preserveDirectories>
+          <relativeBaseDir>true</relativeBaseDir>
+          <backend>html</backend>
+          <doctype>book</doctype>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>process-asciidoc</goal>
+            </goals>
+            <phase>package</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-clean</id>
+            <configuration>
+              <filesets>
+                <fileset>
+                  <directory>${asciidoc.dir}</directory>
+                </fileset>
+              </filesets>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>assemble-docs</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <attach>true</attach>
+              <descriptors>
+                <descriptor>src/main/assembly/docs.xml</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

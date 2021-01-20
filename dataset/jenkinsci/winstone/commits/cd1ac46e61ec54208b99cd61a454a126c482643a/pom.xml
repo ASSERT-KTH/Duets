@@ -1,0 +1,277 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.jenkins-ci</groupId>
+    <artifactId>jenkins</artifactId>
+    <version>1.52</version>
+    <relativePath />
+  </parent>
+
+  <groupId>org.jenkins-ci</groupId>
+  <artifactId>winstone</artifactId>
+  <version>5.4-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>Winstone</name>
+  <description>Winstone is a command line wrapper around Jetty</description>
+  <url>https://github.com/jenkinsci/winstone</url>
+
+  <properties>
+    <jetty.version>9.4.22.v20191022</jetty.version>
+    <alpn.api.version>1.1.3.v20160715</alpn.api.version>
+    <java.level>8</java.level>
+    <!-- TODO: remove once FindBugs issues are fixed. 57 so far -->
+    <findbugs.failOnError>false</findbugs.failOnError>
+  </properties>
+
+  <licenses>
+    <license>
+      <name>GNU Lesser General Public License version 2.1</name>
+      <url>http://www.gnu.org/licenses/lgpl.html</url>
+    </license>
+    <license>
+      <name>COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0</name>
+      <url>http://www.sun.com/cddl/cddl.html</url>
+    </license>
+  </licenses>
+
+  <build>
+
+    <plugins>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>prepare-testwebapp</id>
+            <phase>process-test-classes</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <copy overwrite="true" todir="${project.build.directory}">
+                  <fileset dir="${basedir}/src" includes="testwebapp/**" />
+                </copy>
+                <copy overwrite="true" todir="${project.build.directory}/testwebapp/WEB-INF/classes">
+                  <fileset dir="${project.build.testOutputDirectory}" includes="**" />
+                </copy>
+                <war destfile="${project.build.directory}/test-classes/test.war">
+                  <fileset dir="${project.build.directory}/testwebapp" />
+                </war>
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <trimStackTrace>false</trimStackTrace> <!-- SUREFIRE-1226 workaround -->
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.0.2</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <mainClass>winstone.Launcher</mainClass>
+            </manifest>
+            <manifestSections>
+              <manifestSection>
+                <name>org/eclipse/jetty/server/</name>
+                <manifestEntries>
+                  <Implementation-Vendor>Eclipse.org - Jetty</Implementation-Vendor>
+                  <Implementation-Version>winstone-${project.version}</Implementation-Version>
+                </manifestEntries>
+              </manifestSection>
+            </manifestSections>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.2.1</version>
+        <configuration>
+          <filters>
+            <filter>
+              <artifact>org.eclipse.jetty.orbit:javax.servlet</artifact>
+              <excludes>
+                <exclude>META-INF/eclipse.inf</exclude>
+                <exclude>META-INF/ECLIPSEF.*</exclude>
+              </excludes>
+            </filter>
+          </filters>
+          <!-- Jetty uses reflection in various places and that breaks relocation
+          <relocations>
+            <relocation>
+              <pattern>org.eclipse.jetty</pattern>
+              <shadedPattern>winstone.jetty</shadedPattern>
+            </relocation>
+          </relocations-->
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createSourcesJar>true</createSourcesJar>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <repositories>
+    <repository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </repository>
+    <repository>
+      <id>jetty.snapshots</id>
+      <url>https://oss.sonatype.org/content/repositories/jetty-snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <scm>
+    <connection>scm:git:git://github.com/jenkinsci/winstone.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/winstone.git</developerConnection>
+    <url>http://github.com/jenkinsci/winstone</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.codehaus.mojo.signature</groupId>
+        <artifactId>java17</artifactId>
+        <version>1.0</version>
+        <type>signature</type>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.mojo.signature</groupId>
+        <artifactId>java18</artifactId>
+        <version>1.0</version>
+        <type>signature</type>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.4</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>httpunit</groupId>
+      <artifactId>httpunit</artifactId>
+      <version>1.6</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>javax.servlet</groupId>
+          <artifactId>servlet-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-server</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-util</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-servlet</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-webapp</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty.http2</groupId>
+      <artifactId>http2-server</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty.http2</groupId>
+      <artifactId>http2-hpack</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-alpn-server</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty.alpn</groupId>
+      <artifactId>alpn-api</artifactId>
+      <version>${alpn.api.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-jmx</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.jenkins.lib</groupId>
+      <artifactId>support-log-formatter</artifactId>
+      <version>1.0</version>
+    </dependency>
+
+    <!--  See https://github.com/eclipse/jetty.project/issues/134
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-ajp</artifactId>
+      <version>${jetty.version}</version>
+    </dependency>
+    -->
+
+  </dependencies>
+
+</project>

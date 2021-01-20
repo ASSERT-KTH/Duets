@@ -1,0 +1,494 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>de.tudresden.inf.st</groupId>
+	<artifactId>salespoint-framework</artifactId>
+	<version>7.4.0-SNAPSHOT</version>
+
+	<name>Salespoint</name>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.3.4.RELEASE</version>
+		<relativePath />
+	</parent>
+
+	<properties>
+		<dev>/dev</dev>
+		<java.version>11</java.version>
+		<jmolecules.version>1.0.0</jmolecules.version>
+		<moduliths.version>1.0.0</moduliths.version>
+		<refdocs.dir>${project.build.directory}/refdocs</refdocs.dir>
+	</properties>
+
+	<profiles>
+		<profile>
+			<id>release</id>
+			<properties>
+				<dev />
+			</properties>
+		</profile>
+		<profile>
+			<id>docs</id>
+			<build>
+				<plugins>
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration combine.self="override">
+							<includes>
+								<include>**/DocumentationTests.java</include>
+							</includes>
+						</configuration>
+					</plugin>
+
+					<!-- Use Spring documentation resources -->
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>unpack-doc-resources</id>
+								<goals>
+									<goal>unpack-dependencies</goal>
+								</goals>
+								<phase>generate-resources</phase>
+								<configuration>
+									<includeGroupIds>io.spring.docresources</includeGroupIds>
+									<includeArtifactIds>spring-doc-resources</includeArtifactIds>
+									<includeTypes>zip</includeTypes>
+									<excludeTransitive>true</excludeTransitive>
+									<outputDirectory>${refdocs.dir}</outputDirectory>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<plugin>
+						<groupId>org.asciidoctor</groupId>
+						<artifactId>asciidoctor-maven-plugin</artifactId>
+						<version>2.1.0</version>
+						<dependencies>
+							<dependency>
+								<groupId>org.asciidoctor</groupId>
+								<artifactId>asciidoctorj</artifactId>
+								<version>2.4.1</version>
+							</dependency>
+							<dependency>
+								<groupId>org.asciidoctor</groupId>
+								<artifactId>asciidoctorj-diagram</artifactId>
+								<version>2.0.2</version>
+							</dependency>
+						</dependencies>
+						<executions>
+							<execution>
+								<id>website</id>
+								<phase>package</phase>
+								<goals>
+									<goal>process-asciidoc</goal>
+								</goals>
+								<configuration>
+									<sourceDirectory>src/main/asciidoc/site</sourceDirectory>
+									<outputDirectory>${project.build.directory}/site</outputDirectory>
+								</configuration>
+							</execution>
+							<execution>
+								<id>reference</id>
+								<phase>package</phase>
+								<goals>
+									<goal>process-asciidoc</goal>
+								</goals>
+								<configuration>
+									<sourceDirectory>src/main/asciidoc</sourceDirectory>
+									<sourceDocumentName>salespoint-reference.adoc</sourceDocumentName>
+									<outputDirectory>${project.build.directory}/site${dev}</outputDirectory>
+									<requires>
+										<require>asciidoctor-diagram</require>
+									</requires>
+								</configuration>
+							</execution>
+						</executions>
+						<configuration>
+							<doctype>book</doctype>
+							<backend>html5</backend>
+							<sourceHighlighter>highlight.js</sourceHighlighter>
+
+							<resources>
+								<!-- Copy our own resources first to make sure they trump the others -->
+								<resource>
+									<directory>src/main/asciidoc</directory>
+								</resource>
+								<resource>
+									<directory>${refdocs.dir}</directory>
+								</resource>
+							</resources>
+							<attributes>
+								<dev>${dev}</dev>
+								<docinfo>shared</docinfo>
+								<docinfodir>${refdocs.dir}</docinfodir>
+								<highlightjsdir>js/highlight</highlightjsdir>
+								<icons>font</icons>
+								<linkcss>true</linkcss>
+								<numbered>true</numbered>
+								<sectanchors>true</sectanchors>
+								<stylesdir>css/</stylesdir>
+								<stylesheet>salespoint.css</stylesheet>
+								<toc>left</toc>
+								<version>${project.version}</version>
+							</attributes>
+						</configuration>
+					</plugin>
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-site-plugin</artifactId>
+						<configuration>
+							<chmod>false</chmod>
+						</configuration>
+					</plugin>
+
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.querydsl</groupId>
+			<artifactId>querydsl-jpa</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>org.thymeleaf.extras</groupId>
+			<artifactId>thymeleaf-extras-springsecurity5</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.thymeleaf.extras</groupId>
+			<artifactId>thymeleaf-extras-java8time</artifactId>
+		</dependency>
+
+		<!-- Test -->
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>junit</groupId>
+					<artifactId>junit</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.junit.vintage</groupId>
+					<artifactId>junit-vintage-engine</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-junit</artifactId>
+			<version>2.0.0.0</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>junit</groupId>
+					<artifactId>junit</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.javamoney.moneta</groupId>
+			<artifactId>moneta-core</artifactId>
+			<version>1.4-tud</version>
+		</dependency>
+
+		<!-- For changelog creation -->
+
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+		</dependency>
+
+		<!-- Architecture -->
+
+		<dependency>
+			<groupId>org.moduliths</groupId>
+			<artifactId>moduliths-api</artifactId>
+			<version>${moduliths.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.moduliths</groupId>
+			<artifactId>moduliths-test</artifactId>
+			<version>1.1.0-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.moduliths</groupId>
+			<artifactId>moduliths-docs</artifactId>
+			<version>${moduliths.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jmolecules</groupId>
+			<artifactId>jmolecules-events</artifactId>
+			<version>${jmolecules.version}</version>
+		</dependency>
+
+		<!-- Documentation -->
+
+		<dependency>
+			<groupId>io.spring.docresources</groupId>
+			<artifactId>spring-doc-resources</artifactId>
+			<version>0.2.2.RELEASE</version>
+			<type>zip</type>
+			<optional>true</optional>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ssh</artifactId>
+				<version>3.4.1</version>
+			</extension>
+		</extensions>
+
+		<plugins>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>enforce-versions</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireJavaVersion>
+									<version>13</version>
+								</requireJavaVersion>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>com.mysema.maven</groupId>
+				<artifactId>apt-maven-plugin</artifactId>
+				<version>1.1.3</version>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>process</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>target/generated-sources/queries</outputDirectory>
+							<processors>
+								<processor>com.querydsl.apt.jpa.JPAAnnotationProcessor</processor>
+								<processor>lombok.launch.AnnotationProcessorHider$AnnotationProcessor</processor>
+							</processors>
+						</configuration>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>com.querydsl</groupId>
+						<artifactId>querydsl-apt</artifactId>
+						<version>${querydsl.version}</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>**/DocumentationTests.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+
+			<!-- Delombok sources to make sure generated methods can be picked up by JavaDoc -->
+			<plugin>
+				<groupId>org.projectlombok</groupId>
+				<artifactId>lombok-maven-plugin</artifactId>
+				<version>${lombok.version}.0</version>
+				<configuration>
+					<addOutputDirectory>false</addOutputDirectory>
+					<sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>delombok</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>package-javadoc</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<phase>package</phase>
+					</execution>
+				</executions>
+				<configuration>
+					<doclint>none</doclint>
+					<quiet>true</quiet>
+					<outputDirectory>${project.build.directory}/site${dev}/api</outputDirectory>
+					<sourcepath>target/generated-sources/delombok</sourcepath>
+					<links>
+						<link>https://docs.spring.io/spring-data/commons/docs/current/api</link>
+						<link>https://docs.spring.io/spring-framework/docs/${spring-framework.version}/javadoc-api/</link>
+						<!--
+							Adding this breaks Javadoc generation
+
+						- https://bugs.openjdk.java.net/browse/JDK-8240169 (fixed in JDK 15 but…)
+						- https://github.com/rzwitserloot/lombok/issues/2586
+
+						<link>https://javamoney.github.io/apidocs</link>
+						<link>https://docs.oracle.com/javaee/7/api</link>
+
+						-->
+					</links>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5.3</version>
+				<configuration>
+					<pushChanges>false</pushChanges>
+					<scmCommentPrefix />
+					<tagNameFormat>${project.version}</tagNameFormat>
+					<releaseProfiles>release</releaseProfiles>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+	</build>
+
+	<scm>
+		<url>https://github.com/st-tu-dresden/salespoint</url>
+		<connection>scm:git:https://github.com/st-tu-dresden/salespoint</connection>
+		<tag>HEAD</tag>
+	</scm>
+
+	<distributionManagement>
+		<repository>
+			<id>salespoint</id>
+			<url>sftp://st.inf.tu-dresden.de:44/home/salespnt/salespoint/repository</url>
+		</repository>
+		<site>
+			<id>salespoint</id>
+			<url>sftp://st.inf.tu-dresden.de:44/home/salespnt/salespoint</url>
+		</site>
+	</distributionManagement>
+
+	<repositories>
+		<repository>
+			<id>spring-libs-snapshot</id>
+			<url>https://repo.spring.io/libs-snapshot</url>
+		</repository>
+		<repository>
+			<id>salespointframework</id>
+			<url>https://www.st.inf.tu-dresden.de/SalesPoint/repository</url>
+		</repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-libs-release</id>
+			<url>https://repo.spring.io/libs-release</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+</project>

@@ -1,0 +1,297 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>joinery</groupId>
+  <artifactId>joinery-dataframe</artifactId>
+  <version>1.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>Joinery</name>
+  <description>Data frames for Java</description>
+  <url>http://cardillo.github.io/joinery</url>
+
+  <licenses>
+    <license>
+      <name>GNU General Public License</name>
+      <url>https://www.gnu.org/licenses/gpl-3.0.txt</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Bryan Cardillo</name>
+      <email>bryan.cardillo@gmail.com</email>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git@github.com:cardillo/joinery.git</connection>
+    <developerConnection>scm:git:git@github.com:cardillo/joinery.git</developerConnection>
+    <url>git@github.com:cardillo/joinery.git</url>
+  </scm>
+
+  <properties>
+    <project.build.sourceEncoding>iso-8859-1</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>iso-8859-1</project.reporting.outputEncoding>
+    <java.version>1.7</java.version>
+    <junit.version>4.11</junit.version>
+    <supercsv.version>2.2.0</supercsv.version>
+    <commons-math3.version>3.3</commons-math3.version>
+    <aspectj.version>1.8.2</aspectj.version>
+    <metrics.version>3.1.0</metrics.version>
+    <xchart.version>2.4.2</xchart.version>
+  </properties>
+
+  <dependencies>
+    <!-- build deps -->
+    <dependency>
+      <groupId>io.dropwizard.metrics</groupId>
+      <artifactId>metrics-annotation</artifactId>
+      <version>${metrics.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.sf.supercsv</groupId>
+      <artifactId>super-csv</artifactId>
+      <version>${supercsv.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-math3</artifactId>
+      <version>${commons-math3.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.xeiam.xchart</groupId>
+      <artifactId>xchart</artifactId>
+      <version>${xchart.version}</version>
+      <optional>true</optional>
+      <exclusions>
+        <exclusion>
+          <groupId>de.erichseifert.vectorgraphics2d</groupId>
+          <artifactId>VectorGraphics2D</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- test deps -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- configure compile phase -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+          <excludes>
+            <!-- exclude metrics by default -->
+            <exclude>**/Metrics.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+
+      <!-- configure test phase -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.18</version>
+        <configuration>
+          <!-- exclude performance tests (they take a while) -->
+          <excludedGroups>joinery.perf.PerformanceTests</excludedGroups>
+        </configuration>
+      </plugin>
+      <!-- configure integration/verify phase -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>2.18</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <!-- run performance tests as part of integration/verify -->
+          <includes>
+            <include>**/*Test.java</include>
+          </includes>
+          <groups>joinery.perf.PerformanceTests</groups>
+        </configuration>
+      </plugin>
+
+      <!-- configure release plugin -->
+      <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5.1</version>
+        <configuration>
+          <releaseProfiles>release</releaseProfiles>
+          <tagNameFormat>v@{project.version}</tagNameFormat>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <distributionManagement>
+    <repository>
+      <id>bintray</id>
+      <url>https://api.bintray.com/maven/cardillo/maven/joinery</url>
+    </repository>
+  </distributionManagement>
+
+  <profiles>
+    <!-- optional bits for building with metrics enabled -->
+    <profile>
+      <id>build-metrics</id>
+      <activation>
+        <property>
+          <name>build</name>
+          <value>metrics</value>
+        </property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>io.dropwizard.metrics</groupId>
+          <artifactId>metrics-core</artifactId>
+          <version>${metrics.version}</version>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.aspectj</groupId>
+          <artifactId>aspectjrt</artifactId>
+          <version>${aspectj.version}</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.1</version>
+            <configuration>
+              <includes>
+                <include>**/*.java</include>
+              </includes>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>aspectj-maven-plugin</artifactId>
+            <version>1.7</version>
+            <configuration>
+              <target>${java.version}</target>
+              <complianceLevel>${java.version}</complianceLevel>
+              <verbose>true</verbose>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>compile</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- for building doctest suite -->
+    <profile>
+      <id>build-doctest</id>
+      <activation>
+        <jdk>[1.6,)</jdk>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.sun</groupId>
+          <artifactId>tools</artifactId>
+          <version>${java.version}</version>
+          <scope>system</scope>
+          <systemPath>${java.home}/../lib/tools.jar</systemPath>
+          <optional>true</optional>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <!-- profile for release builds -->
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <!-- configure javadoc generation -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.10.1</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <docletArtifact>
+                <groupId>com.google.doclava</groupId>
+                <artifactId>doclava</artifactId>
+                <version>1.0.5</version>
+              </docletArtifact>
+              <doclet>com.google.doclava.Doclava</doclet>
+              <additionalparam>
+                -quiet
+                -hdf project.name "${project.name}"
+                -d ${project.build.directory}/site/apidocs
+                -templatedir ${basedir}/src/main/resources/templates
+              </additionalparam>
+              <useStandardDocletOptions>false</useStandardDocletOptions>
+              <excludePackageNames>joinery.impl</excludePackageNames>
+            </configuration>
+          </plugin>
+
+          <!-- configure source generation -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>2.2.1</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- configure signing -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.5</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

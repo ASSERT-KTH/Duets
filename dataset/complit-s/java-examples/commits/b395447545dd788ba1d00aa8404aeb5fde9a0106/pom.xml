@@ -1,0 +1,405 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<prerequisites>
+		<maven>3.2.1</maven>
+	</prerequisites>
+
+	<groupId>ru.complits.examples</groupId>
+	<artifactId>java-react-redux-isomorphic-example</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>java-react-redux-isomorphic-example</name>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+		<!-- Используется frontend-maven-plugin для загрузки нужной версии nodejs и npm. -->
+		<node.version>6.9.5</node.version>
+		<npm.version>4.1.2</npm.version>
+
+		<!-- Используется frontend-maven-plugin для управления запуском webpack. -->
+		<webpack.skip>false</webpack.skip>
+		<!-- Аргументы запуска webpack. -->
+		<webpack.arguments></webpack.arguments>
+
+		<!-- Значение по-умолчанию для адреса, на котором будут обрабатываться 
+			входящие запросы. -->
+		<webServer.hostDefault>localhost</webServer.hostDefault>
+		<!-- Значение по-умолчанию для флага запуска React на сервере. -->
+		<webServer.isomorphicDefault>true</webServer.isomorphicDefault>
+		<!-- Значение по-умолчанию для кеширования статических файлов на клиенте. -->
+		<webServer.staticCacheControlDefault>no-cache</webServer.staticCacheControlDefault>
+
+	</properties>
+
+	<profiles>
+		<!-- Профиль, который нужно включить про построении сервиса для продуктивной 
+			среды. -->
+		<profile>
+			<id>production</id>
+			<properties>
+				<!-- Аргументы запуска webpack - продуктивная среда (минификация). -->
+				<webpack.arguments>-p</webpack.arguments>
+				<!-- Значение для адреса, на котором будут обрабатываться входящие запросы 
+					(linux style). -->
+				<webServer.hostDefault>0.0.0.0</webServer.hostDefault>
+				<!-- Значение для кеширования статических файлов на клиенте - один час. -->
+				<webServer.staticCacheControlDefault>max-age=3600, must-revalidate</webServer.staticCacheControlDefault>
+			</properties>
+		</profile>
+		<!-- Профиль, который можно включить при разработке frontend. В данном 
+			профиле отключена автоматическая пересборка webpack, предполагается что будет 
+			использован webpack-сервер. Также отключен серверный рендеринг webpack иначе 
+			будет рассинхронизация скрипта в classpath, который используется на сервере 
+			и текущего состояния скриптов (отключена автоматическая пересборка webpack). -->
+		<profile>
+			<id>frontendDevelopment</id>
+			<properties>
+				<!-- Отключена автоматическая пересборка webpack. -->
+				<webpack.skip>true</webpack.skip>
+				<!-- Отключен серверный рендеринг webpack. -->
+				<webServer.isomorphicDefault>false</webServer.isomorphicDefault>
+			</properties>
+		</profile>
+	</profiles>
+
+	<dependencies>
+
+		<!-- Классы, дополняющие библиотеку java. -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.5</version>
+		</dependency>
+
+		<!-- Работа с конфигурацией приложения. -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-configuration2</artifactId>
+			<version>2.1.1</version>
+		</dependency>
+
+		<!-- Пул объектов. -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-pool2</artifactId>
+			<version>2.4.2</version>
+		</dependency>
+
+		<!-- Работа с beans. -->
+		<dependency>
+			<groupId>commons-beanutils</groupId>
+			<artifactId>commons-beanutils</artifactId>
+			<version>1.9.3</version>
+		</dependency>
+
+		<!-- Логирование на основе SLF4J. -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.25</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jul-to-slf4j</artifactId>
+			<version>1.7.25</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>1.7.25</version>
+		</dependency>
+
+		<!-- Бэкенд для логов - logback. -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.2.3</version>
+		</dependency>
+
+		<!-- Библиотека разрешения зависимостей - CDI, реализация Weld. -->
+		<dependency>
+			<groupId>org.jboss.weld</groupId>
+			<artifactId>weld-api</artifactId>
+			<version>2.4.SP1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.weld.se</groupId>
+			<artifactId>weld-se-core</artifactId>
+			<version>2.4.3.Final</version>
+		</dependency>
+
+		<!-- Библиотека для работы с JSON. -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.8.8</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+			<version>2.8.8</version>
+		</dependency>
+
+		<!-- Библиотека обработки web-запросов JAX-RS, реализация Resteasy. -->
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-jaxrs</artifactId>
+			<version>3.1.2.Final</version>
+		</dependency>
+		<!-- Web-сервер Netty (работает вместе с Resteasy и CDI) -->
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-netty4-cdi</artifactId>
+			<version>3.1.2.Final</version>
+		</dependency>
+		<!-- Соединение Resteasy c CDI. -->
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-cdi</artifactId>
+			<version>3.1.2.Final</version>
+		</dependency>
+		<!-- Соединение Resteasy c библиотекой обработки JSON. -->
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-jackson2-provider</artifactId>
+			<version>3.1.2.Final</version>
+		</dependency>
+
+		<!-- Тестирование - JUnit. -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Библиотека мокинга для тестов. -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>2.7.22</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Библиотека тестрования с поддержкой CDI (реализация Weld). -->
+		<dependency>
+			<groupId>org.jboss.arquillian.junit</groupId>
+			<artifactId>arquillian-junit-container</artifactId>
+			<version>1.1.13.Final</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.arquillian.container</groupId>
+			<artifactId>arquillian-weld-embedded</artifactId>
+			<version>2.0.0.Beta4</version>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<resources>
+			<!-- Подстановка в config.properties свойств из pom файла. -->
+			<resource>
+				<directory>${basedir}/src/main/resources</directory>
+				<includes>
+					<include>config.properties</include>
+				</includes>
+				<filtering>true</filtering>
+			</resource>
+			<resource>
+				<directory>${basedir}/src/main/resources</directory>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<configuration>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<!-- Зависимости в каталоге lib. -->
+							<classpathPrefix>lib/</classpathPrefix>
+							<mainClass>ru.complits.examples.rrie.ReactReduxIsomorphicExample</mainClass>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<!-- Копирование всех зависимостей в каталог target/lib. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<!-- Зависимости в каталоге lib. -->
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.github.eirslett</groupId>
+				<artifactId>frontend-maven-plugin</artifactId>
+				<configuration>
+					<nodeVersion>v${node.version}</nodeVersion>
+					<npmVersion>${npm.version}</npmVersion>
+					<installDirectory>${basedir}/src/main/frontend</installDirectory>
+					<workingDirectory>${basedir}/src/main/frontend</workingDirectory>
+				</configuration>
+				<executions>
+					<!-- Установка nodejs и npm заданной версии. -->
+					<execution>
+						<id>nodeInstall</id>
+						<goals>
+							<goal>install-node-and-npm</goal>
+						</goals>
+					</execution>
+					<!-- Установка зависимостей npm из src/main/frontend/package.json. -->
+					<execution>
+						<id>npmInstall</id>
+						<goals>
+							<goal>npm</goal>
+						</goals>
+					</execution>
+					<!-- Сборка скриптов с помощью webpack. -->
+					<execution>
+						<id>webpackBuild</id>
+						<goals>
+							<goal>webpack</goal>
+						</goals>
+						<configuration>
+							<skip>${webpack.skip}</skip>
+							<arguments>${webpack.arguments}</arguments>
+							<srcdir>${basedir}/src/main/frontend/app</srcdir>
+							<outputdir>${basedir}/src/main/resources/webapp/static/assets</outputdir>
+							<triggerfiles>
+								<triggerfile>${basedir}/src/main/frontend/webpack.config.js</triggerfile>
+								<triggerfile>${basedir}/src/main/frontend/package.json</triggerfile>
+							</triggerfiles>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.spotify</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<configuration>
+					<imageName>java-react-redux-isomorphic-example</imageName>
+					<baseImage>openjdk:8-jre-alpine</baseImage>
+					<entryPoint>["java", "-jar", "/opt/${project.build.finalName}.jar"]</entryPoint>
+					<exposes>8080</exposes>
+					<resources>
+						<resource>
+							<targetPath>/opt</targetPath>
+							<directory>${project.build.directory}</directory>
+							<include>${project.build.finalName}.jar</include>
+						</resource>
+						<resource>
+							<targetPath>/opt/lib</targetPath>
+							<directory>${project.build.directory}/lib</directory>
+							<include>*.jar</include>
+						</resource>
+					</resources>
+				</configuration>
+			</plugin>
+		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.6.1</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-clean-plugin</artifactId>
+					<version>3.0.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-deploy-plugin</artifactId>
+					<version>2.8.2</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>3.6</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>3.0.2</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-dependency-plugin</artifactId>
+					<version>3.0.0</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>2.19.1</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-source-plugin</artifactId>
+					<version>3.0.1</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>3.0.2</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-install-plugin</artifactId>
+					<version>2.5.2</version>
+				</plugin>
+				<plugin>
+					<groupId>com.github.eirslett</groupId>
+					<artifactId>frontend-maven-plugin</artifactId>
+					<version>1.4</version>
+				</plugin>
+				<plugin>
+					<groupId>com.spotify</groupId>
+					<artifactId>docker-maven-plugin</artifactId>
+					<version>0.4.13</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
+	</build>
+
+</project>

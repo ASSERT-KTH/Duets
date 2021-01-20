@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+    <!--
+        Licensed to the Apache Software Foundation (ASF) under one or more contributor license
+        agreements. See the NOTICE file distributed with this work for additional information
+        regarding copyright ownership. The ASF licenses this file to you under the Apache License,
+        Version 2.0 (the "License"); you may not use this file except in compliance with the
+        License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+        Unless required by applicable law or agreed to in writing, software distributed under the
+        License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+        either express or implied. See the License for the specific language governing permissions
+        and limitations under the License.
+    -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.apache.sling</groupId>
+        <artifactId>sling</artifactId>
+        <version>24</version>
+        <relativePath/>
+    </parent>
+
+    <artifactId>org.apache.sling.launchpad</artifactId>
+    <packaging>slingstart</packaging>
+    <version>8-SNAPSHOT</version>
+
+    <name>Apache Sling Launchpad Application Builder</name>
+    <description>
+        The Launchpad. Available in both JAR and WAR flavors.
+    </description>
+
+    <scm>
+        <connection>scm:svn:http://svn.apache.org/repos/asf/sling/trunk/launchpad/builder</connection>
+        <developerConnection>scm:svn:https://svn.apache.org/repos/asf/sling/trunk/launchpad/builder</developerConnection>
+        <url>http://svn.apache.org/viewvc/sling/trunk/launchpad/builder</url>
+    </scm>
+
+    <properties>
+        <!--
+            Jetty default port (override with -D)
+        -->
+        <http.port>8888</http.port>
+
+        <!-- path suffix for HTTP access to Sling -->
+        <http.base.path />
+        <sling.java.version>7</sling.java.version>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>ianal-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>verify-legal-files</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${basedir}</directory>
+                            <includes>
+                                <include>derby.log</include>
+                                <include>cachedir</include>
+                                <include>sling</include>
+                                <include>jackrabbit</include>
+                                <include>coverage.ec</include>
+                            </includes>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.sling</groupId>
+                <artifactId>slingstart-maven-plugin</artifactId>
+                <version>1.2.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <createWebapp>true</createWebapp>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-maven-plugin</artifactId>
+                <version>9.1.2.v20140210</version>
+                <configuration>
+                    <stopKey>alpha</stopKey>
+                    <stopPort>9099</stopPort>
+                    <httpConnector>
+                        <port>${http.port}</port>
+                    </httpConnector>
+                    <contextPath>${http.base.path}</contextPath>
+                    <war>${project.build.directory}/${project.build.finalName}.war</war>
+                </configuration>
+            </plugin>
+        </plugins>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <!-- Extend RAT configuration from parent pom -->
+                    <groupId>org.apache.rat</groupId>
+                    <artifactId>apache-rat-plugin</artifactId>
+                    <configuration>
+                        <excludes combine.children="append">
+                            <!-- Exclude sling instance -->
+                            <exclude>sling/**</exclude>
+                        </excludes>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+    </build>
+</project>
+

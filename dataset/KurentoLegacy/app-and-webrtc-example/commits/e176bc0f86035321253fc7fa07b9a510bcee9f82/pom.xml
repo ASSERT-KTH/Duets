@@ -1,0 +1,238 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.kurento.apps.android</groupId>
+	<artifactId>app-and-webrtc-demo</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<packaging>apk</packaging>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8 </project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<maven.compiler.source>1.6</maven.compiler.source>
+		<maven.compiler.target>1.6</maven.compiler.target>
+
+		<sign.develop>true</sign.develop>
+		<android.platform>14</android.platform>
+
+		<!-- Dependencies Versions -->
+		<android.version>4.0.1.2</android.version>
+		<slf4j.version>1.7.6</slf4j.version>
+		<log4j.version>1.2.8</log4j.version>
+		<slf4j-android.version>1.6.1-RC1</slf4j-android.version>
+		<mscontrol.webrtc.version>1.0.0-SNAPSHOT</mscontrol.webrtc.version>
+
+		<!-- Plugins Versions -->
+		<maven-compiler-plugin.version>1.6</maven-compiler-plugin.version>
+		<maven-jarsigner-plugin.version>1.2</maven-jarsigner-plugin.version>
+		<android-maven-plugin.version>3.6.0</android-maven-plugin.version>
+
+		<!-- Extensions Versions -->
+		<wagon-ssh.version>2.0</wagon-ssh.version>
+	</properties>
+
+	<name>app-and-webrtc-example</name>
+	<description>Kurento Android WebRTC example</description>
+	<url>http://www.kurento.com/docs/${project.artifactId}/${project.version}</url>
+
+	<organization>
+		<name>Kurento</name>
+		<url>http://www.kurento.com</url>
+	</organization>
+
+	<developers>
+		<developer>
+			<id>mparis</id>
+			<name>Miguel París Díaz</name>
+		</developer>
+	</developers>
+
+	<mailingLists>
+		<mailingList>
+			<name>Kurento</name>
+			<subscribe>http://groups.google.com/group/kurento/subscribe</subscribe>
+			<post>http://groups.google.com/group/kurento/post</post>
+			<archive>http://groups.google.com/group/kurento/about</archive>
+		</mailingList>
+	</mailingLists>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.google.android</groupId>
+			<artifactId>android</artifactId>
+			<version>${android.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>${log4j.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-android</artifactId>
+			<version>${slf4j-android.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.kurento.android.sdk</groupId>
+			<artifactId>kands-mscontrol-webrtc</artifactId>
+			<version>${mscontrol.webrtc.version}</version>
+		</dependency>
+	</dependencies>
+
+	<profiles>
+		<profile>
+			<!-- You should to have safe the "keystore" in your settings -->
+			<id>release</id>
+			<properties>
+				<sign.develop>false</sign.develop>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jarsigner-plugin</artifactId>
+						<version>${maven-jarsigner-plugin.version}</version>
+						<executions>
+							<execution>
+								<id>signing</id>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+								<phase>package</phase>
+								<inherited>true</inherited>
+								<configuration>
+									<keystore>${keystore.path}</keystore>
+									<alias>${keystore.alias}</alias>
+									<storepass>${keystore.store.password}</storepass>
+									<keypass>${keystore.key.password}</keypass>
+									<arguments>
+										<argument>-sigalg</argument>
+										<argument>MD5withRSA</argument>
+										<argument>-digestalg</argument>
+										<argument>SHA1</argument>
+									</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<build>
+		<finalName>${project.artifactId}-${version}</finalName>
+
+		<resources>
+			<resource>
+				<directory>${basedir}/res</directory>
+				<filtering>true</filtering>
+				<targetPath>${project.build.directory}/filtered-res</targetPath>
+				<includes>
+					<include>**/*.xml</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>${basedir}/res</directory>
+				<filtering>false</filtering>
+				<targetPath>${project.build.directory}/filtered-res</targetPath>
+				<excludes>
+					<exclude>**/*.xml</exclude>
+				</excludes>
+			</resource>
+			<resource>
+				<directory>${basedir}</directory>
+				<targetPath>${project.build.directory}</targetPath>
+				<filtering>false</filtering>
+				<includes>
+					<include>AndroidManifest.xml</include>
+				</includes>
+			</resource>
+		</resources>
+
+		<plugins>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>initialize</phase>
+						<goals>
+							<goal>resources</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
+				<artifactId>android-maven-plugin</artifactId>
+				<extensions>true</extensions>
+				<version>${android-maven-plugin.version}</version>
+				<configuration>
+					<resourceDirectory>${project.build.directory}/filtered-res</resourceDirectory>
+					<manifest>
+						<debuggable>true</debuggable>
+					</manifest>
+					<sdk>
+						<platform>${android.platform}</platform>
+					</sdk>
+					<deleteConflictingFiles>true</deleteConflictingFiles>
+					<sign>
+						<debug>${sign.develop}</debug>
+					</sign>
+					<androidManifestFile>
+						${project.build.directory}/AndroidManifest.xml
+					</androidManifestFile>
+					<mergeManifests>true</mergeManifests>
+				</configuration>
+			</plugin>
+		</plugins>
+
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ssh</artifactId>
+				<version>${wagon-ssh.version}</version>
+			</extension>
+		</extensions>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>kurento-snapshots</id>
+			<name>Kurento Snapshot Repository</name>
+			<url>http://repository.kurento.com/archiva/repository/snapshots/</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>kurento-releases</id>
+			<name>Kurento Repository</name>
+			<url>http://repository.kurento.com/archiva/repository/internal/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<scm>
+		<connection>scm:http://kurento.googlecode.com</connection>
+		<developerConnection>scm:git:ssh://repository.kurento.com:12345/apps/android${project.artifactId}.git</developerConnection>
+		<url>https://repository.kurento.com/git/?p=apps/android/${project.artifactId}.git</url>
+	</scm>
+</project>

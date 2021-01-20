@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.alicorn.v8</groupId>
+    <artifactId>v8-adapter</artifactId>
+    <version>1.58-SNAPSHOT</version>
+
+    <!-- Metadata -->
+    <organization>
+        <name>Alicorn Systems</name>
+        <url>http://alicorn.io</url>
+    </organization>
+    <name>V8 Adapter</name>
+    <url>https://github.com/alicorn-systems/v8-adapter</url>
+    <description>Adapter for sharing Java classes and objects with a V8 runtime.</description>
+    <licenses>
+      <license>
+        <name>BSD 3-Clause Clear</name>
+        <url>https://choosealicense.com/licenses/bsd-3-clause-clear/</url>
+        <distribution>repo</distribution>
+      </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>Brandon Sanders</name>
+            <email>brandon@alicorn.io</email>
+            <url>http://alicorn.io/brandon</url>
+            <organization>Alicorn Systems</organization>
+            <organizationUrl>http://alicorn.io</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>	
+        <url>scm:git:git@github.com/alicorn-systems/v8-adapter.git</url>	
+        <connection>scm:git:git@github.com:alicorn-systems/v8-adapter.git</connection>	
+        <developerConnection>scm:git:git@github.com:alicorn-systems/v8-adapter.git</developerConnection>	
+    </scm>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Target 1.6 to support Android and embedded systems. -->
+        <maven.compiler.source>1.6</maven.compiler.source>
+        <maven.compiler.target>1.6</maven.compiler.target>
+
+        <!-- Datestamp -->
+        <datestamp>${maven.build.timestamp}</datestamp>
+        <maven.build.timestamp.format>yyyyMMdd</maven.build.timestamp.format>
+
+        <!-- Platform-specific versions. -->
+        <j2v8-version>[4.5.0,)</j2v8-version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <!-- OS specific profiles -->
+    <profiles>
+
+        <!-- Sonatype Deployment-->
+        <profile>
+            <id>ossrh</id>
+
+            <!-- Sonatype Nexus Configuration -->
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                </snapshotRepository>
+                <repository>
+                    <id>ossrh</id>
+                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                </repository>
+            </distributionManagement>
+
+            <!-- Sonatype Build Process -->
+            <build>
+                <plugins>
+                    <!-- Sonatype sources and javadocs. -->
+                    <plugin>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <artifactId>maven-source-plugin</artifactId>
+                      <executions>
+                        <execution>
+                          <id>attach-sources</id>
+                          <goals>
+                            <goal>jar</goal>
+                          </goals>
+                        </execution>
+                      </executions>
+                    </plugin>
+
+                    <plugin>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <artifactId>maven-javadoc-plugin</artifactId>
+                      <executions>
+                        <execution>
+                          <id>attach-javadocs</id>
+                          <goals>
+                            <goal>jar</goal>
+                          </goals>
+                        </execution>
+                      </executions>
+                    </plugin>
+                
+                    <!-- Sonatype Staging -->
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.7</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+
+                    <!-- Sonatype GPG Signing -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- Windows -->
+        <profile>
+            <id>windows</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.eclipsesource.j2v8</groupId>
+                    <artifactId>j2v8_win32_x86_64</artifactId>
+                    <version>${j2v8-version}</version>
+                    <optional>true</optional>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <!-- Linux -->
+        <profile>
+            <id>linux</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <os>
+                    <family>unix</family>
+                    <name>!mac os x</name>
+                </os>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.eclipsesource.j2v8</groupId>
+                    <artifactId>j2v8_linux_x86_64</artifactId>
+                    <version>${j2v8-version}</version>
+                    <optional>true</optional>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <!-- Mac OS X -->
+        <profile>
+            <id>mac</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>com.eclipsesource.j2v8</groupId>
+                    <artifactId>j2v8_macosx_x86_64</artifactId>
+                    <version>${j2v8-version}</version>
+                    <optional>true</optional>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+</project>

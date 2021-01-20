@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.axway.ats.httpdblogger</groupId>
+    <artifactId>ats-httpdblogger</artifactId>
+    <packaging>war</packaging>
+    <version>4.0.2-SNAPSHOT</version>
+    <name>ATS-HttpDbLogger</name>
+    <description>
+        ATS HTTP application for logging test data in ATS DB
+    </description>
+    <url>https://github.com/Axway/ats-httpdblogger</url>
+    <properties>
+
+        <java.version>1.7</java.version> <!-- min. JDK  version to use -->
+        <maven.min.version>3.0.5</maven.min.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <ats.framework.version>4.0.2-SNAPSHOT</ats.framework.version>
+
+        <org.glassfish.jersey.jersey-server.version>2.3.1</org.glassfish.jersey.jersey-server.version>
+
+        <buildnumber-maven-plugin.version>1.4</buildnumber-maven-plugin.version>
+        <maven-war-plugin.version>3.0.0</maven-war-plugin.version>
+        <maven-compiler-plugin.version>3.2</maven-compiler-plugin.version>
+
+        <maven.enforcer.plugin.version>1.4.1</maven.enforcer.plugin.version>
+        <!-- Travis CI plugin versions -->
+        <org.sonatype.plugins.nexus.staging.maven.plugin.version>1.6.7</org.sonatype.plugins.nexus.staging.maven.plugin.version>
+        <maven.release.plugin.version>2.5.3</maven.release.plugin.version>
+        <org.apache.maven.scm>1.8.1</org.apache.maven.scm>
+        <!-- Maven GPG plugin properties -->
+        <maven.gpg.plugin.version>1.6</maven.gpg.plugin.version>
+        <gpg.skip>true</gpg.skip> <!-- skip maven gpg execution. Enable via -Dgpg.skip=false -->
+        <gpg.executable>gpg2</gpg.executable>
+
+        <maven-checkstyle-plugin.version>2.17</maven-checkstyle-plugin.version>
+
+        <build.number>SNAPSHOT</build.number>
+
+    </properties>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>com.github.kongchen</groupId>
+                                        <artifactId>swagger-maven-plugin</artifactId>
+                                        <versionRange>[3.0.0,)</versionRange>
+                                        <goals>
+                                            <!-- plugin goals -->
+                                            <goal>generate</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <execute />
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+
+            <!-- Adds SCM revision number to manifest file -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>${buildnumber-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <doCheck>false</doCheck>
+                    <!-- Do NOT perform git pull -->
+                    <doUpdate>false</doUpdate>
+                    <!-- show github commit sha up to the 7th symbol -->
+                    <shortRevisionLength>7</shortRevisionLength>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>${maven-war-plugin.version}</version>
+                <configuration>
+                    <!-- <webXml>src\main\webapp\WEB-INF\web.xml</webXml> -->
+
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <Implementation-Build-Time>${maven.build.timestamp}</Implementation-Build-Time>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                            <Implementation-Build-Number>${build.number}</Implementation-Build-Number>
+                            <Implementation-SCM-Revision>${buildNumber}</Implementation-SCM-Revision>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>com.github.kongchen</groupId>
+                <artifactId>swagger-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <apiSources>
+                        <apiSource>
+                            <springmvc>false</springmvc>
+                            <schemes>http</schemes>
+                            <host>localhost:8080</host>
+                            <basePath>/ats-httpdblogger/service</basePath>
+                            <locations>com.axway.ats.httpdblogger</locations>
+                            <info>
+                                <title>ATS HTTP DB logger</title>
+                                <version>v${project.version}</version>
+                                <description>
+                                    ATS HTTP application for logging test data in ATS DB
+                                </description>
+                                <contact>
+                                    <email>group.ats.team@axway.com</email>
+                                    <name>ATS Team</name>
+                                    <url>http://github.com/Axway/ats-httpdblogger</url>
+                                </contact>
+                            </info>
+
+                            <!-- securityDefinitions> <securityDefinition> <name>basicAuth</name>
+                                <type>basic</type> </securityDefinition> <securityDefinition> <json>/securityDefinition.json</json>
+                                </securityDefinition> </securityDefinitions -->
+
+                            <!-- Support classpath or file absolute path here. 1) classpath e.g:
+                                "classpath:/markdown.hbs", "classpath:/swagger/templates/hello.html" 2) file
+                                e.g: "${basedir}/src/main/resources/markdown.hbs", "${basedir}/src/main/resources/template/hello.html" -->
+                            <templatePath>${basedir}/src/main/config/swagger/templates/strapdown.html.hbs</templatePath>
+                            <outputPath>${basedir}/target/generated/document.html</outputPath>
+                            <swaggerDirectory>${basedir}/target/generated/swagger-ui</swaggerDirectory>
+                        </apiSource>
+                    </apiSources>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${maven-checkstyle-plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>6.15</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>checkstyle</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <headerLocation>java.header</headerLocation>
+                            <configLocation>license-checks.xml</configLocation>
+                            <consoleOutput>true</consoleOutput>
+                            <failOnViolation>true</failOnViolation>
+                            <violationSeverity>error</violationSeverity>
+                            <failsOnError>true</failsOnError>
+                            <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Travis CI plugin serverId must be the same as in setings.xml -->
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>${org.sonatype.plugins.nexus.staging.maven.plugin.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${maven.enforcer.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>enforce-rules</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>${java.version}</version>
+                                </requireJavaVersion>
+                                <requireMavenVersion>
+                                    <version>${maven.min.version}</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Used only when deploying new release version -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>${maven.gpg.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>${maven.release.plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.scm</groupId>
+                        <artifactId>maven-scm-provider-gitexe</artifactId>
+                        <version>${org.apache.maven.scm}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>com.wordnik</groupId>
+            <artifactId>swagger-core</artifactId>
+            <scope>compile</scope>
+            <version>1.5.1-M2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.ws.rs</groupId>
+                    <artifactId>jsr311-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- ATS dependencies -->
+        <dependency>
+            <groupId>com.axway.ats.framework</groupId>
+            <artifactId>ats-core</artifactId>
+            <version>${ats.framework.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.axway.ats.expectj</groupId>
+                    <artifactId>ats-expectj</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpclient</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.java.dev.jna</groupId>
+                    <artifactId>jna</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.java.dev.jna</groupId>
+                    <artifactId>platform</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.jcraft</groupId>
+                    <artifactId>jsch</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.datastax.cassandra</groupId>
+                    <artifactId>cassandra-driver-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>mysql</groupId>
+                    <artifactId>mysql-connector-java</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.mail</groupId>
+                    <artifactId>mail</artifactId>
+                </exclusion>
+                <exclusion>
+                   <groupId>xerces</groupId>
+                    <artifactId>xercesImpl</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>xalan</groupId>
+                    <artifactId>xalan</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.jvnet.winp</groupId>
+                    <artifactId>winp</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcprov-jdk15on</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-compress</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.activation</groupId>
+                    <artifactId>activation</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-net</groupId>
+                    <artifactId>commons-net</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.axway.ats.framework</groupId>
+            <artifactId>ats-log</artifactId>
+            <version>${ats.framework.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.mail</groupId>
+                    <artifactId>mail</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpclient</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpmime</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <version>2.0.1</version>
+            <!-- <scope>provided</scope> -->
+        </dependency>
+
+        <!-- REST module dependencies -->
+        <dependency>
+            <groupId>org.glassfish.jersey.containers</groupId>
+            <artifactId>jersey-container-servlet</artifactId>
+            <version>${org.glassfish.jersey.jersey-server.version}</version>
+            <!-- <scope>provided</scope> -->
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-server</artifactId>
+            <version>${org.glassfish.jersey.jersey-server.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-moxy</artifactId>
+            <version>${org.glassfish.jersey.jersey-server.version}</version>
+        </dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-multipart</artifactId>
+			<version>${org.glassfish.jersey.jersey-server.version}</version>
+		</dependency>
+        <!-- Web server provided dependencies -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.4</version>
+            <scope>provided</scope>
+        </dependency>
+
+    </dependencies>
+
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>Axway Software</name>
+        <url>http://www.axway.com</url>
+    </organization>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <scm>
+        <connection>scm:git:https://github.com/Axway/ats-httpdblogger.git</connection>
+        <developerConnection>scm:git:git@github.com:Axway/ats-httpdblogger.git</developerConnection>
+        <url>https://github.com/Axway/ats-httpdblogger</url>
+      <tag>HEAD</tag>
+  </scm>
+
+    <developers>
+        <developer>
+            <name>Angel Todorov</name>
+            <email>atodorov@axway.com</email>
+            <organization>Axway</organization>
+            <organizationUrl>http://www.axway.com</organizationUrl>
+        </developer>
+        <developer>
+            <name>Nikolay Gogovski</name>
+            <email>ngogovski@axway.com</email>
+            <organization>Axway</organization>
+            <organizationUrl>http://www.axway.com</organizationUrl>
+        </developer>
+        <developer>
+            <name>Svilen Dikov</name>
+            <email>sdikov@axway.com</email>
+            <organization>Axway</organization>
+            <organizationUrl>http://www.axway.com</organizationUrl>
+        </developer>
+        <developer>
+            <name>Radoslav Kostadinov</name>
+            <email>rkostadinov@axway.com</email>
+            <organization>Axway</organization>
+            <organizationUrl>http://www.axway.com</organizationUrl>
+        </developer>
+        <developer>
+            <name>Dragoslav Slaveykov</name>
+            <email>dslaveykov@axway.com</email>
+            <organization>Axway</organization>
+            <organizationUrl>http://www.axway.com</organizationUrl>
+        </developer>
+    </developers>
+
+</project>

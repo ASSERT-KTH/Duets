@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+     Copyright 2017-2020 AdoptOpenJDK contributors (https://adoptopenjdk.net/);
+     See the copyright.txt file in the distribution for a full listing of all
+     contributors.
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+         https://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>net.adoptopenjdk.jdkapidiff</groupId>
+    <artifactId>jdkapidiff-generator</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>jdkapidiff</name>
+    <url>https://adoptopenjdk.net/</url>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>gunnarmorling</id>
+            <name>Gunnar Morling</name>
+            <email>gunnar.morling@googlemail.com</email>
+            <url>http://www.gunnarmorling.de/</url>
+        </developer>
+    </developers>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!--
+            Matched against <MAVEN_HOME>/toolchains.xml entries like this
+
+            <toolchain>
+                <type>jdk</type>
+                <provides>
+                    <version>9</version>
+                    <vendor>openjdk</vendor>
+                </provides>
+                <configuration>
+                    <jdkHome>path/to/jdk</jdkHome>
+                </configuration>
+            </toolchain>
+         -->
+        <jdk1>version=14,vendor=openjdk</jdk1>
+        <jdk2>version=15,vendor=openjdk</jdk2>
+    </properties>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.mycila</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>3.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <source>9</source>
+                        <target>9</target>
+                    </configuration>
+                    <version>3.6.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.gmaven</groupId>
+                    <artifactId>groovy-maven-plugin</artifactId>
+                    <version>2.1.1</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.codehaus.groovy</groupId>
+                            <artifactId>groovy-all</artifactId>
+                            <version>2.4.12</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <header>${basedir}/LICENSE.txt</header>
+                    <strictCheck>true</strictCheck>
+                    <excludes>
+                        <exclude>copyright.txt</exclude>
+                        <exclude>docs/**</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.gmaven</groupId>
+                <artifactId>groovy-maven-plugin</artifactId>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-all</artifactId>
+                        <version>3.0.3</version>
+                        <type>pom</type>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>${project.basedir}/src/main/groovy/exportJdkHomes.groovy</source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>java</executable>
+                    <arguments>
+                        <argument>-Xdebug</argument>
+                        <argument>-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8000</argument>
+                        <argument>--add-modules</argument>
+                        <argument>java.xml.bind</argument>
+                        <argument>--module-path</argument>
+                        <modulepath/>
+                        <argument>--module</argument>
+                        <argument>net.adoptopenjdk.jdkapidiff/net.adoptopenjdk.jdkapidiff.JdkApiDiffGenerator</argument>
+                        <argument>--javaHome1</argument>
+                        <argument>${javaHome1}</argument>
+                        <argument>--javaHome2</argument>
+                        <argument>${javaHome2}</argument>
+                        <argument>--working-dir</argument>
+                        <argument>${project.build.directory}</argument>
+                        <argument>--exported-packages-only</argument>
+                        <argument>true</argument>
+<!--                         <argument>-#-excluded-packages</argument> -->
+<!--                         <argument>apple,com.apple,com.oracle,com.sun,oracle,sun,jdk.management.cmm,jdk.management.jfr,jdk.management.resource</argument> -->
+                    </arguments>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.github.siom79.japicmp</groupId>
+            <artifactId>japicmp</artifactId>
+            <version>0.11.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.beust</groupId>
+            <artifactId>jcommander</artifactId>
+            <version>1.78</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>2.3.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-impl</artifactId>
+            <version>2.3.3</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

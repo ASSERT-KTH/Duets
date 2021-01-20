@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Arifact name and version information -->
+    <groupId>net.snowflake</groupId>
+    <artifactId>snowflake-ingest-sdk</artifactId>
+    <version>0.9.11</version>
+    <packaging>jar</packaging>
+    <name>Snowflake Ingest SDK</name>
+    <description>Snowflake Ingest SDK</description>
+    <url>https://www.snowflake.net/</url>
+
+
+    <licenses>
+      <license>
+        <name>The Apache Software License, Version 2.0</name>
+        <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      </license>
+    </licenses>
+
+    <developers>
+      <developer>
+        <name>Snowflake Support Team</name>
+        <email>snowflake-java@snowflake.net</email>
+        <organization>Snowflake Computing</organization>
+        <organizationUrl>https://www.snowflake.net</organizationUrl>
+      </developer>
+    </developers>
+
+    <scm>
+      <connection>scm:git:git://github.com/snowflakedb/snowflake-ingest-java</connection>
+      <url>http://github.com/snowflakedb/snowflake-ingest-java/tree/master</url>
+    </scm>
+
+    <!-- Set our Language Level to Java 8 -->
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <shadeBase>net.snowflake.ingest.internal</shadeBase>
+        <jacoco.skip.instrument>true</jacoco.skip.instrument>
+        <jacoco.version>0.8.1</jacoco.version>
+    </properties>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.19.1</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/TestSimpleIngestLocal.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>net.snowflake.ingest.SimpleIngestManager</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.5.1</version>
+                <inherited>true</inherited>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.4</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <additionalparam>-Xdoclint:none</additionalparam>
+                            <source>8</source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>check-shaded-content</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>${basedir}/scripts/check_content.sh</executable>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+        <!-- disable default maven deploy plugin since we are using gpg:sign-and-deploy-file -->
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <configuration>
+                        <skip>true</skip>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco.version}</version>
+                    <executions>
+                        <execution>
+                            <id>pre-unit-test</id>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                            <configuration>
+                                <destFile>target/jacoco-ut.exec</destFile>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>post-unit-test</id>
+                            <phase>test</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                            <configuration>
+                                <dataFile>target/jacoco-ut.exec</dataFile>
+                                <outputDirectory>target/jacoco-ut</outputDirectory>
+                            </configuration>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <skip>${jacoco.skip.instrument}</skip>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <!-- All of our needed dependencies -->
+    <dependencies>
+
+        <!-- Snowflake JDBC used to connect to the service-->
+        <dependency>
+            <groupId>net.snowflake</groupId>
+            <artifactId>snowflake-jdbc</artifactId>
+            <version>3.6.6</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-ext-jdk15on -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-ext-jdk15on</artifactId>
+            <version>1.60</version>
+            <scope>test</scope>
+        </dependency>
+
+
+        <!-- jwt token for key pair authentication with GS -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>7.9</version>
+         </dependency>
+
+
+        <!-- Jackson for marshalling and unmarshalling JSON -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+
+        <!-- Jackson Databind api -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+
+
+        <!-- Apache HTTP Components for actually sending requests over the network -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.2</version>
+        </dependency>
+
+
+        <!-- the Async HTTP Client so we can delay execution -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpasyncclient</artifactId>
+            <version>4.1.2</version>
+        </dependency>
+
+
+        <!-- SLF4J api that a client can shim in later -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.21</version>
+        </dependency>
+
+
+        <!-- JDK logger backend for logging tests -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.21</version>
+        </dependency>
+
+        <!-- java.lang.NoClassDefFoundError: javax/xml/bind/JAXBException -->
+        <!-- https://stackoverflow.com/questions/43574426/how-to-resolve-java
+        -lang-noclassdeffounderror-javax-xml-bind-jaxbexception-in-j/48404582-->
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.1</version>
+        </dependency>
+
+
+        <!-- JUnit so that we can make some basic unit tests -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>shadeDep</id>
+            <activation>
+                <property>
+                    <name>!not-shadeDep</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <!-- Relocate all dependencies to internal to solve dependency conflict problem -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-shade-plugin</artifactId>
+                        <version>3.1.1</version>
+                        <configuration>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.nimbusds</pattern>
+                                    <shadedPattern>
+                                        ${shadeBase}.com.nimbusds
+                                    </shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>net.jcip</pattern>
+                                    <shadedPattern>${shadeBase}.net.jcip</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>net.minidev</pattern>
+                                    <shadedPattern>${shadeBase}.net.minidev</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.objectweb</pattern>
+                                    <shadedPattern>${shadeBase}.org.objectweb</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.fasterxml</pattern>
+                                    <shadedPattern>${shadeBase}.fasterxml</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache</pattern>
+                                    <shadedPattern>${shadeBase}.apache</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.slf4j</pattern>
+                                    <shadedPattern>${shadeBase}.slf4j</shadedPattern>
+                                </relocation>
+                            </relocations>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/LICENSE*</exclude>
+                                        <exclude>META-INF/NOTICE*</exclude>
+                                        <exclude>META-INF/DEPENDENCIES</exclude>
+                                        <exclude>META-INF/maven/**</exclude>
+                                        <exclude>META-INF/services/com.fasterxml.*</exclude>
+                                        <exclude>META-INF/*.xml</exclude>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>commons-logging:commons-logging</artifact>
+                                    <excludes>
+                                        <exclude>org/apache/commons/logging/impl/AvalonLogger.class</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>shade</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>ossrh-deploy</id>
+            <activation>
+                <property>
+                    <name>ossrh-deploy</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <phase>deploy</phase>
+                                <goals>
+                                    <goal>sign-and-deploy-file</goal>
+                                </goals>
+                                <configuration>
+                                    <file>target/${project.artifactId}.jar</file>
+                                    <repositoryId>ossrh</repositoryId>
+                                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+                                    <pomFile>generated_public_pom.xml</pomFile>
+                                    <javadoc>target/${project.artifactId}-javadoc.jar</javadoc>
+                                    <sources>target/${project.artifactId}-sources.jar</sources>
+                                    <keyname>${env.GPG_KEY_ID}</keyname>
+                                    <passphrase>${env.GPG_KEY_PASSPHRASE}</passphrase>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>travisIT</id>
+            <activation>
+                <property>
+                    <name>travisIT</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                </goals>
+                                <configuration>
+                                    <argLine>
+                                        @{argLine} -Djava.util.logging.config.file=travis_it_logging.properties
+                                    </argLine>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>verify_travis_it</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>${jacoco.version}</version>
+                        <executions>
+                            <execution>
+                                <id>pre-unit-test</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                                <configuration>
+                                    <destFile>target/jacoco-ut.exec</destFile>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>post-unit-test</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                                <configuration>
+                                    <dataFile>target/jacoco-ut.exec</dataFile>
+                                    <outputDirectory>target/jacoco-ut</outputDirectory>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>pre-integration-test</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                                <configuration>
+                                    <destFile>target/jacoco-it.exec</destFile>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>post-integration-test</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                                <configuration>
+                                    <dataFile>target/jacoco-it.exec</dataFile>
+                                    <outputDirectory>target/jacoco-it</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <skip>${jacoco.skip.instrument}</skip>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>

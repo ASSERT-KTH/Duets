@@ -1,0 +1,239 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.alfresco</groupId>
+	<artifactId>contentcraft</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>ContentCraft</name>
+
+	<repositories>
+		<repository>
+			<id>maven.alfresco.com</id>
+			<name>Alfresco Maven Repository</name>
+			<url>http://maven.alfresco.com/nexus/content/groups/public/</url>
+		</repository>
+		<repository>
+        	<id>spigot-repo</id>
+        	<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+    	</repository>
+	</repositories>
+	
+	<build>
+		<plugins>
+		
+		    <plugin>
+			    <artifactId>maven-clean-plugin</artifactId>
+			    <version>3.0.0</version>
+			    <configuration>
+			      <excludeDefaultDirectories>true</excludeDefaultDirectories>
+			      <filesets>
+			        <fileset>
+			          <directory>${project.build.directory}</directory>
+			          <excludes>
+			            <exclude>mc-server/**/*.*</exclude>
+			          </excludes>
+			          <followSymlinks>false</followSymlinks>
+			        </fileset>
+			        <fileset>
+			          <directory>${project.build.outputDirectory}</directory>
+			        </fileset>
+			        <fileset>
+			          <directory>${project.build.testOutputDirectory}</directory>
+			        </fileset>
+			        <fileset>
+			          <directory>${project.reporting.outputDirectory}</directory>
+			        </fileset>
+			      </filesets>
+			    </configuration>
+			</plugin>
+		
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.0.2</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+		
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.2</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<artifactSet>
+								<excludes>
+									<exclude>org.bukkit:*</exclude>
+									<exclude>junit:junit</exclude>
+									<exclude>log4j:log4j:jar:</exclude>
+								</excludes>
+							</artifactSet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<plugin>
+	            <groupId>org.apache.maven.plugins</groupId>
+	            <artifactId>maven-antrun-plugin</artifactId>
+	            <version>1.8</version>
+	            <executions>
+	                <execution>
+	                    <phase>package</phase>
+	                    <configuration>
+	                        <target>
+	                            <copy 
+	                            	file="${project.build.directory}/${project.artifactId}-${project.version}.jar" 
+	                            	tofile="${project.build.directory}/mc-server/plugins/${project.artifactId}-${project.version}.jar"
+	                            	overwrite="true" />
+	                        </target>
+	                    </configuration>
+	                    <goals>
+	                        <goal>run</goal>
+	                    </goals>
+	                </execution>
+	            </executions>
+	        </plugin>
+
+		</plugins>
+
+	</build>
+
+	<dependencies>
+	
+		<!-- Spigot API-->
+	    <dependency>
+	        <groupId>org.spigotmc</groupId>
+	        <artifactId>spigot-api</artifactId>
+	        <version>1.12.1-R0.1-SNAPSHOT</version>
+	        <scope>provided</scope>
+	    </dependency>
+	    
+	    <!-- Bukkit API-->
+	    <dependency>
+	        <groupId>org.bukkit</groupId>
+	        <artifactId>bukkit</artifactId>
+	        <version>1.12.1-R0.1-SNAPSHOT</version>
+	        <scope>provided</scope>
+	    </dependency>
+	    
+	    <!--  Alfresco Client API -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore</artifactId>
+			<version>4.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpmime</artifactId>
+			<version>4.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.1</version>
+		</dependency>
+	    
+	    <!-- JUnit -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>		
+			<groupId>org.apache.chemistry.opencmis</groupId>
+			<artifactId>chemistry-opencmis-client-impl</artifactId>
+			<version>0.10.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.alfresco.cmis.client</groupId>
+			<artifactId>alfresco-opencmis-extension</artifactId>
+			<version>0.2</version>
+		</dependency>
+				
+	</dependencies>
+	
+	<profiles>
+	    <profile>
+			<id>clean-server</id>
+			<build>
+				<plugins>
+					<plugin>
+					    <artifactId>maven-clean-plugin</artifactId>
+					    <version>3.0.0</version>
+					    <executions>
+				            <execution>
+                        		<phase>clean</phase>
+                        		<goals>
+				                    <goal>clean</goal>
+				                </goals>
+							    <configuration>
+							      <excludeDefaultDirectories>true</excludeDefaultDirectories>
+							      <filesets>
+							        <fileset>
+							          <directory>${project.build.directory}</directory>
+							          <excludes>
+							            <exclude>mc-server/*.jar</exclude>
+							            <exclude>mc-server/*.txt</exclude>
+							          </excludes>
+							          <followSymlinks>false</followSymlinks>
+							        </fileset>
+							        <fileset>
+							          <directory>${project.build.outputDirectory}</directory>
+							        </fileset>
+							        <fileset>
+							          <directory>${project.build.testOutputDirectory}</directory>
+							        </fileset>
+							        <fileset>
+							          <directory>${project.reporting.outputDirectory}</directory>
+							        </fileset>
+							      </filesets>
+							    </configuration>
+						    </execution>
+					    </executions>
+					</plugin>			
+				</plugins>
+			</build>		
+		</profile>	
+		<profile>
+			<id>start-server</id>
+			<build>
+				<plugins>
+					 <plugin>
+				        <artifactId>maven-antrun-plugin</artifactId>
+				        <version>1.8</version>
+				        <executions>
+				          <execution>
+				            <phase>package</phase>
+				            <configuration>
+				              <target>				
+				                <java jar="${project.build.directory}/mc-server/spigot-1.12.1.jar" fork="true" dir="${project.build.directory}/mc-server">
+									<jvmarg value="-Xmx2048M"/>
+								    <arg value="-o"/>
+									<arg value="true"/>			
+								</java>			
+				              </target>
+				            </configuration>
+				            <goals>
+				              <goal>run</goal>
+				            </goals>
+				          </execution>
+				        </executions>
+				      </plugin> 				
+				</plugins>
+			</build>		
+		</profile>	
+	</profiles>
+</project>

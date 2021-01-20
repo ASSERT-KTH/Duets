@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.2.1.RELEASE</version>
+		<relativePath />
+	</parent>
+
+	<groupId>de.retest.services</groupId>
+	<artifactId>rebazer</artifactId>
+	<version>0.10-SNAPSHOT</version>
+
+	<name>rebazer</name>
+	<description>
+		Helper service to handle PullRequests on GitHub/Bitbucket.
+		Rebase PullRequests against target to streamline commit history.
+		Merge the PullRequest if it's rebased, approved and the build is green.
+	</description>
+
+	<properties>
+		<git.repo.host>github.com</git.repo.host>
+		<git.repo.path>retest/rebazer</git.repo.path>
+		<java.version>11</java.version>
+		<mockito.version>2.28.2</mockito.version><!-- overwrite mockito version to be compatible with java 11 -->
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.jayway.jsonpath</groupId>
+			<artifactId>json-path</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jgit</groupId>
+			<artifactId>org.eclipse.jgit</artifactId>
+			<version>5.5.1.201910021850-r</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.6</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
+		</dependency>
+
+		<!-- Testing only -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-params</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<showWarnings>true</showWarnings>
+					<showDeprecation>true</showDeprecation>
+					<compilerArgs>
+						<arg>-Xlint:all,-processing</arg>
+					</compilerArgs>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>com.google.cloud.tools</groupId>
+				<artifactId>jib-maven-plugin</artifactId>
+				<version>1.8.0</version>
+				<configuration>
+					<to>
+						<image>docker.io/retest/${project.artifactId}</image>
+						<tags>
+							<tag>${git_branch_for_tag}</tag>
+							<tag>${git.commit.id.describe}</tag>
+						</tags>
+					</to>
+					<args>
+						<arg>-Dspring.devtools.restart.enabled=false</arg>
+					</args>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>regex-properties</id>
+						<phase>generate-sources</phase><!-- after git-commit-id-plugin -->
+						<goals>
+							<goal>regex-properties</goal>
+						</goals>
+						<configuration>
+							<regexPropertySettings>
+								<regexPropertySetting>
+									<name>git_branch_for_tag</name>
+									<value>branch-${git.branch}</value>
+									<regex>/</regex>
+									<replacement>-</replacement>
+									<failIfNoMatch>false</failIfNoMatch>
+								</regexPropertySetting>
+							</regexPropertySettings>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<configuration>
+					<tagNameFormat>v@{project.version}</tagNameFormat>
+					<preparationGoals>validate</preparationGoals>
+					<resume>false</resume>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>deb</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.vafer</groupId>
+						<artifactId>jdeb</artifactId>
+						<version>1.8</version>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>jdeb</goal>
+								</goals>
+								<configuration>
+									<deb>${project.build.directory}/${project.build.finalName}.deb</deb>
+									<verbose>true</verbose>
+									<snapshotExpand>true</snapshotExpand>
+									<snapshotEnv>USER</snapshotEnv>
+									<verbose>true</verbose>
+									<controlDir>${basedir}/src/deb/control</controlDir>
+									<dataSet>
+
+										<data>
+											<src>${project.build.directory}/${project.build.finalName}.jar</src>
+											<type>file</type>
+											<mapper>
+												<type>perm</type>
+												<prefix>/usr/share/${project.artifactId}</prefix>
+												<user>${project.artifactId}</user>
+												<group>${project.artifactId}</group>
+											</mapper>
+										</data>
+
+										<data>
+											<src>${basedir}/src/deb/systemd/${project.artifactId}.service</src>
+											<type>file</type>
+											<mapper>
+												<type>perm</type>
+												<prefix>/etc/systemd/system</prefix>
+												<user>root</user>
+												<group>root</group>
+											</mapper>
+										</data>
+
+										<data>
+											<src>${basedir}/src/deb/bin/${project.artifactId}</src>
+											<type>file</type>
+											<mapper>
+												<type>perm</type>
+												<prefix>/usr/bin</prefix>
+												<user>root</user>
+												<group>root</group>
+												<filemode>755</filemode>
+											</mapper>
+										</data>
+
+										<data>
+											<src>${basedir}/src/deb/etc/default/${project.artifactId}</src>
+											<type>file</type>
+											<mapper>
+												<type>perm</type>
+												<prefix>/etc/default</prefix>
+												<user>root</user>
+												<group>root</group>
+												<filemode>644</filemode>
+											</mapper>
+										</data>
+
+										<data>
+											<src>${basedir}/src/deb/etc/rsyslog.d/${project.artifactId}.conf</src>
+											<type>file</type>
+											<mapper>
+												<type>perm</type>
+												<prefix>/etc/rsyslog.d</prefix>
+												<user>root</user>
+												<group>root</group>
+												<filemode>644</filemode>
+											</mapper>
+										</data>
+
+										<data>
+											<src>${basedir}/src/deb/logrotate/${project.artifactId}</src>
+											<type>file</type>
+											<mapper>
+												<type>perm</type>
+												<prefix>/etc/logrotate.d</prefix>
+												<user>root</user>
+												<group>root</group>
+												<filemode>644</filemode>
+											</mapper>
+										</data>
+
+										<data>
+											<type>template</type>
+											<paths>
+												<path>var/lib/${project.artifactId}</path>
+												<path>var/log/${project.artifactId}</path>
+											</paths>
+											<mapper>
+												<type>perm</type>
+												<user>${project.artifactId}</user>
+												<group>${project.artifactId}</group>
+											</mapper>
+										</data>
+									</dataSet>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<organization>
+		<name>ReTest GmbH</name>
+		<url>https://retest.de/</url>
+	</organization>
+
+	<licenses>
+		<license>
+			<name>AGPL V.3.0 or any later version</name>
+			<url>https://www.gnu.org/licenses/agpl-3.0.txt</url>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:git:https://${git.repo.host}/${git.repo.path}.git</connection>
+		<developerConnection>scm:git:ssh://git@${git.repo.host}/${git.repo.path}.git</developerConnection>
+		<url>https://${git.repo.host}/${git.repo.path}/</url>
+		<tag>HEAD</tag>
+	</scm>
+</project>

@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>as.leap.cloud.code</groupId>
+    <artifactId>cloud-code-template-java</artifactId>
+    <version>2.0.1-SNAPSHOT</version>
+
+    <properties>
+        <nexus.develop.host>10.10.10.137:8081</nexus.develop.host>
+        <nexus.production.host>54.164.163.132:8081</nexus.production.host>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>public</id>
+            <name>Public Repositories</name>
+            <url>http://${nexus.develop.host}/nexus/content/groups/public</url>
+        </repository>
+        <repository>
+            <id>releases</id>
+            <name>Internal Releases</name>
+            <url>http://${nexus.develop.host}/nexus/content/repositories/releases</url>
+        </repository>
+        <repository>
+            <id>snapshots</id>
+            <name>Internal Releases</name>
+            <url>http://${nexus.develop.host}/nexus/content/repositories/snapshots</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>public</id>
+            <name>Public Repositories</name>
+            <url>http://${nexus.develop.host}/nexus/content/groups/public</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <distributionManagement>
+                <repository>
+                    <id>releases</id>
+                    <name>Internal Releases</name>
+                    <url>http://${nexus.develop.host}/nexus/content/repositories/releases</url>
+                </repository>
+                <snapshotRepository>
+                    <id>snapshots</id>
+                    <name>Internal Releases</name>
+                    <url>http://${nexus.develop.host}/nexus/content/repositories/snapshots</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+        <profile>
+            <id>pro</id>
+            <distributionManagement>
+                <repository>
+                    <id>releases</id>
+                    <name>Internal Releases</name>
+                    <url>http://${nexus.production.host}/content/repositories/releases</url>
+                </repository>
+                <snapshotRepository>
+                    <id>snapshots</id>
+                    <name>Internal Releases</name>
+                    <url>http://${nexus.production.host}/content/repositories/snapshots</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+    </profiles>
+
+    <dependencies>
+        <dependency>
+            <groupId>as.leap</groupId>
+            <artifactId>cloud-code-test</artifactId>
+            <version>2.3.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-mod-dependencies-to-target</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>target/lib</outputDirectory>
+                            <includeScope>compile</includeScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/main/assembly/mod.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>assemble</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.0</version>
+            <configuration>
+              <source>1.8</source>
+              <target>1.8</target>
+            </configuration>
+          </plugin>
+        </plugins>
+    </build>
+</project>

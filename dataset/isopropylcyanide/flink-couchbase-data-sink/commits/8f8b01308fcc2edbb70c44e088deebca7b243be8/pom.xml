@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.github.isopropylcyanide</groupId>
+    <artifactId>flink-couchbase-sink</artifactId>
+    <version>1.0.0</version>
+
+    <name>Flink Couchbase Sink</name>
+    <description>Provides a Couchbase sink for dumping documents using Flink</description>
+    <url>https://github.com/isopropylcyanide/flink-couchbase-data-starter</url>
+
+    <developers>
+        <developer>
+            <name>Aman Garg</name>
+            <email>amangargcse@outlook.com</email>
+            <timezone>5</timezone>
+            <id>isopropylcyanide</id>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>Apache 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <properties>
+        <!--Build-->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+
+        <!--Application-->
+        <flink.java.version>1.10.0</flink.java.version>
+        <flink.streaming.java_2.11.version>1.10.0</flink.streaming.java_2.11.version>
+        <flink.clients_2.11.version>1.10.0</flink.clients_2.11.version>
+        <couchbase.java.client.version>2.7.14</couchbase.java.client.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-java</artifactId>
+            <version>${flink.java.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-streaming-java_2.11</artifactId>
+            <version>${flink.streaming.java_2.11.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.flink</groupId>
+            <artifactId>flink-clients_2.11</artifactId>
+            <version>${flink.clients_2.11.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.couchbase.client</groupId>
+            <artifactId>java-client</artifactId>
+            <version>${couchbase.java.client.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--Maven shade plugin for fat jar. Alternatively, put libs in %flink%/lib-->
+            <!-- We use the maven-shade plugin to create a fat jar that contains all dependencies
+           except flink and it's transitive dependencies. The resulting fat-jar can be executed
+           on a cluster. Change the value of Main-Class if your program's entry point changes. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.1</version>
+                <executions>
+                    <!-- Run shade goal on package phase -->
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <!-- add Main-Class to manifest file -->
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.github.isopropylcyanide.flinkcouchbasesink.FlinkDatabaseStartupJob</mainClass>
+                                </transformer>
+                            </transformers>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

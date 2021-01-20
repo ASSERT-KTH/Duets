@@ -1,0 +1,211 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.cloudera.example</groupId>
+	<artifactId>cloudera-impala-jdbc-example</artifactId>
+	<version>1.0</version>
+	<packaging>jar</packaging>
+	<description>Cloudera Impala JDBC Example for CDH 5.5.2</description>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<impala.jdbc.version>2.5.30</impala.jdbc.version>
+        	<uber.jar.name>cloudera-impala-jdbc-example-uber.jar</uber.jar.name>
+        	<uber.jar.main.class>com.cloudera.example.ClouderaImpalaJdbcExample</uber.jar.main.class>
+	</properties>
+	
+	<dependencies>
+		
+	<!-- These dependencies provided by your local repo -->
+	
+		<dependency>
+			<groupId>com.cloudera.impala.jdbc</groupId>
+			<artifactId>hive_metastore</artifactId>
+			<version>${impala.jdbc.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.cloudera.impala.jdbc</groupId>
+			<artifactId>hive_service</artifactId>
+			<version>${impala.jdbc.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.cloudera.impala.jdbc</groupId>
+			<artifactId>ImpalaJDBC41</artifactId>
+			<version>${impala.jdbc.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.cloudera.impala.jdbc</groupId>
+			<artifactId>ql</artifactId>
+			<version>${impala.jdbc.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.cloudera.impala.jdbc</groupId>
+			<artifactId>TCLIServiceClient</artifactId>
+			<version>${impala.jdbc.version}</version>
+		</dependency>
+		
+	<!-- End of dependencies provided by your local repo -->	
+		
+		<dependency>
+			<groupId>org.apache.thrift</groupId>
+			<artifactId>libfb303</artifactId>
+			<version>0.9.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.thrift</groupId>
+			<artifactId>libthrift</artifactId>
+			<version>0.9.0</version>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.14</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.5.11</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.5.11</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.zookeeper</groupId>
+			<artifactId>zookeeper</artifactId>
+			<version>3.4.6</version>
+		</dependency>
+		
+	</dependencies>
+
+	<build>
+
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>exec-maven-plugin</artifactId>
+					<version>1.2.1</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<outputDirectory>${basedir}</outputDirectory>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>2.6.1</version>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>.</directory>
+							<includes>
+								<include>*.jar</include>
+							</includes>
+							<followSymlinks>false</followSymlinks>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<shadedArtifactAttached>false</shadedArtifactAttached>
+					<outputFile>target/${uber.jar.name}</outputFile>
+					<artifactSet>
+						<includes>
+							<include>*:*</include>
+						</includes>
+					</artifactSet>
+					<filters>
+						<filter>
+							<artifact>*:*</artifact>
+							<excludes>
+								<exclude>META-INF/*.SF</exclude>
+								<exclude>META-INF/*.DSA</exclude>
+								<exclude>META-INF/*.RSA</exclude>
+							</excludes>
+						</filter>
+					</filters>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+								<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+									<resource>reference.conf</resource>
+								</transformer>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  					<mainClass>${uber.jar.main.class}</mainClass>
+                				</transformer>
+							</transformers>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<repositories>
+
+
+		<!-- YOUR LOCAL REPO -->
+		<repository>
+			<id>YOUR.LOCAL.REPO.ID</id>
+			<url><YOUR LOCAL REPO URL></url>
+			<name>YOUR.LOCAL.REPO.NAME</name>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+
+		<repository>
+			<id>cdh.repo</id>
+			<url>https://repository.cloudera.com/artifactory/cloudera-repos</url>
+			<name>Cloudera Repositories</name>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		
+		<repository>
+			<id>central</id>
+			<url>http://repo1.maven.org/maven2/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		
+	</repositories>
+
+</project>

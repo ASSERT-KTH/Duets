@@ -1,0 +1,229 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.goodow.realtime</groupId>
+    <artifactId>realtime-parent</artifactId>
+    <version>0.5.5-SNAPSHOT</version>
+  </parent>
+  <artifactId>realtime-channel</artifactId>
+  <url>https://github.com/goodow/realtime-channel/</url>
+  <inceptionYear>2013</inceptionYear>
+  
+  <properties>
+    <maven.compiler.source>1.6</maven.compiler.source>
+    <maven.compiler.target>1.6</maven.compiler.target>
+    
+    <vertx.pullInDeps>false</vertx.pullInDeps>
+    <vertx.createFatJar>false</vertx.createFatJar>
+  </properties>
+  
+  <repositories>
+    <repository>
+      <id>sonatype-nexus-snapshots</id>
+      <name>Sonatype Nexus Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>google-diff-match-patch</id>
+      <url>http://google-diff-match-patch.googlecode.com/svn/trunk/maven/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+  
+  <dependencies>
+    <!-- Internal modules -->
+    <dependency>
+      <groupId>com.goodow.realtime</groupId>
+      <artifactId>realtime-json</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.goodow.realtime</groupId>
+      <artifactId>realtime-json</artifactId>
+      <version>${project.version}</version>
+      <classifier>sources</classifier>
+      <scope>provided</scope>
+    </dependency>
+
+    <!--Vert.x dependencies-->
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-platform</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>diff_match_patch</groupId>
+      <artifactId>diff_match_patch</artifactId>
+      <version>current</version>
+    </dependency>
+
+    <!-- Test -->
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>testtools</artifactId>
+    </dependency>
+    
+    <!-- Google Web Toolkit (GWT) -->
+    <dependency>
+      <groupId>com.google.gwt</groupId>
+      <artifactId>gwt-user</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.gwt</groupId>
+      <artifactId>gwt-codeserver</artifactId>
+    </dependency>
+  </dependencies>
+  
+  <build>
+    <plugins>
+      <!-- The vert.x Maven plugin -->
+      <plugin>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-maven-plugin</artifactId>
+        <configuration>
+          <configFile>src/main/resources/channel.conf</configFile>
+        </configuration>
+        <executions>
+          <execution>
+            <id>PullInDeps</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>pullInDeps</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Other plugins required by the build -->
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-mod-to-target</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <overwrite>true</overwrite>
+              <outputDirectory>${vertx.mods.directory}/${vertx.module.name}</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>target/classes</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-mod-dependencies-to-target</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${vertx.mods.directory}/${vertx.module.name}/lib</outputDirectory>
+              <includeScope>runtime</includeScope>
+              <excludeGroupIds>com.goodow.realtime,com.fasterxml.jackson.core</excludeGroupIds>
+            </configuration>
+          </execution>
+          <execution>
+            <id>copy-mod-dependencies-to-target-dependencies</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>target/dependencies</outputDirectory>
+              <includeScope>runtime</includeScope>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptors>
+            <descriptor>src/main/assembly/mod.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>assemble</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>mod.json</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-source-plugin</artifactId>
+      </plugin>
+      <!-- GWT Maven Plugin -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>gwt-maven-plugin</artifactId>
+        <configuration>
+          <!--<compileSourcesArtifacts>-->
+            <!--<compileSourcesArtifact>com.goodow.realtime:realtime-json</compileSourcesArtifact>-->
+          <!--</compileSourcesArtifacts>-->
+          <bindAddress>0.0.0.0</bindAddress>
+          <module>${project.groupId}.channel.Channel</module>
+          <precompile>false</precompile>
+        </configuration>
+      </plugin>
+    </plugins>
+    
+    <!-- Required by m2e for import into eclipse. No effect on command line builds -->
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <versionRange>[2.7,)</versionRange>
+                    <goals>
+                      <goal>copy-dependencies</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+</project>

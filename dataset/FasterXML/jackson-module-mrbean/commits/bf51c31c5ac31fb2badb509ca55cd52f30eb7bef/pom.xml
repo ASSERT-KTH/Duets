@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ |  Copyright 2012 FasterXML.com
+ |
+ |  Licensed under the Apache License, Version 2.0 (the "License");
+ |  you may not use this file except in compliance with the License.
+ |  You may obtain a copy of the License at
+ |
+ |  http://www.apache.org/licenses/LICENSE-2.0
+ |
+ |  Unless required by applicable law or agreed to in writing, software
+ |  distributed under the License is distributed on an "AS IS" BASIS,
+ |  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ |  See the License for the specific language governing permissions and
+ |  limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion> 
+
+  <parent>
+    <groupId>com.fasterxml</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>3</version>
+  </parent>
+
+  <groupId>com.fasterxml.jackson.module</groupId>
+  <artifactId>jackson-module-mrbean</artifactId>
+  <version>2.0.6-SNAPSHOT</version>
+
+  <name>Jackson-module-mr.Bean</name>
+  <description>Functionality for implementing interfaces and abstract types
+dynamically ("bean materialization"): refactored out of main Jackson project
+  </description>
+  <url>http://wiki.fasterxml.com/JacksonHome</url>
+
+  <issueManagement>
+    <url>http://jira.codehaus.org/browse/JACKSON</url>
+  </issueManagement>
+  <scm>
+    <connection>scm:git:git@github.com:FasterXML/jackson-module-mrbean.git</connection>
+    <developerConnection>scm:git:git@github.com:FasterXML/jackson-module-mrbean.git</developerConnection>
+    <url>http://github.com/FasterXML/jackson-module-mrbean</url>    
+  </scm>
+
+  <properties>
+    <osgi.export>
+com.fasterxml.jackson.module.mrbean
+    </osgi.export>
+    <osgi.import>
+com.fasterxml.jackson.core
+,com.fasterxml.jackson.databind
+,com.fasterxml.jackson.databind.type
+,com.fasterxml.jackson.type
+,com.fasterxml.jackson.core.util
+,org.objectweb.asm;resolution:=optional
+</osgi.import>
+  </properties>
+
+  <dependencies>
+    <!-- Extends Jackson mapper, but also uses types from core, hence direct dep as well
+     -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>4.0</version>
+      <scope>compile</scope>
+    </dependency>
+     <!-- and for testing, JUnit (or TestNG?) is needed -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.10</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <!--  need to enable filtering to add version info -->
+    <resources>
+      <resource>
+        <directory>${basedir}/src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+
+    <plugins>
+      <plugin>
+        <!--  We will shade ASM, to simplify deployment, avoid version conflicts -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>1.6</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <artifactSet>
+                <includes>
+                  <include>org.ow2.asm:asm</include>
+                </includes>
+              </artifactSet>
+              <relocations>
+                <relocation>
+                  <pattern>org.objectweb.asm</pattern>
+                  <shadedPattern>com.fasterxml.jackson.module.mrbean.asm</shadedPattern>
+                </relocation>
+              </relocations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${surefire.version}</version>
+        <configuration>
+          <excludes>
+            <exclude>com/fasterxml/jackson/module/mrbean/failing/*.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

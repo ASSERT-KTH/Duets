@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ RAMPART - Robust Automatic MultiPle AssembleR Toolkit
+  ~ Copyright (C) 2015  Daniel Mapleson - TGAC
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>uk.ac.tgac.rampart</groupId>
+	<artifactId>rampart</artifactId>
+	<version>0.12.0</version>
+	<packaging>jar</packaging>
+
+    <name>RAMPART</name>
+	<url>http://www.tgac.ac.uk</url>
+    <description>RAMPART</description>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.report.sourceEncoding>UTF-8</project.report.sourceEncoding>
+		<java-version>1.7</java-version>
+		<slf4j-version>1.6.1</slf4j-version>
+        <dist-name>${project.artifactId}-${project.version}</dist-name>
+        <dist-dir>${project.basedir}/build/dist</dist-dir>
+        <build-dir>${project.basedir}/build/${dist-name}</build-dir>
+        <rampart-version>${project.version}</rampart-version>
+	</properties>
+
+	<!-- Licensing -->
+	<licenses>
+		<license>
+			<name>GNU General Public License v3</name>
+			<url>http://www.gnu.org/licenses/gpl.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<!-- Developer Listing -->
+	<developers>
+		<developer>
+			<id>maplesod</id>
+			<name>Daniel Mapleson</name>
+			<email>daniel.mapleson@tgac.ac.uk</email>
+			<organization>TGAC</organization>
+			<organizationUrl>http://www.tgac.ac.uk</organizationUrl>
+			<roles>
+				<role>Analysis Pipelines Project Leader</role>
+			</roles>
+			<timezone>0</timezone>
+			<properties />
+		</developer>
+	</developers>
+
+
+	<build>
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <testSourceDirectory>src/test/java</testSourceDirectory>
+        <plugins>
+
+            <!-- Clean phase -->
+
+            <!-- On top of the target dir, this also deletes the build dir. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${project.basedir}/build</directory>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+
+
+
+
+            <!-- Compilation phase -->
+
+            <!-- Compiler settings -->
+            <plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>${java-version}</source>
+					<target>${java-version}</target>
+					<showDeprecation>true</showDeprecation>
+					<showWarnings>true</showWarnings>
+                    <!--<compilerArgument>-Xlint:unchecked</compilerArgument>-->
+				</configuration>
+			</plugin>
+
+
+            <!-- Testing phase -->
+
+            <!-- Unit testing setup (ignores integration tests) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.17</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-junit47</artifactId>
+                        <version>2.17</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.17</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-junit47</artifactId>
+                        <version>2.17</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>failsafe-integration-tests</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>integration-test</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+
+            <!-- Package phase -->
+
+            <!-- Creates an executable jar with all dependencies built in -->
+            <!--<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <manifestEntries>
+                                        <Main-Class>uk.ac.tgac.rampart.Rampart</Main-Class>
+                                    </manifestEntries>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin> -->
+
+            <!-- Creates script to run program -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>appassembler-maven-plugin</artifactId>
+                <version>1.6</version>
+
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>assemble</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+                <configuration>
+
+                    <!-- set alternative assemble directory -->
+                    <assembleDirectory>${build-dir}</assembleDirectory>
+
+                    <!-- Generate bin scripts for only unix -->
+                    <platforms>
+                        <platform>unix</platform>
+                    </platforms>
+
+                    <!-- This is only really required on high core systems (i.e. >100 cores), as otherwise the java process
+                     will reserve silly amounts of memory for each GC thread.  Having said that it doesn't do much harm
+                     on regular systems as none of the processes created here are going to be GC heavy. -->
+                    <extraJvmArguments>-XX:+UseSerialGC</extraJvmArguments>
+
+                    <!-- Create executable scripts -->
+                    <programs>
+                        <program>
+                            <mainClass>uk.ac.tgac.rampart.RampartCLI</mainClass>
+                            <id>rampart</id>
+                        </program>
+                        <program>
+                            <mainClass>uk.ac.tgac.rampart.util.DependencyDownloader</mainClass>
+                            <id>rampart-download-deps</id>
+                        </program>
+                        <program>
+                            <mainClass>uk.ac.tgac.rampart.util.JobCleaner</mainClass>
+                            <id>rampart-clean</id>
+                        </program>
+                        <program>
+                            <mainClass>uk.ac.tgac.jellyswarm.JellyswarmCLI</mainClass>
+                            <id>jellyswarm</id>
+                        </program>
+                        <program>
+                            <mainClass>uk.ac.tgac.citadel.CitadelCLI</mainClass>
+                            <id>citadel</id>
+                        </program>
+                    </programs>
+                </configuration>
+            </plugin>
+
+
+
+            <!-- Install phase -->
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.0-alpha-2</version>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>write-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <outputFile>
+                                ${build-dir}/etc/app.properties
+                            </outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+            <!-- Creates a jar file containing the sources -->
+            <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.2.1</version>
+				<executions>
+					<execution>
+						<id>create-sources-jar</id>
+						<phase>install</phase>
+                        <goals>
+							<goal>jar</goal>
+						</goals>
+                        <configuration>
+                            <outputDirectory>${build-dir}/support_jars</outputDirectory>
+                        </configuration>
+
+					</execution>
+				</executions>
+			</plugin>
+
+
+            <!-- Creates javadoc -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>create-javadoc-jar</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <jarOutputDirectory>${build-dir}/support_jars</jarOutputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+
+            <!-- Various phases -->
+
+            <!-- Adds execute permission to scripts and copies resources to install folder during the package phase.
+                 Also creates and installs manual if possible in the install phase. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <id>clean-docs</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <delete dir="${project.basedir}/doc/build"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>add-exeperms-and-res</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+
+                                <!-- Make config dir and copy across files -->
+                                <mkdir dir="${build-dir}/etc"/>
+                                <copy todir="${build-dir}/etc">
+                                    <fileset dir="${project.basedir}/src/main/resources/etc"/>
+                                </copy>
+
+                                <!-- copy scripts to bin dir -->
+                                <mkdir dir="${build-dir}/bin"/>
+                                <copy todir="${build-dir}/bin">
+                                    <fileset dir="${project.basedir}/src/main/resources/bin"/>
+                                </copy>
+
+                                <!-- Add executable permission to all executables -->
+                                <chmod file="${build-dir}/bin/*" perm="755"/>
+
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>create-manual</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+
+                                <!-- Create the documentation -->
+                                <exec
+                                        dir="${project.basedir}/doc"
+                                        executable="make"
+                                        failonerror="false">
+                                    <arg line="html man latexpdf text" />
+                                </exec>
+
+                                <!-- copy the documentation in to the build dir -->
+                                <mkdir dir="${build-dir}/doc/html"/>
+                                <copy todir="${build-dir}/doc/html">
+                                    <fileset dir="${project.basedir}/doc/build/html"/>
+                                </copy>
+                                <copy todir="${build-dir}/man">
+                                    <fileset dir="${project.basedir}/doc/build/man"/>
+                                </copy>
+                                <copy file="${project.basedir}/doc/build/latex/RAMPART.pdf" todir="${build-dir}/doc"/>
+
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>create-distributable</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${dist-dir}"/>
+                                <tar longfile="gnu"
+                                     destfile="${dist-dir}/${dist-name}.tar.gz"
+                                     compression="gzip">
+
+                                    <tarfileset dir="${project.basedir}/build" filemode="755">
+                                        <include name="${dist-name}/bin/*"/>
+                                    </tarfileset>
+
+                                    <tarfileset dir="${project.basedir}/build">
+                                        <include name="${dist-name}/**"/>
+                                        <exclude name="${dist-name}/bin/*"/>
+                                    </tarfileset>
+                                </tar>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+        </plugins>
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-ssh</artifactId>
+                <version>2.2</version>
+            </extension>
+        </extensions>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.prop</include>
+                </includes>
+            </resource>
+        </resources>
+
+	</build>
+
+
+    <!-- Maven repository deploy -->
+    <distributionManagement>
+        <downloadUrl>https://repos.tgac.ac.uk/maven/repo</downloadUrl>
+        <repository>
+            <id>tgac-repo</id>
+            <name>TGAC repository</name>
+            <url>scp://repos.tgac.ac.uk/storage/html/maven/repo</url>
+        </repository>
+    </distributionManagement>
+
+    <!-- TGAC Maven Repo -->
+    <repositories>
+        <repository>
+            <id>tgac-repo</id>
+            <name>TGAC Maven Repository</name>
+            <url>https://repos.tgac.ac.uk/maven/repo</url>
+        </repository>
+    </repositories>
+
+
+	<dependencies>
+
+        <!-- Testing -->
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.9.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>3.2.4.RELEASE</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+            <scope>test</scope>
+        </dependency>
+
+
+        <!-- Conan -->
+
+        <dependency>
+            <groupId>uk.ac.tgac.conan</groupId>
+            <artifactId>tgac-conan-process-wrappers</artifactId>
+            <version>0.12.3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-cli</groupId>
+                    <artifactId>commons-cli</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+
+        <!-- Apache -->
+
+        <dependency>
+            <groupId>commons-cli</groupId>
+            <artifactId>commons-cli</artifactId>
+            <version>1.2</version>
+        </dependency>
+
+
+        <!-- Open CSV -->
+
+        <dependency>
+            <groupId>net.sf.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>2.0</version>
+        </dependency>
+
+
+    </dependencies>
+
+</project>

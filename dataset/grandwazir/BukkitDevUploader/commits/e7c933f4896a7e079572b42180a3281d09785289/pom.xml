@@ -1,0 +1,193 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>name.richardson.james.maven</groupId>
+  <artifactId>bukkit-dev-uploader</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>maven-plugin</packaging>
+
+  <name>BukkitDev Plugin Uploader Maven Plugin</name>
+  <description>Maven plugin that uploads built artifacts to dev.bukkit.org</description>
+  <url>http://grandwazir.github.com/${project.name}/</url>
+
+  <!-- Set the default encoding for our files -->
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <github.repositoryName>${project.name}</github.repositoryName>
+    <github.repositoryOwner>grandwazir</github.repositoryOwner> 
+  </properties>
+
+  <scm>
+    <connection>scm:git:git://github.com/grandwazir/${project.name}.git</connection>
+    <developerConnection>scm:git:git@github.com:grandwazir/$project{project.name}.git</developerConnection>
+    <url>https://github.com/grandwazir/${project.name}</url>
+  </scm>
+
+  <issueManagement>
+    <system>Github</system>
+    <url>${project.scm.url}/issues</url>
+  </issueManagement>
+
+  <!-- Set the license for our projects -->
+  <licenses>
+    <license>
+      <name>General Public License (Version 3)</name>
+      <url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <!-- Default developer details -->
+  <developers>
+    <developer>
+      <id>grandwazir</id>
+      <name>James Richardson</name>
+      <email>grandwazir@armathia.net</email>
+      <url>${project.url}</url>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>0</timezone>
+    </developer>
+  </developers>
+
+  <repositories>
+    <!-- My repository -->
+    <repository>
+      <id>my-repo</id>
+      <url>http://repository.james.richardson.name</url>
+    </repository>  
+  </repositories>
+
+  <distributionManagement>  
+    <repository>  
+      <!-- Publish the versioned releases here -->  
+      <id>release</id>
+      <name>Simple Release Repository</name>  
+      <url>scp://repository.james.richardson.name/srv/www/repository.james.richardson.name/releases</url>  
+      <!-- Get rid of ugly time stamp suffixes -->
+      <uniqueVersion>false</uniqueVersion>
+    </repository>
+    <snapshotRepository>
+      <!-- Publish snapshots here -->  
+      <id>snapshot</id>
+      <name>Simple Snapshot Repository</name>  
+      <url>scp://repository.james.richardson.name/srv/www/repository.james.richardson.name/snapshots</url>  
+      <uniqueVersion>true</uniqueVersion>
+    </snapshotRepository>
+  </distributionManagement> 
+
+  <dependencies>
+    <dependency>
+       <groupId>org.apache.maven</groupId>
+       <artifactId>maven-core</artifactId>
+       <version>3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20090211</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.2.1</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+      <version>3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpmime</artifactId>
+      <version>4.0.1</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+      <resources>
+        <resource>
+          <directory>src/main/resources</directory>
+          <!-- Filter and replace tokens -->  
+          <filtering>true</filtering>
+        </resource>
+      </resources>
+      <plugins>
+          <plugin>  
+              <groupId>com.github.github</groupId>
+              <!-- When deploying upload a artifact to github -->  
+              <artifactId>downloads-maven-plugin</artifactId>
+              <version>0.6</version>
+              <configuration>
+                <description>${project.version} release of ${project.name}</description>
+                <override>true</override>
+                <includeAttached>false</includeAttached>
+              </configuration>
+          </plugin>
+          <plugin>
+              <groupId>com.github.danielflower.mavenplugins</groupId>
+              <!-- Generate a changelog based on github commits -->  
+              <artifactId>maven-gitlog-plugin</artifactId>
+              <version>1.4.11</version>
+              <configuration>
+                  <reportTitle>Changelog for ${project.name} (v${project.version})</reportTitle>
+                  <verbose>true</verbose>
+                  <outputDirectory>${basedir}</outputDirectory>
+                  <generatePlainTextChangeLog>true</generatePlainTextChangeLog>
+                  <plainTextChangeLogFilename>CHANGELOG.txt</plainTextChangeLogFilename>
+                  <generateSimpleHTMLChangeLog>false</generateSimpleHTMLChangeLog>
+                  <generateHTMLTableOnlyChangeLog>false</generateHTMLTableOnlyChangeLog>
+              </configuration>
+              <executions>
+                <execution>
+                      <goals>
+                          <goal>generate</goal>
+                      </goals>
+                  </execution>
+              </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-release-plugin</artifactId>
+            <version>2.2.2</version>
+            <configuration>
+                <localCheckout>true</localCheckout>
+                <!-- Push tags myself rather than let Maven do it -->  
+                <pushChanges>false</pushChanges>
+                <preparationGoals>process-sources</preparationGoals>
+                <tagNameFormat>v@{project.version}</tagNameFormat>  
+                <scmCommentPrefix></scmCommentPrefix> 
+            </configuration>
+          </plugin>        
+          <plugin>
+            <groupId>com.github.github</groupId>
+             <!-- Build and push site to GitHub -->   
+             <artifactId>site-maven-plugin</artifactId>
+             <version>0.7</version>
+             <configuration>
+               <message>Building site for ${project.version}</message>
+             </configuration>
+             <executions>
+               <execution>
+                 <goals>
+                   <goal>site</goal>
+                 </goals>
+                 <phase>site</phase>
+               </execution>
+             </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>2.5.1</version>
+            <configuration>
+                <compilerVersion>1.5</compilerVersion>
+            </configuration>
+          </plugin>
+      </plugins>
+  </build>
+
+</project>

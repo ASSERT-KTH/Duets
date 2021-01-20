@@ -1,0 +1,772 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0  http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>mogwai-erdesignerng</artifactId>
+    <name>Mogwai ERDesignerNG</name>
+    <version>3.1.1</version>
+    <packaging>jar</packaging>
+    <description>Mogwai ER-Designer is an entity relationship design tool.</description>
+    <url>http://sourceforge.net/projects/mogwai/</url>
+    <issueManagement>
+        <system>SourceForge</system>
+        <url>http://sourceforge.net/tracker/?group_id=65384</url>
+    </issueManagement>
+    <inceptionYear>2003</inceptionYear>
+    <parent>
+        <groupId>net.sourceforge.mogwai</groupId>
+        <artifactId>mogwai-masterpom</artifactId>
+        <version>1.1-SNAPSHOT</version>
+    </parent>
+    <developers>
+        <developer>
+            <id>dr-death</id>
+            <name>Thomas Winkler</name>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <email/>
+            <organization/>
+            <timezone>+2</timezone>
+        </developer>
+        <developer>
+            <id>mirkosertic</id>
+            <name>Mirko Sertic</name>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <email/>
+            <organization/>
+        </developer>
+    </developers>
+    <repositories>
+        <repository>
+            <id>mogwai-repository</id>
+            <url>http://mogwai.sourceforge.net/repository/maven2</url>
+        </repository>
+        <repository>
+            <id>java-net-repository</id>
+            <url>http://download.java.net/maven/2</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>mogwai-plugins</id>
+            <url>http://mogwai.sourceforge.net/repository/maven2</url>
+        </pluginRepository>
+    </pluginRepositories>
+    <build>
+        <defaultGoal>package</defaultGoal>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>14</source>
+                    <target>14</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.2.0</version>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <taskdef classname="de.mogwai.common.i18n.XMLResourceBundleTask"
+                                         name="XMLResourceBundle"/>
+                                <XMLResourceBundle dest="src/main/resources" defaultLanguage="en" src="src/main/java"
+                                                   encoding="ISO8859_1" javaEncoding="ISO8859_1">
+                                    <fileset dir="src/main/resources">
+                                        <include name="erdesigner.xml"/>
+                                    </fileset>
+                                </XMLResourceBundle>
+                            </tasks>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>create-staging-area</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <copy todir="${staging.dir}">
+                                    <fileset dir="${basedir}">
+                                        <include name="*.sh"/>
+                                        <include name="*.bat"/>
+                                        <include name="*.txt"/>
+                                        <include name="LICENSE"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${staging.dir}/src">
+                                    <fileset dir="${basedir}/src">
+                                        <include name="**/*.java"/>
+                                        <include name="**/*.xml"/>
+                                        <include name="**/*.xsd"/>
+                                        <include name="**/*.properties"/>
+                                        <include name="**/*.png"/>
+                                        <include name="**/*.gif"/>
+                                        <include name="**/*.jpg"/>
+                                        <include name="**/*.mxm"/>
+                                        <include name="**/*.sql"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${staging.dir}/icons">
+                                    <fileset dir="${basedir}/src/main/resources/de/erdesignerng/icons">
+                                        <include name="**/erdesigner_*.png"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${staging.dir}/java3d">
+                                    <fileset dir="${basedir}/java3d">
+                                        <include name="**/*.dll"/>
+                                        <include name="**/*.so"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${staging.dir}/reports">
+                                    <fileset dir="${basedir}/reports">
+                                        <include name="**/*.jasper"/>
+                                        <include name="**/*.jrxml"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${staging.dir}/lib">
+                                    <fileset dir="${basedir}/target">
+                                        <include name="${project.artifactId}-${project.version}.jar"/>
+                                    </fileset>
+                                </copy>
+                            </tasks>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>create-jpackage-area</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <copy todir="${jpackage.dir}">
+                                    <fileset dir="${basedir}">
+                                        <include name="*.txt"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${jpackage.dir}/java3d">
+                                    <fileset dir="${basedir}/java3d">
+                                        <include name="**/*.dll"/>
+                                        <include name="**/*.so"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${jpackage.dir}/reports">
+                                    <fileset dir="${basedir}/reports">
+                                        <include name="**/*.jasper"/>
+                                        <include name="**/*.jrxml"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${jpackage.dir}">
+                                    <fileset dir="${basedir}/target">
+                                        <include name="${project.artifactId}-${project.version}.jar"/>
+                                    </fileset>
+                                </copy>
+                            </tasks>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>net.sourceforge.mogwai</groupId>
+                        <artifactId>mogwai-i18n</artifactId>
+                        <version>2.14.3</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.1.2</version>
+                <executions>
+                    <execution>
+                        <id>standard-installer</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${staging.dir}/lib</outputDirectory>
+                            <includeScope>runtime</includeScope>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>jpackage-installer</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${jpackage.dir}/lib</outputDirectory>
+                            <includeScope>runtime</includeScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptors>
+                        <descriptor>assembly-plain.xml</descriptor>
+                    </descriptors>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
+                <configuration>
+                    <systemProperties>
+                        <property>
+                            <name>mogwai.test.db.server.name</name>
+                            <value>${mogwai.test.db.server.name}</value>
+                        </property>
+                    </systemProperties>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>java3d</groupId>
+            <artifactId>j3d-core</artifactId>
+            <version>1.5.2</version>
+        </dependency>
+        <dependency>
+            <groupId>java3d</groupId>
+            <artifactId>j3d-core-utils</artifactId>
+            <version>1.5.2</version>
+        </dependency>
+        <!--
+            Required by MacOS X
+        -->
+        <dependency>
+            <groupId>net.java.dev.jogl</groupId>
+            <artifactId>jogl</artifactId>
+            <version>1.1.1-rc6</version>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.gluegen</groupId>
+            <artifactId>gluegen-rt</artifactId>
+            <version>1.0b05</version>
+        </dependency>
+
+        <dependency>
+            <groupId>java3d</groupId>
+            <artifactId>vecmath</artifactId>
+            <version>1.5.2</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-httpclient</groupId>
+            <artifactId>commons-httpclient</artifactId>
+            <version>3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>batik</groupId>
+            <artifactId>batik-svggen</artifactId>
+            <version>1.6-1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>xerces</groupId>
+                    <artifactId>xercesImpl</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>3.5.6-Final</version>
+        </dependency>
+        <dependency>
+            <groupId>net.infonode</groupId>
+            <artifactId>idw-gpl</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.jasperreports</groupId>
+            <artifactId>jasperreports</artifactId>
+            <version>6.14.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.javaparser</groupId>
+            <artifactId>javaparser</artifactId>
+            <version>1.0.11</version>
+        </dependency>
+        <dependency>
+            <groupId>jgraph</groupId>
+            <artifactId>jgraph</artifactId>
+            <version>5.13.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+        </dependency>
+        <dependency>
+            <groupId>org.metawidget.modules</groupId>
+            <artifactId>metawidget-all</artifactId>
+            <version>4.2</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.anaglyphcanvas3</groupId>
+            <artifactId>anaglyphcanvas3</artifactId>
+            <version>0.87</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.mogwai</groupId>
+            <artifactId>mogwai-looks</artifactId>
+            <version>1.9.3</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.mogwai</groupId>
+            <artifactId>mogwai-layout</artifactId>
+            <version>1.3</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.30</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.30</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.7</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.2.126</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.jtds</groupId>
+            <artifactId>jtds</artifactId>
+            <version>1.3.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>oracle</groupId>
+            <artifactId>ojdbc</artifactId>
+            <version>14</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>2.2.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.mogwai</groupId>
+            <artifactId>mogwai-databinding</artifactId>
+            <version>1.8.3</version>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.mogwai</groupId>
+            <artifactId>mogwai-smartstart</artifactId>
+            <version>1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev</groupId>
+            <artifactId>swing-worker</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-digester</groupId>
+            <artifactId>commons-digester</artifactId>
+            <version>2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>3.2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>servlet-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.12.1.GA</version>
+        </dependency>
+        <dependency>
+            <groupId>xalan</groupId>
+            <artifactId>xalan</artifactId>
+            <version>2.7.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mysql</artifactId>
+            <version>1.14.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>1.14.3</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <properties>
+        <mogwai.test.db.server.name>localhost</mogwai.test.db.server.name>
+        <staging.dir>${project.build.directory}/staging</staging.dir>
+        <jpackage.dir>${project.build.directory}/jpackage</jpackage.dir>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+        <projectrelease.version>3.1.1</projectrelease.version>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>fxrelease-linux</id>
+            <activation>
+                <os>
+                    <family>linux</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.0.0</version>
+                        <executions>
+                            <execution>
+                                <id>jpackage-rpm</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>${env.JAVA_HOME}/bin/jpackage</executable>
+                                    <arguments>
+                                        <argument>--type</argument>
+                                        <argument>rpm</argument>
+
+                                        <argument>-d</argument>
+                                        <argument>${project.build.directory}/release</argument>
+
+                                        <argument>-n</argument>
+                                        <argument>ERDesignerNG</argument>
+
+                                        <argument>--resource-dir</argument>
+                                        <argument>${project.basedir}/src/main/deploy/jpackage</argument>
+
+                                        <argument>-i</argument>
+                                        <argument>${jpackage.dir}</argument>
+
+                                        <argument>--main-class</argument>
+                                        <argument>de.erdesignerng.visual.ERDesigner</argument>
+
+                                        <argument>--main-jar</argument>
+                                        <argument>${project.artifactId}-${project.version}.jar</argument>
+
+                                        <argument>--app-version</argument>
+                                        <argument>${projectrelease.version}</argument>
+
+                                        <argument>--license-file </argument>
+                                        <argument>${project.basedir}/LICENSE</argument>
+
+                                        <argument>--temp</argument>
+                                        <argument>${project.build.directory}/jpackage-temp-rpm</argument>
+
+                                        <argument>--runtime-image</argument>
+                                        <argument>${env.JAVA_HOME}</argument>
+
+                                        <argument>@${project.basedir}/src/main/deploy/jpackage/common.options</argument>
+                                        <argument>@${project.basedir}/src/main/deploy/jpackage/linux.options</argument>
+
+                                        <argument>--verbose</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>jpackage-deb</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>${env.JAVA_HOME}/bin/jpackage</executable>
+                                    <arguments>
+                                        <argument>--type</argument>
+                                        <argument>deb</argument>
+
+                                        <argument>-d</argument>
+                                        <argument>${project.build.directory}/release</argument>
+
+                                        <argument>-n</argument>
+                                        <argument>ERDesignerNG</argument>
+
+                                        <argument>--resource-dir</argument>
+                                        <argument>${project.basedir}/src/main/deploy/jpackage</argument>
+
+                                        <argument>-i</argument>
+                                        <argument>${jpackage.dir}</argument>
+
+                                        <argument>--main-class</argument>
+                                        <argument>de.erdesignerng.visual.ERDesigner</argument>
+
+                                        <argument>--main-jar</argument>
+                                        <argument>${project.artifactId}-${project.version}.jar</argument>
+
+                                        <argument>--app-version</argument>
+                                        <argument>${projectrelease.version}</argument>
+
+                                        <argument>--license-file </argument>
+                                        <argument>${project.basedir}/LICENSE</argument>
+
+                                        <argument>--temp</argument>
+                                        <argument>${project.build.directory}/jpackage-temp-deb</argument>
+
+                                        <argument>--runtime-image</argument>
+                                        <argument>${env.JAVA_HOME}</argument>
+
+                                        <argument>@${project.basedir}/src/main/deploy/jpackage/common.options</argument>
+                                        <argument>@${project.basedir}/src/main/deploy/jpackage/linux.options</argument>
+
+                                        <argument>--verbose</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>fxrelease-windows</id>
+            <activation>
+                <os>
+                    <family>Windows</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.0.0</version>
+                        <executions>
+                            <execution>
+                                <id>jpackage-msi</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>${env.JAVA_HOME}/bin/jpackage</executable>
+                                    <arguments>
+                                        <argument>--type</argument>
+                                        <argument>msi</argument>
+
+                                        <argument>-d</argument>
+                                        <argument>${project.build.directory}/release</argument>
+
+                                        <argument>-n</argument>
+                                        <argument>ERDesignerNG</argument>
+
+                                        <argument>--resource-dir</argument>
+                                        <argument>${project.basedir}/src/main/deploy/jpackage</argument>
+
+                                        <argument>--icon</argument>
+                                        <argument>${project.basedir}/src/main/deploy/jpackage/ERDesignerNG.ico</argument>
+
+                                        <argument>-i</argument>
+                                        <argument>${jpackage.dir}</argument>
+
+                                        <argument>--main-class</argument>
+                                        <argument>de.erdesignerng.visual.ERDesigner</argument>
+
+                                        <argument>--main-jar</argument>
+                                        <argument>${project.artifactId}-${project.version}.jar</argument>
+
+                                        <argument>--app-version</argument>
+                                        <argument>${projectrelease.version}</argument>
+
+                                        <argument>--license-file </argument>
+                                        <argument>${project.basedir}/LICENSE</argument>
+
+                                        <argument>--temp</argument>
+                                        <argument>${project.build.directory}/jpackage-temp-msi</argument>
+
+                                        <argument>--runtime-image</argument>
+                                        <argument>${env.JAVA_HOME}</argument>
+
+                                        <argument>@${project.basedir}/src/main/deploy/jpackage/common.options</argument>
+                                        <argument>@${project.basedir}/src/main/deploy/jpackage/windows.options</argument>
+
+                                        <argument>--verbose</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>jpackage-exe</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>${env.JAVA_HOME}/bin/jpackage</executable>
+                                    <arguments>
+                                        <argument>--type</argument>
+                                        <argument>exe</argument>
+
+                                        <argument>-d</argument>
+                                        <argument>${project.build.directory}</argument>
+
+                                        <argument>-n</argument>
+                                        <argument>ERDesignerNG</argument>
+
+                                        <argument>--resource-dir</argument>
+                                        <argument>${project.basedir}/src/main/deploy/jpackage</argument>
+
+                                        <argument>--icon</argument>
+                                        <argument>${project.basedir}/src/main/deploy/jpackage/ERDesignerNG.ico</argument>
+
+                                        <argument>-i</argument>
+                                        <argument>${jpackage.dir}</argument>
+
+                                        <argument>--main-class</argument>
+                                        <argument>de.erdesignerng.visual.ERDesigner</argument>
+
+                                        <argument>--main-jar</argument>
+                                        <argument>${project.artifactId}-${project.version}.jar</argument>
+
+                                        <argument>--app-version</argument>
+                                        <argument>${projectrelease.version}</argument>
+
+                                        <argument>--license-file </argument>
+                                        <argument>${project.basedir}/LICENSE</argument>
+
+                                        <argument>--temp</argument>
+                                        <argument>${project.build.directory}/jpackage-temp-exe</argument>
+
+                                        <argument>--runtime-image</argument>
+                                        <argument>${env.JAVA_HOME}</argument>
+
+                                        <argument>@${project.basedir}/src/main/deploy/jpackage/common.options</argument>
+                                        <argument>@${project.basedir}/src/main/deploy/jpackage/windows.options</argument>
+
+                                        <argument>--verbose</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>fxrelease-osx</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.0.0</version>
+                        <executions>
+                            <execution>
+                                <id>jpackage-rpm</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>${env.JAVA_HOME}/bin/jpackage</executable>
+                                    <arguments>
+                                        <argument>--type</argument>
+                                        <argument>dmg</argument>
+
+                                        <argument>-d</argument>
+                                        <argument>${project.build.directory}/release</argument>
+
+                                        <argument>-n</argument>
+                                        <argument>ERDesignerNG</argument>
+
+                                        <argument>--resource-dir</argument>
+                                        <argument>${project.basedir}/src/main/deploy/jpackage</argument>
+
+                                        <argument>-i</argument>
+                                        <argument>${jpackage.dir}</argument>
+
+                                        <argument>--main-class</argument>
+                                        <argument>de.erdesignerng.visual.ERDesigner</argument>
+
+                                        <argument>--main-jar</argument>
+                                        <argument>${project.artifactId}-${project.version}.jar</argument>
+
+                                        <argument>--app-version</argument>
+                                        <argument>${projectrelease.version}</argument>
+
+                                        <argument>--license-file </argument>
+                                        <argument>${project.basedir}/LICENSE</argument>
+
+                                        <argument>--temp</argument>
+                                        <argument>${project.build.directory}/jpackage-temp-dmg</argument>
+
+                                        <argument>--runtime-image</argument>
+                                        <argument>${env.JAVA_HOME}</argument>
+
+                                        <argument>@${project.basedir}/src/main/deploy/jpackage/common.options</argument>
+                                        <argument>@${project.basedir}/src/main/deploy/jpackage/macos.options</argument>
+
+                                        <argument>--verbose</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

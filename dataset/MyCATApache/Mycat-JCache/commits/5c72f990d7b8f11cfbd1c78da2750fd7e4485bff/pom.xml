@@ -1,0 +1,158 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.mycat</groupId>
+  <artifactId>Mycat-jcache</artifactId>
+  <version>1.0</version>
+  <packaging>jar</packaging>
+  <name>JCache</name>
+  <properties>
+		<!-- Java compiler configuration -->
+		<javaVersion>1.8</javaVersion>
+	    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	    <log4j-core.version>2.3</log4j-core.version>
+		<log4j-slf4j-impl.version>2.3</log4j-slf4j-impl.version>
+		<slf4j-api.version>1.7.12</slf4j-api.version>
+		<junit.version>4.4</junit.version>
+		<org.apache.commons.lang.version>2.6</org.apache.commons.lang.version>
+		<app.encoding>UTF-8</app.encoding>
+		<maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
+		<version.template.file>version.txt.template</version.template.file>
+		<version.file>version.txt</version.file>
+  </properties>
+  <dependencies>
+  		<!-- test -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+   	<!-- Logging -->
+	<dependency>
+		<groupId>org.slf4j</groupId>
+		<artifactId>slf4j-api</artifactId>
+		<version>${slf4j-api.version}</version>
+		<scope>compile</scope>
+	</dependency>
+	<dependency>
+		<groupId>org.apache.logging.log4j</groupId>
+		<artifactId>log4j-slf4j-impl</artifactId>
+		<version>${log4j-slf4j-impl.version}</version>
+	</dependency>
+	<dependency>
+	    <groupId>commons-lang</groupId>
+	    <artifactId>commons-lang</artifactId>
+	    <version>${org.apache.commons.lang.version}</version>
+	</dependency>
+	<dependency>
+		<groupId>org.apache.logging.log4j</groupId>
+		<artifactId>log4j-core</artifactId>
+		<version>${log4j-core.version}</version>
+	</dependency>
+	<dependency>
+	    <groupId>com.whalin</groupId>
+	    <artifactId>Memcached-Java-Client</artifactId>
+	  <version>3.0.0</version>
+	</dependency>
+  </dependencies>
+  <build>
+		<!-- finalName>${artifactId}-${version}-${buildNumber}</finalName -->
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<exclude>**/.svn/**</exclude>
+				</excludes>
+			</resource>
+		</resources>
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+				<excludes>
+					<exclude>**/.svn/**</exclude>
+				</excludes>
+			</testResource>
+		</testResources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<encoding>${app.encoding}</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<configuration>
+					<sourceExcludes>
+						<sourceExclude>**/.svn/**</sourceExclude>
+					</sourceExcludes>
+					<downloadSources>true</downloadSources>
+					<outputDirectory>classes</outputDirectory>
+					<additionalConfig>
+						<file>
+							<name>.settings/org.eclipse.core.resources.prefs</name>
+							<content>
+               <![CDATA[eclipse.preferences.version=1${line.separator}encoding/<project>=${app.encoding}${line.separator}]]>
+							</content>
+						</file>
+					</additionalConfig>
+				</configuration>
+			</plugin>
+	        <!-- The configuration of maven-jar-plugin -->  
+	        <plugin>  
+	            <groupId>org.apache.maven.plugins</groupId>  
+	            <artifactId>maven-jar-plugin</artifactId>  
+	            <version>2.4</version>  
+	            <!-- The configuration of the plugin -->  
+	            <configuration>  
+	                <!-- Configuration of the archiver -->  
+	                <archive>  
+	                    <!--   生成的jar中，不要包含pom.xml和pom.properties这两个文件 -->  
+	                    <addMavenDescriptor>false</addMavenDescriptor>  
+	  
+	                    <!-- Manifest specific configuration -->  
+	                    <manifest>  
+	                        <!--    是否要把第三方jar放到manifest的classpath中  -->  
+	                        <addClasspath>false</addClasspath>  
+	                        <!--    生成的manifest中classpath的前缀，因为要把第三方jar放到lib目录下，所以classpath的前缀是lib/   -->
+	                        <classpathPrefix>lib/</classpathPrefix>   
+	                        <!--   应用的main class  -->  
+	                        <mainClass>io.mycat.jcache.net.JcacheMain</mainClass>  
+	                    </manifest>  
+	                </archive>  
+	                		<!--  过滤掉不希望包含在jar中的文件 -->  
+	                <excludes>  
+	                    <exclude>${project.basedir}/xml/*</exclude>
+	                    <exclude>${project.basedir}\src\main\resources</exclude>
+	                </excludes>  
+	            </configuration>
+	        </plugin>
+	        <!-- The configuration of maven-assembly-plugin -->  
+	        <plugin>  
+	            <groupId>org.apache.maven.plugins</groupId>  
+	            <artifactId>maven-assembly-plugin</artifactId>  
+	            <version>2.4</version>  
+	            <!-- The configuration of the plugin -->  
+	            <configuration>  
+	                <!-- Specifies the configuration file of the assembly plugin -->  
+	                <descriptors>  
+	                    <descriptor>package.xml</descriptor>  
+	                </descriptors>  
+	            </configuration>  
+	            <executions>  
+	                <execution>  
+	                    <id>make-assembly</id>  
+	                    <phase>package</phase>  
+	                    <goals>  
+	                        <goal>single</goal>  
+	                    </goals>  
+	                </execution>  
+	            </executions>  
+	        </plugin>
+		</plugins>
+	</build>
+</project>

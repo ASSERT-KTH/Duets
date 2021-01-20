@@ -1,0 +1,370 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.inria.myriads</groupId>
+  <artifactId>snoozenode</artifactId>
+  <version>2.2.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+  <name>snoozenode</name>
+  <url>http://snooze.inria.fr</url>
+  <description> This is the core system management component of the Snooze 
+                virtual machine (VM) management framework.
+  </description>
+  
+  <licenses>
+    <license>
+        <name>GNU General Public License v2</name>
+        <url>http://www.gnu.org/licenses/gpl-2.0.html</url>
+    </license>
+  </licenses>
+
+  <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <distributionManagement>
+  <repository>
+    <id>snooze-release-repository</id>
+        <name>Snooze Release Repository</name>
+        <url>dav:https://webdav.irisa.fr/snooze.inria.fr/htdocs/maven/releases</url>
+    </repository>
+    <snapshotRepository>
+    <id>snooze-snapshot-repository</id>
+        <name>Snooze Snapshot Repository</name>
+        <url>dav:https://webdav.irisa.fr/snooze.inria.fr/htdocs/maven/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <scm>
+    <connection>scm:git:http://github.com/snoozesoftware/snoozenode.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/snoozesoftware/snoozenode.git</developerConnection>
+    <url>https://github.com/snoozesoftware/snoozenode.git</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <repositories>
+    <repository>
+        <id>maven2-repository.dev.java.net</id>
+        <name>Java.net Repository for Maven</name>
+        <url>http://download.java.net/maven/2/</url>
+        <layout>default</layout>
+    </repository>
+    
+    <repository>
+        <id>maven-restlet</id>
+        <name>Public online Restlet repository</name>
+        <url>http://maven.restlet.org</url>
+    </repository> 
+    
+    <repository>
+        <id>central</id>
+        <name>Maven Central Repo</name>
+        <url>http://repo1.maven.org/maven2</url>
+    </repository>
+
+    <repository>
+		  <id>snooze repository snapshots</id>
+	    <name>snooze repo</name>
+	    <url>http://snooze.inria.fr/maven/snapshots</url>
+    </repository>
+
+    <repository>
+		  <id>snooze repository releases</id>
+	    <name>snooze repo</name>
+	    <url>http://snooze.inria.fr/maven/releases</url>
+  	</repository>
+    
+     <repository>
+       <id>riptano</id>
+       <name>riptano</name>
+       <url>http://mvn.riptano.com/content/repositories/public</url>
+    </repository>
+      
+	<repository>
+	  <id>libvirt-org</id>
+	  <url>http://libvirt.org/maven2</url>
+	</repository>
+
+  </repositories>
+  
+  <profiles>
+      <profile>
+         <id>deb-pkg</id>
+         <build>
+            <plugins>
+               <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-antrun-plugin</artifactId>
+                  <configuration>
+                     <tasks>
+                        <echo message="Creating deb package">
+                        </echo>
+                        <exec dir="${basedir}/distributions/deb-package" executable="${basedir}/distributions/deb-package/build.sh" failonerror="true">
+                        </exec>
+                     </tasks>
+                  </configuration>
+                  <executions>
+                     <execution>
+                        <id>deb-pkg</id>
+                        <phase>package</phase>
+                        <goals>
+                           <goal>run</goal>
+                        </goals>
+                     </execution>
+                  </executions>
+               </plugin>
+            </plugins>
+         </build>
+      </profile>
+   </profiles>
+   
+   <build>
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-webdav-jackrabbit</artifactId>
+                <version>1.0-beta-7</version>
+            </extension>
+        </extensions>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.3.1</version>            
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.inria.myriads.snoozenode.main.Main</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>1.4</version>          
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <finalName>uber-${project.artifactId}-${project.version}</finalName>
+                    <filters>
+        				<filter>
+            				<artifact>*:*</artifact>
+            				<excludes>
+	                			<exclude>META-INF/*.SF</exclude>
+                				<exclude>META-INF/*.DSA</exclude>
+                				<exclude>META-INF/*.RSA</exclude>
+            				</excludes>
+        				</filter>
+    				</filters>
+                </configuration>
+            </plugin>
+        
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.0.2</version>
+                <configuration>
+                 <source>1.7</source>
+                 <target>1.7</target>
+                </configuration>
+            </plugin>
+      
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.2</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.8</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <plugin>
+                <groupId>com.mycila.maven-license-plugin</groupId>
+                <artifactId>maven-license-plugin</artifactId>
+                <version>1.9.0</version>
+                <configuration>
+                    <strictCheck>true</strictCheck> 
+                    <header>src/etc/header.txt</header>
+                </configuration>
+            </plugin>            
+      
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5</version>
+            </plugin>
+        </plugins>
+    </build>
+ 
+    <pluginRepositories>
+        <pluginRepository>
+            <id>mc-release</id>
+            <name>Local Maven repository of releases</name>
+            <url>http://mc-repo.googlecode.com/svn/maven2/releases</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>
+       
+    <dependencies>
+        <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+     
+        <dependency>
+            <groupId>org.restlet.jse</groupId>
+            <artifactId>org.restlet</artifactId>
+            <exclusions> 
+                <exclusion>
+                    <groupId>org.osgi</groupId>
+                    <artifactId>org.osgi.core</artifactId>
+                </exclusion> 
+            </exclusions>
+            <version>2.1.1</version>  
+        </dependency>
+
+        <dependency>
+            <groupId>org.restlet.jse</groupId>
+            <artifactId>org.restlet.ext.jackson</artifactId>
+            <version>2.1.1</version>  
+        </dependency>
+        
+        <dependency>
+            <groupId>org.restlet.jse</groupId>
+            <artifactId>org.restlet.ext.json</artifactId>
+            <version>2.1.1</version>  
+        </dependency>
+
+        <dependency>
+            <groupId>org.restlet.jse</groupId>
+            <artifactId>org.restlet.ext.slf4j</artifactId>
+            <version>2.1.1</version>  
+        </dependency>
+                        
+         <dependency>
+            <groupId>org.restlet.jse</groupId>
+            <artifactId>org.restlet.ext.httpclient</artifactId>
+            <version>2.1.1</version>  
+        </dependency>
+                            
+        <dependency>
+            <groupId>org.libvirt</groupId>
+            <artifactId>libvirt</artifactId>
+            <version>0.4.9</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>2.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-exec</artifactId>
+            <version>1.1</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.1</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+            <version>1.6.3</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.6.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.6.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>3.2.7</version>
+        </dependency>
+
+
+		<dependency>
+    			<groupId>org.apache.zookeeper</groupId>
+    			<artifactId>zookeeper</artifactId>
+    			<version>3.3.4</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.inria.myriads</groupId>
+			<artifactId>snoozecommon</artifactId>
+			<version>2.2.0-SNAPSHOT</version>
+		</dependency>
+
+	 	<dependency>
+	      <groupId>org.easymock</groupId>
+	      <artifactId>easymock</artifactId>
+	      <version>3.0</version>
+	      <scope>test</scope>
+	    </dependency>
+    
+		<dependency>
+			<groupId>com.rabbitmq</groupId>
+			<artifactId>amqp-client</artifactId>
+			<version>3.0.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>me.prettyprint</groupId>
+			<artifactId>hector-core</artifactId>
+			<version>1.0-5</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.inria.myriads</groupId>
+			<artifactId>snoozeimages</artifactId>
+			<version>2.2.0-SNAPSHOT</version>
+		</dependency>
+		
+    </dependencies>
+</project>

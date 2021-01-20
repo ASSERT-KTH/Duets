@@ -1,0 +1,762 @@
+<!--
+    Copyright (c) Intel Corporation
+    Copyright (c) 2017
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.osc.plugin</groupId>
+    <artifactId>sdn-controller-nsc-plugin</artifactId>
+    <version>2.0.1-SNAPSHOT</version>
+    <name>org.osc.plugin:sdn-controller-nsc-plugin</name>
+
+    <repositories>
+        <repository>
+            <id>osc-nexus</id>
+            <name>OSC Nexus</name>
+            <url>http://ci.opensecuritycontroller.org:8082/nexus/content/repositories/releases</url>
+        </repository>
+        <repository>
+            <id>osc-nexus-snapshot</id>
+            <name>OSC Nexus</name>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <url>http://ci.opensecuritycontroller.org:8082/nexus/content/repositories/osc-snapshot</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>osgi.cmpn</artifactId>
+			<version>6.0.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.1.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-server</artifactId>
+			<version>2.25</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-servlet-core</artifactId>
+			<version>2.25</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>javax.ws.rs-api</artifactId>
+			<version>2.0.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.jaxrs</groupId>
+			<artifactId>jackson-jaxrs-json-provider</artifactId>
+			<version>2.8.5</version>
+		</dependency>
+			<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>2.8.5</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>2.8.5</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.8.5</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.jaxrs</groupId>
+			<artifactId>jackson-jaxrs-base</artifactId>
+			<version>2.8.5</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.service.component.annotations</artifactId>
+			<version>1.3.0</version>
+			<!-- These annotations are build-time only and not needed at runtime. -->
+			<scope>provided</scope>
+		</dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
+            <scope>provided</scope>
+        </dependency>
+         <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.osc.api</groupId>
+            <artifactId>sdn-controller-api</artifactId>
+            <version>2.0.1-SNAPSHOT</version>
+        </dependency>
+        <!-- An OSGi bundle version of the AOP dependency -->
+        <dependency>
+            <groupId>org.apache.servicemix.bundles</groupId>
+            <artifactId>org.apache.servicemix.bundles.aopalliance</artifactId>
+            <version>1.0_6</version>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- An OSGi bundle version of the javax.inject dependency -->
+        <dependency>
+            <groupId>org.glassfish.hk2.external</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>2.5.0-b05</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.directory.studio</groupId>
+            <artifactId>org.apache.commons.lang</artifactId>
+            <version>2.6</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Declarative Services is used to publish the service at runtime -->
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr</artifactId>
+            <version>2.0.4</version>    
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.tx-control</groupId>
+            <artifactId>tx-control-api</artifactId>
+            <version>0.0.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <version>6.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.enterprise</artifactId>
+            <version>4.2.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+            <version>5.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.service.jpa</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.tx-control</groupId>
+            <artifactId>tx-control-provider-jpa-local</artifactId>
+            <version>0.0.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.tx-control</groupId>
+            <artifactId>tx-control-service-local</artifactId>
+            <version>0.0.2</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.jpa</groupId>
+            <artifactId>org.apache.aries.jpa.container</artifactId>
+            <version>2.5.0</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-osgi</artifactId>
+            <version>5.2.8.Final</version>
+            <scope>runtime</scope>
+            <!-- Exclude runtime libraries that are not OSGi enabled or that are unnecessary -->
+            <exclusions>
+                <exclusion>
+                    <groupId>antlr</groupId>
+                    <artifactId>antlr</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>dom4j</groupId>
+                    <artifactId>dom4j</artifactId>
+                </exclusion>
+                <!-- The JPA API comes from the tx-control-provider-jpa-local -->
+                <exclusion>
+                    <groupId>org.hibernate.javax.persistence</groupId>
+                    <artifactId>hibernate-jpa-2.1-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>5.2.8.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.servicemix.bundles</groupId>
+            <artifactId>org.apache.servicemix.bundles.antlr</artifactId>
+            <version>2.7.7_5</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.servicemix.bundles</groupId>
+            <artifactId>org.apache.servicemix.bundles.dom4j</artifactId>
+            <version>1.6.1_5</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml</groupId>
+            <artifactId>classmate</artifactId>
+            <version>1.3.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.20.0-GA</version>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.3.175</version>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- testing dependencies -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>1.10.19</version>
+            <scope>test</scope>
+        </dependency>
+       <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>2.5.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.test-framework</groupId>
+            <artifactId>jersey-test-framework-core</artifactId>
+            <version>2.25</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.test-framework.providers</groupId>
+            <artifactId>jersey-test-framework-provider-jetty</artifactId>
+            <version>2.25</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-json-jackson</artifactId>
+            <version>2.25</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.sling</groupId>
+            <artifactId>org.apache.sling.testing.osgi-mock</artifactId>
+            <version>2.2.0</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- OSGi testing dependencies -->
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.service.cm</artifactId>
+            <version>1.5.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.framework</artifactId>
+            <scope>test</scope>
+            <version>5.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.ops4j.pax.exam</groupId>
+            <artifactId>pax-exam-junit4</artifactId>
+            <version>4.9.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.ops4j.pax.exam</groupId>
+            <artifactId>pax-exam-container-forked</artifactId>
+            <version>4.9.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.ops4j.pax.exam</groupId>
+            <artifactId>pax-exam-link-mvn</artifactId>
+            <version>4.9.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.ops4j.pax.url</groupId>
+            <artifactId>pax-url-reference</artifactId>
+            <version>2.5.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.10</version>
+                <configuration>
+                    <includeScope>runtime</includeScope>
+                    <outputDirectory>${project.build.directory}/plugin</outputDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <outputDirectory>${project.build.directory}/plugin</outputDirectory>
+                    <finalName>${project.artifactId}</finalName>
+                    <archive>
+                        <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+                        <manifestEntries>
+                            <Build-Time>${maven.build.timestamp}</Build-Time>
+                            <Build-Version>${buildVersion}</Build-Version>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>biz.aQute.bnd</groupId>
+                <artifactId>bnd-indexer-maven-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>local-index</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>local-index</goal>
+                        </goals>
+                        <configuration>
+                            <inputDir>${project.build.directory}/plugin</inputDir>
+                            <outputFile>${project.build.directory}/plugin/index.xml</outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.15</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>6.7</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <configLocation>checkstyle.xml</configLocation>
+                            <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                            <!-- Turning the fail-on-violation flag on -->
+                            <failOnViolation>true</failOnViolation>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- This plugin is used to integrate Findbugs into the build process -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>3.0.1</version>
+                <configuration>
+                    <effort>Max</effort>
+                    <threshold>High</threshold>
+                    <xmlOutput>true</xmlOutput>
+                    <!-- Turning the fail-on-error flag on -->
+                    <failOnError>true</failOnError>
+                    <omitVisitors>DefaultEncodingDetector</omitVisitors>
+                    <argLine>-Xmx1024m</argLine>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <id>extract-release-version</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <!-- Full version examples: 1.0.0-SNAPSHOT-0-HASH, 1.0.0-0-HASH, 1.0.0-1-HASH, etc -->
+                                <exec outputproperty="fullVersion" dir="." executable="sh">
+                                    <arg value="-c"/>
+                                    <arg value="git describe --long | tr -d v"/>
+                                </exec>
+                                <!-- Version examples: 1.0.0-SNAPSHOT, 1.0.0, etc -->
+                                <exec outputproperty="releaseVersion" dir="." executable="sh">
+                                    <arg value="-c"/>
+                                    <arg value="git describe --abbrev=0 | tr -d v"/>
+                                </exec>
+                                <echo>Full Version: ${fullVersion}</echo>
+                                <echo>Version: ${releaseVersion}</echo>
+
+                            </target>
+                            <exportAntProperties>true</exportAntProperties>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <!-- Create plugin .bar -->
+                                <jar destfile="${project.build.directory}/NscSdnControllerPlugin.bar">
+                                    <fileset dir="${project.build.directory}/plugin"/>
+                                    <manifest>
+                                        <attribute name="Deployment-Name" value="NSC"/>
+                                        <attribute name="Deployment-Type" value="SDN"/>
+                                        <attribute name="Deployment-SymbolicName" value="NscSdnControllerPlugin"/>
+                                        <attribute name="Deployment-Version" value="${fullVersion}"/>
+                                        <attribute name="Require-Bundle" value="sdn-controller-nsc-plugin"/>
+                                    </manifest>
+                                </jar>
+                            </tasks>
+                        </configuration>
+                    </execution>
+                       
+                     <execution>
+                      <id>h2-fragment</id>
+                      <phase>prepare-package</phase>
+                      <goals>
+                        <goal>run</goal>
+                      </goals>
+                      <configuration>
+                        <tasks>
+                          <jar destfile="${project.build.directory}/plugin/h2ServiceExport.jar">
+                            <manifest>
+                              <attribute name="Bundle-ManifestVersion" value="2" />
+                              <attribute name="Bundle-SymbolicName" value="org.osc.manager.nsc.h2.fragment" />
+                              <attribute name="Bundle-Version" value="1.0.0" />
+                              <attribute name="Fragment-Host" value="org.h2;version=&quot;[1.3,2)&quot;" />
+                              <attribute name="Provide-Capability" value="osgi.service;objectClass=org.osgi.service.jdbc.DataSourceFactory" />
+                            </manifest>
+                          </jar>
+                          <jar destfile="${project.build.directory}/plugin/ariesJpaServiceExport.jar">
+                            <manifest>
+                              <attribute name="Bundle-ManifestVersion" value="2" />
+                              <attribute name="Bundle-SymbolicName" value="org.osc.manager.nsc.aries.jpa.fragment" />
+                              <attribute name="Bundle-Version" value="1.0.0" />
+                              <attribute name="Fragment-Host" value="org.apache.aries.jpa.container;version=&quot;[2.5,2.6)&quot;" />
+                              <attribute name="Provide-Capability" value="osgi.service;objectClass=org.osgi.service.jpa.EntityManagerFactoryBuilder" />
+                            </manifest>
+                          </jar>
+                          <jar destfile="${project.build.directory}/plugin/ariesTxControlServiceExport.jar">
+                            <manifest>
+                              <attribute name="Bundle-ManifestVersion" value="2" />
+                              <attribute name="Bundle-SymbolicName" value="org.osc.manager.nsc.aries.tx.control.fragment" />
+                              <attribute name="Bundle-Version" value="1.0.0" />
+                              <attribute name="Fragment-Host" value="tx-control-service-local;version=&quot;[0.0.2,0.0.3)&quot;" />
+                              <attribute name="Provide-Capability" value="osgi.service;objectClass=org.osgi.service.transaction.control.TransactionControl;osgi.local.enabled=true" />
+                            </manifest>
+                          </jar>
+                          <jar destfile="${project.build.directory}/plugin/hibernateServiceExport.jar">
+                            <manifest>
+                              <attribute name="Bundle-ManifestVersion" value="2" />
+                              <attribute name="Bundle-SymbolicName" value="org.osc.manager.nsc.hibernate.fragment" />
+                              <attribute name="Bundle-Version" value="1.0.0" />
+                              <attribute name="Fragment-Host" value="org.hibernate.osgi;version=&quot;[5.2,5.3)&quot;" />
+                              <attribute name="Provide-Capability" value="osgi.service;objectClass=javax.persistence.spi.PersistenceProvider" />
+                              <attribute name="Import-Package" value="antlr; resolution := optional" />
+                            </manifest>
+                          </jar>
+                        </tasks>
+                      </configuration>
+                    </execution>
+                    
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>1.4.1</version>
+                <executions>
+                    <execution>
+                        <id>enforce-property</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireProperty>
+                                    <property>project.version</property>
+                                    <message>The project version must be set.</message>
+                                    <regex>${releaseVersion}</regex>
+                                    <regexMessage>The project version is ${project.version} but it must be
+                                        ${releaseVersion}.
+                                    </regexMessage>
+                                </requireProperty>
+                            </rules>
+                            <fail>false</fail> 
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.12</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attach-artifact</goal>
+                        </goals>
+                        <configuration>
+                            <artifacts>
+                                <artifact>
+                                    <type>bar</type>
+                                    <file>${project.build.directory}/NscSdnControllerPlugin.bar</file>
+                                </artifact>
+                            </artifacts>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <finalName>sdn-controller-nsc-plugin</finalName>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>biz.aQute.bnd</groupId>
+                <artifactId>bnd-maven-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>bnd-process</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.servicemix.tooling</groupId>
+                <artifactId>depends-maven-plugin</artifactId>
+                <version>1.2</version>
+                <executions>
+                    <execution>
+                        <id>generate-depends-file</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>generate-depends-file</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.9</version>
+                <executions>
+                    <execution>
+                        <id>agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <pluginManagement>
+            <plugins>
+                <!--This plugin's configuration is used to store Eclipse m2e settings
+                    only. It has no influence on the Maven build itself. -->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>
+                                            org.apache.maven.plugins
+                                        </groupId>
+                                        <artifactId>
+                                            maven-dependency-plugin
+                                        </artifactId>
+                                        <versionRange>
+                                            [2.10,)
+                                        </versionRange>
+                                        <goals>
+                                            <goal>
+                                                copy-dependencies
+                                            </goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore></ignore>
+                                    </action>
+                                </pluginExecution>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>
+                                            org.apache.servicemix.tooling
+                                        </groupId>
+                                        <artifactId>
+                                            depends-maven-plugin
+                                        </artifactId>
+                                        <versionRange>
+                                            [1.2,)
+                                        </versionRange>
+                                        <goals>
+                                            <goal>
+                                                generate-depends-file
+                                            </goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <execute></execute>
+                                    </action>
+                                </pluginExecution>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>
+                                            org.apache.maven.plugins
+                                        </groupId>
+                                        <artifactId>
+                                            maven-antrun-plugin
+                                        </artifactId>
+                                        <versionRange>
+                                            [1.7,)
+                                        </versionRange>
+                                        <goals>
+                                            <goal>run</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore></ignore>
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>3.0.1</version>
+                <configuration>
+                    <effort>Max</effort>
+                    <threshold>High</threshold>
+                    <omitVisitors>DefaultEncodingDetector</omitVisitors>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.15</version>
+                <configuration>
+                    <configLocation>checkstyle.xml</configLocation>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>checkstyle</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
+</project>

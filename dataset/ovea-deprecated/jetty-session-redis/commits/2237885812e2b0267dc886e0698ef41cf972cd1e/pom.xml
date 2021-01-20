@@ -1,0 +1,142 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.ovea</groupId>
+        <artifactId>ovea</artifactId>
+        <version>1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>jetty-session-redis</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>jetty-session-redis</name>
+    <description>Jetty session clustering with Redis</description>
+
+    <scm>
+        <connection>scm:git:git@github.com:Ovea/${project.name}.git</connection>
+        <developerConnection>scm:git:git@github.com:Ovea/${project.name}.git</developerConnection>
+        <url>http://github.com/Ovea/${project.name}</url>
+    </scm>
+
+    <dependencies>
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>1.5.2</version>
+        </dependency>
+
+        <!-- jetty classes + runner + jsp stack -->
+        <dependency>
+            <groupId>org.testatoo.container</groupId>
+            <artifactId>testatoo-container-jetty-full</artifactId>
+            <version>1.0-rc1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- serialization in json -->
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>1.7.3</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- serialization in xstream -->
+        <dependency>
+            <groupId>com.thoughtworks.xstream</groupId>
+            <artifactId>xstream</artifactId>
+            <version>1.3.1</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- serialization with jboss -->
+
+        <!-- testing -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- logging -->
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.16</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.6.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.6.1</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>standard</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <shadedClassifierName>all</shadedClassifierName>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <createSourcesJar>true</createSourcesJar>
+                            <artifactSet>
+                                <includes>
+                                    <include>redis.clients:jedis</include>
+                                    <include>commons-pool:commons-pool</include>
+                                    <include>org.codehaus.jackson:jackson-core-asl</include>
+                                    <include>org.codehaus.jackson:jackson-mapper-asl</include>
+                                    <include>com.thoughtworks.xstream:xstream</include>
+                                    <include>xpp3:xpp3_min</include>
+                                </includes>
+                            </artifactSet>
+                            <relocations>
+                                <relocation>
+                                    <pattern>redis.clients</pattern>
+                                    <shadedPattern>com.ovea.jetty.session.internal.jedis</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.apache.commons.pool</pattern>
+                                    <shadedPattern>com.ovea.jetty.session.internal.pool</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.codehaus.jackson</pattern>
+                                    <shadedPattern>com.ovea.jetty.session.internal.jackson</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.thoughtworks.xstream</pattern>
+                                    <shadedPattern>com.ovea.jetty.session.internal.xstream</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.xmlpull</pattern>
+                                    <shadedPattern>com.ovea.jetty.session.internal.xpp3</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
+

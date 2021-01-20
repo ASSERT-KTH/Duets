@@ -1,0 +1,156 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.iopipe.example</groupId>
+  <artifactId>iopipe-examples</artifactId>
+  <packaging>jar</packaging>
+  <version>master</version>
+  <name>IOpipe Java Examples</name>
+  <url>https://www.iopipe.com/</url>
+  <scm>
+    <url>https://github.com/iopipe/examples</url>
+  </scm>
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>A business-friendly OSS license</comments>
+    </license>
+  </licenses>
+  <organization>
+    <name>IOpipe</name>
+    <url>https://www.iopipe.com/</url>
+  </organization>
+  <description>
+    This project contains example code which can be used as a base to implement
+    lambdas which use the IOpipe service.
+  </description>
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.iopipe</groupId>
+      <artifactId>iopipe</artifactId>
+      <version>1.3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-lambda-java-log4j2</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.1.1</version>
+        <configuration>
+          
+          <!-- The following settings can be used to create a JAR which is -->
+          <!-- smaller in size, this can be used in the event that the JAR -->
+          <!-- is too big for Amazon Lambda. -->
+          <!-- Note that the setup here works for this example project and -->
+          <!-- it may or may not work for other projects if they add more -->
+          <!-- dependencies. Running the resulting JAR may work on some -->
+          <!-- invocations or it may fail on other invocations depending -->
+          <!-- on the classes available that can be initialized. -->
+          <!-- If an invocation fails with NoClassDefFoundError or -->
+          <!-- ExceptionInInitializationError then a class which is -->
+          <!-- required has not been included. Going through the project -->
+          <!-- dependency tree you should be able to determine the project -->
+          <!-- that must be included. -->
+          <!-- Or, this entire section can just not be included in which -->
+          <!-- case any issues that might arrive will not occur. -->
+          <createDependencyReducedPom>true</createDependencyReducedPom>
+          <minimizeJar>true</minimizeJar>
+          <filters>
+             <!-- These are needed by IOpipe and the examples to function. -->
+             <filter>
+               <artifact>com.iopipe:iopipe</artifact>
+               <includes>**</includes>
+             </filter>
+             <filter>
+               <artifact>org.glassfish:javax.json</artifact>
+               <includes>**</includes>
+             </filter>
+             <filter>
+               <artifact>org.apache.logging.log4j:*</artifact>
+               <includes>**</includes>
+             </filter>
+             <filter>
+               <artifact>com.amazonaws:aws-lambda-java-core</artifact>
+               <excludes>**</excludes>
+             </filter>
+             <filter>
+               <artifact>com.amazonaws:aws-lambda-java-events</artifact>
+               <includes>**</includes>
+             </filter>
+             <filter>
+               <artifact>com.amazonaws:aws-java-sdk-kinesis</artifact>
+               <includes>**</includes>
+             </filter>
+             
+             <!-- These are not needed by AWS as they are pre-included -->
+             <filter>
+               <artifact>com.amazonaws:aws-java-sdk-core</artifact>
+               <excludes>**</excludes>
+             </filter>
+             <filter>
+               <artifact>com.fasterxml.jackson.core:jackson-databind</artifact>
+               <excludes>**</excludes>
+             </filter>
+             <filter>
+               <artifact>com.fasterxml.jackson.core:jackson-annotations</artifact>
+               <excludes>**</excludes>
+             </filter>
+             <filter>
+               <artifact>com.fasterxml.jackson.core:jackson-core</artifact>
+               <excludes>**</excludes>
+             </filter>
+             <filter>
+               <artifact>com.fasterxml.jackson.dataformat:jackson-dataformat-cbor</artifact>
+               <excludes>**</excludes>
+             </filter>
+          </filters>
+          <!-- End of JAR size reduction. -->
+          
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <transformers>
+                <transformer implementation="com.github.edwgiz.mavenShadePlugin.log4j2CacheTransformer.PluginsCacheFileTransformer" />
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>com.github.edwgiz</groupId>
+            <artifactId>maven-shade-plugin.log4j2-cachefile-transformer</artifactId>
+            <version>2.8.1</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+    </plugins>
+  </build>
+</project>

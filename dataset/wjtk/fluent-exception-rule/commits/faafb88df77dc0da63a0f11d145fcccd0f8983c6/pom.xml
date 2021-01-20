@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+	
+    <groupId>pl.wkr.test</groupId>
+    <artifactId>fluent-exception-rule</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+	<name>Fluent exception rule for junit</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+        </dependency>
+        <!-- ^ not optionals -->
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib-nodep</artifactId>
+            <version>2.2.2</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- test -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- pitest depends on testng, and when testng is present surefire runs testng tests.
+             have to manually configure surefire to run junit tests
+        -->
+        <dependency>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest</artifactId>
+            <version>${pitest.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire-plugin.version}</version>
+                <configuration>
+                    <testNGArtifactName>none:none</testNGArtifactName>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*IT.java</include>
+                        <!-- Our integration test are not so complicated to use failsafe -->
+                    </includes>
+                </configuration>
+            </plugin>
+
+            <!-- when jarjar sees original-xxx.jar it doesn't process new generated jar
+                    so we remove this jar enforcing jarjar to run
+                    because it may cause problem when running mvn install without clean -->
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <tasks>
+                                <delete>
+                                    <fileset dir="target" includes="*.jar"/>
+                                </delete>
+                            </tasks>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>jarjar-maven-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jarjar</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>cglib:cglib-nodep</include>
+                            </includes>
+                            <rules>
+                                <rule>
+                                    <pattern>net.sf.cglib.**</pattern>
+                                    <result>pl.wkr.fluentrule.internal.cglib.@1</result>
+                                </rule>
+                                <keep>
+                                    <pattern>pl.wkr.fluentrule.**</pattern>
+                                </keep>
+
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <profiles>
+        <profile>
+            <id>withPitest</id>
+            <activation>
+                <property><name>!skipTests</name></property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-maven</artifactId>
+                        <version>${pitest.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>verify</phase>
+                                <goals><goal>mutationCoverage</goal></goals>
+                            </execution>
+                        </executions>
+
+                        <configuration>
+                            <targetClasses>
+                                <param>pl.wkr.fluentrule.*</param>
+                            </targetClasses>
+                            <!-- <targetTests></targetTests> If omitted it takes all tests  -->
+                            <outputFormats>
+                                <param>XML</param>
+                                <param>HTML</param>
+                            </outputFormats>
+                            <verbose>false</verbose>
+                            <mutationThreshold>100</mutationThreshold>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <properties>
+        <junit.version>4.11</junit.version>
+        <assertj.version>1.5.0</assertj.version>
+        <mockito.version>1.9.5</mockito.version>
+
+        <pitest.version>0.31</pitest.version>
+        <surefire-plugin.version>2.14.1</surefire-plugin.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.source>1.6</maven.compiler.source>
+        <maven.compiler.target>1.6</maven.compiler.target>
+    </properties>
+</project>

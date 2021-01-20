@@ -1,0 +1,155 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>netrelay</artifactId>
+	<version>10.2.0-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>netrelay</name>
+
+	<parent>
+		<groupId>de.braintags</groupId>
+		<artifactId>btVertxBasePOM</artifactId>
+		<version>20-SNAPSHOT</version>
+	</parent>
+
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<thymeleaf.version>2.1.4.RELEASE</thymeleaf.version>
+		<vertx.web.version>${stack.version}</vertx.web.version>
+		<jacoco.haltOnFailure>false</jacoco.haltOnFailure>
+		<ignoreFailedTests>true</ignoreFailedTests>
+		<testjar.skip>false</testjar.skip>
+		<doc.skip>false</doc.skip>
+		<maven.test.skip>false</maven.test.skip>
+		<source.skip>false</source.skip>
+		<maven.compiler.plugin>false</maven.compiler.plugin>
+		<sonar.skip>false</sonar.skip>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>de.braintags</groupId>
+			<artifactId>vertx-pojo-mapper-mysql</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>netty-all</artifactId>
+					<groupId>io.netty</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>de.braintags</groupId>
+			<artifactId>vertx-pojongo</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.thymeleaf</groupId>
+			<artifactId>thymeleaf</artifactId>
+			<version>${thymeleaf.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.thymeleaf.extras</groupId>
+			<artifactId>thymeleaf-extras-conditionalcomments</artifactId>
+			<version>2.1.1.RELEASE</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-web</artifactId>
+			<version>${vertx.web.version}</version>
+			<scope>test</scope>
+			<type>test-jar</type>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-web-templ-thymeleaf</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-auth-mongo</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-mail-client</artifactId>
+		</dependency>
+
+
+	</dependencies>
+
+	<build>
+		<!-- gradle interopability - avoiding 2 build-directories - you may need 
+			to rebuild your project -->
+		<directory>build</directory>
+		<pluginManagement>
+			<plugins>
+			
+			
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>${maven.surefire.plugin.version}</version>
+					<configuration>
+						<!-- Testing shall be executed by one Suites, which are calling each 
+							other test class -->
+						<includes>
+							<include>**/TestAll*.java</include>
+						</includes>
+						<failIfNoSpecifiedTests>false</failIfNoSpecifiedTests>
+						<systemPropertyVariables>
+							<io.netty.leakDetectionLevel>PARANOID</io.netty.leakDetectionLevel>
+							<mailClientUserName>${mailClientUserName}</mailClientUserName>
+                			<mailClientPassword>${mailClientPassword}</mailClientPassword>
+							<startMongoLocal>true</startMongoLocal>
+						</systemPropertyVariables>
+						<testFailureIgnore>${ignoreFailedTests}</testFailureIgnore>
+						<argLine>@{argLine} -server -Xmx1200M</argLine>
+						<forkCount>1</forkCount>
+						<reuseForks>false</reuseForks>
+					</configuration>
+				</plugin>
+			
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-shade-plugin</artifactId>
+					<version>2.3</version>
+					<executions>
+						<execution>
+							<phase>package</phase>
+							<goals>
+								<goal>shade</goal>
+							</goals>
+							<configuration>
+								<transformers>
+									<transformer
+										implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+										<manifestEntries>
+											<Main-Class>io.vertx.core.Starter</Main-Class>
+											<Main-Verticle>io.vertx.blog.first.MyFirstVerticle</Main-Verticle>
+										</manifestEntries>
+									</transformer>
+								</transformers>
+								<artifactSet />
+								<outputFile>${project.build.directory}/${project.artifactId}-${project.version}-fat.jar</outputFile>
+							</configuration>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<scm>
+		<connection>scm:git:git@github.com:BraintagsGmbH/netrelay.git</connection>
+		<developerConnection>scm:git:git@github.com:BraintagsGmbH/netrelay.git</developerConnection>
+		<url>git@github.com:BraintagsGmbH/netrelay.git</url>
+	</scm>
+
+</project>

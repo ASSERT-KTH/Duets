@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    This file is part of d:swarm graph extension.
+
+    d:swarm graph extension is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    d:swarm graph extension is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with d:swarm graph extension.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.dswarm</groupId>
+	<artifactId>graph</artifactId>
+	<version>1.3</version>
+
+	<properties>
+		<neo4j.version>2.3.2</neo4j.version>
+		<google.guava.version>23.0</google.guava.version>
+		<google.lambdaj.version>2.4</google.lambdaj.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.source.version>1.8</java.source.version>
+		<java.target.version>1.8</java.target.version>
+		<maven-compiler-plugin.version>3.6.2</maven-compiler-plugin.version>
+		<maven-assembly-plugin.version>3.1.0</maven-assembly-plugin.version>
+		<maven-resources-plugin.version>3.0.2</maven-resources-plugin.version>
+		<maven-install-plugin.version>2.5.2</maven-install-plugin.version>
+		<maven-surefire-plugin.version>2.20</maven-surefire-plugin.version>
+		<maven-clean-plugin.version>3.0.0</maven-clean-plugin.version>
+		<maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+		<maven-version-plugin.version>2.4</maven-version-plugin.version>
+		<jackson.version>1.9.7</jackson.version>
+		<jena.version>3.0.0</jena.version>
+		<jersey.version>1.19</jersey.version>
+		<junit.version>4.12</junit.version>
+		<dswarm.graph.json.version>0.0.4-SNAPSHOT</dswarm.graph.json.version>
+		<dswarm.graph.model.version>0.0.3-SNAPSHOT</dswarm.graph.model.version>
+		<dswarm.commons.version>0.0.3.4-SNAPSHOT</dswarm.commons.version>
+		<hppc.version>0.6.1</hppc.version>
+		<ntparser.version>0.3.0</ntparser.version>
+		<siphash.version>1.0.0-SNAPSHOT</siphash.version>
+		<aalto-xml.version>1.0.0</aalto-xml.version>
+		<xmlunit.version>2.4.0</xmlunit.version>
+		<mapdb.version>1.0.8</mapdb.version>
+		<rxjava.version>1.3.0</rxjava.version>
+	</properties>
+
+	<prerequisites>
+		<maven>3.0.0</maven>
+	</prerequisites>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+				<configuration>
+					<source>${java.source.version}</source>
+					<target>${java.target.version}</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>${maven-assembly-plugin.version}</version>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id>
+						<!-- this is used for inheritance merges -->
+						<phase>package</phase>
+						<!-- bind to the packaging phase -->
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>${maven-release-plugin.version}</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>${maven-surefire-plugin.version}</version>
+				<configuration>
+					<argLine>-server -d64 -Xms1G -Xmx8G -XX:NewRatio=1 -XX:NewSize=4g -XX:MaxNewSize=4G
+						-XX:+UseG1GC -XX:-OmitStackTraceInFastThrow -XX:hashCode=5
+					</argLine>
+				</configuration>
+				<executions>
+					<execution>
+						<id>default-test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>test</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>${maven-clean-plugin.version}</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>${maven-install-plugin.version}</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>${maven-resources-plugin.version}</version>
+				<configuration>
+					<encoding>${project.build.sourceEncoding}</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>versions-maven-plugin</artifactId>
+				<version>${maven-version-plugin.version}</version>
+			</plugin>
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<header>com/mycila/maven/plugin/license/templates/GPL-3.txt</header>
+					<properties>
+						<owner>SLUB Dresden &amp; Avantgarde Labs GmbH</owner>
+						<project.name>d:swarm graph extension</project.name>
+						<project.inceptionYear>2013 &ndash; 2017</project.inceptionYear>
+						<email>&lt;code@dswarm.org&gt;</email>
+					</properties>
+					<useDefaultExcludes>true</useDefaultExcludes>
+					<excludes>
+						<exclude>log/**</exclude>
+						<exclude>logs/**</exclude>
+						<exclude>**/src/test/resources/**</exclude>
+						<exclude>**/src/main/resources/**</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>update-license-header</id>
+						<goals>
+							<goal>format</goal>
+						</goals>
+						<phase>process-sources</phase>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+				<filtering>true</filtering>
+			</testResource>
+		</testResources>
+	</build>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>versions-maven-plugin</artifactId>
+				<version>${maven-version-plugin.version}</version>
+			</plugin>
+		</plugins>
+	</reporting>
+
+	<repositories>
+		<repository>
+			<id>neo4jRepo</id>
+			<url>http://m2.neo4j.org</url>
+		</repository>
+		<repository>
+			<id>slubnexusrelease</id>
+			<name>Internal Releases</name>
+			<url>http://nexus.slub-dresden.de:8081/nexus/content/repositories/releases/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>slubnexussnapshot</id>
+			<name>Internal Releases</name>
+			<url>http://nexus.slub-dresden.de:8081/nexus/content/repositories/snapshots</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>googlecode.lambdaj</id>
+			<name>Internal Release Repository</name>
+			<url>https://lambdaj.googlecode.com/svn/repo/releases</url>
+		</repository>
+		<repository>
+			<id>snapshots-repo</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<distributionManagement>
+		<repository>
+			<id>deployment</id>
+			<name>Internal Releases</name>
+			<url>http://nexus.slub-dresden.de:8081/nexus/content/repositories/releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>deployment</id>
+			<name>Internal Releases</name>
+			<url>http://nexus.slub-dresden.de:8081/nexus/content/repositories/snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<dependencies>
+		<!-- <dependency> <groupId>javax.ws.rs</groupId> <artifactId>javax.ws.rs-api</artifactId>
+			<version>2.0</version> <scope>provided</scope> </dependency> -->
+		<dependency>
+			<groupId>com.sun.jersey.contribs</groupId>
+			<artifactId>jersey-multipart</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>jena-core</artifactId>
+			<version>${jena.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>slf4j-log4j12</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>jena-arq</artifactId>
+			<version>${jena.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>slf4j-api</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>slf4j-log4j12</artifactId>
+					<groupId>org.slf4j</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jackson-core</artifactId>
+					<groupId>com.fasterxml.jackson.core</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>jackson-databind</artifactId>
+					<groupId>com.fasterxml.jackson.core</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.dswarm</groupId>
+			<artifactId>graph-json</artifactId>
+			<version>${dswarm.graph.json.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.dswarm</groupId>
+			<artifactId>graph-model</artifactId>
+			<version>${dswarm.graph.model.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.dswarm</groupId>
+			<artifactId>common</artifactId>
+			<version>${dswarm.commons.version}</version>
+			<exclusions>
+				<!-- since we rely on jena 3.0.0 here -->
+				<exclusion>
+					<groupId>org.apache.jena</groupId>
+					<artifactId>jena-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-lang3</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>${google.guava.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.lambdaj</groupId>
+			<artifactId>lambdaj</artifactId>
+			<version>${google.lambdaj.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-client</artifactId>
+			<version>${jersey.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-kernel</artifactId>
+			<type>test-jar</type>
+			<version>${neo4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.neo4j</groupId>
+			<artifactId>neo4j-io</artifactId>
+			<type>test-jar</type>
+			<version>${neo4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.carrotsearch</groupId>
+			<artifactId>hppc</artifactId>
+			<version>${hppc.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>de.knutwalker</groupId>
+			<artifactId>ntparser_2.11</artifactId>
+			<version>${ntparser.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>de.knutwalker</groupId>
+			<artifactId>ntparser-model_2.11</artifactId>
+			<version>${ntparser.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.github.emboss</groupId>
+			<artifactId>siphash-java</artifactId>
+			<version>${siphash.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml</groupId>
+			<artifactId>aalto-xml</artifactId>
+			<version>${aalto-xml.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.xmlunit</groupId>
+			<artifactId>xmlunit-core</artifactId>
+			<version>${xmlunit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mapdb</groupId>
+			<artifactId>mapdb</artifactId>
+			<version>${mapdb.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.reactivex</groupId>
+			<artifactId>rxjava</artifactId>
+			<version>${rxjava.version}</version>
+		</dependency>
+	</dependencies>
+
+	<profiles>
+		<profile>
+			<id>TEST</id>
+			<properties>
+				<env>test</env>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>org.neo4j.app</groupId>
+					<artifactId>neo4j-server</artifactId>
+					<version>${neo4j.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>org.neo4j.app</groupId>
+					<artifactId>neo4j-server</artifactId>
+					<version>${neo4j.version}</version>
+					<type>test-jar</type>
+				</dependency>
+				<dependency>
+					<groupId>org.codehaus.jackson</groupId>
+					<artifactId>jackson-core-asl</artifactId>
+					<version>${jackson.version}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+		<profile>
+			<id>RELEASE</id>
+			<properties>
+				<env>release</env>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>org.neo4j.app</groupId>
+					<artifactId>neo4j-server</artifactId>
+					<version>${neo4j.version}</version>
+					<scope>provided</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.neo4j.app</groupId>
+					<artifactId>neo4j-server</artifactId>
+					<version>${neo4j.version}</version>
+					<type>test-jar</type>
+					<scope>provided</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.codehaus.jackson</groupId>
+					<artifactId>jackson-core-asl</artifactId>
+					<version>${jackson.version}</version>
+					<scope>provided</scope>
+				</dependency>
+			</dependencies>
+		</profile>
+	</profiles>
+
+	<url>http://dswarm.org/</url>
+	<name>d:swarm - Graph API</name>
+</project>

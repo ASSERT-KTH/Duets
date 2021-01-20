@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.5.9.RELEASE</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.cloudogu.wiki</groupId>
+    <artifactId>smeagol</artifactId>
+    <version>0.4.2</version>
+    <name>smeagol</name>
+    <packaging>jar</packaging>
+    
+    <dependencies>
+
+        <!-- project serkis -->
+
+        <!--
+        TODO replace with release, after https://github.com/triologygmbh/command-bus/pull/9 is merged
+        -->
+        <dependency>
+            <groupId>com.github.triologygmbh</groupId>
+            <artifactId>command-bus</artifactId>
+            <!-- snapshot version of PR #9 -->
+            <version>20ad1da</version>
+        </dependency>
+
+        <!--
+        required by the cdi part of the command-bus
+        TODO split command-bus into core, cdi and spring modules
+        -->
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-hateoas</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        
+        <!-- git client -->
+
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit</artifactId>
+            <version>4.5.0.201609210915-r</version>
+        </dependency>
+        
+        <!-- cas authentication -->
+        
+        <dependency>
+            <groupId>org.jasig.cas.client</groupId>
+            <artifactId>cas-client-core</artifactId>
+            <version>${cas-client.version}</version>
+        </dependency>
+
+        <!-- util -->
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>19.0</version>
+        </dependency>
+        
+        <!-- logging -->
+        
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.20</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+
+        <dependency>
+            <!-- Dependency used in Jenkinsfile. Including this in maven provides code completion in Jenkinsfile. -->
+            <groupId>com.github.cloudogu</groupId>
+            <artifactId>ces-build-lib</artifactId>
+            <!-- Keep this version in sync with the one used in Jenkinsfile -->
+            <version>888733b</version>
+            <!-- Don't ship this dependency with the app -->
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+    
+    
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <executable>true</executable>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>springloaded</artifactId>
+                        <version>1.2.8.RELEASE</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <!-- groovy scripts for handing dev environment -->
+
+            <plugin>
+                <groupId>org.codehaus.gmaven</groupId>
+                <artifactId>groovy-maven-plugin</artifactId>
+                <version>2.0</version>
+                <executions>
+                    <execution>
+                        <id>up</id>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>${project.basedir}/src/main/scripts/up.groovy</source>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>down</id>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>${project.basedir}/src/main/scripts/down.groovy</source>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>destroy</id>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>${project.basedir}/src/main/scripts/destroy.groovy</source>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.eclipse.jgit</groupId>
+                        <artifactId>org.eclipse.jgit</artifactId>
+                        <version>4.5.0.201609210915-r</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+
+            <plugin>
+                <groupId>com.github.sdorra</groupId>
+                <artifactId>buildfrontend-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <configuration>
+                    <allowRoot>true</allowRoot>
+                    <nodeVersion>v8.9.4</nodeVersion>
+                    <npmVersion>v5.6.0</npmVersion>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>npm-install</id>
+                        <!-- use prepare-package to avoid installing durring spring-boot:run -->
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>npm-install</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>npm-run-build</id>
+                        <!-- use prepare-package to avoid installing durring spring-boot:run -->
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>npm-run</goal>
+                        </goals>
+                        <configuration>
+                            <script>build</script>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+        
+        <finalName>smeagol</finalName>
+    </build>
+    
+    <repositories>
+        <repository>
+            <!-- Necessary for ces-build-lib -->
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+    
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <cas-client.version>3.4.1</cas-client.version>
+    </properties>
+</project>

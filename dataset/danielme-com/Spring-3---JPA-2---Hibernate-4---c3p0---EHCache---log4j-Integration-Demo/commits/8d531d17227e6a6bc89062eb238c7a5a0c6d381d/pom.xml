@@ -1,0 +1,222 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0    	http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.danielme.demo</groupId>
+	<artifactId>spring-jpa-hibernate</artifactId>
+	<version>1.0</version>
+	<name>spring-jpa-hibernate</name>
+	<inceptionYear>2013</inceptionYear>
+
+	<description>Spring 3 + JPA 2 + Hibernate 4 + c3p0 + EHCache + log4j Integration Demo</description>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.build.mainClass>com.danielme.demo.springjpahib.Main</project.build.mainClass>
+		<java.version>1.6</java.version>
+		<spring.version>3.2.11.RELEASE</spring.version>
+		<hibernate.version>4.3.6.Final</hibernate.version>
+		<c3p0.version>0.9.1.2</c3p0.version>
+		<log4j.version>1.2.17</log4j.version>
+		<mysql.driver.version>5.1.33</mysql.driver.version>
+		<junit.version>4.11</junit.version>
+		<maven.shade.plugin>2.3</maven.shade.plugin>
+		<maven.exec.plugin>1.3.2</maven.exec.plugin>
+		<maven.compiler.plugin.version>3.1</maven.compiler.plugin.version>
+		<maven.jar.plugin.version>2.5</maven.jar.plugin.version>
+	</properties>
+
+	<prerequisites>
+		<maven>3.0</maven>
+	</prerequisites>
+
+
+	<developers>
+		<developer>
+			<id>dmedina</id>
+			<name>Daniel Medina</name>
+			<email>danielme_com@yahoo.com</email>
+			<url>http://danielme.com</url>
+			<roles>
+				<role>developer</role>
+			</roles>
+		</developer>
+	</developers>
+
+	<scm>
+		<url>https://github.com/danielme-com/Spring-3---JPA-2---Hibernate-4---c3p0---EHCache---log4j-Integration-Demo.git</url>
+	</scm>
+
+	<licenses>
+		<license>
+			<name>GPL 3</name>
+			<url>http://www.gnu.org/licenses/gpl-3.0.html</url>
+		</license>
+	</licenses>
+
+	<repositories>
+
+		<repository>
+			<id>JBoss repository</id>
+			<url>http://repository.jboss.org/nexus/content/groups/public/</url>
+		</repository>
+
+		<repository>
+			<id>java.net-Public</id>
+			<url>https://maven.java.net/content/groups/public/</url>
+		</repository>
+
+	</repositories>
+
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-jar-plugin</artifactId>
+					<version>${maven.jar.plugin.version}</version>
+					<configuration>
+						<archive>
+							<manifest>
+								<addClasspath>true</addClasspath>
+								<mainClass>${project.build.mainClass}</mainClass>
+							</manifest>
+						</archive>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>${maven.compiler.plugin.version}</version>
+					<configuration>
+						<source>${java.version}</source>
+						<target>${java.version}</target>
+						<encoding>${project.build.sourceEncoding}</encoding>
+					</configuration>
+				</plugin>
+				<!-- mvn clean package exec:java -->
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>exec-maven-plugin</artifactId>
+					<version>${maven.exec.plugin}</version>
+					<executions>
+						<execution>
+							<goals>
+								<goal>java</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<mainClass>${project.build.mainClass}</mainClass>
+					</configuration>
+				</plugin>
+				<!-- package all dependencies in one executable big jar > mvn clean package 
+					shade:shade -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-shade-plugin</artifactId>
+					<version>${maven.shade.plugin}</version>
+					<executions>
+						<execution>
+							<phase>package</phase>
+							<goals>
+								<goal>shade</goal>
+							</goals>
+						</execution>
+					</executions>
+					<configuration>
+						<finalName>${project.artifactId}-${project.version}-all-deps</finalName>
+						<transformers>
+							<transformer
+								implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+								<mainClass>${project.build.mainClass}</mainClass>
+							</transformer>
+						</transformers>
+						<!-- http://zhentao-li.blogspot.com.es/2012/06/maven-shade-plugin-invalid-signature.html -->
+						<filters>
+							<filter>
+								<artifact>*:*</artifact>
+								<excludes>
+									<exclude>META-INF/*.SF</exclude>
+									<exclude>META-INF/*.DSA</exclude>
+									<exclude>META-INF/*.RSA</exclude>
+								</excludes>
+							</filter>
+						</filters>
+
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-orm</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+
+		<!--@Transactional -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-entitymanager</artifactId>
+			<version>${hibernate.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-ehcache</artifactId>
+			<version>${hibernate.version}</version>
+		</dependency>
+
+		<!-- connection pooling with c3p0 -->
+		<dependency>
+			<groupId>c3p0</groupId>
+			<artifactId>c3p0</artifactId>
+			<version>${c3p0.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>${log4j.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>${mysql.driver.version}</version>
+		</dependency>
+		
+		<!-- testing -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>${spring.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+</project>

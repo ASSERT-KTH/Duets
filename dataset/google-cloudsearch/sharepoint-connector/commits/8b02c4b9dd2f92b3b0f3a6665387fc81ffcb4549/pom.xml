@@ -1,0 +1,287 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.google.enterprise.cloudsearch</groupId>
+  <artifactId>google-cloudsearch-sharepoint-connector</artifactId>
+  <version>v1-0.0.3</version>
+  <packaging>jar</packaging>
+
+  <name>Google Cloud Search SharePoint Connector</name>
+  <url>https://cloud.google.com/products/search</url>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <java_version>1.8</java_version>
+    <wsdlLocation>
+      src/main/resources/com/google/enterprise/cloudsearch/sharepoint/wsdl
+    </wsdlLocation>
+  </properties>
+
+  <licenses>
+    <license>
+      <name>Apache License version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>Google Inc.</name>
+    <url>http://www.google.com</url>
+  </organization>
+
+  <build>
+    <resources>
+      <resource>
+        <directory>${project.basedir}</directory>
+        <targetPath>META-INF</targetPath>
+        <includes>
+          <include>LICENSE.txt</include>
+        </includes>
+      </resource>
+      <!-- Add resources folder explicitly -->
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>1.16</version>
+        <configuration>
+          <licenseMerges>
+            <licenseMerge>The Apache Software License, Version 2.0|Apache License, Version 2.0|Apache Public License 2.0|Apache 2.0|Apache 2|Apache License</licenseMerge>
+          </licenseMerges>
+        </configuration>
+        <executions>
+          <execution>
+            <id>add-third-party</id>
+            <goals>
+              <goal>add-third-party</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <!-- Compiler Configuration -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.5.1</version>
+        <configuration>
+          <source>${java_version}</source>
+          <target>${java_version}</target>
+          <compilerArgument>-Xlint</compilerArgument>
+        </configuration>
+      </plugin>
+      <!-- usage of jax-ws maven plugin -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jaxws-maven-plugin</artifactId>
+        <version>2.4.1</version>
+        <configuration>
+          <vmArgs>
+            <vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
+          </vmArgs>
+        </configuration>
+        <executions>
+          <execution>
+            <id>wsimport-from-jdk</id>
+            <goals>
+              <goal>wsimport</goal>
+            </goals>
+            <configuration>
+              <wsdlDirectory>${wsdlLocation}</wsdlDirectory>
+              <wsdlFiles>
+                <wsdlFile>SiteData.wsdl</wsdlFile>
+                <wsdlFile>UserGroup.wsdl</wsdlFile>
+              </wsdlFiles>
+              <!-- Keep generated files -->
+              <keep>true</keep>
+              <!-- generated source files destination -->
+              <sourceDestDir>target/generated/main/java</sourceDestDir>
+            </configuration>
+          </execution>
+          <execution>
+            <id>wsimport-from-jdk-ppl</id>
+            <goals>
+              <goal>wsimport</goal>
+            </goals>
+            <configuration>
+              <wsdlDirectory>${wsdlLocation}</wsdlDirectory>
+              <wsdlFiles>
+                <wsdlFile>People.wsdl</wsdlFile>
+              </wsdlFiles>
+              <!-- Keep generated files -->
+              <keep>true</keep>
+              <packageName>com.microsoft.schemas.sharepoint.soap.people</packageName>
+              <!-- generated source files destination -->
+              <sourceDestDir>target/generated/main/java</sourceDestDir>
+            </configuration>
+          </execution>
+          <execution>
+            <id>wsimport-from-jdk-auth</id>
+            <goals>
+              <goal>wsimport</goal>
+            </goals>
+            <configuration>
+              <wsdlDirectory>${wsdlLocation}</wsdlDirectory>
+              <wsdlFiles>
+                <wsdlFile>Authentication.wsdl</wsdlFile>
+              </wsdlFiles>
+              <!-- Keep generated files -->
+              <keep>true</keep>
+              <packageName>com.microsoft.schemas.sharepoint.soap.authentication</packageName>
+              <!-- generated source files destination -->
+              <sourceDestDir>target/generated/main/java</sourceDestDir>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <!-- JAR Manifest configuration -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.0.2</version>
+        <configuration>
+          <archive>
+            <addMavenDescriptor>true</addMavenDescriptor>
+            <manifest>
+              <mainClass>com.google.enterprise.cloudsearch.sharepoint.SharePointRepositoryConnector</mainClass>
+              <addClasspath>true</addClasspath>
+              <classpathPrefix>lib/</classpathPrefix>
+            </manifest>
+            <manifestEntries>
+              <Implementation-Title>${project.name}</Implementation-Title>
+              <Implementation-Version>${project.version}</Implementation-Version>
+              <Implementation-Vendor>Google Inc.</Implementation-Vendor>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <!-- Tests -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.19.1</version>
+        <configuration>
+          <includes>
+            <include>**/*Test.java</include>
+          </includes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <!-- Create JavaDoc -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.10.4</version>
+        <configuration>
+          <sourcepath>src/main:${project.build.directory}/generated</sourcepath>
+          <outputDirectory>${project.build.directory}/javadoc</outputDirectory>
+          <quiet>true</quiet>
+          <notimestamp>true</notimestamp>
+          <additionalJOption>-Xdoclint:none</additionalJOption>
+          <show>public</show>
+          <author>false</author>
+          <doctitle>${project.name}</doctitle>
+          <windowtitle>${project.name}</windowtitle>
+          <nodeprecated>false</nodeprecated>
+          <nodeprecatedlist>true</nodeprecatedlist>
+          <noindex>false</noindex>
+          <nonavbar>false</nonavbar>
+          <notree>false</notree>
+          <source>${java_version}</source>
+          <splitindex>false</splitindex>
+          <use>true</use>
+          <version>true</version>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>javadoc</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptors>
+            <descriptor>src/main/assembly/assembly.xml</descriptor>
+          </descriptors>
+          <appendAssemblyId>false</appendAssemblyId>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.2</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>jacoco-report</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+            <configuration>
+              <excludes>
+                <!-- Exclude auto-generated classes. -->
+                <exclude>com/microsoft/**/*</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.enterprise.cloudsearch</groupId>
+      <artifactId>google-cloudsearch-indexing-connector-sdk</artifactId>
+      <version>v1-0.0.3</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.enterprise.cloudsearch</groupId>
+      <artifactId>google-cloudsearch-identity-connector-sdk</artifactId>
+      <version>v1-0.0.3</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.xml.ws</groupId>
+      <artifactId>jaxws-rt</artifactId>
+      <version>2.2.8</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+      <version>1.11.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>2.3.0</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

@@ -1,0 +1,154 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <properties>
+        <!--
+            Just settings some variables for convinience
+        -->
+        <neo4j.version>2.3.2</neo4j.version> <!--target server version-->
+    </properties>
+
+    <groupId>org.neo4j</groupId>
+    <artifactId>neo4j-kernel-plugin-example</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    
+    <packaging>jar</packaging>
+    <name>neo4j-kernel-plugin-example</name>
+    <description>Neo4j Kernel Plugin Example</description>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.2</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeScope>runtime</includeScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--
+                Shade plugin needed to package all the dependencies in one jar file.
+                If you don't need this just remove it
+            -->
+            <plugin>
+              <artifactId>maven-shade-plugin</artifactId>
+              <version>2.4.3</version>
+              <executions>
+                <execution>
+                  <!--
+                      This config needed to prevent removal of META-INF data on package creation
+                  -->
+                  <configuration>
+                          <filters>
+                            <filter>
+                              <artifact>*:*</artifact>
+                              <excludes>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                              </excludes>
+                            </filter>
+                          </filters>
+                    </configuration>
+
+                  <phase>package</phase>
+                  <goals>
+                    <goal>shade</goal>
+                  </goals>
+                </execution>
+              </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-kernel</artifactId>
+            <version>${neo4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-lucene-index</artifactId>
+            <version>${neo4j.version}</version>
+        </dependency>
+        <!--dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-jdbc-driver</artifactId>
+            <version>3.0</version>
+        </dependency-->
+        <dependency>
+          <groupId>org.neo4j</groupId>
+          <artifactId>neo4j-jdbc</artifactId>
+          <version>2.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j.test</groupId>
+            <artifactId>neo4j-harness</artifactId>
+            <version>${neo4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>18.0</version>
+        </dependency>
+        <!--
+            This lib very often cause dependency collision so should be same in all plugins on you server
+        -->
+        <dependency>
+          <groupId>org.apache.httpcomponents</groupId>
+          <artifactId>httpclient</artifactId>
+          <version>4.5.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-kernel</artifactId>
+            <version>${neo4j.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-io</artifactId>
+            <version>${neo4j.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <!--
+        This needed for neo4j-jdbc package
+    -->
+    <repositories>
+        <repository>
+          <id>neo4j-public</id>
+          <url>http://m2.neo4j.org/content/groups/public</url>
+        </repository>
+      </repositories>
+</project>

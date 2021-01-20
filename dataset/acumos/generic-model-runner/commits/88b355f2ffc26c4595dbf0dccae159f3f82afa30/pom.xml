@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.acumos.generic-model-runner</groupId>
+	<artifactId>h2o-genericjava-modelrunner</artifactId>
+	<version>1.0.3-SNAPSHOT</version>
+
+	<name>Acumos H2O/Generic Java Model Runner</name>
+	<description>Acumos H2O/Generic Java Model Runner</description>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>1.5.4.RELEASE</version>
+	</parent>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<!-- Stand-alone RESTFul application -->
+		<start-class>org.acumos.modelrunner.Application</start-class>
+		<springfox.version>2.7.0</springfox.version>
+		<!-- Jenkins invokes mvn with argument -Dbuild.number=${BUILD_NUMBER} -->
+		<build.number>0</build.number>
+		<!-- Not supplied to all jobs; e.g., Javadoc -->
+		<docker.pull.registry>nexus3.acumos.org:10001</docker.pull.registry>
+		<!-- Supplied by Jenkins -->
+		<docker.push.registry>${env.NEXUS3_PUSH_REGISTRY}</docker.push.registry>
+	</properties>
+
+	<!-- No repositories section. -->
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<!-- Spring sets the <version>4.11</version> -->
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>${springfox.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>${springfox.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>javax.ws.rs-api</artifactId>
+			<version>2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.os72</groupId>
+			<artifactId>protoc-jar</artifactId>
+			<version>3.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>3.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+			<version>1.3</version>
+		</dependency>
+		<dependency>
+			<groupId>ai.h2o</groupId>
+			<artifactId>h2o-genmodel</artifactId>
+			<version>3.14.0.2</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.metawidget.modules</groupId>
+			<artifactId>metawidget-all</artifactId>
+			<version>1.20</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-autoconfigure</artifactId>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>1.14</version>
+				<configuration>
+					<licenseName>acumos</licenseName>
+					<licenseResolver>${project.baseUri}/src/license</licenseResolver>
+					<addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
+					<processStartTag>===============LICENSE_START=======================================================</processStartTag>
+					<processEndTag>===============LICENSE_END=========================================================</processEndTag>
+					<sectionDelimiter>===================================================================================</sectionDelimiter>
+					<inceptionYear>2017</inceptionYear>
+					<organizationName><![CDATA[AT&T Intellectual Property & Tech Mahindra. All rights reserved.]]></organizationName>
+					<projectName>Acumos</projectName>
+					<canUpdateCopyright>true</canUpdateCopyright>
+					<canUpdateDescription>true</canUpdateDescription>
+					<canUpdateLicense>true</canUpdateLicense>
+					<emptyLineAfterHeader>true</emptyLineAfterHeader>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<!-- Spring sets the <version></version> -->
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<fork>true</fork>
+				</configuration>
+			</plugin>
+			<!-- Add the build number to the jar manifest. Spring-Boot uses a complex 
+				packaging process that makes access to the original Manifest.MF very difficult. 
+				However, Java provides access to the implementation version for a package, 
+				so cram the build number into there. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<!-- Spring sets the <version>2.5</version> -->
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
+						<manifestEntries>
+							<Implementation-Version>${project.version}-b${build.number}</Implementation-Version>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.7.9</version>
+				<executions>
+					<execution>
+						<id>default-prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>default-report</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!--
+				No "skip" configuration for maven-deploy-plugin.
+				Let the jar be deployed to LF Nexus repo, so that
+				the final deploy step finds a jar then succeeds.
+			-->
+			<!-- https://stackoverflow.com/questions/39126226/fabric8-springboot-full-example -->
+			<plugin>
+				<groupId>io.fabric8</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<version>0.21.0</version>
+				<configuration>
+					<verbose>true</verbose>
+					<!-- docker runs on the LF build minion so the default value is ok -->
+					<!-- LF <dockerHost>unix:///var/run/docker.sock</dockerHost> LF -->
+					<pullRegistry>${docker.pull.registry}</pullRegistry>
+					<pushRegistry>${docker.push.registry}</pushRegistry>
+					<!-- LF credentials are not supplied here -->
+					<images>
+						<image>
+							<!-- Specify a tag to avoid default tag "latest" -->
+							<name>${project.artifactId}:${project.version}</name>
+							<build>
+								<from>frolvlad/alpine-oraclejdk8:slim</from>
+								<tags>
+									<!-- Add tag with build number -->
+									<tag>${project.version}-b${build.number}</tag>
+								</tags>
+								<assembly>
+									<descriptorRef>artifact</descriptorRef>
+								</assembly>
+								<cmd>
+									<!-- CDATA prevents Eclipse formatter from breaking line -->
+									<shell><![CDATA[java -Xms128m -Xmx512m -Djava.security.egd=file:/dev/./urandom -jar /maven/${project.artifactId}-${project.version}.${project.packaging}]]></shell>
+								</cmd>
+							</build>
+						</image>
+					</images>
+				</configuration>
+				<!-- build Docker images in install phase, push in deploy phase -->
+				<executions>
+					<execution>
+						<goals>
+							<goal>build</goal>
+							<goal>push</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
+	</build>
+
+</project>

@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ The MIT License (MIT)
+  ~
+  ~ Copyright (c) 2019 Twineworks GmbH
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining a copy
+  ~ of this software and associated documentation files (the "Software"), to deal
+  ~ in the Software without restriction, including without limitation the rights
+  ~ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the Software is
+  ~ furnished to do so, subject to the following conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be included in all
+  ~ copies or substantial portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  ~ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  ~ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  ~ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  ~ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  ~ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  ~ SOFTWARE.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+        Making a release:
+        - ensure pom.xml contains SNAPSHOT version
+        - ensure the snapshot release is successful
+          $ mvn clean deploy
+        - ensure version number in ./site/config.yaml matches release tag
+        - render html docs from markdown
+          $ ./site/make_docs
+        - commit doc render
+        - ensure there are no references to previous versions
+          $ grep -r '0\.11\.1' * # should come up empty
+        - ensure pom.xml contains release version
+        - commit pom
+        - deploy release version
+          $ mvn clean deploy -P release
+        - tag release version
+        - ensure pom.xml contains next SNAPSHOT version
+        - commit
+        - push to github, wait for https://twineworks.github.io/tweakflow/ to update
+        - test links in documentation
+          $ ./site/test_docs
+        - upload jar as github release
+
+        Details on release process to sonatype:
+        https://central.sonatype.org/pages/apache-maven.html
+
+    -->
+
+    <groupId>com.twineworks</groupId>
+    <artifactId>tweakflow</artifactId>
+    <version>0.11.2</version>
+
+    <organization>
+        <name>Twineworks GmbH</name>
+        <url>http://twineworks.com</url>
+    </organization>
+
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Embeddable expression language for Java.</description>
+    <url>https://github.com/twineworks/tweakflow</url>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Slawomir Chodnicki</name>
+            <email>slawomir.chodnicki@twineworks.com</email>
+            <organization>Twineworks</organization>
+            <organizationUrl>https://github.com/twineworks</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com:twineworks/tweakflow.git</connection>
+        <developerConnection>scm:git:ssh://github.com:twineworks/tweakflow.git</developerConnection>
+        <url>https://github.com/twineworks/tweakflow/tree/master</url>
+    </scm>
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <skipTests>false</skipTests>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>usethesource</id>
+            <url>http://nexus.usethesource.io/content/repositories/public/</url>
+        </repository>
+    </repositories>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+
+                    <!-- generating javadoc -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <configuration>
+                            <excludePackageNames>com.twineworks.tweakflow.grammar</excludePackageNames>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>javadoc</goal>
+                                </goals>
+                                <phase>package</phase>
+                                <configuration>
+                                    <!-- Specific configuration for the given reports -->
+                                    <excludePackageNames>com.twineworks.tweakflow.grammar</excludePackageNames>
+                                </configuration>
+                            </execution>
+
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- attaching sources -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>2.2.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- pgp signing for sonatype -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+
+            <!-- bundle license files of dependencies -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>1.19</version>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <id>aggregate-download-licenses</id>
+                        <goals>
+                            <goal>aggregate-download-licenses</goal>
+                        </goals>
+                        <configuration>
+                            <includedScopes>compile</includedScopes>
+                            <licensesOutputDirectory>target/generated-resources/META-INF/licenses</licensesOutputDirectory>
+                            <licensesOutputFile>target/generated-resources/META-INF/licenses/licenses.xml</licensesOutputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- antlr parser generator -->
+            <plugin>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-maven-plugin</artifactId>
+                <version>4.7.2</version>
+                <executions>
+                    <execution>
+                        <id>antlr</id>
+                        <goals>
+                            <goal>antlr4</goal>
+                        </goals>
+                        <configuration>
+                            <visitor>true</visitor>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- compilation -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.2</version>
+                <configuration>
+                    <compilerArgs>
+                        <!--<arg>-verbose</arg>-->
+                        <arg>-Xlint:all,-options,-path</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+
+            <!-- making a jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.1</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <!-- code coverage -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.3</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>post-unit-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Sets the path to the file which contains the execution data. -->
+                            <dataFile>target/jacoco.exec</dataFile>
+                            <!-- Sets the output directory for the code coverage report. -->
+                            <outputDirectory>target/jacoco-ut</outputDirectory>
+                            <excludes>
+                                <exclude>com/twineworks/tweakflow/grammar/**/*</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                </configuration>
+            </plugin>
+
+            <!-- tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M3</version>
+                <configuration>
+                    <skipTests>${skipTests}</skipTests>
+                </configuration>
+            </plugin>
+
+            <!-- shading dependencies -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+
+                            <!--
+                               Turning minimize on breaks all libraries that refer to classes indirectly.
+                            -->
+                            <minimizeJar>false</minimizeJar>
+
+                            <relocations>
+                                <relocation>
+                                    <pattern>org</pattern>
+                                    <shadedPattern>com.twineworks.tweakflow.shaded.org</shadedPattern>
+                                    <excludes>
+                                        <exclude>org.fusesource.hawtjni.runtime.*</exclude>
+                                        <exclude>org.fusesource.jansi.*</exclude>
+                                        <exclude>org.fusesource.jansi.internal.*</exclude>
+                                    </excludes>
+                                </relocation>
+                                <relocation>
+                                    <pattern>io</pattern>
+                                    <shadedPattern>com.twineworks.tweakflow.shaded.io</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>jline</pattern>
+                                    <shadedPattern>com.twineworks.tweakflow.shaded.jline</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>net</pattern>
+                                    <shadedPattern>com.twineworks.tweakflow.shaded.net</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>com.twineworks.collections</pattern>
+                                    <shadedPattern>com.twineworks.tweakflow.shaded.com.twineworks.collections</shadedPattern>
+                                </relocation>
+                            </relocations>
+
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.twineworks.tweakflow.Main</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- stage to nexus -->
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.8</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+
+        </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>target/generated-resources</directory>
+            </resource>
+        </resources>
+    </build>
+
+    <dependencies>
+
+        <!-- language parsing -->
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>4.7.2</version>
+        </dependency>
+
+        <!-- collections -->
+        <dependency>
+            <groupId>com.twineworks</groupId>
+            <artifactId>collections</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+
+        <!-- persistent data structures -->
+        <dependency>
+            <groupId>io.usethesource</groupId>
+            <artifactId>capsule</artifactId>
+            <version>0.6.2</version>
+        </dependency>
+
+        <!-- interactive shell -->
+        <dependency>
+            <groupId>jline</groupId>
+            <artifactId>jline</artifactId>
+            <version>2.14.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.sourceforge.argparse4j</groupId>
+            <artifactId>argparse4j</artifactId>
+            <version>0.8.1</version>
+        </dependency>
+
+        <!-- assertj -->
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.1.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- junit -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.4.1</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+</project>

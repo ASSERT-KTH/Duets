@@ -1,0 +1,178 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.vasl</groupId>
+    <artifactId>vasl</artifactId>
+    <version>6.6.1-beta1</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <project.build.sourceEncoding>Cp1252</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.vassalengine</groupId>
+            <artifactId>vassal-app</artifactId>
+            <version>3.4.6</version>
+        </dependency>
+
+        <!-- We do not have any tests yet, but time will tell... -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Add dependencies that are not part of VASSAL here -->
+        <dependency>
+            <groupId>org.jdom</groupId>
+            <artifactId>jdom2</artifactId>
+            <version>2.0.5</version>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>vassal</id>
+            <url>http://www.vassalengine.org/maven</url>
+        </repository>
+    </repositories>
+
+    <build>
+        <sourceDirectory>src</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>dist</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>buildFile</include>
+                    <include>moduledata</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>dist</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>buildFile</exclude>
+                    <exclude>moduledata</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.3</version>
+                <configuration>
+                    <verbose>true</verbose>
+                    <source>11</source>
+                    <target>11</target>
+                    <showDeprecation>true</showDeprecation>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>1.2</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <doCheck>false</doCheck>
+                    <doUpdate>false</doUpdate>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.googlecode.addjars-maven-plugin</groupId>
+                <artifactId>addjars-maven-plugin</artifactId>
+                <version>1.0.5</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>add-jars</goal>
+                        </goals>
+                        <configuration>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/lib</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <configuration>
+                    <executable>${jdk}/bin/java</executable>
+                    <workingDirectory>${basedir}</workingDirectory>
+                    <arguments>
+                        <argument>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005</argument>
+                        <argument>-jar</argument>
+                        <argument>Vengine-3.4.2.jar</argument>
+                        <argument>--standalone</argument>
+                        <argument>target/${project.build.finalName}.jar</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.2</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <artifactSet>
+                                <includes>
+                                    <!-- Add more jar to include here, but they need to be a
+                                        dependency as well. -->
+                                    <include>org.jdom:jdom2</include>
+                                </includes>
+                            </artifactSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <name>VASL</name>
+    <url>https://github.com/vasl-developers</url>
+    <licenses>
+        <license>
+            <name>GNU Lesser General Public License, version 2.1</name>
+            <url>http://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html</url>
+            <distribution>distribution</distribution>
+            <comments>The GNU General Public License is intended to guarantee your freedom to share and change free
+                software--to make sure the software is free for all its users.
+            </comments>
+        </license>
+    </licenses>
+
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/vasl-developers/vasl/issues</url>
+    </issueManagement>
+
+    <scm>
+        <url>https://github.com/vasl-developers/vasl</url>
+        <connection>scm:git:git://github.com/vasl-developers/vasl.git</connection>
+        <developerConnection>scm:git:git@github.com:vasl-developers/vasl.git</developerConnection>
+    </scm>
+
+</project>

@@ -1,0 +1,1180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) André Bargull
+    Alle Rechte vorbehalten / All Rights Reserved.  Use is subject to license terms.
+
+    <https://github.com/anba/es6draft>
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.github.anba</groupId>
+  <artifactId>es6draft</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>es6draft</name>
+
+  <url>https://github.com/anba/es6draft</url>
+  <description>ECMAScript compiler and runtime</description>
+  <inceptionYear>2012</inceptionYear>
+
+  <organization>
+    <name>André Bargull</name>
+    <url>https://github.com/anba</url>
+  </organization>
+
+  <licenses>
+    <license>
+      <name>The MIT License (MIT)</name>
+      <url>http://www.opensource.org/licenses/mit-license.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:git:git://github.com/anba/es6draft.git</connection>
+    <developerConnection>scm:git:git@github.com:anba/es6draft.git</developerConnection>
+    <url>https://github.com/anba/es6draft</url>
+  </scm>
+
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/anba/es6draft/issues</url>
+  </issueManagement>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss</maven.build.timestamp.format>
+    <build.timestamp>${maven.build.timestamp}</build.timestamp>
+    <mainClass>${project.groupId}.${project.artifactId}.repl.Repl</mainClass>
+    <distribution.name>${project.artifactId}</distribution.name>
+    <shaded.name>${project.artifactId}</shaded.name>
+    <spec.version></spec.version>
+    <test.user.language>en</test.user.language>
+    <test.user.country>US</test.user.country>
+    <test.user.timezone>America/Los_Angeles</test.user.timezone>
+    <test.jvmArgs />
+    <test.jacocoArgs />
+    <test.excludes>**/chakra/*, **/mozilla/*, **/test262/*, **/v8/*, **/webkit/*</test.excludes>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>6.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-commons</artifactId>
+      <version>6.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-util</artifactId>
+      <version>6.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.ibm.icu</groupId>
+      <artifactId>icu4j</artifactId>
+      <version>61.1</version>
+    </dependency>
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>2.9.9</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jruby.joni</groupId>
+      <artifactId>joni</artifactId>
+      <version>2.1.16</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jruby.jcodings</groupId>
+      <artifactId>jcodings</artifactId>
+      <version>1.0.29</version>
+    </dependency>
+    <dependency>
+      <groupId>jline</groupId>
+      <artifactId>jline</artifactId>
+      <version>2.12.1</version>
+    </dependency>
+    <dependency>
+      <groupId>args4j</groupId>
+      <artifactId>args4j</artifactId>
+      <version>2.33</version>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-integration</artifactId>
+      <version>1.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-core</artifactId>
+      <version>1.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-configuration</groupId>
+      <artifactId>commons-configuration</artifactId>
+      <version>1.10</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.6</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.7</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.yaml</groupId>
+      <artifactId>snakeyaml</artifactId>
+      <version>1.20</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <profile>
+      <id>code-analysis</id>
+      <reporting>
+        <plugins>
+          <!-- Both plugins don't work with Java 10 -->
+          <!--
+          <plugin>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-maven-plugin</artifactId>
+            <version>3.1.3</version>
+            <configuration>
+              <excludeFilterFile>${project.basedir}/src/etc/findbugs-exclude.xml</excludeFilterFile>
+              <fork>true</fork>
+              <jvmArgs>-Dfindbugs.sf.comment=true</jvmArgs>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-pmd-plugin</artifactId>
+            <version>3.9.0</version>
+            <configuration>
+              <targetJdk>1.8</targetJdk>
+              <skipEmptyReport>false</skipEmptyReport>
+              <minimumTokens>100</minimumTokens>
+              <lineLength>100</lineLength>
+              <rulesets>
+                <ruleset>${project.basedir}/src/etc/pmd-ruleset.xml</ruleset>
+              </rulesets>
+            </configuration>
+          </plugin>
+          -->
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>jdepend-maven-plugin</artifactId>
+            <version>2.0</version>
+          </plugin>
+        </plugins>
+      </reporting>
+    </profile>
+    <!-- Profile to run external test suites except for test262 -->
+    <profile>
+      <id>external</id>
+      <properties>
+        <test.excludes />
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>surefire-test</id>
+                <configuration>
+                  <testFailureIgnore>true</testFailureIgnore>
+                  <includes>
+                    <include>**/chakra/*.java</include>
+                    <include>**/mozilla/*.java</include>
+                    <include>**/v8/*.java</include>
+                    <include>**/webkit/*.java</include>
+                  </includes>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- Profile to run the test262 test suite -->
+    <profile>
+      <id>test262</id>
+      <properties>
+        <test.excludes />
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>surefire-test</id>
+                <configuration>
+                  <testFailureIgnore>true</testFailureIgnore>
+                  <includes>
+                    <include>**/test262/*.java</include>
+                  </includes>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- Profile to run the test262 test suite on travis-ci -->
+    <profile>
+      <id>test262-travisci</id>
+      <properties>
+        <test.excludes />
+        <!-- Explicit fork+memory settings to avoid exceeding the 3GB limit. -->
+        <test.jvmArgs>-Xms256m -Xmx1536m</test.jvmArgs>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>surefire-test</id>
+                <configuration>
+                  <testFailureIgnore>true</testFailureIgnore>
+                  <includes>
+                    <include>**/test262/DescriptorTest.java</include>
+                    <include>**/test262/Test262Web.java</include>
+                    <include>**/test262/Test262Strict.java</include>
+                  </includes>
+                  <forkCount>1</forkCount>
+                  <reuseForks>false</reuseForks>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- Java 8 Profile -->
+    <profile>
+      <id>java8</id>
+      <activation>
+        <jdk>1.8</jdk>
+      </activation>
+      <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>add-source-java8</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>add-source</goal>
+                </goals>
+                <configuration>
+                  <sources>
+                    <source>${project.basedir}/src/main/java8</source>
+                  </sources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- Java 9 Profile -->
+    <profile>
+      <id>java9</id>
+      <activation>
+        <jdk>9</jdk>
+      </activation>
+      <properties>
+        <maven.compiler.source>1.9</maven.compiler.source>
+        <maven.compiler.target>1.9</maven.compiler.target>
+        <maven.compiler.release>9</maven.compiler.release>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>add-source-java9</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>add-source</goal>
+                </goals>
+                <configuration>
+                  <sources>
+                    <source>${project.basedir}/src/main/java9</source>
+                  </sources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- Java 10 Profile -->
+    <profile>
+      <id>java10</id>
+      <activation>
+        <jdk>10</jdk>
+      </activation>
+      <properties>
+        <maven.compiler.source>1.10</maven.compiler.source>
+        <maven.compiler.target>1.10</maven.compiler.target>
+        <maven.compiler.release>10</maven.compiler.release>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>add-source-java10</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>add-source</goal>
+                </goals>
+                <configuration>
+                  <sources>
+                    <source>${project.basedir}/src/main/java9</source>
+                  </sources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- Coverage -->
+    <profile>
+      <id>test262-coverage</id>
+      <properties>
+        <test.excludes />
+        <jacoco.file>${project.build.directory}/coverage-reports/jacoco-test262.exec</jacoco.file>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>surefire-test</id>
+                <configuration>
+                  <testFailureIgnore>true</testFailureIgnore>
+                  <includes>
+                    <include>**/test262/Test262Web.java</include>
+                  </includes>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.1</version>
+            <executions>
+              <execution>
+                <id>default-prepare-agent</id>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+                <configuration>
+                  <append>false</append>
+                  <propertyName>test.jacocoArgs</propertyName>
+                  <destFile>${jacoco.file}</destFile>
+                </configuration>
+              </execution>
+              <execution>
+                <id>default-report</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+                <configuration>
+                  <dataFile>${jacoco.file}</dataFile>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- Coverage -->
+    <profile>
+      <id>test262-coverage-work</id>
+      <properties>
+        <test.excludes />
+        <jacoco.file>${project.build.directory}/coverage-reports/jacoco-test262.exec</jacoco.file>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>surefire-test</id>
+                <configuration>
+                  <testFailureIgnore>true</testFailureIgnore>
+                  <includes>
+                    <include>**/test262/Test262Web.java</include>
+                    <include>**/test262/Script262Test.java</include>
+                  </includes>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.1</version>
+            <executions>
+              <execution>
+                <id>default-prepare-agent</id>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+                <configuration>
+                  <append>false</append>
+                  <propertyName>test.jacocoArgs</propertyName>
+                  <destFile>${jacoco.file}</destFile>
+                </configuration>
+              </execution>
+              <execution>
+                <id>default-report</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+                <configuration>
+                  <dataFile>${jacoco.file}</dataFile>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <build>
+    <finalName>${project.groupId}.${project.artifactId}-${project.version}</finalName>
+    <resources>
+      <resource>
+        <directory>${project.basedir}/src/main/resources</directory>
+        <excludes>
+          <exclude>build-date</exclude>
+          <exclude>version</exclude>
+        </excludes>
+      </resource>
+      <resource>
+        <directory>${project.basedir}/src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>build-date</include>
+          <include>version</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>${project.basedir}/src/main/scripts</directory>
+        <targetPath>scripts</targetPath>
+      </resource>
+    </resources>
+    <testResources>
+      <testResource>
+        <directory>${project.basedir}/src/test/resources</directory>
+      </testResource>
+      <testResource>
+        <directory>${project.basedir}/src/test/scripts</directory>
+        <targetPath>scripts</targetPath>
+      </testResource>
+    </testResources>
+
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>3.1.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>1.8</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-clean-plugin</artifactId>
+          <version>3.0.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.7.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>3.1.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>2.8.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>3.0.0-M1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-install-plugin</artifactId>
+          <version>2.5.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.0.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5.3</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>3.0.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>3.1.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>3.7</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.21.0</version>
+          <dependencies>
+            <dependency>
+              <groupId>org.apache.maven.surefire</groupId>
+              <artifactId>surefire-junit47</artifactId>
+              <version>2.21.0</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-report-plugin</artifactId>
+          <version>2.21.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>3.0.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>buildnumber-maven-plugin</artifactId>
+          <version>1.4</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>license-maven-plugin</artifactId>
+          <version>1.15</version>
+        </plugin>
+        <plugin>
+          <groupId>com.mycila</groupId>
+          <artifactId>license-maven-plugin</artifactId>
+          <version>3.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <versionRange>[2.0,)</versionRange>
+                    <goals>
+                      <goal>copy-dependencies</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <execute />
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>buildnumber-maven-plugin</artifactId>
+                    <versionRange>[1.0,)</versionRange>
+                    <goals>
+                      <goal>create-timestamp</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <execute />
+                  </action>
+                </pluginExecution>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <versionRange>[1.7,)</versionRange>
+                    <goals>
+                      <goal>run</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <execute />
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>initialize</phase>
+            <goals>
+              <goal>create-timestamp</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <timestampFormat>yyyy-MM-dd HH:mm:ss '('zzz')'</timestampFormat>
+          <timestampPropertyName>builddate</timestampPropertyName>
+          <locale>en_US</locale>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.basedir}/src/main/third_party/mozilla</source>
+                <source>${project.basedir}/src/main/third_party/google</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <debug>true</debug>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <configuration>
+          <delimiters>
+            <delimiter>@*@</delimiter>
+          </delimiters>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>${mainClass}</mainClass>
+              <addClasspath>true</addClasspath>
+              <classpathPrefix>dependencies/</classpathPrefix>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <useUniqueVersions>true</useUniqueVersions>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+              <includeScope>compile</includeScope>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>antrun-scripts</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <exportAntProperties>true</exportAntProperties>
+              <target>
+                <concat destfile="${project.build.outputDirectory}/scripts/chakralegacy.js"
+                  encoding="${project.build.sourceEncoding}" outputencoding="${project.build.sourceEncoding}">
+                  <fileset dir="${project.basedir}/src/main/scripts">
+                    <include name="cyclic.js" />
+                  </fileset>
+                </concat>
+                <concat destfile="${project.build.outputDirectory}/scripts/mozlegacy.js"
+                  encoding="${project.build.sourceEncoding}" outputencoding="${project.build.sourceEncoding}">
+                  <fileset dir="${project.basedir}/src/main/scripts">
+                    <include name="arraybuffer.js" />
+                    <include name="console-stub.js" />
+                    <include name="global.js" />
+                    <include name="source.js" />
+                    <include name="statics.js" />
+                  </fileset>
+                </concat>
+                <concat destfile="${project.build.outputDirectory}/scripts/v8legacy.js"
+                  encoding="${project.build.sourceEncoding}" outputencoding="${project.build.sourceEncoding}">
+                  <fileset dir="${project.basedir}/src/main/scripts">
+                    <include name="cyclic.js" />
+                    <include name="global.js" />
+                    <include name="internal-error.js" />
+                    <include name="stacktrace.js" />
+                  </fileset>
+                </concat>
+                <concat destfile="${project.build.outputDirectory}/scripts/webkitlegacy.js"
+                  encoding="${project.build.sourceEncoding}" outputencoding="${project.build.sourceEncoding}">
+                  <fileset dir="${project.basedir}/src/main/scripts">
+                    <include name="cyclic.js" />
+                    <include name="global.js" />
+                  </fileset>
+                </concat>
+              </target>
+            </configuration>
+          </execution>
+          <execution>
+            <id>antrunt-create-binaries</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <copy todir="${project.basedir}/bin">
+                  <fileset dir="${project.basedir}/src/main/bin" />
+                  <regexpmapper from="(es6draft)(.*)" to="\1-dev\2" />
+                  <filterset>
+                    <filter token="exec.mode" value="development" />
+                    <filter token="exec.name" value="${distribution.name}" />
+                    <filter token="mainClass" value="${mainClass}" />
+                  </filterset>
+                </copy>
+                <copy todir="${project.basedir}/bin">
+                  <fileset dir="${project.basedir}/src/main/bin" />
+                  <filterset>
+                    <filter token="exec.mode" value="shaded" />
+                    <filter token="exec.name" value="${shaded.name}" />
+                    <filter token="mainClass" value="${mainClass}" />
+                  </filterset>
+                </copy>
+                <copy todir="${project.build.directory}/generated-resources/bin">
+                  <fileset dir="${project.basedir}/src/main/bin" />
+                  <filterset>
+                    <filter token="exec.mode" value="distribution" />
+                    <filter token="exec.name" value="${distribution.name}" />
+                    <filter token="mainClass" value="${mainClass}" />
+                  </filterset>
+                </copy>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>add-third-party</goal>
+              <!-- <goal>download-licenses</goal> -->
+            </goals>
+            <configuration>
+              <thirdPartyFilename>THIRD-PARTY</thirdPartyFilename>
+              <outputDirectory>${project.build.directory}/generated-resources</outputDirectory>
+              <fileTemplate>${project.basedir}/src/etc/third-party.ftl</fileTemplate>
+              <failIfWarning>true</failIfWarning>
+              <excludedScopes>test</excludedScopes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <finalName>${distribution.name}</finalName>
+          <appendAssemblyId>false</appendAssemblyId>
+          <descriptors>
+            <descriptor>${project.basedir}/src/main/assembly/assembly.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <outputFile>${project.build.directory}/${shaded.name}.jar</outputFile>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <manifestEntries>
+                    <Class-Path>.</Class-Path>
+                  </manifestEntries>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <configuration>
+          <header>${project.basedir}/src/etc/header.txt</header>
+          <encoding>${project.build.sourceEncoding}</encoding>
+          <basedir>${project.basedir}</basedir>
+          <strictCheck>true</strictCheck>
+          <useDefaultExcludes>true</useDefaultExcludes>
+          <useDefaultMapping>true</useDefaultMapping>
+          <excludes>
+            <exclude>src/licenses/**</exclude>
+            <exclude>src/main/bin/**</exclude>
+            <exclude>src/main/third_party/**</exclude>
+            <exclude>src/main/resources/build-date</exclude>
+            <exclude>src/main/resources/version</exclude>
+            <exclude>src/test/scripts/promise/**</exclude>
+            <exclude>src/test/scripts/test262/**</exclude>
+            <exclude>src/test/scripts/suite/simd/resources/*</exclude>
+          </excludes>
+          <includes>
+            <include>src/**</include>
+          </includes>
+          <mapping>
+            <jsm>SLASHSTAR_STYLE</jsm>
+            <list>SCRIPT_STYLE</list>
+          </mapping>
+          <properties>
+            <name>${project.organization.name}</name>
+            <url>${project.url}</url>
+          </properties>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>verify</phase>
+            <goals>
+              <!-- check, format, remove -->
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-test</id>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </execution>
+          <execution>
+            <id>surefire-test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <enableAssertions>true</enableAssertions>
+              <forkCount>1</forkCount>
+              <reuseForks>true</reuseForks>
+              <trimStackTrace>false</trimStackTrace>
+              <systemPropertyVariables>
+                <java.awt.headless>true</java.awt.headless>
+              </systemPropertyVariables>
+              <argLine>
+                ${test.jvmArgs}
+                @{test.jacocoArgs}
+                -Duser.language=${test.user.language}
+                -Duser.country=${test.user.country}
+                -Duser.timezone=${test.user.timezone}
+              </argLine>
+              <excludes>
+                <exclude>${test.excludes}</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <configuration>
+          <outputName>${project.name}-report</outputName>
+          <showSuccess>false</showSuccess>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.9</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>index</report>
+              <report>summary</report>
+              <report>project-team</report>
+              <report>license</report>
+              <report>mailing-list</report>
+              <report>issue-tracking</report>
+              <report>scm</report>
+              <report>dependencies</report>
+              <report>plugins</report>
+              <report>plugin-management</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>1.15</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>third-party-report</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+
+      <!-- Doesn't work with Java9. -->
+      <!--
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>2.21.0</version>
+      </plugin>
+      -->
+
+      <!-- Doesn't work with Java9. -->
+      <!--
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.0.0</version>
+        <configuration>
+          <sourcepath>${project.build.sourceDirectory}</sourcepath>
+          <show>protected</show>
+          <author>true</author>
+          <version>true</version>
+          <use>false</use>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>javadoc</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      -->
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <version>2.5</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>jxr</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>taglist-maven-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <skipTestSources>true</skipTestSources>
+          <tagListOptions>
+            <tagClasses>
+              <tagClass>
+                <displayName>To-Do List</displayName>
+                <tags>
+                  <tag>
+                    <matchString>TODO</matchString>
+                    <matchType>ignoreCase</matchType>
+                  </tag>
+                </tags>
+              </tagClass>
+              <tagClass>
+                <displayName>Fix-Me List</displayName>
+                <tags>
+                  <tag>
+                    <matchString>FIXME</matchString>
+                    <matchType>ignoreCase</matchType>
+                  </tag>
+                </tags>
+              </tagClass>
+            </tagClasses>
+          </tagListOptions>
+        </configuration>
+      </plugin>
+
+      <!--
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-changelog-plugin</artifactId>
+        <version>2.3</version>
+        <configuration>
+          <outputEncoding>${project.reporting.outputEncoding}</outputEncoding>
+          <type>tag</type>
+          <tags>
+            <tag>${last.release.tag}</tag>
+            <tag>${next.release.tag}</tag>
+          </tags>
+          <displayChangeSetDetailUrl>${project.scm.url}/commit/%REV%</displayChangeSetDetailUrl>
+          <displayFileDetailUrl>${project.scm.url}/tree/${next.release.tag}/%FILE%</displayFileDetailUrl>
+          <displayFileRevDetailUrl>${project.scm.url}/blob/%REV%/%FILE%</displayFileRevDetailUrl>
+          <issueIDRegexPattern>(?&lt;=[Bb]ug(?: #?)?)\d{5,}</issueIDRegexPattern>
+          <issueLinkUrl>${project.issueManagement.url}/%ISSUE%</issueLinkUrl>
+        </configuration>
+      </plugin>
+      -->
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>versions-maven-plugin</artifactId>
+        <version>2.5</version>
+        <reportSets>
+          <reportSet>
+            <configuration>
+              <allowMajorUpdates>true</allowMajorUpdates>
+              <allowMinorUpdates>true</allowMinorUpdates>
+              <allowIncrementalUpdates>true</allowIncrementalUpdates>
+            </configuration>
+            <reports>
+              <report>dependency-updates-report</report>
+              <report>plugin-updates-report</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+    </plugins>
+  </reporting>
+</project>

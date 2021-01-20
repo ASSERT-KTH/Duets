@@ -1,0 +1,230 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>name.neykov</groupId>
+  <artifactId>extract-ssl-secrets</artifactId>
+  <version>3.1.0-SNAPSHOT</version>
+
+  <name>Extract TLS Master Secret</name>
+  <description>
+    Decrypt HTTPS/TLS connections on-the-fly with Wireshark.
+
+    Extracts the shared master key used in secure connections (SSL &amp; TLS)
+    for use with Wireshark. Works with connections established with the
+    (Java provided) javax.net.ssl.SSLSocket API.
+  </description>
+  <url>https://github.com/neykov/extract-tls-secrets</url>
+
+  <licenses>
+    <license>
+      <name>The Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Svetoslav Neykov</name>
+      <email>svetoslav@neykov.name</email>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:https://github.com/neykov/extract-tls-secrets.git</connection>
+    <developerConnection>scm:git:ssh://github.com:neykov/extract-tls-secrets.git</developerConnection>
+    <url>http://github.com/neykov/extract-tls-secrets</url>
+  </scm>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.6</maven.compiler.source>
+    <maven.compiler.target>1.6</maven.compiler.target>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.javassist</groupId>
+      <artifactId>javassist</artifactId>
+      <version>3.23.2-GA</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.2.0</version>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Main-Class>name.neykov.secrets.AgentAttach</Main-Class>
+              <Premain-Class>name.neykov.secrets.AgentMain</Premain-Class>
+              <Agent-Class>name.neykov.secrets.AgentMain</Agent-Class>
+              <Can-Redefine-Classes>true</Can-Redefine-Classes>
+              <Can-Retransform-Classes>true</Can-Retransform-Classes>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.2.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <relocations>
+                <relocation>
+                  <pattern>javassist</pattern>
+                  <shadedPattern>name.neykov.secrets.internal.javassist</shadedPattern>
+                </relocation>
+              </relocations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.6.0</version>
+        <executions>
+          <execution>
+            <id>run-test-script</id>
+            <phase>integration-test</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <executable>src/test/docker/test.sh</executable>
+          <arguments>
+            <argument>attach</argument>
+            <argument>target/${project.artifactId}-${project.version}.jar</argument>
+          </arguments>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <!--
+      Alternative when tools.jar not available
+      https://github.com/apangin/jattach
+
+      Byte Buddy (https://github.com/raphw/byte-buddy) abstracts
+      the API, including a fallback implementing the attach api.
+    -->
+    <profile>
+      <id>jdk-profile</id>
+      <activation>
+        <file>
+          <exists>${java.home}/lib/tools.jar</exists>
+        </file>
+      </activation>
+      <properties>
+        <tools.path>${java.home}/lib/tools.jar</tools.path>
+      </properties>
+    </profile>
+    <profile>
+      <id>jre-profile</id>
+      <activation>
+        <file>
+          <exists>${java.home}/../lib/tools.jar</exists>
+        </file>
+      </activation>
+      <properties>
+        <tools.path>${java.home}/../lib/tools.jar</tools.path>
+      </properties>
+    </profile>
+    <profile>
+      <id>apple-jdk</id>
+      <activation>
+        <file>
+          <exists>${java.home}/../Classes/classes.jar</exists>
+        </file>
+      </activation>
+      <properties>
+        <tools.path>${java.home}/../Classes/classes.jar</tools.path>
+      </properties>
+    </profile>
+    <profile>
+      <id>tools</id>
+      <activation>
+          <!-- No dependencies needed by Jigsaw -->
+        <jdk>[,1.9)</jdk>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>com.sun</groupId>
+          <artifactId>tools</artifactId>
+          <scope>system</scope>
+          <version>1.6</version>
+          <systemPath>${tools.path}</systemPath>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>Release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.2.0</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.1.1</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.8</version>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>ossrh</serverId>
+              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

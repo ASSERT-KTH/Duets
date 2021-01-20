@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	<!--
+		Licensed to the Apache Software Foundation (ASF) under one or more contributor license agreements.
+		See the NOTICE file distributed with this work for additional information regarding copyright
+		ownership. The ASF licenses this file to you under the Apache License, Version 2.0 (the
+		"License"); you may not use this file except in compliance with the License. You may obtain a copy
+		of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or
+		agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+		specific language governing permissions and limitations under the License.
+	-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.kathrynhuxtable.maven.wagon</groupId>
+	<artifactId>wagon-gitsite</artifactId>
+	<version>0.3.1</version>
+	<name>Maven Wagon GitHub Pages Provider</name>
+	<description>
+        Wagon for deploying site documentation to the gh-pages branch of a GitHub repository.
+        Based loosely on wagon-scm code.
+    </description>
+	<url>http://khuxtable.github.com/wagon-gitsite</url>
+	<inceptionYear>2010</inceptionYear>
+	<developers>
+		<developer>
+			<id>khuxtable</id>
+			<name>Kathryn Huxtable</name>
+			<email>kathryn@kathrynhuxtable.org</email>
+			<url>http://www.kathrynhuxtable.org</url>
+			<organization>kathrynhuxtable.org</organization>
+			<organizationUrl>http://www.kathrynhuxtable.org</organizationUrl>
+			<roles>
+				<role>architect</role>
+				<role>developer</role>
+			</roles>
+			<timezone>-6</timezone>
+		</developer>
+	</developers>
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<organization>
+		<name>kathrynhuxtable.org</name>
+		<url>http://www.kathrynhuxtable.org</url>
+	</organization>
+	<issueManagement>
+		<system>GitHub</system>
+		<url>http://github.com/khuxtable/wagon-gitsite/issues</url>
+	</issueManagement>
+	<mailingLists>
+		<mailingList>
+			<name>Kathryn Huxtable's Projects</name>
+			<subscribe>kathryn-huxtable-projects+subscribe@googlegroups.com</subscribe>
+			<unsubscribe>kathryn-huxtable-projects+unsubscribe@googlegroups.com</unsubscribe>
+			<post>kathryn-huxtable-projects@googlegroups.com</post>
+			<archive>http://groups.google.com/group/kathryn-huxtable-projects</archive>
+		</mailingList>
+	</mailingLists>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.codehaus.plexus</groupId>
+					<artifactId>plexus-maven-plugin</artifactId>
+					<version>1.3.8</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.1</version>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.3</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.plexus</groupId>
+				<artifactId>plexus-maven-plugin</artifactId>
+				<version>1.3.8</version>
+				<executions>
+					<execution>
+						<id>generate</id>
+						<goals>
+							<goal>descriptor</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.0</version>
+				<!-- <dependencies>
+					<dependency>
+						<groupId>org.apache.maven.scm</groupId>
+						<artifactId>maven-scm-provider-gitexe</artifactId>
+						<version>1.3</version>
+					</dependency>
+				</dependencies> -->
+				<configuration>
+					<goals>deploy</goals>
+					<mavenExecutorId>forked-path</mavenExecutorId>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-scm-plugin</artifactId>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.maven.scm</groupId>
+						<artifactId>maven-scm-provider-gitexe</artifactId>
+						<version>1.3</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>2.1</version>
+				<configuration>
+					<locales>en</locales>
+					<outputEncoding>${project.build.sourceEncoding}</outputEncoding>
+					<templateFile>${basedir}/src/site/site.vm</templateFile>
+				</configuration>
+			</plugin>
+			<!--
+				Configure the docbkx plugin, which is a more fully featured DocBook converter than the one
+				included in Doxia. In particular, it does language-based syntax highlighting in programlisting
+				elements. This is run in the pre-site phase and generates its output to the html directory of
+				the generated site directory.
+			-->
+			<plugin>
+				<groupId>com.agilejava.docbkx</groupId>
+				<artifactId>docbkx-maven-plugin</artifactId>
+				<version>2.0.10</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate-xhtml</goal>
+						</goals>
+						<phase>pre-site</phase>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>net.sf.docbook</groupId>
+						<artifactId>docbook-xml</artifactId>
+						<version>5.0-all</version>
+						<classifier>resources</classifier>
+						<type>zip</type>
+						<scope>runtime</scope>
+					</dependency>
+				</dependencies>
+				<configuration>
+                    <chunkedOutput>false</chunkedOutput>
+                    <sourceDirectory>${basedir}/src/site/docbook</sourceDirectory>
+                    <includes>**/*.xml,**/*.xml.vm</includes>
+                    <targetDirectory>${project.build.directory}/generated-site/docbook-xhtml</targetDirectory>
+                    <generateMetaAbstract>false</generateMetaAbstract>
+                    <generateToc>false</generateToc>
+                    <highlightSource>true</highlightSource>
+                    <highlightDefaultLanguage />
+                    <xhtmlCustomization>${basedir}/src/site/xsl/html.xsl</xhtmlCustomization>
+                    <htmlCustomization>${basedir}/src/site/xsl/html.xsl</htmlCustomization>
+                    <imgSrcPath>./</imgSrcPath>
+                    <htmlCellSpacing>2</htmlCellSpacing>
+                    <htmlCellPadding>2</htmlCellPadding>
+                    <suppressHeaderNavigation>1</suppressHeaderNavigation>
+                    <suppressFooterNavigation>1</suppressFooterNavigation>
+                    <tableBordersWithCss>true</tableBordersWithCss>
+                    <tableFrameBorderThickness>0</tableFrameBorderThickness>
+                    <tableCellBorderThickness>0</tableCellBorderThickness>
+                    <targetFileExtension>html</targetFileExtension>
+                    <useExtensions>true</useExtensions>
+                    <calloutsExtension>true</calloutsExtension>
+				</configuration>
+			</plugin>
+			<!--
+				Configure the HTML Filter Site plugin. This runs *after* the docbkx plugin in the pre-site phase
+				and runs Velocity on the files and makes them look more like Doxia-generated files without
+				stripping all the useful DocBook formatting like Doxia does. It first runs JTidy to make the
+				files XHTML-compliant. When version 2.0.10 of the docbkx plugin is released we can generate
+				XHTML and won't need the "tidy" goal.
+			-->
+			<plugin>
+				<groupId>org.kathrynhuxtable.maven.plugins</groupId>
+				<artifactId>htmlfilter-site-maven-plugin</artifactId>
+				<version>0.3.3</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>merge</goal>
+						</goals>
+						<phase>pre-site</phase>
+					</execution>
+				</executions>
+				<configuration>
+					<sourceDirectory>${project.build.directory}/generated-site/docbook-xhtml</sourceDirectory>
+					<filePattern>**/*.html,**/*.xm.html</filePattern>
+					<filterExtension>.xm.html</filterExtension>
+					<targetDirectory>${project.build.directory}/generated-site/resources</targetDirectory>
+				</configuration>
+			</plugin>
+		</plugins>
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.scm</groupId>
+				<artifactId>maven-scm-provider-gitexe</artifactId>
+				<version>1.3</version>
+			</extension>
+			<extension>
+				<groupId>org.apache.maven.scm</groupId>
+				<artifactId>maven-scm-manager-plexus</artifactId>
+				<version>1.3</version>
+			</extension>
+		</extensions>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.maven.scm</groupId>
+			<artifactId>maven-scm-api</artifactId>
+			<version>1.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.maven.scm</groupId>
+			<artifactId>maven-scm-manager-plexus</artifactId>
+			<version>1.3</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.maven.scm</groupId>
+			<artifactId>maven-scm-test</artifactId>
+			<version>1.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.maven.scm</groupId>
+			<artifactId>maven-scm-provider-gitexe</artifactId>
+			<version>1.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.maven.scm</groupId>
+			<artifactId>maven-scm-provider-git-commons</artifactId>
+			<version>1.3</version>
+		</dependency>
+		<!-- From wagon-providers -->
+		<dependency>
+			<groupId>org.apache.maven.wagon</groupId>
+			<artifactId>wagon-provider-api</artifactId>
+			<version>1.0-beta-6</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.maven.wagon</groupId>
+			<artifactId>wagon-provider-test</artifactId>
+			<version>1.0-beta-6</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- From wagon -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	<!-- From wagon -->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-provider-api</artifactId>
+				<version>1.0-beta-6</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-provider-test</artifactId>
+				<version>1.0-beta-6</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ssh-common-test</artifactId>
+				<version>1.0-beta-6</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ssh-common</artifactId>
+				<version>1.0-beta-6</version>
+			</dependency>
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>3.8.1</version>
+			</dependency>
+			<dependency>
+				<groupId>org.codehaus.plexus</groupId>
+				<artifactId>plexus-interactivity-api</artifactId>
+				<version>1.0-alpha-6</version>
+				<exclusions>
+					<exclusion>
+						<groupId>plexus</groupId>
+						<artifactId>plexus-utils</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.codehaus.plexus</groupId>
+						<artifactId>plexus-container-default</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>classworlds</groupId>
+						<artifactId>classworlds</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.codehaus.plexus</groupId>
+				<artifactId>plexus-container-default</artifactId>
+				<version>1.5.4</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.codehaus.plexus</groupId>
+				<artifactId>plexus-utils</artifactId>
+				<version>1.5.8</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	<distributionManagement>
+		<!-- Site to deploy releases to. -->
+		<repository>
+			<id>ossrh</id>
+			<url>http://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+		</repository>
+		<!-- Site to deploy snapshots to. -->
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>http://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<!-- Site to deploy documentation to. -->
+		<site>
+			<id>github-site</id>
+			<url>gitsite:git@github.com/khuxtable/wagon-gitsite.git</url>
+		</site>
+	</distributionManagement>
+	<scm>
+		<connection>scm:git:git://github.com/khuxtable/wagon-gitsite.git</connection>
+		<developerConnection>scm:git:git@github.com:khuxtable/wagon-gitsite.git</developerConnection>
+		<url>http://github.com/khuxtable/wagon-gitsite</url>
+	</scm>
+	<reporting>
+		<plugins>
+			<!-- Generate the following standard project reports. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>2.1.2</version>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>dependencies</report>
+							<report>dependency-convergence</report>
+							<report>dependency-management</report>
+							<report>issue-tracking</report>
+							<report>license</report>
+							<report>mailing-list</report>
+							<report>plugin-management</report>
+							<report>plugins</report>
+							<report>summary</report>
+							<report>project-team</report>
+							<report>scm</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+			<!-- Configure the source cross reference. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jxr-plugin</artifactId>
+				<version>2.1</version>
+				<configuration>
+					<outputDirectory>${project.reporting.outputDirectory}/xref</outputDirectory>
+					<doctitle>${project.name} ${project.version} Code Cross-Reference</doctitle>
+					<windowtitle>${project.name} ${project.version} Java API.</windowtitle>
+					<javadocDir>${project.reporting.outputDirectory}/apidocs</javadocDir>
+				</configuration>
+			</plugin>
+			<!-- Generate a tag list report to easily find TODO and FIXME comments. -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>taglist-maven-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<tags>
+						<tag>TODO</tag>
+						<tag>FIXME</tag>
+					</tags>
+				</configuration>
+			</plugin>
+			<!--
+				Configure the PMD report, reporting on coding style. This also configures CPD (copy/paste
+				detection) reporting.
+			-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<targetJdk>1.5</targetJdk>
+				</configuration>
+			</plugin>
+			<!-- Configure the javadoc. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.6.1</version>
+				<configuration>
+					<notimestamp>true</notimestamp>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
+						<manifestEntries>
+							<Implementation-Classifier>javadoc</Implementation-Classifier>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
+	<profiles>
+		<!--
+			Define the profile to be activated when performing a release. This makes sure all the
+			deliverables are signed with GPG.
+		-->
+		<profile>
+			<id>release-sign-artifacts</id>
+			<activation>
+				<property>
+					<name>performRelease</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.0</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<useAgent>true</useAgent>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+	<properties>
+		<!-- Define the default encoding. We want this to be platform independent. -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+</project>

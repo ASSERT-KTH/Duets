@@ -1,0 +1,215 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <name>osm-lib</name>
+  <description>A library for loading and indexing OSM PBF files for random access</description>
+  <url>https://github.com/conveyal/osm-lib</url>
+
+  <groupId>com.conveyal</groupId>
+  <artifactId>osm-lib</artifactId>
+  <version>1.5.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <licenses>
+    <license>
+      <name>BSD Two Clause</name>
+      <url>https://opensource.org/licenses/BSD-2-Clause</url>
+    </license>
+  </licenses>
+
+  <!-- Developer entries are provided for primary developers.
+ For other contributors, see https://github.com/conveyal/osm-lib/graphs/contributors -->
+  <developers>
+    <developer>
+      <name>Andrew Byrd</name>
+      <email>abyrd@conveyal.com</email>
+      <organization>Conveyal</organization>
+      <organizationUrl>http://conveyal.com/</organizationUrl>
+    </developer>
+    <developer>
+      <name>Brandon Martin-Anderson</name>
+      <email>badhill@gmail.com</email>
+      <organization>Ex-Conveyal</organization>
+      <organizationUrl>http://conveyal.com/</organizationUrl>
+    </developer>
+    <developer>
+      <name>Matt Conway</name>
+      <email>mconway@conveyal.com</email>
+      <organization>Conveyal</organization>
+      <organizationUrl>http://conveyal.com/</organizationUrl>
+    </developer>
+  </developers>
+
+  <!-- Define where the source code for this project lives -->
+  <scm>
+    <connection>scm:git:https://github.com/conveyal/osm-lib.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/conveyal/osm-lib.git</developerConnection>
+    <url>https://github.com/conveyal/osm-lib</url>
+  </scm>
+
+  <!-- Define some variables to be used elsewhere in the build. -->
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <!-- Define where the artifacts produced by this build will be deployed -->
+  <distributionManagement>
+    <!-- We are using Sonatype Nexus Staging instead of Maven Release plugin.
+         Only a snapshot repo should be configured. Releases are done from that snapshot staging repo. -->
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.2</version>
+        <configuration>
+          <!-- Target Java versions -->
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <!-- Recommended way to deploy to OSSRH -->
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.6.7</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <!-- Release versions will be synced to Maven Central automatically. -->
+          <autoReleaseAfterClose>true</autoReleaseAfterClose>
+        </configuration>
+      </plugin>
+      <plugin>
+        <!-- Allow attaching Javadoc during releases -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.10.3</version>
+        <configuration>
+          <!-- Turn off Java 8 strict Javadoc checking -->
+          <additionalparam>-Xdoclint:none</additionalparam>
+        </configuration>
+        <executions>
+          <!-- Compress Javadoc into JAR and include that JAR when deploying. -->
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <!-- Include zipped source code in releases -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>1.5</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <!-- We sign in the verify phase, which means it will happen for install and deploy but not package. -->
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <repositories>
+    <!-- no external repositories! -->
+  </repositories>
+
+  <dependencies>
+    <!-- Junit is for unit testing. -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.1</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- Trove provides optimized map/set collections for native types (int, long...) -->
+    <dependency>
+      <groupId>net.sf.trove4j</groupId>
+      <artifactId>trove4j</artifactId>
+      <version>3.0.3</version>
+    </dependency>
+    <!-- JCommander allows creating standard command line interfaces with switches etc. -->
+    <dependency>
+    	<groupId>com.beust</groupId>
+    	<artifactId>jcommander</artifactId>
+    	<version>1.72</version>
+    </dependency>
+    <!-- Guava is a set of core libraries that includes new collection types, among other things. -->
+    <dependency>
+    	<groupId>com.google.guava</groupId>
+    	<artifactId>guava</artifactId>
+    	<version>24.1.1-jre</version>
+    </dependency>
+    <!-- MapDB is a pure Java database backend for storing objects out of heap memory. -->
+    <dependency>
+    	<groupId>org.mapdb</groupId>
+    	<artifactId>mapdb</artifactId>
+    	<version>1.0.8</version>
+    </dependency>
+    <!-- Logging API. -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.25</version>
+    </dependency>
+    <!-- Logging API implementation (really we shouldn't even specify an implementation as osm-lib is a library,
+      but it does get run stand-alone for serving up OSM data. -->
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.2.3</version>
+    </dependency>
+    <!-- OSM PBF format support. Transitive dependency on Protobuf 3.4.0. -->
+    <dependency>
+      <groupId>org.openstreetmap.osmosis</groupId>
+      <artifactId>osmosis-osm-binary</artifactId>
+      <version>0.48.2</version>
+    </dependency>
+    <!-- HTTP server for providing OSM extracts over HTTP. -->
+    <dependency>
+      <groupId>org.glassfish.grizzly</groupId>
+      <artifactId>grizzly-http-server</artifactId>
+      <version>2.4.3</version>
+    </dependency>
+    <!-- Compressed bitmaps (bisets) used to track which OSM IDs have been encountered during large operations. -->
+    <dependency>
+      <groupId>org.roaringbitmap</groupId>
+      <artifactId>RoaringBitmap</artifactId>
+      <version>0.7.3</version>
+    </dependency>
+    <!-- Needed to use DatatypeConverter -->
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+      <version>2.3.0</version>
+    </dependency>
+  </dependencies>
+</project>

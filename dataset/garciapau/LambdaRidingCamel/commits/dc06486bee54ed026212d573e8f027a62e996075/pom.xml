@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>clarivate.content.integration</groupId>
+  <artifactId>lambda.riding.camel</artifactId>
+  <packaging>jar</packaging>
+  <version>1.0-SNAPSHOT</version>
+  <name>A Camel Lambda and Spring Lab - Content Integration</name>
+  <url>www.clarivate.com</url>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.camel</groupId>
+        <artifactId>camel-parent</artifactId>
+        <version>2.18.1</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-spring</artifactId>
+    </dependency>
+
+    <!-- when using JAXB data format -->
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-jaxb</artifactId>
+    </dependency>
+    <!-- when using CSV data format -->
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-csv</artifactId>
+    </dependency>
+    <!-- when using Bindy data format -->
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-bindy</artifactId>
+    </dependency>
+    <!-- when using JSON data format -->
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-jackson</artifactId>
+    </dependency>
+        
+    <!-- logging -->
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!-- testing -->
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-test-spring</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+    	<groupId>com.amazonaws</groupId>
+    	<artifactId>aws-lambda-java-core</artifactId>
+    	<version>1.1.0</version>
+    </dependency>
+    <dependency>
+    	<groupId>com.amazonaws</groupId>
+    	<artifactId>aws-lambda-java-events</artifactId>
+    	<version>1.1.0</version>
+    </dependency>
+    
+  </dependencies>
+
+  <build>
+    <defaultGoal>install</defaultGoal>
+    <extensions>
+      <extension>
+        <groupId>org.springframework.build</groupId>
+        <artifactId>aws-maven</artifactId>
+        <version>5.0.0.RELEASE</version>
+      </extension>
+    </extensions>
+    
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.5.1</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.0.1</version>
+        <configuration>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+
+      <!-- allows the route to be ran via 'mvn camel:run' -->
+      <plugin>
+        <groupId>org.apache.camel</groupId>
+        <artifactId>camel-maven-plugin</artifactId>
+        <version>2.18.1</version>
+      </plugin>
+
+      <!-- Allows the Lab to "manually" be run via 'mvn compile exec:java' -->
+      <!-- notice how we have define the mainClass -->
+      <!-- Use Hawtio camel plugin instead -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <configuration>
+          <mainClass>content.integration.CamelMain</mainClass>
+          <includePluginDependencies>false</includePluginDependencies>
+        </configuration>
+      </plugin>
+
+
+      <!-- to package the jar with a MANIFEST.MF with classpath and MainClass entry -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <mainClass>content.integration.CamelMain</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <plugin>
+      	<groupId>org.apache.maven.plugins</groupId>
+      	<artifactId>maven-shade-plugin</artifactId>
+      	<version>2.3</version>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <distributionManagement>
+    <repository>
+      <id>aws-release</id>
+      <name>AWS Release Repository</name>
+      <url>s3://1p-graph/jars/release</url>
+    </repository>
+    <snapshotRepository>
+      <id>aws-snapshot</id>
+      <name>AWS Snapshot Repository</name>
+      <url>s3://1p-graph/jars/snapshot</url>
+    </snapshotRepository>
+  </distributionManagement>
+</project>

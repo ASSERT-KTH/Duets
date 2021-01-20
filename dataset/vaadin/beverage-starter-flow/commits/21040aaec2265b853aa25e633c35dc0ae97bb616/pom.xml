@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.vaadin.starter</groupId>
+    <artifactId>beveragebuddy</artifactId>
+    <name>Beverage Buddy App Starter for Vaadin Flow</name>
+    <version>1.0.0.alpha8</version>
+    <packaging>war</packaging>
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <failOnMissingWebXml>false</failOnMissingWebXml>
+
+        <!-- Dependencies -->
+        <vaadin.project.version>10.0.0.alpha4</vaadin.project.version>
+        <!-- Needed for production mode -->
+        <flow.project.version>1.0.0.alpha8</flow.project.version>
+        <servlet.api.version>3.1.0</servlet.api.version>
+        <selenium.server.version>3.4.0</selenium.server.version>
+
+        <!-- Plugins -->
+        <frontend.maven.plugin.version>1.5</frontend.maven.plugin.version>
+        <jetty.version>9.3.7.v20160115</jetty.version>
+        <maven.clean.plugin.version>3.0.0</maven.clean.plugin.version>
+        <maven.war.plugin.version>3.1.0</maven.war.plugin.version>
+
+        <!-- Frontend -->
+        <node.version>v7.10.1</node.version>
+        <npm.version>5.3.0</npm.version>
+
+        <frontend.working.directory>${project.basedir}/src/main/webapp/frontend</frontend.working.directory>
+        <jetty.extra.resource.base>${project.basedir}/src/main/webapp/</jetty.extra.resource.base>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>flow-internal-release</id>
+            <url>https://repo.vaadin.com/nexus/content/repositories/flow</url>
+        </repository>
+
+        <repository>
+            <id>vaadin-addons</id>
+            <url>http://maven.vaadin.com/vaadin-addons</url>
+        </repository>
+
+        <repository>
+            <id>webjars</id>
+            <url>https://dl.bintray.com/webjars/maven</url>
+        </repository>
+    </repositories>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-webjars-bom</artifactId>
+                <type>pom</type>
+                <scope>import</scope>
+                <version>${flow.project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin</artifactId>
+            <version>${vaadin.project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>${servlet.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.9.2</version>
+            <type>jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>flow-server</artifactId>
+            <version>${flow.project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>flow-push</artifactId>
+            <version>${flow.project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>flow-client</artifactId>
+            <version>${flow.project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>flow-data</artifactId>
+            <version>${flow.project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>flow-components</artifactId>
+            <version>${flow.project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>flow-generated-components</artifactId>
+            <version>${flow.project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>flow-html-components</artifactId>
+            <version>${flow.project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.webjars.bower</groupId>
+            <artifactId>paper-toast</artifactId>
+            <version>2.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars.bower</groupId>
+            <artifactId>paper-dialog</artifactId>
+            <version>2.0.0</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>${maven.clean.plugin.version}</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${frontend.working.directory}/bower_components</directory>
+                        </fileset>
+                        <fileset>
+                            <directory>${frontend.working.directory}/build</directory>
+                        </fileset>
+                        <fileset>
+                            <directory>${frontend.working.directory}/node</directory>
+                        </fileset>
+                        <fileset>
+                            <directory>${frontend.working.directory}/node_modules</directory>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-maven-plugin</artifactId>
+                <version>${jetty.version}</version>
+                <configuration>
+                    <scanIntervalSeconds>-1</scanIntervalSeconds>
+                    <stopPort>8081</stopPort>
+                    <stopWait>5</stopWait>
+                    <stopKey>foo</stopKey>
+                    <webAppConfig>
+                        <containerIncludeJarPattern>^$</containerIncludeJarPattern>
+                        <resourceBases>
+                            <resourceBase>${jetty.extra.resource.base}</resourceBase>
+                        </resourceBases>
+                    </webAppConfig>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>${maven.war.plugin.version}</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Implementation-Title>${project.name}</Implementation-Title>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                        </manifestEntries>
+                    </archive>
+                    <warSourceExcludes>**/node_modules/,**/node/,**/build/,**/etc/</warSourceExcludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>productionMode</id>
+            <activation>
+                <property>
+                    <name>vaadin.productionMode</name>
+                </property>
+            </activation>
+
+            <properties>
+                <jetty.extra.resource.base>${project.basedir}/src/main/webapp/frontend/build</jetty.extra.resource.base>
+            </properties>
+
+            <dependencies>
+                <dependency>
+                    <groupId>com.vaadin</groupId>
+                    <artifactId>flow-server-production-mode</artifactId>
+                    <version>${flow.project.version}</version>
+                </dependency>
+            </dependencies>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.eirslett</groupId>
+                        <artifactId>frontend-maven-plugin</artifactId>
+                        <version>${frontend.maven.plugin.version}</version>
+                        <configuration>
+                            <nodeVersion>${node.version}</nodeVersion>
+                            <npmVersion>${npm.version}</npmVersion>
+                            <workingDirectory>${frontend.working.directory}</workingDirectory>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>install-node-and-npm</id>
+                                <goals>
+                                    <goal>install-node-and-npm</goal>
+                                    <goal>npm</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>npm run</id>
+                                <goals>
+                                    <goal>npm</goal>
+                                </goals>
+                                <configuration>
+                                    <arguments>run prodMode</arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <version>${maven.war.plugin.version}</version>
+                        <configuration>
+                            <webResources>
+                                <resource>
+                                    <directory>${frontend.working.directory}/build</directory>
+                                </resource>
+                            </webResources>
+                            <warSourceExcludes>**/frontend/bower_components/,**/node_modules/,**/node/,**/build/,**/etc/</warSourceExcludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

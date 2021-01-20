@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <!-- ==================================================================== -->
+  <!-- Build requires Java SE 8 or later -->
+  <!-- Releases require Java SE 9 or later -->
+  <!-- ==================================================================== -->
+  <parent>
+    <groupId>org.joda</groupId>
+    <artifactId>joda-parent</artifactId>
+    <version>1.0.3</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>joda-beans</artifactId>
+  <packaging>jar</packaging>
+  <name>Joda-Beans</name>
+  <version>2.2-SNAPSHOT</version>
+  <description>Beans and Properties</description>
+  <url>http://www.joda.org/${joda.artifactId}/</url>
+
+  <!-- ==================================================================== -->
+  <inceptionYear>2007</inceptionYear>
+  <scm>
+    <connection>scm:git:https://github.com/JodaOrg/${joda.artifactId}.git</connection>
+    <developerConnection>scm:git:https://github.com/JodaOrg/${joda.artifactId}.git</developerConnection>
+    <url>https://github.com/JodaOrg/${joda.artifactId}</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <!-- ==================================================================== -->
+  <developers>
+    <developer>
+      <id>jodastephen</id>
+      <name>Stephen Colebourne</name>
+      <roles>
+        <role>Project Lead</role>
+      </roles>
+      <timezone>0</timezone>
+      <url>https://github.com/jodastephen</url>
+    </developer>
+  </developers>
+  <contributors>
+    <contributor>
+      <name>Kevin Vella</name>
+      <url>https://github.com/lega</url>
+    </contributor>
+    <contributor>
+      <name>Chris Kent</name>
+      <url>https://github.com/cjkent</url>
+    </contributor>
+    <contributor>
+      <name>Andreas Schilling</name>
+      <url>https://github.com/andreas-schilling</url>
+    </contributor>
+    <contributor>
+      <name>bcamel</name>
+      <url>https://github.com/bcamel</url>
+    </contributor>
+    <contributor>
+      <name>Hack Kampbjorn</name>
+      <url>https://github.com/hackmann</url>
+    </contributor>
+    <contributor>
+      <name>mediahype</name>
+      <url>https://github.com/mediahype</url>
+    </contributor>
+  </contributors>
+
+  <!-- ==================================================================== -->
+  <build>
+    <plugins>
+      <!-- Turn on Checkstyle -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+      </plugin>
+      <!-- Turn on JaCoCo -->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+      </plugin>
+      <!-- TestNG exclude -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <properties>
+            <property>
+              <name>usedefaultlisteners</name>
+              <value>false</value>
+            </property>
+          </properties>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <!-- ==================================================================== -->
+  <dependencies>
+    <dependency>
+      <groupId>org.joda</groupId>
+      <artifactId>joda-convert</artifactId>
+      <version>2.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>24.0-jre</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.joda</groupId>
+      <artifactId>joda-collect</artifactId>
+      <version>1.0</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>6.8.5</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.yaml</groupId>
+          <artifactId>snakeyaml</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.beanshell</groupId>
+          <artifactId>bsh</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+  </dependencies>
+
+  <!-- ==================================================================== -->
+  <profiles>
+    <!-- Main deployment profile, activated by -Doss.repo -->
+    <profile>
+      <id>release-artifacts</id>
+      <activation>
+        <property>
+          <name>oss.repo</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <!-- Create dist files -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <configuration>
+              <attach>false</attach>
+              <descriptors>
+                <descriptor>src/main/assembly/dist.xml</descriptor>
+              </descriptors>
+              <tarLongFileMode>gnu</tarLongFileMode>
+            </configuration>
+            <executions>
+              <execution>
+                <id>make-assembly</id>
+                <phase>install</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <!-- Release dist files to GitHub -->
+          <!-- This will create a tag on GitHub on deploy -->
+          <!-- The release commit must have been pushed first -->
+          <plugin>
+            <groupId>de.jutzig</groupId>
+            <artifactId>github-release-plugin</artifactId>
+            <version>1.1.1</version>
+            <configuration>
+              <releaseName>Release v${project.version}</releaseName>
+              <description>See the [change notes](http://www.joda.org/${joda.artifactId}/changes-report.html) for more information.</description>
+              <tag>v${project.version}</tag>
+              <overwriteArtifact>true</overwriteArtifact>
+              <fileSets>
+                <fileSet>
+                  <directory>${project.build.directory}</directory>
+                  <includes>
+                    <include>${joda.artifactId}*-dist.tar.gz</include>
+                    <include>${joda.artifactId}*-dist.zip</include>
+                  </includes>
+                </fileSet>
+              </fileSets>
+            </configuration>
+            <executions>
+              <execution>
+                <id>github-releases</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>release</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- Check for incompatible changes -->
+    <profile>
+      <id>compat</id>
+      <activation>
+        <property>
+          <name>compat</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.revapi</groupId>
+            <artifactId>revapi-maven-plugin</artifactId>
+            <version>0.10.0</version>
+            <dependencies>
+              <dependency>
+                <groupId>org.revapi</groupId>
+                <artifactId>revapi-java</artifactId>
+                <version>0.15.1</version>
+              </dependency>
+            </dependencies>
+            <executions>
+              <execution>
+                <id>check</id>
+                <goals><goal>check</goal></goals>
+              </execution>
+            </executions>
+            <configuration>
+              <oldVersion>2.0</oldVersion>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <!-- ==================================================================== -->
+  <properties>
+    <!-- Parent pom.xml control -->
+    <joda.osgi.packages>org.joda.beans.*</joda.osgi.packages>
+    <joda.module.name>org.joda.beans</joda.module.name>
+    <joda.artifactId>joda-beans</joda.artifactId>
+  </properties>
+</project>

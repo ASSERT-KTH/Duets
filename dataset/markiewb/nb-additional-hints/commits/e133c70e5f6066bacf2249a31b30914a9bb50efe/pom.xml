@@ -1,0 +1,224 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>de.markiewb.netbeans.plugins</groupId>
+    <artifactId>AdditionalHints</artifactId>
+    <version>1.1.0-SNAPSHOT</version>
+    <packaging>nbm</packaging>
+
+    <name>Adds additional Java hints</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
+        <netbeans.version>RELEASE721</netbeans.version>
+        <netbeans.run.params.ide />
+        <netbeans.run.params>${netbeans.run.params.ide}</netbeans.run.params>
+    </properties>
+    <organization>
+        <name>Benno Markiewicz (benno.markiewicz@googlemail.com)</name>
+    </organization>
+    <url>https://github.com/markiewb/nb-additional-hints</url>
+    
+    <repositories>
+        <!--
+        Repository hosting NetBeans modules, especially APIs.
+        Versions are based on IDE releases, e.g.: RELEASE691
+        To create your own repository, use: nbm:populate-repository
+        -->
+        <repository>
+            <id>netbeans</id>
+            <name>NetBeans</name>
+            <url>http://bits.netbeans.org/maven2/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-netbeans-api-annotations-common</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-netbeans-spi-editor-hints</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-util</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-loaders</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-netbeans-modules-java-source</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.external</groupId>
+            <artifactId>nb-javac-api</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-netbeans-spi-java-hints</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-util-lookup</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-openide-awt</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.api</groupId>
+            <artifactId>org-netbeans-modules-java-hints-test</artifactId>
+            <version>${netbeans.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans.modules</groupId>
+            <artifactId>org-netbeans-lib-nbjavac</artifactId>
+            <version>${netbeans.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>nbm-maven-plugin</artifactId>
+                <version>3.11</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <keystore>private/keystore</keystore>
+                    <keystorealias>myself</keystorealias>
+                    <licenseFile>CDDL-GPL-2-CP</licenseFile>
+                    <licenseName>CDDL-GPL-2-CP</licenseName>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <!-- NetBeans 6.9+ requires JDK 6, starting NetBeans 7.4 source 1.7 will be required   -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.5.1</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                    <compilerArguments>
+                        <endorseddirs>${endorsed.dir}</endorseddirs>
+                    </compilerArguments>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.16</version>
+                <configuration>
+                    <argLine>-Djava.endorsed.dirs=${endorsed.dir}</argLine>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>endorsed</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <outputDirectory>${endorsed.dir}</outputDirectory>
+                    <silent>true</silent>
+                    <artifactItems>
+                        <artifactItem>
+                            <groupId>org.netbeans.api</groupId>
+                            <artifactId>org-netbeans-libs-javacapi</artifactId>
+                            <version>${netbeans.version}</version>
+                        </artifactItem>
+                        <artifactItem>
+                            <groupId>org.netbeans.external</groupId>
+                            <artifactId>nb-javac-api</artifactId>
+                            <version>${netbeans.version}</version>
+                        </artifactItem>
+                        <artifactItem>
+                            <groupId>org.netbeans.modules</groupId>
+                            <artifactId>org-netbeans-libs-javacimpl</artifactId>
+                            <version>${netbeans.version}</version>
+                        </artifactItem>
+                        <artifactItem>
+                            <groupId>org.netbeans.external</groupId>
+                            <artifactId>nb-javac-impl</artifactId>
+                            <version>${netbeans.version}</version>
+                        </artifactItem>
+                    </artifactItems>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <!-- to have the jar plugin pickup the nbm generated manifest -->
+                    <useDefaultManifestFile>true</useDefaultManifestFile>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <description>&lt;h1&gt;Additional Java hints for NetBeans IDE&lt;/h1&gt;
+
+&lt;h2&gt;Supported Hints:&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;"Replace '+' with 'MessageFormat.format()'"&lt;/li&gt;
+&lt;li&gt;"Replace '+' with 'new StringBuilder().append()'"&lt;/li&gt;
+&lt;li&gt;"Replace '+' with 'String.format()'"&lt;/li&gt;
+&lt;li&gt;"Join literals"&lt;/li&gt;
+&lt;li&gt;"Copy joined literals to clipboard"&lt;/li&gt;
+&lt;li&gt;"Split the String on linebreaks"&lt;/li&gt;
+&lt;li&gt;"Split at caret"&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;All hints (including more detailed descriptions) are available in the "suggestions" category within the hint configuration.&lt;/p&gt;
+&lt;h2&gt;Example:&lt;/h2&gt;
+&lt;img src="https://raw.github.com/markiewb/nb-additional-hints/master/src/doc/screenshot.png"/&gt;
+
+&lt;h2&gt;Updates&lt;/h2&gt;
+&lt;h3&gt;1.1.0:&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;[&lt;a href="https://github.com/markiewb/nb-additional-hints/issues/5"&gt;issue 5&lt;/a&gt;]: Split a string at caret&lt;/li&gt;
+&lt;li&gt;[&lt;a href="https://github.com/markiewb/nb-additional-hints/issues/7"&gt;issue 7&lt;/a&gt;]: Convert to maven based module&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;1.0.x:&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;[&lt;a href="https://github.com/markiewb/nb-additional-hints/issues/1"&gt;issue 1&lt;/a&gt;]: Literals with quoted Strings create uncompileable code&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;
+&lt;a name="further-information" class="anchor" href="#further-information"&gt;&lt;span class="mini-icon mini-icon-link"&gt;&lt;/span&gt;&lt;/a&gt;Further information:&lt;/h2&gt;
+
+&lt;p&gt;This plugin is based on code from the &lt;em&gt;"I18N Checker"&lt;/em&gt; plugin from &lt;em&gt;Jan Lahoda&lt;/em&gt;.
+The original sourcecode can be found at &lt;a href="http://hg.netbeans.org/main/contrib/file/tip/editor.hints.i18n"&gt;http://hg.netbeans.org/main/contrib/file/tip/editor.hints.i18n&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;License remains CDDL-GPL-2-CP - &lt;a href="http://www.netbeans.org/cddl-gplv2.html"&gt;http://www.netbeans.org/cddl-gplv2.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Compatible to NetBeans 7.2.1 and higher&lt;/p&gt;</description>
+    <scm>
+        
+        <connection>scm:git:https://github.com/markiewb/nb-additional-hints.git</connection>
+    </scm>
+</project>

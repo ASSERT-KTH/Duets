@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+<!--
+      D�marrage dans un Jetty embarqu� :
+      - D�marrage avec Jetty sur un serveur avec acc�s direct � Internet :
+        mvn clean jetty:run 
+      - D�marrage avec Jetty sur un serveur n�cessitant le passage par un proxy web pour acc�der � Internet :
+        mvn -Dhttps.proxyHost=PROXYHOST -Dhttps.proxyPort=PROXYPORT clean jetty:run 
+        (remplacer PROXYHOST et PROXYPORT par les valeurs correspondant au proxy web).
+        Lancer alors un navigateur sur http://localhost/
+
+      D�marrage dans un Tomcat embarqu� :
+      - D�marrage avec Tomcat sur un serveur avec acc�s direct � Internet :
+        mvn clean tomcat7:run 
+      - D�marrage avec Tomcat sur un serveur n�cessitant le passage par un proxy web pour acc�der � Internet :
+        mvn -Dhttps.proxyHost=PROXYHOST -Dhttps.proxyPort=PROXYPORT clean tomcat7:run 
+        (remplacer PROXYHOST et PROXYPORT par les valeurs correspondant au proxy web)
+        Lancer alors un navigateur sur http://localhost/
+
+      Modification du port local par d�faut (80) :
+      - Rajout de l'option -Dnet.fenyo.franceconnect.config.listen.port=PORT sur la ligne de commande mvn
+        (remplacer PORT par la valeur du port TCP local d'�coute souhait�)
+
+      Op�rations maven :
+        - faire le m�nage (supprimer le r�pertoire target) :
+          mvn clean
+        - compiler :
+          mvn clean compile
+        - cr�er une archive war :
+          mvn clean package
+          (le fichier war cr�� se nomme franceconnect-demo-1.0.0-BUILD.war et se trouve dans le sous-r�pertoire target)
+-->
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>net.fenyo</groupId>
+	<artifactId>franceconnect-demo</artifactId>
+	<packaging>war</packaging>
+	<version>1.0.0-BUILD</version>
+
+	<properties>
+		<java-version>1.7</java-version>
+                <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<net.fenyo.franceconnect.config.listen.port>80</net.fenyo.franceconnect.config.listen.port>
+
+                <!-- versions des d�pendances et des plugins op�rationnelles en vigueur au 27 avril 2016 -->
+
+                <!-- MITREid Connect version 1.2.2 est plus rapide � se charger que la version 1.2.3 car cette derni�re inclut le package Bouncy Castle Crypto -->
+                <!-- <org.mitre-version>1.2.3</org.mitre-version> -->
+		<org.mitre-version>1.2.2</org.mitre-version>
+
+		<org.springframework-version>4.2.5.RELEASE</org.springframework-version>
+		<org.springframework.security-version>3.2.9.RELEASE</org.springframework.security-version>
+
+		<org.slf4j-version>1.7.21</org.slf4j-version>
+		<org.log4j-version>1.2.17</org.log4j-version>
+
+               <javax.servlet-version>2.5</javax.servlet-version>
+               <javax.servlet.jsp-version>2.1</javax.servlet.jsp-version>
+               <javax.servlet.jstl-version>1.2</javax.servlet.jstl-version>
+
+               <junit-version>4.12</junit-version>
+
+               <maven-compiler-plugin-version>3.5.1</maven-compiler-plugin-version>
+               <maven-war-plugin-version>2.6</maven-war-plugin-version>
+               <maven-resources-plugin-version>2.7</maven-resources-plugin-version>
+               <jetty-maven-plugin-version>9.3.8.v20160314</jetty-maven-plugin-version>
+	</properties>
+
+        <!-- d�claration des d�pendances avec MITREid Connect, les composants Spring, les framework de traces et les API servlet -->
+	<dependencies>
+		<!-- MITREid Connect -->
+		<dependency>
+			<groupId>org.mitre</groupId>
+			<artifactId>openid-connect-client</artifactId>
+			<version>${org.mitre-version}</version>
+		</dependency>
+
+		<!-- Spring -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${org.springframework-version}</version>
+			<exclusions>
+				<!-- ne pas charger commons-logging car MITREid Connect s'appuie sur SLF4j -->
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				 </exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>${org.springframework-version}</version>
+		</dependency>
+	        <dependency>
+        	    <groupId>org.springframework.security</groupId>
+	            <artifactId>spring-security-taglibs</artifactId>
+        	    <version>${org.springframework.security-version}</version>
+	            <exclusions>
+        	    	<exclusion>
+            			<groupId>org.springframework</groupId>
+	            		<artifactId>*</artifactId>
+        	    	</exclusion>
+	            </exclusions>
+        	</dependency>
+				
+		<!-- Traces -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${org.slf4j-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>${org.slf4j-version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${org.slf4j-version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>${org.log4j-version}</version>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- Servlet -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>${javax.servlet-version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet.jsp</groupId>
+			<artifactId>jsp-api</artifactId>
+			<version>${javax.servlet.jsp-version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId>
+			<version>${javax.servlet.jstl-version}</version>
+			<scope>provided</scope>
+		</dependency>
+	
+		<!-- Test -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit-version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+        <!-- configuration des plug-in -->
+	<build>
+		<plugins>
+                        <!-- produire du bytecode au format Java 1.7 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin-version}</version>
+				<configuration>
+					<source>${java-version}</source>
+					<target>${java-version}</target>
+				</configuration>
+			</plugin>
+
+                        <!-- d�marrage avec Jetty embarqu� -->
+			<plugin>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-maven-plugin</artifactId>
+				<version>${jetty-maven-plugin-version}</version>
+				<configuration>
+                                  <httpConnector>
+                                    <port>${net.fenyo.franceconnect.config.listen.port}</port>
+                                  </httpConnector>
+			         </configuration>
+			</plugin>
+		</plugins>
+
+        <!-- d�marrage avec Tomcat embarqu� -->
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.apache.tomcat.maven</groupId>
+              <artifactId>tomcat7-maven-plugin</artifactId>
+              <version>2.2</version>
+              <configuration>
+                <path>/</path>
+                <port>${net.fenyo.franceconnect.config.listen.port}</port>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+
+        </build>
+
+	<name>franceconnect-demo</name>
+</project>

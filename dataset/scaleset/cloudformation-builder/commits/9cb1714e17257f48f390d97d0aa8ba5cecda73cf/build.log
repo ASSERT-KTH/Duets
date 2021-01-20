@@ -1,0 +1,440 @@
+[INFO] Error stacktraces are turned on.
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------< com.scaleset:cloudformation-builder >-----------------
+[INFO] Building cloudformation-builder 0.2.0
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-enforcer-plugin:1.0:enforce (enforce-maven) @ cloudformation-builder ---
+[INFO] 
+[INFO] --- jacoco-maven-plugin:0.8.5:prepare-agent (default) @ cloudformation-builder ---
+[INFO] argLine set to -javaagent:/home/jdbl/.m2/repository/org/jacoco/org.jacoco.agent/0.8.5/org.jacoco.agent-0.8.5-runtime.jar=destfile=/tmp/tmp132no274/cloudformation-builder/target/jacoco.exec
+[INFO] 
+[INFO] --- maven-resources-plugin:2.6:resources (default-resources) @ cloudformation-builder ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /tmp/tmp132no274/cloudformation-builder/src/main/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:compile (default-compile) @ cloudformation-builder ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 22 source files to /tmp/tmp132no274/cloudformation-builder/target/classes
+[WARNING] /tmp/tmp132no274/cloudformation-builder/src/main/java/com/scaleset/cfbuilder/core/ResourceInvocationHandler.java: Some input files use unchecked or unsafe operations.
+[WARNING] /tmp/tmp132no274/cloudformation-builder/src/main/java/com/scaleset/cfbuilder/core/ResourceInvocationHandler.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- maven-resources-plugin:2.6:testResources (default-testResources) @ cloudformation-builder ---
+[INFO] Using 'UTF-8' encoding to copy filtered resources.
+[INFO] skip non existing resourceDirectory /tmp/tmp132no274/cloudformation-builder/src/test/resources
+[INFO] 
+[INFO] --- maven-compiler-plugin:3.1:testCompile (default-testCompile) @ cloudformation-builder ---
+[INFO] Changes detected - recompiling the module!
+[INFO] Compiling 2 source files to /tmp/tmp132no274/cloudformation-builder/target/test-classes
+[WARNING] /tmp/tmp132no274/cloudformation-builder/src/test/java/com/scaleset/cfbuilder/core/ResourceProxyTest.java: /tmp/tmp132no274/cloudformation-builder/src/test/java/com/scaleset/cfbuilder/core/ResourceProxyTest.java uses unchecked or unsafe operations.
+[WARNING] /tmp/tmp132no274/cloudformation-builder/src/test/java/com/scaleset/cfbuilder/core/ResourceProxyTest.java: Recompile with -Xlint:unchecked for details.
+[INFO] 
+[INFO] --- maven-surefire-plugin:2.19.1:test (default-test) @ cloudformation-builder ---
+[INFO] Surefire report directory: /tmp/tmp132no274/cloudformation-builder/target/surefire-reports
+
+-------------------------------------------------------
+ T E S T S
+-------------------------------------------------------
+Running com.scaleset.cfbuilder.core.ResourceProxyTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.44 sec - in com.scaleset.cfbuilder.core.ResourceProxyTest
+Running com.scaleset.cfbuilder.TemplateTest
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Parameters" : {
+    "TestInstanceType" : {
+      "Type" : "String",
+      "Description" : "TestInstance instance type",
+      "Default" : "m1.small"
+    },
+    "TestNodeCount" : {
+      "Type" : "Number",
+      "Description" : "Number of elasticsearch nodes to create",
+      "Default" : 2
+    },
+    "Test2NodeCount" : {
+      "Type" : "Number",
+      "Description" : "Number of elasticsearch nodes to create",
+      "Default" : 2
+    },
+    "Test2InstanceType" : {
+      "Type" : "String",
+      "Description" : "Test2Instance instance type",
+      "Default" : "m1.small"
+    }
+  },
+  "Resources" : {
+    "TestSecurityGroup" : {
+      "Id" : "TestSecurityGroup",
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "VpcId" : {
+          "Ref" : "VpcId"
+        },
+        "SecurityGroupIngress" : [ {
+          "IpProtocol" : "tcp",
+          "CidrIp" : {
+            "Ref" : "OpenCidrIp"
+          },
+          "FromPort" : 22,
+          "ToPort" : 22
+        }, {
+          "IpProtocol" : "tcp",
+          "CidrIp" : {
+            "Ref" : "OpenCidrIp"
+          },
+          "FromPort" : 9200,
+          "ToPort" : 9200
+        }, {
+          "IpProtocol" : "tcp",
+          "CidrIp" : {
+            "Ref" : "OpenCidrIp"
+          },
+          "FromPort" : 9300,
+          "ToPort" : 9300
+        }, {
+          "IpProtocol" : "tcp",
+          "CidrIp" : {
+            "Ref" : "OpenCidrIp"
+          },
+          "FromPort" : 27018,
+          "ToPort" : 27019
+        } ]
+      }
+    },
+    "TestSelfReferenceIngress" : {
+      "Id" : "TestSelfReferenceIngress",
+      "Type" : "AWS::EC2::SecurityGroupIngress",
+      "Properties" : {
+        "SourceSecurityGroupId" : {
+          "Fn::GetAtt" : [ "TestSecurityGroup", "GroupId" ]
+        },
+        "GroupId" : {
+          "Fn::GetAtt" : [ "TestSecurityGroup", "GroupId" ]
+        },
+        "IpProtocol" : "tcp",
+        "FromPort" : 9300,
+        "ToPort" : 9300
+      }
+    },
+    "TestInstance" : {
+      "Id" : "TestInstance",
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : "TestInstance",
+          "PropagateAtLaunch" : true
+        } ],
+        "AvailabilityZone" : [ {
+          "Ref" : "MyAZ"
+        } ],
+        "KeyName" : {
+          "Ref" : "KeyName"
+        },
+        "ImageId" : {
+          "Ref" : "ImageId"
+        },
+        "InstanceProfile" : {
+          "Ref" : "TestInstanceProfile"
+        },
+        "InstanceType" : {
+          "Ref" : "TestInstanceType"
+        },
+        "SecurityGroupIds" : [ {
+          "Ref" : "TestSecurityGroup"
+        } ]
+      }
+    },
+    "Test2Instance" : {
+      "Id" : "Test2Instance",
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : "Test2Instance",
+          "PropagateAtLaunch" : true
+        } ],
+        "AvailabilityZone" : [ {
+          "Ref" : "MyAZ"
+        } ],
+        "KeyName" : {
+          "Ref" : "KeyName"
+        },
+        "ImageId" : {
+          "Ref" : "ImageId"
+        },
+        "InstanceProfile" : {
+          "Ref" : "Test2InstanceProfile"
+        },
+        "InstanceType" : {
+          "Ref" : "Test2InstanceType"
+        },
+        "SecurityGroupIds" : [ {
+          "Ref" : "Test2SecurityGroup"
+        } ]
+      }
+    },
+    "Test2SecurityGroup" : {
+      "Id" : "Test2SecurityGroup",
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "VpcId" : {
+          "Ref" : "VpcId"
+        },
+        "SecurityGroupIngress" : [ {
+          "IpProtocol" : "tcp",
+          "CidrIp" : {
+            "Ref" : "OpenCidrIp"
+          },
+          "FromPort" : 22,
+          "ToPort" : 22
+        }, {
+          "IpProtocol" : "tcp",
+          "CidrIp" : {
+            "Ref" : "OpenCidrIp"
+          },
+          "FromPort" : 9200,
+          "ToPort" : 9200
+        }, {
+          "IpProtocol" : "tcp",
+          "CidrIp" : {
+            "Ref" : "OpenCidrIp"
+          },
+          "FromPort" : 9300,
+          "ToPort" : 9300
+        }, {
+          "IpProtocol" : "tcp",
+          "CidrIp" : {
+            "Ref" : "OpenCidrIp"
+          },
+          "FromPort" : 27018,
+          "ToPort" : 27019
+        } ]
+      }
+    },
+    "Test2SelfReferenceIngress" : {
+      "Id" : "Test2SelfReferenceIngress",
+      "Type" : "AWS::EC2::SecurityGroupIngress",
+      "Properties" : {
+        "SourceSecurityGroupId" : {
+          "Fn::GetAtt" : [ "Test2SecurityGroup", "GroupId" ]
+        },
+        "GroupId" : {
+          "Fn::GetAtt" : [ "Test2SecurityGroup", "GroupId" ]
+        },
+        "IpProtocol" : "tcp",
+        "FromPort" : 9300,
+        "ToPort" : 9300
+      }
+    }
+  }
+}
+158 [main] INFO org.reflections.Reflections - Reflections took 98 ms to scan 2 urls, producing 13 keys and 33 values 
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Parameters" : {
+    "TestInstanceType" : {
+      "Type" : "String",
+      "Description" : "TestInstance instance type",
+      "Default" : "m1.small"
+    },
+    "TestNodeCount" : {
+      "Type" : "Number",
+      "Description" : "Number of elasticsearch nodes to create",
+      "Default" : 2
+    },
+    "Test2NodeCount" : {
+      "Type" : "Number",
+      "Description" : "Number of elasticsearch nodes to create",
+      "Default" : 2
+    },
+    "Test2InstanceType" : {
+      "Type" : "String",
+      "Description" : "Test2Instance instance type",
+      "Default" : "m1.small"
+    }
+  },
+  "Resources" : {
+    "TestSecurityGroup" : {
+      "Id" : "TestSecurityGroup",
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "VpcId" : {
+          "Ref" : "VpcId"
+        },
+        "SecurityGroupIngress" : [ {
+          "IpProtocol" : "tcp",
+          "CidrIp" : {
+            "Ref" : "OpenCidrIp"
+          },
+          "FromPort" : 22,
+          "ToPort" : 22
+        }, {
+          "IpProtocol" : "tcp",
+          "CidrIp" : {
+            "Ref" : "OpenCidrIp"
+          },
+          "FromPort" : 9200,
+          "ToPort" : 9200
+        }, {
+          "IpProtocol" : "tcp",
+          "CidrIp" : {
+            "Ref" : "OpenCidrIp"
+          },
+          "FromPort" : 9300,
+          "ToPort" : 9300
+        }, {
+          "IpProtocol" : "tcp",
+          "CidrIp" : {
+            "Ref" : "OpenCidrIp"
+          },
+          "FromPort" : 27018,
+          "ToPort" : 27019
+        } ]
+      }
+    },
+    "TestSelfReferenceIngress" : {
+      "Id" : "TestSelfReferenceIngress",
+      "Type" : "AWS::EC2::SecurityGroupIngress",
+      "Properties" : {
+        "SourceSecurityGroupId" : {
+          "Fn::GetAtt" : [ "TestSecurityGroup", "GroupId" ]
+        },
+        "GroupId" : {
+          "Fn::GetAtt" : [ "TestSecurityGroup", "GroupId" ]
+        },
+        "IpProtocol" : "tcp",
+        "FromPort" : 9300,
+        "ToPort" : 9300
+      }
+    },
+    "TestInstance" : {
+      "Id" : "TestInstance",
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : "TestInstance",
+          "PropagateAtLaunch" : true
+        } ],
+        "AvailabilityZone" : [ {
+          "Ref" : "MyAZ"
+        } ],
+        "KeyName" : {
+          "Ref" : "KeyName"
+        },
+        "ImageId" : {
+          "Ref" : "ImageId"
+        },
+        "InstanceProfile" : {
+          "Ref" : "TestInstanceProfile"
+        },
+        "InstanceType" : {
+          "Ref" : "TestInstanceType"
+        },
+        "SecurityGroupIds" : [ {
+          "Ref" : "TestSecurityGroup"
+        } ]
+      }
+    },
+    "Test2Instance" : {
+      "Id" : "Test2Instance",
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : "Test2Instance",
+          "PropagateAtLaunch" : true
+        } ],
+        "AvailabilityZone" : [ {
+          "Ref" : "MyAZ"
+        } ],
+        "KeyName" : {
+          "Ref" : "KeyName"
+        },
+        "ImageId" : {
+          "Ref" : "ImageId"
+        },
+        "InstanceProfile" : {
+          "Ref" : "Test2InstanceProfile"
+        },
+        "InstanceType" : {
+          "Ref" : "Test2InstanceType"
+        },
+        "SecurityGroupIds" : [ {
+          "Ref" : "Test2SecurityGroup"
+        } ]
+      }
+    },
+    "Test2SecurityGroup" : {
+      "Id" : "Test2SecurityGroup",
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "VpcId" : {
+          "Ref" : "VpcId"
+        },
+        "SecurityGroupIngress" : [ {
+          "IpProtocol" : "tcp",
+          "CidrIp" : {
+            "Ref" : "OpenCidrIp"
+          },
+          "FromPort" : 22,
+          "ToPort" : 22
+        }, {
+          "IpProtocol" : "tcp",
+          "CidrIp" : {
+            "Ref" : "OpenCidrIp"
+          },
+          "FromPort" : 9200,
+          "ToPort" : 9200
+        }, {
+          "IpProtocol" : "tcp",
+          "CidrIp" : {
+            "Ref" : "OpenCidrIp"
+          },
+          "FromPort" : 9300,
+          "ToPort" : 9300
+        }, {
+          "IpProtocol" : "tcp",
+          "CidrIp" : {
+            "Ref" : "OpenCidrIp"
+          },
+          "FromPort" : 27018,
+          "ToPort" : 27019
+        } ]
+      }
+    },
+    "Test2SelfReferenceIngress" : {
+      "Id" : "Test2SelfReferenceIngress",
+      "Type" : "AWS::EC2::SecurityGroupIngress",
+      "Properties" : {
+        "SourceSecurityGroupId" : {
+          "Fn::GetAtt" : [ "Test2SecurityGroup", "GroupId" ]
+        },
+        "GroupId" : {
+          "Fn::GetAtt" : [ "Test2SecurityGroup", "GroupId" ]
+        },
+        "IpProtocol" : "tcp",
+        "FromPort" : 9300,
+        "ToPort" : 9300
+      }
+    }
+  }
+}
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.358 sec - in com.scaleset.cfbuilder.TemplateTest
+
+Results :
+
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+
+[INFO] 
+[INFO] --- jacoco-maven-plugin:0.8.5:report (report) @ cloudformation-builder ---
+[INFO] Loading execution data file /tmp/tmp132no274/cloudformation-builder/target/jacoco.exec
+[INFO] Analyzed bundle 'cloudformation-builder' with 2298 classes
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  15.553 s
+[INFO] Finished at: 2020-07-30T20:05:21Z
+[INFO] ------------------------------------------------------------------------

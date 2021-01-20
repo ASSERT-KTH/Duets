@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.intel.diceros</groupId>
+    <artifactId>diceros</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>diceros</name>
+    <description>
+        lite implementation of jce provider, implementing AES encryption of CTR mode and SecureRandom based on DRNG
+    </description>
+    <url></url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>3.8.1</version>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>native</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <crypto.prefix></crypto.prefix>
+                <crypto.lib></crypto.lib>
+                <crypto.include></crypto.include>
+                <require.crypto>true</require.crypto>
+                <aesmb.prefix></aesmb.prefix>
+                <aesmb.lib></aesmb.lib>
+                <aesmb.include></aesmb.include>
+                <require.aesmb>true</require.aesmb>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>1.0-alpha-7</version>
+                        <executions>
+                            <execution>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>javah</goal>
+                                </goals>
+                                <configuration>
+                                    <javahPath>${env.JAVA_HOME}/bin/javah</javahPath>
+                                    <javahClassNames>
+                                        <javahClassName>com.intel.diceros.crypto.engines.AESMutliBufferEngine
+                                        </javahClassName>
+                                        <javahClassName>com.intel.diceros.crypto.engines.AESOpensslEngine
+                                        </javahClassName>
+                                        <javahClassName>com.intel.diceros.provider.securerandom.SecureRandom$DRNG
+                                        </javahClassName>
+                                    </javahClassNames>
+                                    <javahOutputDirectory>${project.build.directory}/native/javah</javahOutputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>make</id>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <exec executable="cmake" dir="${project.build.directory}/native"
+                                              failonerror="true">
+                                            <arg line="${basedir}/src/ -DGENERATED_JAVAH=${project.build.directory}/native/javah -DJVM_ARCH_DATA_MODEL=${sun.arch.data.model} -DREQUIRE_CRYPTO=${require.crypto} -DCUSTOM_CRYPTO_PREFIX=${crypto.prefix} -DCUSTOM_CRYPTO_LIB=${crypto.lib} -DCUSTOM_CRYPTO_INCLUDE=${crypto.include} -DREQUIRE_AESMB=${require.aesmb} -DCUSTOM_AESMB_PREFIX=${aesmb.prefix} -DCUSTOM_AESMB_LIB=${aesmb.lib} -DCUSTOM_AESMB_INCLUDE=${aesmb.include}"/>
+                                        </exec>
+                                        <exec executable="make" dir="${project.build.directory}/native"
+                                              failonerror="true">
+                                            <arg line="VERBOSE=1"/>
+                                        </exec>
+                                        <exec executable="make" dir="${project.build.directory}/native"
+                                              failonerror="true"></exec>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>dist</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>pre-dist</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <!-- Using Unix script to preserve symlinks -->
+                                        <echo file="${project.build.directory}/dist-copynativelibs.sh">
+
+                                            which cygpath 2&gt; /dev/null
+                                            if [ $? = 1 ]; then
+                                            BUILD_DIR="${project.build.directory}"
+                                            else
+                                            BUILD_DIR=`cygpath --unix '${project.build.directory}'`
+                                            fi
+                                            TAR='tar cf -'
+                                            UNTAR='tar xfBp -'
+                                            LIB_DIR="${BUILD_DIR}/native/target/usr/local/lib"
+                                            if [ -d $${LIB_DIR} ] ; then
+                                            TARGET_DIR="${BUILD_DIR}/${project.artifactId}-${project.version}/lib/native"
+                                            mkdir -p $${TARGET_DIR}
+                                            cd $${LIB_DIR}
+                                            $$TAR lib* | (cd $${TARGET_DIR}/; $$UNTAR)
+
+                                            if [ "${bundle.crypto}" = "true" ] ; then
+                                            cd ${crypto.lib}
+                                            $$TAR libcrypto* | (cd $${TARGET_DIR}/; $$UNTAR)
+                                            fi
+                                            if [ "${bundle.aesmb}" = "true" ] ; then
+                                            cd ${aesmb.lib}
+                                            $$TAR libaesmb* | (cd $${TARGET_DIR}/; $$UNTAR)
+                                            fi
+                                            fi
+                                        </echo>
+                                        <exec executable="sh" dir="${project.build.directory}" failonerror="true">
+                                            <arg line="./dist-copynativelibs.sh"/>
+                                        </exec>
+                                    </target>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>tar</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target if="tar">
+                                        <!-- Using Unix script to preserve symlinks -->
+                                        <echo file="${project.build.directory}/dist-maketar.sh">
+
+                                            which cygpath 2&gt; /dev/null
+                                            if [ $? = 1 ]; then
+                                            BUILD_DIR="${project.build.directory}"
+                                            else
+                                            BUILD_DIR=`cygpath --unix '${project.build.directory}'`
+                                            fi
+                                            mkdir -p ${BUILD_DIR}/${project.artifactId}-${project.version}/share
+                                            "yes" 2>/dev/null | cp -f
+                                            ${BUILD_DIR}/${project.artifactId}-${project.version}.jar
+                                            ${BUILD_DIR}/${project.artifactId}-${project.version}/share
+                                            cd ${BUILD_DIR}
+                                            tar czf ${project.artifactId}-${project.version}.tar.gz
+                                            ${project.artifactId}-${project.version}
+                                        </echo>
+                                        <exec executable="sh" dir="${project.build.directory}" failonerror="true">
+                                            <arg line="./dist-maketar.sh"/>
+                                        </exec>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

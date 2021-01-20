@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>testgroup.web</groupId>
+  <artifactId>comsat-servlet-container-jersey-maven-template</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>war</packaging>
+  <name>Comsat maven Webapp</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>co.paralleluniverse</groupId>
+      <artifactId>quasar-core</artifactId>
+      <version>0.6.1</version>
+
+      <!-- Use this for JDK 8 -->
+      <!--classifier>jdk8</classifier-->
+    </dependency>
+
+    <dependency>
+      <groupId>co.paralleluniverse</groupId>
+      <artifactId>comsat-jersey-server</artifactId>
+      <version>0.2.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>co.paralleluniverse</groupId>
+      <artifactId>comsat-jax-rs-client</artifactId>
+      <version>0.2.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>co.paralleluniverse</groupId>
+      <artifactId>comsat-tomcat-loader</artifactId>
+      <version>0.2.0</version>
+      <scope>provided</scope>
+
+      <!-- Use this for JDK 8 -->
+      <!--classifier>jdk8</classifier-->
+    </dependency>
+
+    <dependency>
+      <groupId>co.paralleluniverse</groupId>
+      <artifactId>comsat-jetty-loader</artifactId>
+      <version>0.2.0</version>
+      <scope>provided</scope>
+
+      <!-- Use this for JDK 8 -->
+      <!--classifier>jdk8</classifier-->
+    </dependency>
+
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-json-jackson</artifactId>
+      <version>2.13</version>
+    </dependency>
+  </dependencies>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <servlet.port>8080</servlet.port>
+  </properties>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+
+        <!-- 1.7, change according to your needs -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.2</version>
+          <configuration>
+            <source>1.7</source>
+            <target>1.7</target>
+          </configuration>
+        </plugin>
+
+        <!-- Collecting classpath entries as properties in the form groupId:artifactId:type:[classifier]
+             as per http://maven.apache.org/plugins/maven-dependency-plugin/properties-mojo.html -->
+        <plugin>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>2.5.1</version>
+          <executions>
+            <execution>
+              <id>getClasspathFilenames</id>
+              <phase>initialize</phase>
+              <goals>
+                <goal>properties</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>2.16</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <!--
+          Compile-time (AOT) instrumentation, from https://github.com/puniverse/quasar/issues/53,
+          from https://github.com/dinix2008
+
+          Use _either_ compile-time (AOT) instrumentation _or_ agent-based instrumentation
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+
+          <execution>
+            <id>instrument-classes</id>
+            <phase>compile</phase>
+            <configuration>
+              <tasks>
+                <property name="ant_classpath" refid="maven.dependency.classpath"/>
+                <taskdef name="instrumentationTask" classname="co.paralleluniverse.fibers.instrument.InstrumentationTask"
+                         classpath="${ant_classpath}"/>
+                <!-- Use "allowMonitors" to allow instrumenting methods containing synchronization -->
+                <!-- instrumentationTask allowMonitors="true" -->
+                <instrumentationTask>
+                  <fileset dir="${project.build.directory}/classes/" includes="**/*.class"/>
+                </instrumentationTask>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+
+          <execution>
+            <id>instrument-test-classes</id>
+            <phase>test-compile</phase>
+            <configuration>
+              <tasks>
+                <property name="ant_classpath" refid="maven.dependency.classpath"/>
+                <taskdef name="instrumentationTask" classname="co.paralleluniverse.fibers.instrument.InstrumentationTask"
+                         classpath="${ant_classpath}"/>
+                <!-- Use "allowMonitors" to allow instrumenting methods containing synchronization -->
+                <!-- instrumentationTask allowMonitors="true" -->
+                <instrumentationTask>
+                  <fileset dir="${project.build.directory}/test-classes/" includes="**/*.class"/>
+                </instrumentationTask>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>2.12</version>
+        <executions>
+          <execution>
+            <id>perform-it</id>
+            <goals>
+              <goal>integration-test</goal>
+            </goals>
+            <configuration>
+              <systemProperties>
+                <property>
+                  <name>servlet.port</name>
+                  <value>${servlet.port}</value>
+                </property>
+              </systemProperties>
+            </configuration>
+          </execution>
+          <execution>
+            <id>verify-it</id>
+            <goals>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.cargo</groupId>
+        <artifactId>cargo-maven2-plugin</artifactId>
+        <version>1.4.11</version>
+        <configuration>
+          <configuration>
+            <properties>
+              <cargo.servlet.port>${servlet.port}</cargo.servlet.port>
+            </properties>
+          </configuration>
+        </configuration>
+        <executions>
+          <execution>
+            <id>start-cargo</id>
+            <phase>pre-integration-test</phase>
+            <configuration>
+              <configuration>
+                <properties>
+                  <cargo.jvmargs>
+                    <!-- Configure memory settings as needed --><!-- -Xmx1000m -->
+                    <!-- Turn off before production --> -Dco.paralleluniverse.fibers.verifyInstrumentation
+                    <!-- Enable if using compile-time (AOT) instrumentation --> -Dco.paralleluniverse.fibers.disableAgentWarning
+                    <!-- Quasar Agent for JDK 7 --> <!-- -javaagent:${co.paralleluniverse:quasar-core:jar} --> <!-- ERROR missing asm in servlet container mode -->
+
+                    <!-- Quasar Agent for JDK 7 with "allow monitors" flag (valid for JDK 8 as well) --><!-- -javaagent:${co.paralleluniverse:quasar-core:jar}=m -->
+
+                    <!-- Quasar Agent for JDK 8 --> <!-- -javaagent:${co.paralleluniverse:quasar-core:jar:jdk8} --> <!-- ERROR MISSING asm in servlet container mode -->
+                  </cargo.jvmargs>
+                </properties>
+              </configuration>
+            </configuration>
+            <goals>
+              <goal>start</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>stop-cargo</id>
+            <phase>post-integration-test</phase>
+            <goals>
+              <goal>stop</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+
+    <profile>
+      <id>jetty9x</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.codehaus.cargo</groupId>
+              <artifactId>cargo-maven2-plugin</artifactId>
+              <configuration>
+                <container>
+                  <containerId>jetty9x</containerId>
+                  <artifactInstaller>
+                    <groupId>org.eclipse.jetty</groupId>
+                    <artifactId>jetty-distribution</artifactId>
+                    <version>9.2.4.v20141103</version>
+                  </artifactInstaller>
+                  <!-- ERROR breaks bootstrap -->
+                  <dependencies>
+                    <dependency>
+                      <groupId>co.paralleluniverse</groupId>
+                      <artifactId>comsat-jetty-loader</artifactId>
+
+                      <!-- Use this for JDK 8 -->
+                      <!-- classifier>jdk8</classifier -->
+                    </dependency>
+                  </dependencies>
+                </container>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+
+    <profile>
+      <id>jetty8x</id>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.codehaus.cargo</groupId>
+              <artifactId>cargo-maven2-plugin</artifactId>
+              <configuration>
+                <container>
+                  <containerId>jetty8x</containerId>
+                  <artifactInstaller>
+                    <groupId>org.eclipse.jetty</groupId>
+                    <artifactId>jetty-distribution</artifactId>
+                    <version>8.1.15.v20140411</version>
+                  </artifactInstaller>
+                  <!-- ERROR breaks bootstrap -->
+                  <dependencies>
+                    <dependency>
+                      <groupId>co.paralleluniverse</groupId>
+                      <artifactId>comsat-jetty-loader</artifactId>
+
+                      <!-- Use this for JDK 8 -->
+                      <!-- classifier>jdk8</classifier -->
+                    </dependency>
+                  </dependencies>
+                </container>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+
+    <profile>
+      <id>tomcat8x</id>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.codehaus.cargo</groupId>
+              <artifactId>cargo-maven2-plugin</artifactId>
+              <configuration>
+                <container>
+                  <containerId>tomcat8x</containerId>
+                  <zipUrlInstaller>
+                    <url>http://archive.apache.org/dist/tomcat/tomcat-8/v8.0.15/bin/apache-tomcat-8.0.15.zip</url>
+                  </zipUrlInstaller>
+                  <dependencies>
+                    <dependency>
+                      <groupId>co.paralleluniverse</groupId>
+                      <artifactId>comsat-tomcat-loader</artifactId>
+
+                      <!-- Use this for JDK 8 -->
+                      <!-- classifier>jdk8</classifier -->
+                    </dependency>
+                  </dependencies>
+                </container>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+
+    <profile>
+      <id>tomcat7x</id>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.codehaus.cargo</groupId>
+              <artifactId>cargo-maven2-plugin</artifactId>
+              <configuration>
+                <container>
+                  <containerId>tomcat7x</containerId>
+                  <zipUrlInstaller>
+                    <url>http://archive.apache.org/dist/tomcat/tomcat-7/v7.0.56/bin/apache-tomcat-7.0.56.zip</url>
+                  </zipUrlInstaller>
+                  <dependencies>
+                    <dependency>
+                      <groupId>co.paralleluniverse</groupId>
+                      <artifactId>comsat-tomcat-loader</artifactId>
+
+                      <!-- Use this for JDK 8 -->
+                      <!-- classifier>jdk8</classifier -->
+                    </dependency>
+                  </dependencies>
+                </container>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+  </profiles>
+</project>

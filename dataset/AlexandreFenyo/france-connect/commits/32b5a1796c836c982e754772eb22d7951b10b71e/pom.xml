@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+<!--
+      Démarrage sous Eclipse avec un serveur Tomcat embarqué :
+      - A chaque modification de ce fichier pom, sélectionner l'élément racine du projet dans l'explorateur de projet,
+        faire "bouton droite" sur cet élément, choisir "Maven" dans le menu déroulant puis "Update Project...".
+      - Pour (re-)compiler le projet, sélectionner dans le menu Projet "Clean..." puis "Build Project".
+      - Pour démarrer l'application, utiliser le menu Run pour accéder à "Run configurations..." ou "Debug configurations...",
+        créer une configuration Apache Tomcat, publier l'application dans le serveur et démarrer le serveur.
+
+      Démarrage dans un Jetty embarqué :
+      - Démarrage avec Jetty sur un serveur avec accès direct à Internet :
+        mvn clean jetty:run
+        Attendre le message '[INFO] Started Jetty Server', signifiant le lancement complet de Jetty, avant de passer à l'étape suivante.
+        Lancer alors un navigateur sur http://127.0.0.1/
+      - Démarrage avec Jetty sur un serveur nécessitant le passage par un proxy web pour accéder à Internet :
+        mvn -Dhttps.proxyHost=PROXYHOST -Dhttps.proxyPort=PROXYPORT clean jetty:run 
+        (remplacer PROXYHOST et PROXYPORT par les valeurs correspondant au proxy web).
+        Attendre le message '[INFO] Started Jetty Server', signifiant le lancement complet de Jetty, avant de passer à l'étape suivante.
+        Lancer alors un navigateur sur http://127.0.0.1/
+
+      Démarrage dans un Tomcat embarqué :
+      - Démarrage avec Tomcat sur un serveur avec accès direct à Internet :
+        mvn clean tomcat7:run
+        Attendre le message 'INFOS: Starting ProtocolHandler ["http-bio-80"]', signifiant le lancement complet de Tomcat, avant de passer à l'étape suivante.
+	Lancer alors un navigateur sur http://127.0.0.1/
+      - Démarrage avec Tomcat sur un serveur nécessitant le passage par un proxy web pour accéder à Internet :
+        mvn -Dhttps.proxyHost=PROXYHOST -Dhttps.proxyPort=PROXYPORT clean tomcat7:run 
+        (remplacer PROXYHOST et PROXYPORT par les valeurs correspondant au proxy web)
+        Attendre le message 'INFOS: Starting ProtocolHandler ["http-bio-80"]', signifiant le lancement complet de Tomcat, avant de passer à l'étape suivante.
+        Lancer alors un navigateur sur http://127.0.0.1/
+
+      Déployer dans un WildFly local / distant :
+      - Déploiement vers un WildFly local avec une configuration normale :
+        mvn clean package wildfly:deploy -P wildfly
+	Lancer alors un navigateur sur http://127.0.0.1/
+      - Déploiement vers un WildFly distant :
+        mvn clean package wildfly:deploy -P wildfly -Dwildfly.hostname=<hostname> -Dwildfly.port=<port> -Dwildfly.username=<username> wildfly.password=<password>
+	Lancer alors un navigateur sur http://127.0.0.1/
+
+      Note : le fichier de configuration config.properties contient deux URLs déclarées chez FranceConnect :
+             - l'URL de callback (paramètres net.fenyo.franceconnect.config.oidc.redirecturi de config.properties)
+             - l'URL de redirection de déconnexion (paramètre net.fenyo.franceconnect.config.oidc.afterlogouturi de config.properties)
+             Si ces URL utilisent l'adresse IP 127.0.0.1, le navigateur doit être lancé sur http://127.0.0.1/
+             Si ces URL utilisent le nom localhost, le navigateur doit être lancé sur http://localhost/
+             En effet, les cookies de session positionnés par un serveur désigné localhost ne sont pas renvoyés à un serveur désigné 127.0.0.1 et réciproquement.
+             Utiliser dans une même configuration un mélange de localhost et de 127.0.0.1 conduit à des erreurs de connexion.
+
+      Modification du port local par défaut (80) :
+      - Rajout de l'option -Dnet.fenyo.franceconnect.config.listen.port=PORT sur la ligne de commande mvn
+        (remplacer PORT par la valeur du port TCP local d'écoute souhaité)
+
+      Opérations maven :
+        - faire le ménage (supprimer le répertoire target) :
+          mvn clean
+        - compiler :
+          mvn clean compile
+        - créer une archive war :
+          mvn clean package
+          (le fichier war créé se nomme franceconnect-demo-1.0.0-BUILD.war et se trouve dans le sous-répertoire target)
+-->
+
+	<name>franceconnect-demo</name>
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>net.fenyo</groupId>
+	<artifactId>franceconnect-demo</artifactId>
+	<packaging>war</packaging>
+	<version>1.0.0-BUILD</version>
+
+	<properties>
+        <java-version>1.7</java-version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<net.fenyo.franceconnect.config.listen.port>80</net.fenyo.franceconnect.config.listen.port>
+
+        <!-- versions des dépendances et des plugins opérationnelles en vigueur au 27 avril 2016 -->
+        
+		<org.mitre-version>1.2.6</org.mitre-version>
+
+		<org.springframework-version>4.2.5.RELEASE</org.springframework-version>
+		<org.springframework.security-version>4.0.4.RELEASE</org.springframework.security-version>
+
+		<org.slf4j-version>1.7.21</org.slf4j-version>
+		<org.log4j-version>1.2.17</org.log4j-version>
+
+        <javax.servlet-version>2.5</javax.servlet-version>
+        <javax.servlet.jsp-version>2.1</javax.servlet.jsp-version>
+        <javax.servlet.jstl-version>1.2</javax.servlet.jstl-version>
+
+        <junit-version>4.12</junit-version>
+
+        <maven-compiler-plugin-version>3.5.1</maven-compiler-plugin-version>
+        <maven-war-plugin-version>2.6</maven-war-plugin-version>
+        <maven-resources-plugin-version>2.7</maven-resources-plugin-version>
+        <jetty-maven-plugin-version>9.3.8.v20160314</jetty-maven-plugin-version>
+        <version.wildfly.maven.plugin>1.0.2.Final</version.wildfly.maven.plugin>
+	</properties>
+
+    <!-- déclaration des dépendances avec MITREid Connect, les composants Spring, les frameworks de traces et les API servlet -->
+	<dependencies>
+
+		<!-- MITREid Connect -->
+		
+        <dependency>
+            <groupId>org.mitre</groupId>
+            <artifactId>openid-connect-client</artifactId>
+            <version>${org.mitre-version}</version>
+
+            <!--
+                MITREid Connect 1.2.x induit des dépendances transitives vers la version 3 du framework Spring alors que l'on utilise ici la dernière version 4.
+                On s'affranchit donc de ces dépendances.
+            -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-webmvc</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.security</groupId>
+                    <artifactId>spring-security-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.security</groupId>
+					<artifactId>spring-security-config</artifactId>
+				 </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.security.oauth</groupId>
+                    <artifactId>spring-security-oauth2</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpclient</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                 </exclusion>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>jcl-over-slf4j</artifactId>
+                </exclusion>
+                 <exclusion>
+                     <groupId>com.fasterxml.jackson.core</groupId>
+                     <artifactId>jackson-annotations</artifactId>
+                 </exclusion>
+
+                 <!-- 
+                      Les versions 1.2.3 à 1.2.7 de MITREid Connect référencent la bibliothèque Bouncy Castle Crypto nommé bcprov-jdk15on.
+                      Sachant que cette bibliothèque est utilisée par MITREid Connect uniquement pour chiffrer et déchiffrer des jetons, mais pas pour les signer ou vérifier leur signature,
+                      cette bibliothèque est donc inutile dans le cadre des cinématiques France Connect.
+                      Or ce package induit des délais de recherche d'annotations importants (cf. http://stackoverflow.com/questions/17584495/unable-to-complete-the-scan-for-annotations-for-web-application-app-due-to-a)
+                      pouvant conduire à un timeout au chargement de l'application sous jetty.
+                      On évite donc l'importation de cette bibliothèque (plus loin dans ce fichier, on importe une version plus récente de Bouncy Castle, mais pas pour MITREid Connect).
+                      Ce phénomène n'apparaît pas jusqu'à la version 1.2.2 de MITREid Connect, car il n'y a pas de référence à cette bibliothèque.
+                 -->
+                 <exclusion>
+                     <groupId>org.bouncycastle</groupId>
+                     <artifactId>bcprov-jdk15on</artifactId>
+                 </exclusion>
+
+			</exclusions>
+		</dependency>
+
+		<!--
+		    On importe une version récente de bouncy castle n'impliquant pas des délais de recherche d'annotations importants, non pas pour utilisation par MITREid Connect, mais pour utilisation
+			par l'implémentation d'un IdP dans ce package. Cet IdP est implémenté par la méthode idp() de la classe WebController (contrôleur Spring).
+			Cet IdP n'est pas utile pour mettre en oeuvre la cinématique France Connect. Cette dépendance peut être supprimée à condition de supprimer aussi le code de l'IdP.
+			On utilise Bouncy Castle plutôt que l'implémentation native de Sun/Oracle via l'API JCE car cette dernière limite par défaut les clés AES à 128 bits et on souhaite utiliser une clé de 256 bits.
+        -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk16</artifactId>
+			<version>1.46</version>
+		</dependency>
+
+		<!-- Utilisé par l'implémentation d'un IdP dans ce package --> 
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.4</version>
+		</dependency>
+  
+		<!-- Spring -->
+
+        <dependency>
+        	<groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+            <version>4.0.4.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security.oauth</groupId>
+            <artifactId>spring-security-oauth2</artifactId>
+            <version>2.0.9.RELEASE</version>
+            <!--
+                Spring OAuth 2.0.9 induit des dépendances transitives vers des composants anciens du framework Spring.
+                On s'affranchit donc de ces dépendances.
+            -->
+			<exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-webmvc</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-context</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>spring-beans</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.security</groupId>
+                    <artifactId>spring-security-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.security</groupId>
+                    <artifactId>spring-security-config</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.security</groupId>
+                    <artifactId>spring-security-web</artifactId>
+                </exclusion>
+			</exclusions>
+        </dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${org.springframework-version}</version>
+			<exclusions>
+				<!-- ne pas charger commons-logging car MITREid Connect s'appuie sur SLF4j -->
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+                </exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>${org.springframework-version}</version>
+		</dependency>
+
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-taglibs</artifactId>
+        	<version>${org.springframework.security-version}</version>
+    	</dependency>
+				
+        <!-- Traitements JSON -->
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.3.4</version>
+        </dependency>
+				
+		<!-- Traces -->
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${org.slf4j-version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>${org.slf4j-version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${org.slf4j-version}</version>
+			<scope>runtime</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>${org.log4j-version}</version>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- Servlet -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>${javax.servlet-version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet.jsp</groupId>
+			<artifactId>jsp-api</artifactId>
+			<version>${javax.servlet.jsp-version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId>
+			<version>${javax.servlet.jstl-version}</version>
+            <!-- <scope>provided</scope> -->
+		</dependency>
+	
+	   <!-- nécessaire pour Jetty, inutile pour Tomcat -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.2</version>
+        </dependency>
+
+		<!-- test -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit-version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+        <!-- configuration des plug-in -->
+	<build>
+		<plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>1.4.1</version>
+
+                <executions>
+                    <execution>
+                        <id>enforce-files-exist</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireFilesExist>
+                                    <level>ERROR</level>
+                                    <message><![CDATA[
+-
+- --------------------------------------------
+- | FRANCE CONNECT - ERREUR DE CONFIGURATION |
+- --------------------------------------------
+- 
+- AVANT DE COMMENCER A UTILISER CE PACKAGE,
+- VOUS DEVEZ RECOPIER LE FICHIER src/main/webapp/META-INF/config.properties-template
+- DANS src/main/webapp/META-INF/config.properties
+- ET Y METTRE A JOUR LES VALEURS REELLES DE VOS IDENTIFIANTS FOURNISSEUR FRANCE CONNECT.
+-
+]]>
+                                    </message>
+                                    <files>
+                                        <file>src/main/webapp/META-INF/config.properties</file>
+                                    </files>
+                                </requireFilesExist>
+                
+                                <requireMavenVersion>
+                                    <version>3.0.4</version>
+                                    <level>ERROR</level>
+                                    <message><![CDATA[
+-
+- --------------------------------------------
+- | FRANCE CONNECT - ERREUR DE VERSION MAVEN |
+- --------------------------------------------
+- 
+- CE PACKAGE NECESSITE L'UTILISATION DE MAVEN 3.0.4 OU VERSION SUPERIEURE.
+-
+]]>
+                                    </message>
+                                </requireMavenVersion>
+
+                                <requireJavaVersion>
+                                    <version>1.7</version>
+                                    <level>ERROR</level>
+                                    <message><![CDATA[
+-
+- -------------------------------------------
+- | FRANCE CONNECT - ERREUR DE VERSION JAVA |
+- -------------------------------------------
+- 
+- CE PACKAGE NECESSITE L'UTILISATION D'UN JDK JAVA VERSION 1.7 AU MINIMUM.
+-
+]]>
+                                    </message>
+                                </requireJavaVersion>
+
+                                <!-- S'assurer que les dépendances n'aboutissent pas à des versions distinctes d'une même une bibliothèque -->
+                                <dependencyConvergence/>
+                  
+                        </rules>
+                        <fail>true</fail>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>${maven-compiler-plugin-version}</version>
+            <configuration>
+                <source>${java-version}</source>
+                <target>${java-version}</target>
+            </configuration>
+        </plugin>
+
+        <!-- démarrage avec Jetty embarqué -->
+        <plugin>
+            <groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-maven-plugin</artifactId>
+			<version>${jetty-maven-plugin-version}</version>
+			<configuration>
+                <httpConnector>
+                    <port>${net.fenyo.franceconnect.config.listen.port}</port>
+                </httpConnector>
+			</configuration>
+		</plugin>
+
+	</plugins>
+
+        <!-- démarrage avec Tomcat embarqué -->
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.tomcat.maven</groupId>
+                    <artifactId>tomcat7-maven-plugin</artifactId>
+                    <version>2.2</version>
+                    <configuration>
+                        <path>/</path>
+                        <port>${net.fenyo.franceconnect.config.listen.port}</port>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+  <profiles>
+    <profile>
+      <id>wildfly</id>
+      <build>
+          <plugins>
+            <plugin>
+              <artifactId>maven-war-plugin</artifactId>
+              <version>3.0.0</version>
+              <configuration>
+                <packagingExcludes>WEB-INF/lib/log4j*.jar,WEB-INF/lib/slf4j*.jar,WEB-INF/lib/jcl-over-slf4j-*.jar,WEB-INF/lib/commons-logging-*.jar,WEB-INF/classes/log4j*.xml</packagingExcludes>
+              </configuration>
+            </plugin>
+            <plugin>
+              <groupId>org.wildfly.plugins</groupId>
+              <artifactId>wildfly-maven-plugin</artifactId>
+              <version>${version.wildfly.maven.plugin}</version>
+            </plugin>
+          </plugins>
+        </build>
+    </profile>
+  </profiles>
+
+</project>

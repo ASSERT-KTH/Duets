@@ -1,0 +1,210 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion> 
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>5</version>
+  </parent>
+  <groupId>com.ning</groupId>
+  <artifactId>lzf4hadoop</artifactId>
+  <name>lzf4hadoop</name>
+  <version>0.9.7-SNAPSHOT</version>
+  <packaging>bundle</packaging>
+  <description>Support for using LZF codec with Hadoop
+  </description>
+  <url>https://github.com/ning/lzf4hadoop</url>
+  <scm>
+    <connection>scm:git:git@github.com:ning/lzf4hadoop.git</connection>
+    <developerConnection>scm:git:git@github.com:ning/lzf4hadoop.git</developerConnection>
+    <url>http://github.com/ning/lzf4hadoop</url>    
+  </scm>
+  <developers>
+        <developer>
+            <id>tatu</id>
+            <name>Tatu Saloranta</name>
+            <email>tatu@ning.com</email>
+        </developer>
+  </developers>
+
+  <prerequisites>
+    <maven>2.2.1</maven>
+  </prerequisites>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <!-- Licensing -->
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <dependencies>
+    <!-- We need LZF; will be shaded; but why is it "compiled"?
+      -->
+    <dependency>
+      <groupId>com.ning</groupId>
+      <artifactId>compress-lzf</artifactId>
+      <version>0.9.6</version>
+      <scope>compile</scope>
+    </dependency>
+    <!-- but Hadoop-core we must depend on -->
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-core</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+
+     <!-- and for testing, JUnit (or TestNG?) is needed -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.8.2</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+	    <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <!--  We will shade compress-LZF version, to simplify deployment, avoid version conflicts -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>1.4</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <artifactSet><!--  only thing we want to embed is LZF codec... -->
+                <includes>
+                  <include>com.ning:compress-lzf</include>
+                </includes>
+              </artifactSet>
+              <relocations>
+                <relocation>
+                  <pattern>com.ning.compress.lzf</pattern>
+                  <shadedPattern>com.ning.lzf4hadoop.shaded</shadedPattern>
+                </relocation>
+              </relocations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-release-plugin</artifactId>
+            <version>2.1</version>
+            <configuration>
+                <mavenExecutorId>forked-path</mavenExecutorId>
+            </configuration>
+        </plugin>
+        <plugin><!-- plug-in to attach source bundle in repo -->
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>2.1.2</version>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                    <encoding>UTF-8</encoding>
+                    <maxmemory>512m</maxmemory>
+                    <links>
+                        <link>http://java.sun.com/javase/6/docs/api/</link>
+                    </links>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+        </plugin>
+
+        <!-- Plus, let's make jars OSGi bundles as well  -->
+        <plugin>
+          <groupId>org.apache.felix</groupId>
+          <artifactId>maven-bundle-plugin</artifactId>
+          <version>2.3.4</version>
+          <extensions>true</extensions>
+          <configuration>
+            <instructions>
+              <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+              <Bundle-Vendor>com.ning</Bundle-Vendor>
+             <!-- not sure if this helps but let's try "resolution:=optional" -->
+              <Import-Package>
+org.apache.hadoop.conf,
+org.apache.hadoop.io.compress,
+com.ning.compress.lzf;resolution:=optional,
+</Import-Package>
+              <Private-Package>
+</Private-Package>
+              <Export-Package>
+com.ning.lzf4hadoop
+</Export-Package>
+            </instructions>
+          </configuration>
+        </plugin>
+    </plugins>
+  </build>
+  <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.1</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+  </profiles>
+  <!-- NOTE: repositories from parent POM -->
+
+</project>

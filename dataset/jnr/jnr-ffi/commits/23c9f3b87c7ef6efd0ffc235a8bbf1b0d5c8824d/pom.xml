@@ -1,0 +1,140 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
+
+  <groupId>com.github.jnr</groupId>
+  <artifactId>jnr-ffi</artifactId>
+  <packaging>jar</packaging>
+  <version>0.6.1-SNAPSHOT</version>
+  <name>jnr-ffi</name>
+  <description>A DSL for invoking native functions from java</description>
+  <url>http://github.com/jnr/jnr-ffi</url>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:git:git@github.com:jnr/jnr-ffi.git</connection>
+    <developerConnection>scm:git:git@github.com:jnr/jnr-ffi.git</developerConnection>
+    <url>git@github.com:jnr/jnr-ffi.git</url>
+  </scm>
+
+  <developers>
+    <developer>
+      <id>wmeissner</id>
+      <name>Wayne Meissner</name>
+      <email>wmeissner@gmail.com</email>
+    </developer>
+  </developers>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.test.failure.ignore>true</maven.test.failure.ignore>
+    <maven.compiler.source>1.5</maven.compiler.source>
+    <maven.compiler.target>1.5</maven.compiler.target>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.8.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.jnr</groupId>
+      <artifactId>jffi</artifactId>
+      <version>1.0.11</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.jnr</groupId>
+      <artifactId>jffi</artifactId>
+      <version>1.0.11</version>
+      <scope>runtime</scope>
+      <classifier>native</classifier>
+    </dependency>
+    <dependency>
+      <groupId>asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>4.0_RC2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>asm</groupId>
+      <artifactId>asm-commons</artifactId>
+      <version>4.0_RC2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>asm</groupId>
+      <artifactId>asm-analysis</artifactId>
+      <version>4.0_RC2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>asm</groupId>
+      <artifactId>asm-tree</artifactId>
+      <version>4.0_RC2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>asm</groupId>
+      <artifactId>asm-util</artifactId>
+      <version>4.0_RC2</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.jnr</groupId>
+      <artifactId>jnr-x86asm</artifactId>
+      <version>1.0.1</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.1</version>
+        <executions>
+          <execution>
+            <phase>test-compile</phase>
+            <configuration>
+              <tasks>
+                <exec dir="${basedir}" executable="make" failonerror="true">
+                  <arg line="-f libtest/GNUmakefile" />
+                  <arg line="BUILD_DIR=${project.build.directory}" />
+                </exec>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.4.2</version>
+        <configuration>
+          <systemProperties>
+            <property>
+              <name>jnr.ffi.library.path</name>
+              <value>${project.build.directory}</value>
+            </property>
+          </systemProperties>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.cookconsulting</groupId>
+    <artifactId>Java-Best-Practices-UI</artifactId>
+    <version>1.0</version>
+    <packaging>jar</packaging>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.miglayout</groupId>
+            <artifactId>miglayout</artifactId>
+            <version>3.7</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.3.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2-beta-2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <!--TODO add class to make executeable -->
+                            <mainClass>com.cookconsulting.gui.MainApp
+                            </mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptors>
+                        <descriptor>src/assembly/dist.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <!-- this is used for inheritance merges -->
+                        <phase>package</phase>
+                        <!-- exec as part of the package phase. -->
+                        <goals>
+                            <goal>attached</goal>
+                            <!-- use assembly's 'attached' goal -->
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>taglist-maven-plugin</artifactId>
+                <version>2.4</version>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <version>2.4</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.7</version>
+            </plugin>
+            <!-- FindBugs info see: http://mojo.codehaus.org/findbugs-maven-plugin/project-info.html  -->
+            <!-- NOTE: to use the findbugs plugin,
+             it's recommended that you increase Maven's maximum heap size,
+              e.g. pass an argument to the VM : -Xmx128M
+                    or change your login profile:  export MAVEN_OPTS=-Xmx128M    -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <xmlOutput>false</xmlOutput>
+                    <xmlOutputDirectory>.</xmlOutputDirectory>
+                    <threshold>Medium</threshold>
+                    <effort>Max</effort>
+                    <!--The visitors option specifies a comma-separated list of bug detectors which should be run.
+          The bug detectors are specified by their class names, without any package qualification.
+           By default, all detectors which are not disabled are run.-->
+                    <!--<visitors>FindDeadLocalStores,UnreadFields</visitors>-->
+                    <!--The omitVisitors option is like the visitors attribute,
+                     except it specifies detectors which will not be run.-->
+                    <!--<omitVisitors>FindDeadLocalStores,UnreadFields</omitVisitors>-->
+                    <relaxed>false</relaxed>
+                    <!-- mvn findbugs:gui  will launch the GUI,
+           if the following two configuration options are present  -->
+                    <!-- Optional directory to put findbugs xml report -->
+                    <!--<findbugsXmlOutputDirectory>target/site</findbugsXmlOutputDirectory>-->
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
+    <!-- Because the site plugin has changed for Maven 3, this extra profile will activate
+the new site plugin if the POM file is being executed by Maven 3 -->
+    <profiles>
+        <profile>
+            <id>maven-3</id>
+            <activation>
+                <file>
+                    <!--  This employs that the basedir expression is only recognized by Maven 3.x (see MNG-2363) -->
+                    <exists>${basedir}</exists>
+                </file>
+            </activation>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-site-plugin</artifactId>
+                            <version>3.0-beta-3</version>
+                        </plugin>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-project-info-reports-plugin</artifactId>
+                            <version>2.3.1</version>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-site-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-descriptor</id>
+                                <goals>
+                                    <goal>attach-descriptor</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+       <developers>
+        <developer>
+            <id>Todd</id>
+            <name>Cook</name>
+            <email>todd.g.cook AT gmail.com</email>
+            <url>http://cookconsulting.com</url>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+        </developer>
+    </developers>
+</project>

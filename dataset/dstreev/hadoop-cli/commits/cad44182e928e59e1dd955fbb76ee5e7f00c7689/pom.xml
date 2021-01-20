@@ -1,0 +1,247 @@
+<!--
+  ~  Hadoop CLI
+  ~
+  ~  (c) 2016-2019 David W. Streever. All rights reserved.
+  ~
+  ~ This code is provided to you pursuant to your written agreement with David W. Streever, which may be the terms of the
+  ~ Affero General Public License version 3 (AGPLv3), or pursuant to a written agreement with a third party authorized
+  ~ to distribute this code.  If you do not have a written agreement with David W. Streever or with an authorized and
+  ~ properly licensed third party, you do not have any rights to this code.
+  ~
+  ~ If this code is provided to you under the terms of the AGPLv3:
+  ~ (A) David W. Streever PROVIDES THIS CODE TO YOU WITHOUT WARRANTIES OF ANY KIND;
+  ~ (B) David W. Streever DISCLAIMS ANY AND ALL EXPRESS AND IMPLIED WARRANTIES WITH RESPECT TO THIS CODE, INCLUDING BUT NOT
+  ~   LIMITED TO IMPLIED WARRANTIES OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE;
+  ~ (C) David W. Streever IS NOT LIABLE TO YOU, AND WILL NOT DEFEND, INDEMNIFY, OR HOLD YOU HARMLESS FOR ANY CLAIMS ARISING
+  ~    FROM OR RELATED TO THE CODE; AND
+  ~  (D) WITH RESPECT TO YOUR EXERCISE OF ANY RIGHTS GRANTED TO YOU FOR THE CODE, David W. Streever IS NOT LIABLE FOR ANY
+  ~    DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, PUNITIVE OR CONSEQUENTIAL DAMAGES INCLUDING, BUT NOT LIMITED TO,
+  ~   DAMAGES RELATED TO LOST REVENUE, LOST PROFITS, LOSS OF INCOME, LOSS OF BUSINESS ADVANTAGE OR UNAVAILABILITY,
+  ~     OR LOSS OR CORRUPTION OF DATA.
+  ~
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.streever.hadoop</groupId>
+    <artifactId>hadoop.cli</artifactId>
+    <version>2.0.18-SNAPSHOT</version>
+    <name>Hadoop CLI</name>
+    <description>Hadoop Command Line Interface</description>
+    <properties>
+        <!-- See Profiles for the correct version of Hadoop -->
+        <!--<hadoop.version>2.7.1.2.4.1.0-327</hadoop.version>-->
+        <!--<hadoop.version>2.6.0.2.2.8.0-3150</hadoop.version>-->
+        <junit.version>4.11</junit.version>
+        <jackson.parser>2.7.3</jackson.parser>
+        <commons-io.version>2.4</commons-io.version>
+        <stem-shell.version>1.0.6-SNAPSHOT</stem-shell.version>
+    </properties>
+    <repositories>
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+                <updatePolicy>never</updatePolicy>
+                <checksumPolicy>fail</checksumPolicy>
+            </snapshots>
+            <id>HDPReleases</id>
+            <name>HDP Releases</name>
+            <url>http://repo.hortonworks.com/content/repositories/releases/</url>
+            <layout>default</layout>
+        </repository>
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+                <updatePolicy>never</updatePolicy>
+                <checksumPolicy>fail</checksumPolicy>
+            </snapshots>
+            <id>HDPPublic</id>
+            <name>HDP Public</name>
+            <url>http://repo.hortonworks.com/content/groups/public/</url>
+            <layout>default</layout>
+        </repository>
+        <!--repository>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+                <updatePolicy>never</updatePolicy>
+                <checksumPolicy>fail</checksumPolicy>
+            </snapshots>
+            <id>MavenCentral</id>
+            <name>Maven Central Releases</name>
+            <url>http://repo.maven.apache.org/maven2/</url>
+            <layout>default</layout>
+        </repository-->
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <!-- Pulling forked version from github.com/streever/stemshell -->
+            <groupId>com.streever.tools</groupId>
+            <artifactId>tools.stemshell</artifactId>
+            <version>${stem-shell.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.knox</groupId>
+            <artifactId>gateway-shell</artifactId>
+            <version>${gateway-shell.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-distcp</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons-io.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.parser}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.1</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+ <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+ <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <Apache-Hadoop-Version>${hadoop.major}</Apache-Hadoop-Version>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.0</version>
+                <!--<configuration>-->
+                <!--<createDependencyReducedPom>true</createDependencyReducedPom>-->
+                <!--</configuration>-->
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createSourcesJar>true</createSourcesJar>
+                            <finalName>hadoop-cli-full-bin</finalName>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.streever.hadoop.HadoopShell</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptor>src/main/assembly/assembly.xml</descriptor>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <!-- this is used for inheritance merges -->
+                        <phase>package</phase>
+                        <!-- bind to the packaging phase -->
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+    <profiles>
+        <profile>
+            <id>2.6</id>
+            <!--<activation>-->
+            <!--<activeByDefault>true</activeByDefault>-->
+            <!--</activation>-->
+            <properties>
+                <hadoop.version>2.6.0.2.2.9.9-2</hadoop.version>
+                <gateway-shell.version>0.5.0.2.2.9.9-2</gateway-shell.version>
+                <hadoop.major>2.6</hadoop.major>
+            </properties>
+        </profile>
+        <profile>
+            <id>2.7</id>
+            <properties>
+                <hadoop.version>2.7.3.2.6.5.0-292</hadoop.version>
+                <gateway-shell.version>0.12.0.2.6.5.0-292</gateway-shell.version>
+                <hadoop.major>2.7</hadoop.major>
+            </properties>
+        </profile>
+        <profile>
+            <id>3.1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <hadoop.version>3.1.1.3.1.0.0-78</hadoop.version>
+                <gateway-shell.version>1.0.0.3.1.0.0-78</gateway-shell.version>
+                <hadoop.major>3.1</hadoop.major>
+            </properties>
+        </profile>
+    </profiles>
+</project>

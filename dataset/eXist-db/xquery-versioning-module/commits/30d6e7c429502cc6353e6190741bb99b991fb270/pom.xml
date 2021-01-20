@@ -1,0 +1,258 @@
+<?xml version="1.0"?>
+<project
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+    xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+        <relativePath />
+    </parent>
+
+    <groupId>org.exist-db.xquery.extensions</groupId>
+    <artifactId>xquery-versioning-module</artifactId>
+    <version>1.0</version>
+
+    <name>Versioning Module</name>
+    <description>Versioning Module for eXist-db XQuery</description>
+    <url>https://www.github.com/exist-db/xquery-versioning-module</url>
+    <inceptionYear>2008</inceptionYear>
+
+    <organization>
+        <name>eXist-db</name>
+        <url>http://exist-db.org</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>>GNU General Public License, version 1</name>
+            <url>https://opensource.org/licenses/GPL-1.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:https://www.github.com/exist-db/xquery-versioning-module.git</connection>
+        <developerConnection>scm:git:https://www.github.com/exist-db/xquery-versioning-module.git</developerConnection>
+        <url>scm:git:https://www.github.com/exist-db/xquery-versioning-module.git</url>
+    </scm>
+
+    <properties>
+        <versioning.module.namespace>http://exist-db.org/xquery/versioning</versioning.module.namespace>
+        <exist.version>3.0.RC1</exist.version>
+        <gnudiff.version>1.7</gnudiff.version>
+
+        <java.version>1.7</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <java-package-name>org.exist.versioning.xquery</java-package-name>
+        <java-package-main-class-name>VersioningModule</java-package-main-class-name>
+        <java-lib-version>${project.version}</java-lib-version>
+        <module-prefix>${java-package-name}</module-prefix>
+        <package-title>${project.name}</package-title>
+        <package-name>${versioning.module.namespace}</package-name>
+        <package-abbrev>${project.artifactId}</package-abbrev>
+        <package-final-name>${project.artifactId}-${project.version}</package-final-name>
+    </properties>
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.exist-db</groupId>
+            <artifactId>exist-core</artifactId>
+            <version>${exist.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.bmsi</groupId>
+            <artifactId>gnudiff</artifactId>
+            <version>${gnudiff.version}</version>
+        </dependency>
+    </dependencies>
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>3.0</version>
+                <configuration>
+                    <header>${basedir}/GPL1-template.txt</header>
+                    <failIfMissing>true</failIfMissing>
+                    <aggregate>true</aggregate>
+                    <strictCheck>true</strictCheck>
+                    <properties>
+                        <organisation>${project.organization.name}</organisation>
+                        <email>exit-open@lists.sourceforge.net</email>
+                        <url>${project.organization.url}</url>
+                    </properties>
+                    <headerDefinitions>
+                        <headerDefinition>xquery-license-style.xml</headerDefinition>
+                    </headerDefinitions>
+                    <mapping>
+                        <xq>xquery_style</xq>
+                        <xqm>xquery_style</xqm>
+                    </mapping>
+                    <excludes>
+                        <exclude>pom.xml</exclude>
+                        <exclude>README.md</exclude>
+                        <exclude>LICENSE</exclude>
+                        <exclude>GPL1-template.txt</exclude>
+                        <exclude>xquery-license-style.xml</exclude>
+                        <exclude>xar-assembly.xml</exclude>
+                        <exclude>src/test/resources/**</exclude>
+                        <exclude>docs/**</exclude>
+                        <exclude>collection.sample.xconf</exclude>
+                    </excludes>
+
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.1</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.code54.mojo</groupId>
+                <artifactId>buildversion-plugin</artifactId>
+                <version>1.0.3</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>set-properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <!-- unfortunately this is needed by kuberam-expath-plugin to successfully
+                            generate its components.xml -->
+                            <mainClass>${java-package-name}.${java-package-main-class-name}</mainClass>
+                            <packageName>${java-package-name}</packageName>
+                        </manifest>
+                        <manifestEntries>
+                            <!-- unfortunately this is needed by kuberam-expath-plugin to successfully
+                            generate its components.xml -->
+                            <ModuleNamespace>${versioning.module.namespace}</ModuleNamespace>
+
+                            <Build-Tag>${build-tag}</Build-Tag>
+                            <Git-Commit>${build-commit}</Git-Commit>
+                            <Git-Commit-Abbrev>${build-commit-abbrev}</Git-Commit-Abbrev>
+                            <Build-Version>${build-version}</Build-Version>
+                            <Build-Timestamp>${build-tstamp}</Build-Timestamp>
+                            <Source-Repository>${project.scm.connection}</Source-Repository>
+                            <Description>${project.description}</Description>
+                            <Implementation-URL>${project.url}</Implementation-URL>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>ro.kuberam.maven.plugins</groupId>
+                <artifactId>kuberam-expath-plugin</artifactId>
+                <version>0.4.8</version>
+                <executions>
+                    <execution>
+                        <id>create-xar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>make-xar</goal>
+                        </goals>
+                        <configuration>
+                            <descriptor>xar-assembly.xml</descriptor>
+                            <finalName>${package-final-name}</finalName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <!-- Attach source jars -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <Build-Tag>${build-tag}</Build-Tag>
+                            <Git-Commit>${build-commit}</Git-Commit>
+                            <Git-Commit-Abbrev>${build-commit-abbrev}</Git-Commit-Abbrev>
+                            <Build-Version>${build-version}</Build-Version>
+                            <Build-Timestamp>${build-tstamp}</Build-Timestamp>
+                            <Source-Repository>${project.scm.connection}</Source-Repository>
+                            <Description>${project.description}</Description>
+                            <Implementation-URL>${project.url}</Implementation-URL>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.6</version>
+                <configuration>
+                    <useAgent>true</useAgent>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <mavenExecutorId>forked-path</mavenExecutorId> <!-- avoid a bug with GPG plugin hanging http://jira.codehaus.org/browse/MGPG-9 -->
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <tagNameFormat>@{project.version}</tagNameFormat>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+    
+    <repositories>
+        <repository>
+            <id>exist</id>
+            <url>https://raw.github.com/eXist-db/mvn-repo/master/</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>clojars.org</id>
+            <url>http://clojars.org/repo</url>
+        </pluginRepository>
+    </pluginRepositories>
+</project>

@@ -1,0 +1,588 @@
+<!--
+
+    Copyright © 2015 Pablo Grela Palleiro (pablogp_9@hotmail.com)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.cuacfm</groupId>
+	<artifactId>members</artifactId>
+	<packaging>war</packaging>
+	<version>1.4.6</version>
+	<inceptionYear>2015</inceptionYear>
+	<name>members</name>
+	<url>https://github.com/pablogrela/members_cuacfm</url>
+	<description>Member management: accounts, trainings, programs, reports, reserves, fee members, fee programs, directDebits, bankRemitances, bank accounts, push, ...
+Management of events of each important action.
+Authentication with Firebase</description>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java-version>1.8</java-version>
+		<io.spring.platform-version>Brussels-SR2</io.spring.platform-version>
+		<assertj-core-version>1.7.1</assertj-core-version>
+		<slf4j.version>1.7.12</slf4j.version>
+		<valnif.version>2.0.1</valnif.version>
+		<firebase.version>5.2.0</firebase.version>
+		<maven-resources-plugin.version>3.0.2</maven-resources-plugin.version>
+		<maven-compiler-plugin.version>3.6.1</maven-compiler-plugin.version>
+		<maven-war-plugin.version>3.0.0</maven-war-plugin.version>
+		<cobertura-maven-plugin.version>2.7</cobertura-maven-plugin.version>
+		<jacoco-maven-plugin.version>0.7.9</jacoco-maven-plugin.version>
+		<sonar-maven-plugin.version>3.2</sonar-maven-plugin.version>
+		<maven-project-info-reports-plugin.version>2.9</maven-project-info-reports-plugin.version>
+		<sonar.language>java</sonar.language>
+		<sonar.jacoco.reportPaths>${project.basedir}/target/jacoco.exec</sonar.jacoco.reportPaths>
+		<sonar.exclusions>
+			**/org/cuacfm/members/config/**/*.java,
+			**/org/cuacfm/members/model/accountservice/JsonToAccount.java,
+			**/org/cuacfm/members/model/programservice/JsonToProgram.java,
+			**/org/cuacfm/members/model/util/**/*,
+			**/org/cuacfm/members/web/api/**/*,
+			**/org/cuacfm/members/web/error/CustomErrorController.java,
+			**/org/cuacfm/members/web/signin/SigninController.java,
+			**/org/cuacfm/members/web/support/**/*
+		</sonar.exclusions>
+		<sonar.coverage.exclusions>
+			**/org/cuacfm/members/config/**/*.java,
+			**/org/cuacfm/members/model/accountservice/JsonToAccount.java,
+			**/org/cuacfm/members/model/programservice/JsonToProgram.java,
+			**/org/cuacfm/members/model/util/**/*,
+			**/org/cuacfm/members/web/api/**/*,
+			**/org/cuacfm/members/web/error/CustomErrorController.java,
+			**/org/cuacfm/members/web/signin/SigninController.java,
+			**/org/cuacfm/members/web/support/**/*
+		</sonar.coverage.exclusions>
+	</properties>
+
+	<repositories>
+		<!-- Repositorio para descargar el validador de la AEAT -->
+		<repository>
+			<id>aet</id>
+			<url>http://nexus.emergya.es/nexus/content/groups/public</url>
+		</repository>
+	</repositories>
+
+	<scm>
+		<url>scm:git:ssh://git@git.org.cuacfm:members_cuacfm.git</url>
+		<developerConnection>scm:git:git@git.org.cuacfm:members_cuacfm.git</developerConnection>
+		<connection>scm:git:git@git.org.cuacfm:members_cuacfm.git</connection>
+		<tag>HEAD</tag>
+	</scm>
+
+	<issueManagement>
+		<system>Redmine</system>
+		<url>http://balrog.dc.fi.udc.es/projects/xestion-radio-comunitaria</url>
+	</issueManagement>
+
+	<developers>
+		<developer>
+			<id>pablo.grela</id>
+			<name>Pablo Grela Palleiro</name>
+			<email>pablogp_9@hotmail.com</email>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<organization>FIC</organization>
+			<timezone>+1</timezone>
+		</developer>
+	</developers>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.spring.platform</groupId>
+				<artifactId>platform-bom</artifactId>
+				<version>${io.spring.platform-version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+
+	<!-- ********************** START Dependencies ********************** -->
+	<dependencies>
+
+		<!-- Spring -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+		</dependency>
+
+		<!-- Security -->
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-config</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-web</artifactId>
+		</dependency>
+
+		<!-- View -->
+		<dependency>
+			<groupId>org.thymeleaf</groupId>
+			<artifactId>thymeleaf-spring4</artifactId>
+			<!-- Avoid org.hibernate.jpa.boot.archive.spi.ArchiveException: Could not build ClassFile in Java 8 -->
+			<exclusions>
+				<exclusion>
+					<artifactId>javassist</artifactId>
+					<groupId>org.javassist</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.thymeleaf.extras</groupId>
+			<artifactId>thymeleaf-extras-springsecurity4</artifactId>
+		</dependency>
+
+		<!-- Persistence -->
+		<!-- MySQL -->
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.zaxxer</groupId>
+			<artifactId>HikariCP</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-orm</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-entitymanager</artifactId>
+		</dependency>
+
+		<!-- Avoid: javax.validation.ValidationException: HV000183: Unable to load 'javax.el.ExpressionFactory' -->
+		<dependency>
+			<groupId>org.glassfish</groupId>
+			<artifactId>javax.el</artifactId>
+		</dependency>
+		<!-- Java Mail API -->
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
+			<version>1.4.7</version>
+		</dependency>
+
+		<!-- Firebase -->
+		<dependency>
+			<groupId>com.google.firebase</groupId>
+			<artifactId>firebase-admin</artifactId>
+			<version>${firebase.version}</version>
+		</dependency>
+		
+		<!-- Spring Data -->
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-jpa</artifactId>
+		</dependency>
+
+		<!-- Validation -->
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+		</dependency>
+
+		<!-- Logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+		</dependency>
+
+		<!-- @Inject -->
+		<dependency>
+			<groupId>javax.activation</groupId>
+			<artifactId>activation</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context-support</artifactId>
+		</dependency>
+
+		<!-- <dependency> -->
+		<!-- <groupId>velocity</groupId> -->
+		<!-- <artifactId>velocity</artifactId> -->
+		<!-- <version>1.5</version> -->
+		<!-- </dependency> -->
+
+		<dependency>
+			<groupId>javax.inject</groupId>
+			<artifactId>javax.inject</artifactId>
+		</dependency>
+
+		<!-- Servlet -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- JSON -->
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+		</dependency>
+
+		<!-- Need to parser angular dates and other things in html -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+
+		<!-- Test Start -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.hsqldb</groupId>
+			<artifactId>hsqldb</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<!-- <version>${assertj-core-version}</version> -->
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-library</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.objenesis</groupId>
+			<artifactId>objenesis</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Selenium Start -->
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<!-- <version>3.4.0</version> -->
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-chrome-driver</artifactId>
+			<!-- <version>3.4.0</version> -->
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-firefox-driver</artifactId>
+			<!-- <version>3.4.0</version> -->
+			<scope>test</scope>
+		</dependency>
+		<!-- Selenium End -->
+		<!-- Test End -->
+
+		<!-- Sonar -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.sonarsource.sonarqube</groupId> -->
+<!-- 			<artifactId>sonar-plugin-api</artifactId> -->
+<!-- 			<version>6.3.1</version> -->
+<!-- 			<scope>test</scope> -->
+<!-- 		</dependency> -->
+
+		<!-- Upload files -->
+		<dependency>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+		</dependency>
+		
+		<!-- Iban Validator -->
+		<dependency>
+			<groupId>commons-validator</groupId>
+			<artifactId>commons-validator</artifactId>
+			<version>1.4.1</version>
+		</dependency>
+
+		<!-- Mycilla, linceses -->
+		<dependency>
+			<groupId>com.mycila</groupId>
+			<artifactId>license-maven-plugin</artifactId>
+			<version>3.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.maven</groupId>
+					<artifactId>maven-model</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.el</groupId>
+					<artifactId>javax.el-api</artifactId>
+				</exclusion>
+			</exclusions>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- IText -->
+		<dependency>
+			<groupId>com.lowagie</groupId>
+			<artifactId>itext</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>xml-apis</artifactId>
+					<groupId>xml-apis</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- AEAT -->
+		<dependency>
+			<groupId>valnif</groupId>
+			<artifactId>valnif</artifactId>
+			<version>${valnif.version}</version>
+		</dependency>
+	</dependencies>
+	<!-- ********************** END Dependencies ********************** -->
+
+
+	<!-- ********************** START Build *************************** -->
+	<build>
+		<plugins>
+
+			<!-- mycila, management licenses -->
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>3.0</version>
+				<configuration>
+					<header>com/mycila/maven/plugin/license/templates/APACHE-2.txt</header>
+					<properties>
+						<owner>Pablo Grela Palleiro</owner>
+						<email>pablogp_9@hotmail.com</email>
+					</properties>
+					<excludes>
+						<exclude>doc/**</exclude>
+						<exclude>logs/**</exclude>
+						<exclude>**/README</exclude>
+						<exclude>**/LICENSE</exclude>
+						<exclude>src/test/resources/**</exclude>
+						<exclude>src/main/resources/**</exclude>
+						<exclude>src/main/java/org/cuacfm/members/model/util/sepa/**</exclude>
+						<exclude>src/main/webapp/resources/js/libraries/**</exclude>
+						<exclude>src/main/webapp/resources/js/various/formcfg-gl.js</exclude>
+						<exclude>src/main/webapp/resources/js/various/formcfg-es.js</exclude>
+						<exclude>src/main/webapp/resources/css/libraries/**</exclude>
+						<exclude>src/main/webapp/resources/css/fonts/**</exclude>
+						<exclude>src/main/webapp/resources/json/**</exclude>
+						<exclude>src/main/webapp/WEB-INF/i18n/**</exclude>
+						<exclude>sonar-project.properties</exclude>
+						<exclude>.scannerwork/**</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+							<goal>format</goal>
+							<goal>remove</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
+				<configuration>
+					<source>${java-version}</source>
+					<target>${java-version}</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>${maven-war-plugin.version}</version>
+				<configuration>
+					<warName>members</warName>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>deploy</id>
+						<phase>deploy</phase>
+						<goals>
+							<goal>sources</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>${maven-resources-plugin.version}</version>
+				<configuration>
+					<encoding>${project.build.sourceEncoding}</encoding>
+				</configuration>
+			</plugin>
+
+			<!-- Sonar -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>sonar-maven-plugin</artifactId>
+				<version>${sonar-maven-plugin.version}</version>
+			</plugin>
+			
+			<!-- Jacoco, analysis code, similar to cobertura -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco-maven-plugin.version}</version>
+				<configuration>
+					<outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
+					<excludes>
+						<exclude>org/cuacfm/members/config/**/*.class</exclude>
+						<exclude>org/cuacfm/members/model/accountservice/JsonToAccount.class</exclude>
+						<exclude>org/cuacfm/members/model/programservice/JsonToProgram.class</exclude>
+						<exclude>org/cuacfm/members/model/util/**/*.class</exclude>
+						<exclude>org/cuacfm/members/web/api/**/*.class</exclude>
+						<exclude>org/cuacfm/members/web/error/CustomErrorController.class</exclude>
+						<exclude>org/cuacfm/members/web/signin/SigninController.class</exclude>
+						<exclude>org/cuacfm/members/web/support/**/*.class</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>post-unit-test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Maven Site -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>${maven-project-info-reports-plugin.version}</version>
+				<configuration>
+					<dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+				</configuration>
+			</plugin>
+
+			<!-- Cobertura -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>cobertura-maven-plugin</artifactId>
+				<version>${cobertura-maven-plugin.version}</version>
+				<configuration>
+					<instrumentation>
+						<excludes>
+							<exclude>org/cuacfm/members/config/**/*.class</exclude>
+							<exclude>org/cuacfm/members/model/accountservice/JsonToAccount.class</exclude>
+							<exclude>org/cuacfm/members/model/programservice/JsonToProgram.class</exclude>
+							<exclude>org/cuacfm/members/model/util/**/*.class</exclude>
+							<exclude>org/cuacfm/members/web/api/**/*.class</exclude>
+							<exclude>org/cuacfm/members/web/error/CustomErrorController.class</exclude>
+							<exclude>org/cuacfm/members/web/signin/SigninController.class</exclude>
+							<exclude>org/cuacfm/members/web/support/**/*.class</exclude>
+						</excludes>
+					</instrumentation>
+					<formats>
+						<format>html</format>
+						<format>xml</format>
+					</formats>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+		</plugins>
+	</build>
+	<!-- ********************** END Build *************************** -->
+
+</project>

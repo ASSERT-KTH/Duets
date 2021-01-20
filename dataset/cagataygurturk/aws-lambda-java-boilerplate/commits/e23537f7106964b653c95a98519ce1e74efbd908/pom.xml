@@ -1,0 +1,149 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.cagataygurturk</groupId>
+    <artifactId>aws-lambda-java-boilerplate</artifactId>
+    <packaging>jar</packaging>
+    <version>0.0.1</version>
+    <name>aws-lambda-java-boilerplate</name>
+
+    <properties>
+        <spring.version>4.2.4.RELEASE</spring.version>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>production</id>
+            <properties>
+                <localrunner.scope>provided</localrunner.scope>
+            </properties>
+            <activation>
+                <property>
+                    <name>env</name>
+                    <value>production</value>
+                </property>
+            </activation>
+        </profile>
+        <profile>
+            <id>test</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <localrunner.scope>compile</localrunner.scope>
+            </properties>
+        </profile>
+    </profiles>
+
+    <repositories>
+        <!--
+             Repository for some custom plugins
+        -->
+        <repository>
+            <id>cagatay-gurturk</id>
+            <url>http://maven.cagataygurturk.com/releases</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+
+        <!-- Spring -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+
+
+        <!-- LAMBDA SPECIFIC DEPENDENCIES -->
+
+        <!-- LOCAL RUN DEPENDENCIES -->
+        <dependency>
+            <groupId>com.cagataygurturk</groupId>
+            <artifactId>aws-lambda-local-runner</artifactId>
+            <version>0.0.1</version>
+            <!--
+            Scope: provided makes this dependency to be excluded from deployment package
+            So it extremely reduces JAR package size
+
+            -->
+            <scope>${localrunner.scope}</scope>
+        </dependency>
+
+
+        <!-- AWS Lambda dependencies -->
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-lambda-java-core</artifactId>
+            <version>1.1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-lambda-java-log4j</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
+
+        <!-- Good old JUnit for testing -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <!--
+                Maven Shade plugin packages the project to a fat JAR with all required dependencies.
+                With minimum dependencies it should create a 5 MB jar file.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--
+            exec-maven-plugin is used to run and debug the function locally
+
+            See https://github.com/cagataygurturk/aws-lambda-local-runner for more details
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <configuration>
+                    <mainClass>com.cagataygurturk.lambda.LocalRunner</mainClass>
+                    <arguments>
+                        <argument>com.cagataygurturk.example.lambda.MainHandler</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.2</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+
+</project>

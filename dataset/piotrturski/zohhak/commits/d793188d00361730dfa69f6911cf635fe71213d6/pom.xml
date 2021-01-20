@@ -1,0 +1,237 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
+	<groupId>com.googlecode.zohhak</groupId>
+	<artifactId>zohhak</artifactId>
+	<packaging>jar</packaging>
+	<version>1.0.2-SNAPSHOT</version>
+
+	<name>Zohhak</name>
+	<description>Zohhak aims to make parameterized junit tests easy</description>
+	<url>http://zohhak.googlecode.com</url>
+
+	<scm>
+		<connection>scm:git:http://code.google.com/p/zohhak/</connection>
+		<developerConnection>scm:git:https://code.google.com/p/zohhak/</developerConnection>
+		<url>http://code.google.com/p/zohhak/source/browse</url>
+	</scm>
+
+	<licenses>
+		<license>
+			<name>LGPL 3.0</name>
+			<url>http://www.gnu.org/licenses/lgpl-3.0.txt</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Piotr Turski</name>
+			<email>piotr.turski@gmail.com</email>
+		</developer>
+	</developers>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.5.1</version>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+
+					<compilerArgument>-Xlint:all</compilerArgument>
+
+					<compilerArguments>
+						<Werror />
+					</compilerArguments>
+
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.12.3</version>
+				<configuration>
+					<excludes>
+						<exclude>**/programmatic/**</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.5.1</version>
+				<executions>
+					<execution>
+						<id>analyze</id>
+						<goals>
+							<goal>analyze-only</goal>
+						</goals>
+						<configuration>
+							<failOnWarning>true</failOnWarning>
+						</configuration>
+					</execution>
+					<execution>
+						<id>copy-dependency-jars-to-tattletale-source-directory</id>
+						<phase>pre-site</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${tattletale-source-directory}</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- ... gather up the last jars -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.4.2</version>
+				<executions>
+					<execution>
+						<id>copy-project-jar-and-java-rt-jar-to-tattletale-source-directory</id>
+						<phase>pre-site</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${tattletale-source-directory}</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.build.directory}</directory>
+									<filtering>false</filtering>
+									<includes>
+										<include>${project.build.finalName}.jar</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>${java.home}/lib</directory>
+									<filtering>false</filtering>
+									<includes>
+										<include>rt.jar</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Run the Tattletale Report -->
+			<plugin>
+				<groupId>org.jboss.tattletale</groupId>
+				<artifactId>tattletale-maven</artifactId>
+				<version>1.2.0.Beta2</version>
+				<!-- <version>1.1.2.Final</version> -->
+				<executions>
+					<execution>
+						<id>run-tattletale-report</id>
+						<phase>site</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+						<configuration>
+							<source>${tattletale-source-directory}</source>
+							<destination>${tattletale-destination-directory}</destination>
+							<profiles>
+								<profile>java5</profile>
+							</profiles>
+							<!-- <reports> -->
+							<!-- <report>circulardependency</report> -->
+							<!-- <report>sign</report> -->
+							<!-- <report>eliminatejars</report> -->
+							<!-- <report>invalidversion</report> -->
+							<!-- <report>multiplejars</report> -->
+							<!-- <report>multiplejarspackage</report> -->
+							<!-- <report>multiplelocations</report> -->
+							<!-- <report>unusedjar</report> -->
+							<!-- <report>noversion</report> -->
+							<!-- </reports> -->
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>2.9.1</version>
+				<configuration>
+					<enableRulesSummary>false</enableRulesSummary>
+					<configLocation>imports.xml</configLocation>
+					<maxAllowedViolations>0</maxAllowedViolations>
+					<consoleOutput>true</consoleOutput>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.3</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>ossrh</serverId>
+					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<autoReleaseAfterClose>false</autoReleaseAfterClose>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<tattletale-source-directory>${project.build.directory}/tattletale-source</tattletale-source-directory>
+		<tattletale-destination-directory>${project.build.directory}/site/tattletale</tattletale-destination-directory>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit-dep</artifactId>
+			<version>4.10</version>
+			<!-- specific version instead of range because of 'null version' problem -->
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>1.9.5</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.lambdaj</groupId>
+			<artifactId>lambdaj</artifactId>
+			<version>2.3.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>1.5.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>15.0</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

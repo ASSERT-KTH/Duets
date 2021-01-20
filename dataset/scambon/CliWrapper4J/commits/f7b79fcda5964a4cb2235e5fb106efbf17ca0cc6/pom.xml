@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2018 Sylvain Cambon Licensed under the Apache License, Version 
+	2.0 (the "License"); you may not use this file except in compliance with 
+	the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 
+	Unless required by applicable law or agreed to in writing, software distributed 
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
+	the specific language governing permissions and limitations under the License. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>io.github.scambon</groupId>
+	<artifactId>io.github.scambon.cliwrapper4j</artifactId>
+	<version>0.2.0</version>
+
+	<name>CliWrapper4J</name>
+	<description>A library to quickly build Java-friendly APIs to call command line applications</description>
+	<url>https://scambon.github.com/CliWrapper4J</url>
+	<inceptionYear>2018</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0 (the "License")</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Sylvain CAMBON</name>
+			<id>Sylvain CAMBON</id>
+			<timezone>1</timezone>
+			<properties>
+				<github>@scambon</github>
+				<twitter>@Sylvain_Cambon</twitter>
+				<linkedin>sylvaincambon</linkedin>
+			</properties>
+		</developer>
+	</developers>
+
+	<scm>
+		<url>https://github.com/scambon/CliWrapper4J.git</url>
+		<connection>scm:https://github.com/scambon/CliWrapper4J.git</connection>
+	</scm>
+	<issueManagement>
+		<system>GitHub Issues</system>
+		<url>https://github.com/scambon/CliWrapper4J/issues</url>
+	</issueManagement>
+	<ciManagement>
+		<system>Travis CI</system>
+		<url>https://travis-ci.com/scambon/CliWrapper4J</url>
+	</ciManagement>
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+		</repository>
+	</distributionManagement>
+
+	<properties>
+		<!-- Dependency versions -->
+		<junit.version>5.3.2</junit.version>
+
+		<!-- Plugin versions -->
+		<git.version>2.2.5</git.version>
+		<gpg.version>1.6</gpg.version>
+		<jar.version>3.1.1</jar.version>
+		<jacoco.version>0.8.2</jacoco.version>
+		<javadoc.version>3.0.1</javadoc.version>
+		<nexus-staging.version>1.6.8</nexus-staging.version>
+		<sonar.version>3.5.0.1254</sonar.version>
+		<source.version>3.0.1</source.version>
+		<surefire.version>2.22.1</surefire.version>
+
+		<!-- Plugin configurations -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java.version>1.8</java.version>
+		<maven.compiler.source>${java.version}</maven.compiler.source>
+		<maven.compiler.target>${java.version}</maven.compiler.target>
+		<jpms.module.automatic.name>${project.artifactId}</jpms.module.automatic.name>
+		<!-- SonarQube configurations -->
+		<sonar.projectKey>scambon_CliWrapper4J</sonar.projectKey>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<!-- Get the commit hash -->
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
+				<version>${git.version}</version>
+				<executions>
+					<execution>
+						<id>git-data</id>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Generate the jar -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>${jar.version}</version>
+				<configuration>
+					<archive>
+						<manifestEntries>
+							<Automatic-Module-Name>${jpms.module.automatic.name}</Automatic-Module-Name>
+							<!-- Include the Git commit hash in the manifest -->
+							<Git-Commit-Id>${git.commit.id}</Git-Commit-Id>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<!-- Monitor coverage -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+						<phase>generate-resources</phase>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Run the tests -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>${surefire.version}</version>
+				<configuration>
+					<argLine>@{argLine}</argLine>
+					<trimStackTrace>false</trimStackTrace>
+				</configuration>
+			</plugin>
+
+			<!-- Generate the source jar -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>${source.version}</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Generate JavaDoc -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${javadoc.version}</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<excludePackageNames>*.internal</excludePackageNames>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Sign artifacts -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>${gpg.version}</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<!-- Monitor qualimetry -->
+					<plugin>
+						<groupId>org.sonarsource.scanner.maven</groupId>
+						<artifactId>sonar-maven-plugin</artifactId>
+						<version>${sonar.version}</version>
+						<executions>
+							<execution>
+								<phase>verify</phase>
+								<goals>
+									<goal>sonar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!-- Release to Maven central -->
+					<plugin>
+						<groupId>org.sonatype.plugins</groupId>
+						<artifactId>nexus-staging-maven-plugin</artifactId>
+						<version>${nexus-staging.version}</version>
+						<extensions>true</extensions>
+						<configuration>
+							<serverId>ossrh</serverId>
+							<nexusUrl>https://oss.sonatype.org</nexusUrl>
+							<autoReleaseAfterClose>true</autoReleaseAfterClose>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>

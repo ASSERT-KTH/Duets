@@ -1,0 +1,384 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.github.marschall</groupId>
+  <artifactId>jdeps-maven-plugin</artifactId>
+  <version>0.2.0</version>
+  <inceptionYear>2013</inceptionYear>
+  <url>https://github.com/marschall/maven-jdeps-plugin</url>
+  <packaging>maven-plugin</packaging>
+
+  <name>Maven jdeps plugin</name>
+  <description>
+    Runs the jdeps dependency analysis tool.
+  </description>
+  
+  <prerequisites>
+    <maven>3.0</maven>
+  </prerequisites>
+  
+  <developers>
+    <developer>
+      <id>marschall</id>
+      <name>Philippe Marschall</name>
+      <email>philippe.marschall@gmail.com</email>
+      <timezone>+1</timezone>
+      <url>https://github.com/marschall</url>
+    </developer>
+  </developers>
+  
+  <licenses>
+    <license>
+      <name>MIT</name>
+      <url>http://opensource.org/licenses/MIT</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/marschall/jdeps-maven-plugin/issues</url>
+  </issueManagement>
+  
+  <scm>
+    <connection>scm:git:git@github.com:marschall/jdeps-maven-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:marschall/jdeps-maven-plugin.git</developerConnection>
+    <url>${project.url}</url>
+    <tag>0.2.0</tag>
+  </scm>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+      <version>${mavenVersion}</version>
+    </dependency>
+    <!-- dependencies to annotations -->
+    <dependency>
+      <groupId>org.apache.maven.plugin-tools</groupId>
+      <artifactId>maven-plugin-annotations</artifactId>
+      <version>${maven.plugin.version}</version>
+      <!-- annotations are not needed for plugin execution so you can remove this dependency
+           for execution with using provided scope -->
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+      <version>${mavenVersion}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.3.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-utils</artifactId>
+      <version>3.0.17</version>
+    </dependency>
+  </dependencies>
+  
+  <distributionManagement>
+    <snapshotRepository>
+      <id>sonatype-nexus-snapshots</id>
+      <name>Sonatype Nexus Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </snapshotRepository>
+    <repository>
+      <id>sonatype-nexus-staging</id>
+      <name>Nexus Release Repository</name>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+    <site>
+      <!-- This local directory is used to push the plugin documentation to the gh-pages branch. -->
+      <id>local</id>
+      <url>file://${site.deploy.directory}</url>
+    </site>
+  </distributionManagement>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-toolchains-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>validate</phase>
+            <goals>
+              <goal>toolchain</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <toolchains>
+            <jdk>
+              <version>[1.7,1.8)</version>
+            </jdk>
+          </toolchains>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <configuration>
+          <!-- see http://jira.codehaus.org/browse/MNG-5346 -->
+          <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+        </configuration>
+        <executions>
+          <execution>
+            <id>mojo-descriptor</id>
+            <goals>
+              <goal>descriptor</goal>
+            </goals>
+          </execution>
+          <!-- if you want to generate help goal -->
+          <execution>
+            <id>help-goal</id>
+            <goals>
+              <goal>helpmojo</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>generate-descriptor</id>
+            <goals>
+              <goal>descriptor</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <links>
+            <link>http://docs.oracle.com/javase/7/docs/api/</link>
+            <link>http://maven.apache.org/ref/3.0.5/maven-plugin-api/apidocs/</link>
+            <link>http://maven.apache.org/ref/3.0.5/maven-artifact/apidocs/</link>
+            <link>http://maven.apache.org/ref/3.0.5/maven-model/apidocs/</link>
+            <link>http://maven.apache.org/ref/3.0.5/maven-core/apidocs/</link>
+          </links>
+        </configuration>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <mavenExecutorId>forked-path</mavenExecutorId>
+          <arguments>-Pdeploy-to-sonatype-oss</arguments>
+        </configuration>
+      </plugin>
+    </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-toolchains-plugin</artifactId>
+          <version>1.0</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.1</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>2.5</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>2.3</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>2.9.1</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-plugin-plugin</artifactId>
+          <version>${maven.plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>1.5</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-scm-plugin</artifactId>
+          <version>1.9.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>3.4</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-project-info-reports-plugin</artifactId>
+          <version>2.7</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+  
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-plugin-plugin</artifactId>
+        <version>${maven.plugin.version}</version>
+      </plugin>
+    </plugins>
+  </reporting>
+  
+  <profiles>
+    <profile>
+      <id>deploy-to-sonatype-oss</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    
+
+    <!--
+      This profile creates the plugin documentation and commits it onto the gh-pages branch in this local git
+      repository.
+      The profile works as follows:
+      - verify phase:
+      - clone this local git repository into ${site.deploy.directory} and checkout the gh-pages branch
+      - create the maven site at its default location
+      - install phase: deploy the maven site to ${site.deploy.directory}
+      - deploy phase:
+      - add all changed file to the Git index
+      - commit the changes and push them back into this local git repository
+      The gh-pages branch is intentionally not pushed to the remote repository within this profile. It could however be
+      easily done with an additional execution of the maven-scm-plugin with ${basedir} as working directory in the
+      deploy phase.
+    -->
+    <profile>
+      <id>create-site</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-site-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>create-site</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>site</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>deploy-site</id>
+                <phase>install</phase>
+                <goals>
+                  <goal>deploy</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-scm-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>checkout-gh-pages</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>checkout</goal>
+                </goals>
+                <configuration>
+                  <connectionUrl>scm:git:file://${project.basedir}</connectionUrl>
+                  <checkoutDirectory>${site.deploy.directory}</checkoutDirectory>
+                  <scmVersionType>branch</scmVersionType>
+                  <scmVersion>gh-pages</scmVersion>
+                </configuration>
+              </execution>
+              <execution>
+                <id>add-site</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>add</goal>
+                </goals>
+                <configuration>
+                  <workingDirectory>${site.deploy.directory}</workingDirectory>
+                  <includes>*</includes>
+                </configuration>
+              </execution>
+              <execution>
+                <id>push-site</id>
+                <phase>deploy</phase>
+                <goals>
+                  <goal>checkin</goal>
+                </goals>
+                <configuration>
+                  <connectionUrl>scm:git:file://${project.basedir}</connectionUrl>
+                  <developerConnectionUrl>scm:git:file://${project.basedir}</developerConnectionUrl>
+                  <workingDirectory>${site.deploy.directory}</workingDirectory>
+                  <message>Re-generated site</message>
+                  <pushChanges>true</pushChanges>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+  
+  <properties>
+    <project.reporting.outputEncoding>utf-8</project.reporting.outputEncoding>
+    <project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
+    <mavenVersion>3.0.5</mavenVersion>
+    <maven.plugin.version>3.3</maven.plugin.version>
+  </properties>
+  
+</project>

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.vertx</groupId>
+    <artifactId>vertx-parent</artifactId>
+    <version>10</version>
+  </parent>
+
+  <artifactId>vertx-hazelcast</artifactId>
+  <version>3.4.2</version>
+
+  <name>Vert.x Hazelcast Cluster Manager</name>
+
+  <properties>
+    <stack.version>3.4.2</stack.version>
+    <asciidoc.dir>${project.basedir}/src/main/asciidoc</asciidoc.dir>
+    <hazelcast.version>3.6.3</hazelcast.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-dependencies</artifactId>
+        <version>${stack.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.hazelcast</groupId>
+      <artifactId>hazelcast</artifactId>
+      <version>${hazelcast.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-docgen</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-codetrans</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-core</artifactId>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.hazelcast</groupId>
+      <artifactId>hazelcast-client</artifactId>
+      <version>${hazelcast.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-compile</id>
+            <configuration>
+              <annotationProcessors>
+                <annotationProcessor>io.vertx.docgen.JavaDocGenProcessor</annotationProcessor>
+              </annotationProcessors>
+              <compilerArgs>
+                <arg>-Adocgen.output=${asciidoc.dir}/$lang</arg>
+                <arg>-Amaven.groupId=${project.groupId}</arg>
+                <arg>-Amaven.artifactId=${project.artifactId}</arg>
+                <arg>-Amaven.version=${project.version}</arg>
+                <arg>-Ahazelcast.version=${hazelcast.version}</arg>
+              </compilerArgs>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.asciidoctor</groupId>
+        <artifactId>asciidoctor-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>process-asciidoc</goal>
+            </goals>
+            <phase>prepare-package</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven.surefire.plugin.version}</version>
+        <configuration>
+          <failIfNoSpecifiedTests>false</failIfNoSpecifiedTests>
+          <systemPropertyVariables>
+            <io.netty.leakDetectionLevel>PARANOID</io.netty.leakDetectionLevel>
+            <buildDirectory>${project.build.directory}</buildDirectory>
+            <vertxVersion>${project.version}</vertxVersion>
+            <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
+          </systemPropertyVariables>
+          <!-- Needs to be small enough to run in a EC2 1.7GB small instance -->
+          <argLine>-Xmx1200M</argLine>
+          <forkCount>1</forkCount>
+          <reuseForks>true</reuseForks>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>package-docs</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <attach>true</attach>
+              <descriptors>
+                <descriptor>${basedir}/src/main/assembly/docs.xml</descriptor>
+              </descriptors>
+              <archive>
+                 <manifestFile>${project.build.directory}/classes/META-INF/MANIFEST.MF</manifestFile>
+              </archive>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>biz.aQute.bnd</groupId>
+        <artifactId>bnd-maven-plugin</artifactId>
+        <version>3.2.0</version>
+
+        <executions>
+          <execution>
+            <id>default-bnd-process</id>
+            <goals>
+              <goal>bnd-process</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <bnd><![CDATA[
+          Import-Package: \
+	          *
+	        -exportcontents: !*impl, !examples, *
+          ]]></bnd>
+        </configuration>
+      </plugin>
+	  <plugin>
+	    <groupId>org.apache.maven.plugins</groupId>
+	    <artifactId>maven-jar-plugin</artifactId>
+	    <configuration>
+	        <archive>
+	            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+	        </archive>
+	    </configuration>
+	  </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>coverage</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>${maven.surefire.plugin.version}</version>
+            <configuration>
+              <failIfNoSpecifiedTests>false</failIfNoSpecifiedTests>
+              <systemPropertyVariables>
+                <io.netty.leakDetectionLevel>PARANOID</io.netty.leakDetectionLevel>
+                <buildDirectory>${project.build.directory}</buildDirectory>
+                <vertxVersion>${project.version}</vertxVersion>
+                <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
+              </systemPropertyVariables>
+              <!-- Needs to be small enough to run in a EC2 1.7GB small instance -->
+              <!-- append computed argLine computed by jacoco -->
+              <argLine>-Xmx1200M @{surefireArgLine}</argLine>
+              <forkCount>1</forkCount>
+              <reuseForks>true</reuseForks>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+</project>

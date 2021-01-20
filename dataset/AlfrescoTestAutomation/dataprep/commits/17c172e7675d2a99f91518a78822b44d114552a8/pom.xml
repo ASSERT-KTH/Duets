@@ -1,0 +1,305 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>dataprep</artifactId>
+	<packaging>jar</packaging>
+	<name>Alfresco Dataprep</name>
+	<description>Alfresco dataprep, collection of helpers to prepare and load Alfresco test data</description>
+	<groupId>org.alfresco.test</groupId>
+	<version>1.23-SNAPSHOT</version>
+	<organization>
+		<name>Alfresco Software</name>
+		<url>http://www.alfresco.com/</url>
+	</organization>
+	<developers>
+		<developer>
+			<name>Michael Suzuki</name>
+			<roles>
+				<role>Lead Engineer</role>
+			</roles>
+		</developer>
+	</developers>
+	<licenses>
+		<license>
+			<name>Apache 2</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+	<scm>
+		<connection>scm:git:https://github.com/AlfrescoTestAutomation/dataprep.git</connection>
+		<url>https://github.com/AlfrescoTestAutomation/dataprep</url>
+		<developerConnection>scm:git:https://github.com/AlfrescoTestAutomation/dataprep.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+	<properties>
+		<spring.version>4.1.6.RELEASE</spring.version>
+		<enterprise.installer.path>/data/bamboo/artifacts/${enterprise.build.plan}/ALL/alfresco-enterprise-*-installer-linux-x64.???</enterprise.installer.path>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.alfresco.test</groupId>
+			<artifactId>alfresco-testng</artifactId>
+			<version>1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20140107</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.alfresco</groupId>
+			<artifactId>alfresco-benchmark-spring-social</artifactId>
+			<version>1.0.0</version>
+ 			<exclusions>
+                		<exclusion>
+                   	 		<groupId>org.alfresco.services.sync</groupId>
+                    			<artifactId>service-synchronization-api</artifactId>
+               			</exclusion>
+            		</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+			<version>${spring.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${spring.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aspects</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.chemistry.opencmis</groupId>
+			<artifactId>chemistry-opencmis-commons-api</artifactId>
+			<version>0.13.0</version>
+		</dependency>
+		<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+			<version>2.8.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.alfresco.cmis.client</groupId>
+			<artifactId>alfresco-opencmis-extension</artifactId>
+			<version>0.3</version>
+		</dependency>
+	</dependencies>
+	<distributionManagement>
+		<repository>
+			<id>alfresco-internal</id>
+			<name>Alfresco Releases Repository</name>
+			<url>https://artifacts.alfresco.com/nexus/content/repositories/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>alfresco-internal-snapshots</id>
+			<name>Alfresco Snapshots Repository </name>
+			<url>https://artifacts.alfresco.com/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5.3</version>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>versions-maven-plugin</artifactId>
+				<version>2.1</version>
+			</plugin>
+			<plugin>
+				<!-- Configuration triggered by mvn antrun:run, used by Bamboo to stop 
+					server -->
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<id>default-cli</id>
+						<configuration>
+							<target>
+								<echo>Stopping Alfresco...</echo>
+								<exec dir="target/alf-installation" executable="${basedir}/target/alf-installation/alfresco.sh" failonerror="true">
+									<arg value="stop" />
+								</exec>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.18.1</version>
+				<configuration>
+					<suiteXmlFiles>
+						<suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
+					</suiteXmlFiles>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.5.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.4</version>
+				<configuration>
+					<additionalparam>-Xdoclint:none</additionalparam>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<profiles>
+		<profile>
+			<id>install-alfresco</id>
+			<build>
+				<plugins>
+					<!-- Download and install the latest enterprise alfresco installer -->
+					<plugin>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.8</version>
+						<executions>
+							<execution>
+								<id>fetch-installer</id>
+								<phase>generate-test-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<echo>Recreating database...</echo>
+										<sql autocommit="true" driver="org.postgresql.Driver" password="alfresco" url="jdbc:postgresql:template1" userid="alfresco">drop
+											database if exists alfresco; create database alfresco</sql>
+										<echo>Downloading Alfresco installer...</echo>
+										<sshexec command="ls -rt ${enterprise.installer.path} | tail -1 | tr ' ' '?' " host="pbam01.alfresco.com" keyfile="${user.home}/.ssh/id_rsa" outputproperty="installerPath" username="tomcat" />
+										<scp keyfile="${user.home}/.ssh/id_rsa" localTofile="target/alf-installer.bin" remoteFile="tomcat@pbam01.alfresco.com:${installerPath}" />
+										<chmod file="target/alf-installer.bin" perm="a+x" verbose="true" />
+										<echo>Installing Alfresco...</echo>
+										<exec dir="target" executable="${basedir}/target/alf-installer.bin" failonerror="true">
+											<arg line="--mode unattended --alfresco_admin_password admin --disable-components postgres,alfrescowcmqs --jdbc_username alfresco --jdbc_password alfresco --prefix ${basedir}/target/alf-installation" />
+										</exec>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+						<dependencies>
+							<dependency>
+								<groupId>org.apache.ant</groupId>
+								<artifactId>ant-jsch</artifactId>
+								<version>1.8.2</version>
+							</dependency>
+							<dependency>
+								<groupId>postgresql</groupId>
+								<artifactId>postgresql</artifactId>
+								<version>9.1-901-1.jdbc4</version>
+							</dependency>
+						</dependencies>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>run-alfresco</id>
+			<build>
+				<plugins>
+					<!-- Fetch JaCoCo agent and set the argLine property accordingly -->
+					<plugin>
+						<groupId>org.jacoco</groupId>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<version>0.7.3.201502191951</version>
+						<executions>
+							<execution>
+								<id>prepare-jacoco</id>
+								<goals>
+									<goal>prepare-agent</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<includes>
+								<include>org.alfresco.*</include>
+							</includes>
+						</configuration>
+					</plugin>
+					<!-- Starts/stop the installed Alfresco -->
+					<plugin>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.8</version>
+						<executions>
+							<execution>
+								<id>start-alfresco</id>
+								<phase>process-test-classes</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<echo>Starting Alfresco...</echo>
+										<exec dir="target/alf-installation" executable="${basedir}/target/alf-installation/alfresco.sh" failonerror="true">
+											<arg value="start" />
+											<env key="CATALINA_OPTS" value="${argLine}" />
+										</exec>
+										<sleep minutes="5" />
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>stop-alfresco</id>
+								<phase>post-integration-test</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<echo>Stopping Alfresco...</echo>
+										<exec dir="target/alf-installation" executable="${basedir}/target/alf-installation/alfresco.sh" failonerror="true">
+											<arg value="stop" />
+										</exec>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>

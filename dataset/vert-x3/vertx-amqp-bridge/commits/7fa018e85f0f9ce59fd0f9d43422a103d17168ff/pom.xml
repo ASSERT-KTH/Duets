@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright 2016 the original author or authors.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+--><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.vertx</groupId>
+    <artifactId>vertx-ext-parent</artifactId>
+    <version>37</version>
+  </parent>
+
+  <artifactId>vertx-amqp-bridge</artifactId>
+  <version>3.9.5-SNAPSHOT</version>
+
+  <name>Vert.x AMQP Bridge</name>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <properties>
+    <stack.version>3.9.5-SNAPSHOT</stack.version>
+    <!-- Test dependency versions -->
+    <junit.version>4.13.1</junit.version>
+    <activemq.version>5.14.2</activemq.version>
+  </properties>
+
+  <scm>
+    <connection>scm:git:git@github.com:vert-x3/vertx-amqp-bridge.git</connection>
+    <developerConnection>scm:git:git@github.com:vert-x3/vertx-amqp-bridge.git</developerConnection>
+    <url>git@github.com:vert-x3/vertx-amqp-bridge.git</url>
+  </scm>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-dependencies</artifactId>
+        <version>${stack.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <!-- primary deps -->
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-proton</artifactId>
+    </dependency>
+
+    <!-- language bindings -->
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-codegen</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- test -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-unit</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-broker</artifactId>
+      <version>${activemq.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-amqp</artifactId>
+      <version>${activemq.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-jaas</artifactId>
+      <version>${activemq.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- doc -->
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-docgen</artifactId>
+      <optional>true</optional>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <resources>
+      <resource>
+        <directory>${project.basedir}/src/main/resources</directory>
+        <includes>
+          <include>**/*</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>${project.basedir}/src/main/filtered-resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>**/*</include>
+        </includes>
+      </resource>
+    </resources>
+    <plugins>
+		<plugin>
+			<artifactId>maven-jar-plugin</artifactId>
+			<executions>
+				<execution>
+					<id>default-jar</id>
+					<configuration>
+						<archive>
+							<!-- Generate a jar INDEX.LIST -->
+							<index>true</index>
+							<!-- A manifest containing the OSGi metadata has been generated using 
+								the maven-bundle-plugin -->
+							<manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+							<!-- Add the Maven coordinates in the manifest -->
+							<manifestEntries>
+								<Maven-Group-Id>${project.groupId}</Maven-Group-Id>
+								<Maven-Artifact-Id>${project.artifactId}</Maven-Artifact-Id>
+								<Maven-Version>${project.version}</Maven-Version>
+							</manifestEntries>
+						</archive>
+						<!-- Remove examples and docoverride -->
+						<excludes>
+							<exclude>/docoverride/**</exclude>
+							<exclude>/examples/**</exclude>
+						</excludes>
+					</configuration>
+				</execution>
+			</executions>
+		</plugin>
+		<plugin>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>maven-bundle-plugin</artifactId>
+			<version>2.5.3</version>
+			<executions>
+				<execution>
+					<id>bundle-manifest</id>
+					<phase>process-classes</phase>
+					<goals>
+						<goal>manifest</goal>
+					</goals>
+					<configuration>
+						<instructions>
+							<Export-Package>io.vertx.amqpbridge.*</Export-Package>
+							<Private-Package>!docoverride*, !examples*</Private-Package>
+							<Import-Package>org.slf4j*;resolution:=optional,
+								org.apache.log4j;resolution:=optional,
+								org.apache.logging.log4*;resolution:=optional,
+								*
+							</Import-Package>
+						</instructions>
+					</configuration>
+				</execution>
+			</executions>
+		</plugin>
+    </plugins>
+  </build>
+</project>

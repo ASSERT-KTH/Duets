@@ -1,0 +1,118 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>me.coley</groupId>
+	<artifactId>cclicker</artifactId>
+	<version>1.0</version>
+	<name>CClicker</name>
+	<description>A JNA autoclicker with a normal-distribution random delay.</description>
+	<!-- Profiles for windows and mac systems that define the path for
+	     the JDK's lib folder. This allows using the tools jar file in
+	     a cross-platform way without having to use the old version on
+	     maven central.
+
+	     Sadly, this will not work in JDK-9+ due to the removal of
+	     the tools jar... The classes still exist but they've been
+	     moved.
+	 -->
+	<profiles>
+		<profile>
+			<id>windows-profile</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<file>
+					<exists>${env.JAVA_HOME)/lib/</exists>
+				</file>
+			</activation>
+			<properties>
+				<toolspath>${env.JAVA_HOME)/lib/</toolspath>
+			</properties>
+		</profile>
+		<profile>
+			<id>mac-profile</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+				<file>
+					<exists>${java.home}/../lib/</exists>
+				</file>
+			</activation>
+			<properties>
+				<toolspath>${java.home}/../lib/</toolspath>
+			</properties>
+		</profile>
+	</profiles>
+	<repositories>
+		<!-- 3rd party repo, used because I'm too lazy to register on the central -->
+		<repository>
+		    <id>jitpack.io</id>
+		    <url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+	<dependencies>
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-math3 -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-math3</artifactId>
+			<version>3.6.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.6</version>
+		</dependency>
+
+		<!-- From jitpack.io -->
+		<dependency>
+			<!-- Implies JNA:4.5.1 -->
+			<groupId>com.github.Col-E</groupId>
+			<artifactId>Simplified-JNA</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<!-- Profile-specific tools dependency -->
+		<dependency>
+			<groupId>com.sun</groupId>
+			<artifactId>tools</artifactId>
+			<scope>system</scope>
+			<version>hello-darkness-my-old-friend</version>
+			<systemPath>${toolspath}/tools.jar</systemPath>
+		</dependency>
+	</dependencies>
+	<build>
+		<sourceDirectory>src</sourceDirectory>
+		<plugins>		
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.6.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>me.coley.clicker.ui.MainGUI</mainClass>
+						</manifest>
+						<manifestEntries>
+							<Premain-Class>me.coley.clicker.agent.Agent</Premain-Class>
+							<Agent-Class>me.coley.clicker.agent.Agent</Agent-Class>
+						</manifestEntries>
+					</archive>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

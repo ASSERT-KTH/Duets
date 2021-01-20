@@ -1,0 +1,217 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<groupId>ru.simsonic</groupId>
+	<artifactId>rscPermissions</artifactId>
+	<version>0.10.10b</version>
+	<packaging>jar</packaging>
+	
+	<name>rscPermissions</name>
+	<url>https://github.com/SimSonic/rscPermissions/</url>
+	
+	<repositories>
+		<!-- Reality_SC's repo with own libraries -->
+		<repository>
+			<id>methuselah-repo</id>
+			<url>https://maven.methuselah.ru/</url>
+		</repository>
+		<!-- Bukkit API / Spigot API -->
+		<repository>
+			<id>spigotmc-repo</id>
+			<url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
+		</repository>
+		<!-- Metrics (mcstats.org) -->
+		<repository>
+			<id>metrics-repo</id>
+			<url>http://repo.mcstats.org/content/repositories/public/</url>
+		</repository>
+		<!-- VaultAPI -->
+		<repository>
+			<id>vault-repo</id>
+			<url>http://nexus.hc.to/content/repositories/pub_releases/</url>
+		</repository>
+		<!-- Region list providers: WorldGuard, Residence -->
+		<repository>
+			<id>sk89q-repo</id>
+			<url>http://maven.sk89q.com/repo/</url>
+		</repository>
+		<!-- Sponge API -->
+		<!--repository>
+			<id>sponge-repo</id>
+			<url>http://repo.spongepowered.org/maven/</url>
+		</repository-->
+	</repositories>
+	
+	<dependencies>
+		<!-- Sponge API (for the future) -->
+		<!--dependency>
+			<groupId>org.spongepowered</groupId>
+			<artifactId>spongeapi</artifactId>
+			<version>6.0.0-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency-->
+		<!-- MySQL JDBC -->
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.40</version>
+			<scope>runtime</scope>
+		</dependency>
+		<!-- Local cache is stored in JSON files  -->
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.8.0</version>
+			<scope>compile</scope>
+		</dependency>
+		<!-- Spigot API -->
+		<dependency>
+			<groupId>org.bukkit</groupId>
+			<artifactId>bukkit</artifactId>
+			<version>1.11.2-R0.1-SNAPSHOT</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- mcstats.org -->
+		<dependency>
+			<groupId>org.mcstats.bukkit</groupId>
+			<artifactId>metrics-lite</artifactId>
+			<version>R8-SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
+		<!-- Reality_SC's libraries -->
+		<dependency>
+			<groupId>ru.simsonic</groupId>
+			<artifactId>rscCommonsLibrary</artifactId>
+			<version>2.2.3</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>ru.simsonic</groupId>
+			<artifactId>rscMinecraftLibrary</artifactId>
+			<version>2.2.2</version>
+			<scope>compile</scope>
+		</dependency>
+		<!-- VaultAPI, WorldGaurg, etc. -->
+		<dependency>
+			<!--groupId>net.milkbowl.vault</groupId-->
+			<groupId>net.milkbowl.vault</groupId>
+			<artifactId>VaultAPI</artifactId>
+			<version>1.6</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.sk89q.worldedit</groupId>
+			<artifactId>worldedit-bukkit</artifactId>
+			<version>6.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.sk89q</groupId>
+			<artifactId>worldguard</artifactId>
+			<version>6.1</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+	
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	
+	<build>
+		<finalName>${project.artifactId}_v${project.version}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.6.1</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+					<debug>true</debug>
+					<verbose>false</verbose>
+					<showDeprecation>true</showDeprecation>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.0.2</version>
+				<configuration>
+					<archive>
+						<addMavenDescriptor>false</addMavenDescriptor>
+						<manifest>
+							<mainClass>${project.groupId}.${project.artifactId}.IndependentMain</mainClass>
+						</manifest>
+					</archive>
+					<excludes>
+						<exclude>.*</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.4.3</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<minimizeJar>true</minimizeJar>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<artifactSet>
+								<includes>
+									<include>com.google.code.gson:gson</include>
+									<include>ru.simsonic:rscCommonsLibrary</include>
+									<include>ru.simsonic:rscMinecraftLibrary</include>
+									<include>org.mcstats.bukkit:metrics-lite</include>
+									<include>net.milkbowl.vault:VaultAPI</include>
+								</includes>
+							</artifactSet>
+							<relocations>
+								<relocation>
+									<pattern>com.google.gson</pattern>
+									<shadedPattern>${project.groupId}.${project.artifactId}.SHADED-com-google-gson</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>ru.simsonic.rscCommonsLibrary</pattern>
+									<shadedPattern>${project.groupId}.${project.artifactId}.SHADED-rscCommonsLibrary</shadedPattern>
+								</relocation>
+								<relocation>
+									<pattern>ru.simsonic.rscMinecraftLibrary</pattern>
+									<shadedPattern>${project.groupId}.${project.artifactId}.SHADED-rscMinecraftLibrary</shadedPattern>
+								</relocation>
+							</relocations>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!--plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.4</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<show>public</show>
+					<nohelp>true</nohelp>
+				</configuration>
+			</plugin-->
+		</plugins>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+	</build>
+</project>

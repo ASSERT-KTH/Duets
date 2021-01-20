@@ -1,0 +1,425 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.vaadin.highcharts</groupId>
+	<artifactId>highcharts</artifactId>
+	<version>2.1-SNAPSHOT</version>
+	<packaging>${packaging.type}</packaging>
+	<name>Highcharts for Vaadin 7</name>
+
+	<organization>
+		<name>Vaadin Community</name>
+	</organization>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<vaadin.version>8.0.5</vaadin.version>
+		<vaadin.plugin.version>${vaadin.version}</vaadin.plugin.version>
+
+		<!-- ZIP Manifest fields -->
+		<Implementation-Version>${project.version}</Implementation-Version>
+		<!-- Must not change this because of the Directory -->
+		<Implementation-Title>${project.name}</Implementation-Title>
+		<Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
+		<Vaadin-License-Title>Apache License 2.0</Vaadin-License-Title>
+		<Vaadin-Addon>${project.artifactId}-${project.version}.jar</Vaadin-Addon>
+	</properties>
+
+	<url>https://github.com/xylo/highcharts-vaadin7</url>
+
+	<developers>
+		<developer>
+			<id>stefan_endrullis</id>
+			<name>Stefan Endrullis</name>
+			<email>stefan@endrullis.de</email>
+			<url>stefan.endrullis.de</url>
+		</developer>
+	</developers>
+
+	<scm>
+		<url>https://github.com/xylo/highcharts-vaadin7</url>
+		<connection>scm:git:git://github.com/xylo/highcharts-vaadin7.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/xylo/highcharts-vaadin7.git</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
+
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/xylo/highcharts-vaadin7</url>
+	</issueManagement>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>A business-friendly OSS license</comments>
+		</license>
+	</licenses>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.vaadin</groupId>
+			<artifactId>vaadin-server</artifactId>
+			<version>${vaadin.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.vaadin</groupId>
+			<artifactId>addon-test-helpers</artifactId>
+			<version>2.0.alpha5</version>
+			<scope>${demo.dependency.scope}</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.vaadin</groupId>
+			<artifactId>vaadin-themes</artifactId>
+			<version>${vaadin.version}</version>
+			<scope>${demo.dependency.scope}</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.vaadin</groupId>
+			<artifactId>vaadin-client-compiled</artifactId>
+			<version>${vaadin.version}</version>
+			<scope>${demo.dependency.scope}</scope>
+		</dependency>
+
+		<!-- AceEditor add-on. -->
+		<dependency>
+			<groupId>org.vaadin.addons</groupId>
+			<artifactId>aceeditor</artifactId>
+			<version>0.8.15</version>
+			<scope>${demo.dependency.scope}</scope>
+		</dependency>
+
+		<!-- compiler module contains GWT compiler, run manually with exec plugin -->
+		<dependency>
+			<groupId>com.vaadin</groupId>
+			<artifactId>vaadin-client-compiler</artifactId>
+			<version>${vaadin.version}</version>
+			<scope>${demo.dependency.scope}</scope>
+			<exclusions>
+				<!-- Exclude Jetty stuff that we don't use and which will conflict
+						with other test dependencies -->
+				<exclusion>
+					<groupId>org.eclipse.jetty</groupId>
+					<artifactId>jetty-annotations</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.eclipse.jetty</groupId>
+					<artifactId>jetty-servlets</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.eclipse.jetty</groupId>
+					<artifactId>jetty-util</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>vaadin-addons</id>
+			<url>http://maven.vaadin.com/vaadin-addons</url>
+		</repository>
+	</repositories>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.5.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>default</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<packaging.type>bundle</packaging.type>
+				<demo.dependency.scope>test</demo.dependency.scope>
+			</properties>
+			<build>
+				<plugins>
+					<!-- add proper OGSI entries to manifest -->
+					<plugin>
+						<groupId>org.apache.felix</groupId>
+						<artifactId>maven-bundle-plugin</artifactId>
+						<version>3.2.0</version>
+						<extensions>true</extensions>
+						<configuration>
+							<instructions>
+								<Export-Package>org.vaadin.highcharts.*</Export-Package>
+							</instructions>
+						</configuration>
+						<executions>
+							<execution>
+								<id>manifest</id>
+								<phase>process-classes</phase>
+								<goals>
+									<goal>manifest</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!-- Skip deployment as we expect the artifact to be manually
+					deployed to vaadin.com/directory -->
+					<plugin>
+						<artifactId>maven-deploy-plugin</artifactId>
+						<version>2.8.2</version>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</plugin>
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jar-plugin</artifactId>
+						<version>3.0.2</version>
+						<configuration>
+							<archive>
+								<index>true</index>
+								<manifest>
+									<addClasspath>true</addClasspath>
+									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+								</manifest>
+								<manifestEntries>
+									<!-- Package format version - do not change -->
+									<Vaadin-Package-Version>1</Vaadin-Package-Version>
+									<Vaadin-License-Title>${Vaadin-License-Title}</Vaadin-License-Title>
+								</manifestEntries>
+							</archive>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-release-plugin</artifactId>
+						<version>2.5.3</version>
+						<configuration>
+							<releaseProfiles>default,directorypackage</releaseProfiles>
+						</configuration>
+					</plugin>
+
+					<!-- Use GWT compiler with exec plugin -->
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>1.5.0</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<phase>test-compile</phase>
+								<configuration>
+									<executable>java</executable>
+									<classpathScope>test</classpathScope>
+									<arguments>
+										<argument>-Xmx2g</argument>
+										<argument>-classpath</argument>
+										<classpath />
+										<argument>com.google.gwt.dev.Compiler</argument>
+										<argument>-war</argument>
+										<argument>target/testwebapp/VAADIN/widgetsets</argument>
+										<argument>org.vaadin.highcharts.DemoWidgetset</argument>
+									</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>directorypackage</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>2.6</version>
+						<configuration>
+							<appendAssemblyId>false</appendAssemblyId>
+							<descriptors>
+								<descriptor>assembly/assembly.xml</descriptor>
+							</descriptors>
+						</configuration>
+						<executions>
+							<execution>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<phase>install</phase>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- build javadocs during development builds as well to
+					 show javadoc syntax issues before release. Remove this
+					 to speed up the build a bit.
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.10.4</version>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>javadoc</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<version>2.19.1</version>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>browsertests</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<version>2.19.1</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>integration-test</goal>
+									<goal>verify</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+			<activation>
+				<!-- Change to run browser tests on each build -->
+				<activeByDefault>false</activeByDefault>
+			</activation>
+		</profile>
+
+		<profile>
+			<id>demo</id>
+			<build>
+				<plugins>
+					<!-- Run test webapp in jetty. -->
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>1.5.0</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>java</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<mainClass>org.vaadin.highcharts.uiserver.Server</mainClass>
+							<classpathScope>test</classpathScope>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>demo-war</id>
+			<properties>
+				<packaging.type>war</packaging.type>
+				<demo.dependency.scope>compile</demo.dependency.scope>
+			</properties>
+			<build>
+				<resources>
+					<resource>
+						<directory>src/main/resources</directory>
+					</resource>
+					<resource>
+						<directory>src/test/resources</directory>
+					</resource>
+				</resources>
+				<plugins>
+					<plugin>
+						<artifactId>maven-clean-plugin</artifactId>
+						<version>2.4.1</version>
+						<configuration>
+							<filesets>
+								<fileset>
+									<!-- Clean-up widgetset required for "inplace" compilation -->
+									<directory>${basedir}/src/test/webapp/VAADIN/widgetsets</directory>
+								</fileset>
+								<fileset>
+									<!-- Clean-up gwt cache -->
+									<directory>${basedir}/src/test/webapp/VAADIN/gwt-unitCache</directory>
+								</fileset>
+							</filesets>
+						</configuration>
+					</plugin>
+
+					<plugin>
+						<artifactId>maven-war-plugin</artifactId>
+						<version>2.3</version>
+						<configuration>
+							<packagingExcludes>
+								**/VAADIN/gwt-unitCache/**,
+								**/VAADIN/widgetsets/WEB-INF/**,
+								**/WEB-INF/lib/servlet-api-*.jar,
+								**/WEB-INF/lib/vaadin-client-*.jar,
+								**/WEB-INF/lib/jetty-*.jar,
+								**/WEB-INF/lib/ant-*.jar,
+								**/WEB-INF/classes/gwt-unitCache/**,
+								**/WEB-INF/classes/themes/**,
+								**/WEB-INF/classes/widgetsets/**
+							</packagingExcludes>
+							<failOnMissingWebXml>false</failOnMissingWebXml>
+						</configuration>
+					</plugin>
+
+					<plugin>
+						<groupId>com.vaadin</groupId>
+						<artifactId>vaadin-maven-plugin</artifactId>
+						<version>${vaadin.plugin.version}</version>
+						<configuration>
+							<extraJvmArgs>-Xmx1G -Xss1024k</extraJvmArgs>
+							<webappDirectory>${basedir}/src/test/webapp/VAADIN/widgetsets</webappDirectory>
+							<hostedWebapp>${basedir}/src/test/webapp/VAADIN/widgetsets</hostedWebapp>
+							<noServer>true</noServer>
+							<persistentunitcachedir>${basedir}/target/tmp/gwt-unitCache</persistentunitcachedir>
+							<compileReport>true</compileReport>
+							<strict>true</strict>
+							<runTarget>http://localhost:8080/</runTarget>
+						</configuration>
+						<executions>
+							<!-- You are free to mark this as permanently ignored in Eclipse -->
+							<execution>
+								<configuration>
+									<!-- if you don't specify any modules, the plugin will find them -->
+								</configuration>
+								<goals>
+									<goal>resources</goal>
+									<goal>update-widgetset</goal>
+									<goal>compile</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+</project>

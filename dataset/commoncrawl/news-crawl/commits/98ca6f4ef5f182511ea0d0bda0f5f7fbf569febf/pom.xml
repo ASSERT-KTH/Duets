@@ -1,0 +1,185 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.commoncrawl.stormcrawler.news</groupId>
+	<artifactId>crawler</artifactId>
+	<version>1.15</version>
+	<packaging>jar</packaging>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<storm-crawler.version>1.15</storm-crawler.version>
+		<storm-core.version>1.2.3</storm-core.version>
+		<jackson-databind.version>2.9.9.2</jackson-databind.version>
+		<crawler-commons.version>1.0</crawler-commons.version>
+		<mockito-all.version>1.10.8</mockito-all.version>
+		<wiremock.version>2.22.0</wiremock.version>
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.6.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<executable>java</executable>
+					<includeProjectDependencies>true</includeProjectDependencies>
+					<includePluginDependencies>false</includePluginDependencies>
+					<classpathScope>compile</classpathScope>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.2.1</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<transformers>
+								<transformer
+										implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+								<transformer
+										implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>org.apache.storm.flux.Flux</mainClass>
+									<manifestEntries>
+										<Change></Change>
+										<Build-Date></Build-Date>
+									</manifestEntries>
+								</transformer>
+							</transformers>
+							<!-- The filters below are necessary if you want to include the Tika 
+								module -->
+							<filters>
+								<filter>
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.DSA</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+								<filter>
+									<!-- https://issues.apache.org/jira/browse/STORM-2428 -->
+									<artifact>org.apache.storm:flux-core</artifact>
+									<excludes>
+										<exclude>org/apache/commons/**</exclude>
+										<exclude>org/apache/http/**</exclude>
+										<exclude>org/yaml/**</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.owasp</groupId>
+				<artifactId>dependency-check-maven</artifactId>
+				<version>5.2.2</version>
+				<configuration>
+					<skipSystemScope>true</skipSystemScope>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>aggregate</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.digitalpebble.stormcrawler</groupId>
+			<artifactId>storm-crawler-core</artifactId>
+			<version>${storm-crawler.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.storm</groupId>
+			<artifactId>storm-core</artifactId>
+			<version>${storm-core.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.storm</groupId>
+			<artifactId>flux-core</artifactId>
+			<version>${storm-core.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.digitalpebble.stormcrawler</groupId>
+			<artifactId>storm-crawler-elasticsearch</artifactId>
+			<version>${storm-crawler.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.digitalpebble.stormcrawler</groupId>
+			<artifactId>storm-crawler-warc</artifactId>
+			<version>${storm-crawler.version}</version>
+		</dependency>
+
+		<!-- set version explicitly -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson-databind.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.crawler-commons</groupId>
+			<artifactId>crawler-commons</artifactId>
+			<version>${crawler-commons.version}</version>
+		</dependency>
+
+		<!-- test dependencies -->
+		<dependency>
+			<groupId>com.digitalpebble.stormcrawler</groupId>
+			<artifactId>storm-crawler-core</artifactId>
+			<version>${project.version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>${mockito-all.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.tomakehurst</groupId>
+			<artifactId>wiremock</artifactId>
+			<version>${wiremock.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

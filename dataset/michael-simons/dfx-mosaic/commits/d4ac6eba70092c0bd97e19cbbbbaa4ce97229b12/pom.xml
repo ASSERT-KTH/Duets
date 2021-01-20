@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>eu.michael-simons</groupId>
+    <artifactId>dfx-mosaic</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <developers>
+	<developer>
+	    <name>Michael J. Simons</name>
+	    <email>michael@simons.ac</email>
+	</developer>
+    </developers>
+
+    <organization>
+	<name>michael-simons.eu</name>
+	<url>http://michael-simons.eu</url>
+    </organization>
+
+    <licenses>
+	<license>
+	    <name>Apache License, Version 2.0</name>
+	    <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+	</license>
+    </licenses>
+
+    <properties>
+	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+	<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
+	<build-date>${maven.build.timestamp}</build-date>
+
+	<java.version>1.8</java.version>
+	<junit.version>4.11</junit.version>
+	<log4j.version>2.2</log4j.version>
+	<h2.version>1.4.186</h2.version>
+	<flyway.version>3.2.1</flyway.version>
+	<jooq.version>3.5.3</jooq.version>
+	
+	<!-- Needed for jOOQ code generation -->
+	<db.url>jdbc:h2:${project.build.directory}/flyway-test</db.url>
+	<db.username>sa</db.username>
+
+	<maven.compiler.source>${java.version}</maven.compiler.source>
+	<maven.compiler.target>${java.version}</maven.compiler.target>
+    </properties>
+    
+    <pluginRepositories>
+	<pluginRepository>
+	    <id>onejar-maven-plugin.googlecode.com</id>
+	    <url>http://onejar-maven-plugin.googlecode.com/svn/mavenrepo</url>
+	</pluginRepository>
+    </pluginRepositories>
+    
+    <build>
+	<plugins>
+	    <plugin>
+		<groupId>org.flywaydb</groupId>
+		<artifactId>flyway-maven-plugin</artifactId>
+		<version>${flyway.version}</version>
+ 
+		<!-- Note that we're executing the Flyway
+		plugin in the "generate-sources" phase -->
+		<executions>
+		    <execution>
+			<phase>generate-sources</phase>
+			<goals>
+			    <goal>migrate</goal>
+			</goals>
+		    </execution>
+		</executions>
+ 
+		<!-- Note that we need to prefix the db/migration
+		path with filesystem: to prevent Flyway
+		from looking for our migration scripts
+		only on the classpath -->
+		<configuration>
+		    <url>${db.url}</url>
+		    <user>${db.username}</user>
+		    <locations>
+			<location>filesystem:src/main/resources/db/migration</location>
+		    </locations>
+		</configuration>
+	    </plugin>
+	    <plugin>
+		<groupId>org.jooq</groupId>
+		<artifactId>jooq-codegen-maven</artifactId>
+		<version>${jooq.version}</version>
+ 
+		<!-- The jOOQ code generation plugin is also 
+		executed in the generate-sources phase,
+		prior to compilation -->
+		<executions>
+		    <execution>
+			<phase>generate-sources</phase>
+			<goals>
+			    <goal>generate</goal>
+			</goals>
+		    </execution>
+		</executions>
+ 
+		<!-- This is a minimal working configuration. 
+		See the manual's section about the code
+		generator for more details -->
+		<configuration>
+		    <jdbc>
+			<url>${db.url}</url>
+			<user>${db.username}</user>
+		    </jdbc>
+		    <generator>
+			<database>
+			    <name>org.jooq.util.h2.H2Database</name>
+			    <includes>.*</includes>
+			    <excludes>schema_version</excludes>
+			    <inputSchema>PUBLIC</inputSchema>
+			</database>
+			<target>
+			    <packageName>de.dailyfratze.mosaic.images.db</packageName>
+			    <directory>target/generated-sources/jooq</directory>
+			</target>
+		    </generator>
+		</configuration>
+	    </plugin>
+	    <plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-jar-plugin</artifactId>
+		<version>2.5</version>
+		<configuration>
+		    <archive>
+			<manifest>
+			    <mainClass>de.dailyfratze.mosaic.Application</mainClass>
+			</manifest>
+		    </archive>
+		</configuration>
+	    </plugin>
+	   <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.10</version>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/lib</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+	</plugins>
+    </build>
+
+    <dependencies>			
+	<dependency>
+	    <groupId>com.h2database</groupId>
+	    <artifactId>h2</artifactId>
+	    <version>${h2.version}</version>
+	</dependency>	
+	<dependency>
+	    <groupId>org.flywaydb</groupId>
+	    <artifactId>flyway-core</artifactId>
+	    <version>${flyway.version}</version>
+	</dependency>
+	<dependency>
+	    <groupId>org.jooq</groupId>
+	    <artifactId>jooq</artifactId>
+	    <version>${jooq.version}</version>
+	</dependency>
+	<dependency>
+	    <groupId>junit</groupId>
+	    <artifactId>junit</artifactId>
+	    <version>${junit.version}</version>
+	    <scope>test</scope>
+	</dependency>
+	<dependency>
+	    <groupId>org.mockito</groupId>
+	    <artifactId>mockito-core</artifactId>
+	    <version>1.10.19</version>
+	    <scope>test</scope>
+	</dependency>
+    </dependencies>
+</project>

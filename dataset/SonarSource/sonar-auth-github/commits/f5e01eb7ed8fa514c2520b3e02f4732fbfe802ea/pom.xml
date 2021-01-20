@@ -1,0 +1,204 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.sonarsource.parent</groupId>
+    <artifactId>parent</artifactId>
+    <version>26</version>
+  </parent>
+
+  <groupId>org.sonarsource.auth.github</groupId>
+  <artifactId>sonar-auth-github-plugin</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>sonar-plugin</packaging>
+  <name>Github Authentication for SonarQube</name>
+  <inceptionYear>2016</inceptionYear>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <sonar.pluginClass>org.sonarsource.auth.github.AuthGithubPlugin</sonar.pluginClass>
+
+    <!-- used for deployment to SonarSource Artifactory -->
+    <gitRepositoryName>sonar-auth-github</gitRepositoryName>
+  </properties>
+
+  <issueManagement>
+    <system>jira</system>
+    <url>https://jira.sonarsource.com/projects/SQAUTHGITH</url>
+  </issueManagement>
+
+  <scm>
+    <connection>scm:git:git@github.com:SonarSource/sonar-auth-github.git</connection>
+    <developerConnection>scm:git:git@github.com:SonarSource/sonar-auth-github.git</developerConnection>
+    <url>https://github.com/SonarSource/sonar-auth-github</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <developers>
+    <developer>
+      <id>julienlancelot</id>
+      <name>Julien Lancelot</name>
+      <organization>SonarSource</organization>
+    </developer>
+  </developers>
+
+  <organization>
+    <name>SonarSource</name>
+    <url>http://sonarsource.com</url>
+  </organization>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.sonarsource.sonarqube</groupId>
+      <artifactId>sonar-plugin-api</artifactId>
+      <!--
+      temporary dependency which is not deployed in maven central but
+      in https://repox.sonarsource.com/sonarsource
+      -->
+      <version>5.4-build7625</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.scribejava</groupId>
+      <artifactId>scribejava-apis</artifactId>
+      <version>2.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.0.1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>3.0.0</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>2.2.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>1.10.19</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.hamcrest</groupId>
+          <artifactId>hamcrest-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <profile>
+      <id>deploy-sonarsource</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-enforcer-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>enforce-deploy-settings</id>
+                <goals>
+                  <goal>enforce</goal>
+                </goals>
+                <configuration>
+                  <rules>
+                    <requireProperty>
+                      <property>gitRepositoryName</property>
+                      <message>You must set name of Git repository in your pom</message>
+                    </requireProperty>
+                    <requireEnvironmentVariable>
+                      <variableName>ARTIFACTORY_URL</variableName>
+                    </requireEnvironmentVariable>
+                    <requireEnvironmentVariable>
+                      <variableName>ARTIFACTORY_DEPLOY_REPO</variableName>
+                    </requireEnvironmentVariable>
+                    <requireEnvironmentVariable>
+                      <variableName>ARTIFACTORY_DEPLOY_USERNAME</variableName>
+                    </requireEnvironmentVariable>
+                    <requireEnvironmentVariable>
+                      <variableName>ARTIFACTORY_DEPLOY_PASSWORD</variableName>
+                    </requireEnvironmentVariable>
+                  </rules>
+                  <fail>true</fail>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <!-- this maven plugin is not deployed in Maven Central. It should be downloaded
+            from JFrog JCenter or from SonarSource repositories -->
+            <groupId>org.jfrog.buildinfo</groupId>
+            <artifactId>artifactory-maven-plugin</artifactId>
+            <version>2.4.0</version>
+            <inherited>false</inherited>
+            <executions>
+              <execution>
+                <id>build-info</id>
+                <goals>
+                  <goal>publish</goal>
+                </goals>
+                <configuration>
+                  <artifactory>
+                    <envVarsExcludePatterns>
+                      *password*,*PASSWORD*,*secret*,*MAVEN_CMD_LINE_ARGS*,sun.java.command,*token*,*TOKEN*,*LOGIN*,*login*
+                    </envVarsExcludePatterns>
+                    <includeEnvVars>true</includeEnvVars>
+                    <timeoutSec>60</timeoutSec>
+                  </artifactory>
+                  <deployProperties>
+                    <vcs.revision>{{GIT_COMMIT|TRAVIS_COMMIT}}</vcs.revision>
+                    <vcs.branch>{{GIT_BRANCH|TRAVIS_BRANCH}}</vcs.branch>
+                    <build.name>${gitRepositoryName}</build.name>
+                    <build.number>{{BUILD_ID|TRAVIS_BUILD_NUMBER}}</build.number>
+                  </deployProperties>
+                  <licenses>
+                    <autoDiscover>true</autoDiscover>
+                    <includePublishedArtifacts>false</includePublishedArtifacts>
+                    <runChecks>true</runChecks>
+                    <scopes>project,provided</scopes>
+                    <violationRecipients>licences-control@sonarsource.com</violationRecipients>
+                  </licenses>
+                  <publisher>
+                    <contextUrl>${env.ARTIFACTORY_URL}</contextUrl>
+                    <repoKey>${env.ARTIFACTORY_DEPLOY_REPO}</repoKey>
+                    <username>${env.ARTIFACTORY_DEPLOY_USERNAME}</username>
+                    <password>${env.ARTIFACTORY_DEPLOY_PASSWORD}</password>
+                    <publishBuildInfo>true</publishBuildInfo>
+                    <publishArtifacts>true</publishArtifacts>
+                  </publisher>
+                  <buildInfo>
+                    <buildName>${gitRepositoryName}</buildName>
+                    <buildNumber>{{BUILD_ID|TRAVIS_BUILD_NUMBER}}</buildNumber>
+                    <buildUrl>{{CI_BUILD_URL|BUILD_URL}}</buildUrl>
+                    <vcsRevision>{{GIT_COMMIT|TRAVIS_COMMIT}}</vcsRevision>
+                  </buildInfo>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

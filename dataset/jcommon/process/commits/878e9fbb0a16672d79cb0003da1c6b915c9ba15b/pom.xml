@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <name>jcommon-process</name>
+
+  <groupId>org.jcommon</groupId>
+  <artifactId>process</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <packaging>jar</packaging>
+  <inceptionYear>2013</inceptionYear>
+  <url>https://github.com/jcommon/process/</url>
+  <description>
+    Java library for providing efficient, scalable process creation and asynchronous stdout/stdin processing beyond java.lang.Process.
+  </description>
+
+  <scm>
+    <url>git@github.com:jcommon/process.git</url>
+    <connection>scm:git:git@github.com:jcommon/process.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/jcommon/process.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/jcommon/process/issues</url>
+  </issueManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jcommon</groupId>
+      <artifactId>core</artifactId>
+      <version>1.0</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+
+      <!-- Configure the Java compiler -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.5.1</version>
+        <configuration>
+          <source>${jvm.class.format}</source>
+          <target>${jvm.class.format.target}</target>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>compile</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <!-- Builds a source jar for other developers -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.2</version>
+        <executions>
+          <!-- Install normal source jar -->
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.12.4</version>
+        <executions>
+          <execution>
+            <id>surefire-test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/main/java</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Builds javadoc jar for other developers -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9</version>
+        <configuration>
+          <show>protected</show>
+          <show>public</show>
+          <nohelp>true</nohelp>
+        </configuration>
+        <executions>
+          <!-- Install normal javadoc jar -->
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Checkstyle -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.9.1</version>
+        <configuration>
+          <consoleOutput>true</consoleOutput>
+          <configLocation>checkstyle.xml</configLocation>
+        </configuration>
+      </plugin>
+
+      <!-- Findbugs -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>2.5.2</version>
+        <configuration>
+          <xmlOutput>false</xmlOutput>
+          <excludeFilterFile>findbugs.xml</excludeFilterFile>
+        </configuration>
+      </plugin>
+
+      <!-- Release plugin -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <tagNameFormat>v@{project.version}</tagNameFormat>
+          <releaseProfiles>release-sign-artifacts</releaseProfiles>
+        </configuration>
+      </plugin>
+
+      <!-- Copy the built artifacts during site generation -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.6</version>
+        <executions>
+          <execution>
+            <id>copy-to-site</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.reporting.outputDirectory}/builds/v${project.version}</outputDirectory>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>${project.artifactId}</artifactId>
+                  <version>${project.version}</version>
+                  <destFileName>${site.artifact.prefix}-${project.artifactId}-${project.version}.${project.packaging}</destFileName>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>${project.artifactId}</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>sources</classifier>
+                  <destFileName>${site.artifact.prefix}-${project.artifactId}-${project.version}-sources.${project.packaging}</destFileName>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>${project.artifactId}</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>javadoc</classifier>
+                  <destFileName>${site.artifact.prefix}-${project.artifactId}-${project.version}-javadoc.${project.packaging}</destFileName>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Configure the site/reporting documentation -->
+      <plugin>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>3.2</version>
+        <dependencies>
+          <!-- Add the use of markdown for site generation -->
+          <dependency>
+            <groupId>org.apache.maven.doxia</groupId>
+            <artifactId>doxia-module-markdown</artifactId>
+            <version>1.3</version>
+          </dependency>
+        </dependencies>
+        <goals>
+          <goal>site</goal>
+        </goals>
+        <configuration>
+          <inputEncoding>UTF-8</inputEncoding>
+          <outputEncoding>UTF-8</outputEncoding>
+          <reportPlugins>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-project-info-reports-plugin</artifactId>
+              <version>2.6</version>
+              <configuration>
+                <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
+                <dependencyLocationsEnabled>true</dependencyLocationsEnabled>
+              </configuration>
+              <!-- Customize the list of generated reports -->
+              <reports>
+                <report>dependencies</report>
+                <report>project-team</report>
+                <report>license</report>
+              </reports>
+            </plugin>
+
+            <!-- Add javadocs to site -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-javadoc-plugin</artifactId>
+              <version>2.9</version>
+              <configuration>
+                <show>protected</show>
+                <show>public</show>
+                <nohelp>true</nohelp>
+              </configuration>
+              <!-- Explicitly set the list to javadoc and therefore exclude test-javadoc -->
+              <reports>
+                <report>javadoc</report>
+              </reports>
+            </plugin>
+
+            <!-- Add JXR (source xref) -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-jxr-plugin</artifactId>
+              <version>2.3</version>
+              <configuration>
+                <linkJavadoc>true</linkJavadoc>
+              </configuration>
+            </plugin>
+
+            <!-- Add surefire report -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-surefire-report-plugin</artifactId>
+              <version>2.13</version>
+              <configuration>
+                <outputName>surefire</outputName>
+              </configuration>
+            </plugin>
+
+            <!-- Add checkstyle report -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-checkstyle-plugin</artifactId>
+              <version>2.9.1</version>
+              <configuration>
+                <enableRSS>false</enableRSS>
+                <configLocation>checkstyle.xml</configLocation>
+              </configuration>
+            </plugin>
+
+            <!-- Add findbugs report -->
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>findbugs-maven-plugin</artifactId>
+              <version>2.5.2</version>
+              <configuration>
+                <xmlOutput>true</xmlOutput>
+                <excludeFilterFile>findbugs.xml</excludeFilterFile>
+              </configuration>
+            </plugin>
+
+            <!-- Add change list report -->
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-changes-plugin</artifactId>
+              <version>2.8</version>
+              <reports>
+                <report>github-report</report>
+              </reports>
+            </plugin>
+          </reportPlugins>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+
+  <profiles>
+    <!-- Configuration for building a new release. Run as "mvn release:perform" -->
+    <profile>
+      <id>release-sign-artifacts</id>
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <properties>
+        <gpg.keyname>ABAF0C8B</gpg.keyname>	<!-- GPG Key ID to use for signing -->
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <!--suppress MavenModelInspection -->
+            <artifactId>maven-gpg-plugin</artifactId>
+            <!--suppress MavenModelInspection -->
+            <version>1.4</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <!--suppress MavenModelInspection -->
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- Upload built artifacts to github downloads -->
+          <!-- Github downloads has been deprecated -->
+          <!--
+          <plugin>
+            <groupId>com.github.github</groupId>
+            <artifactId>downloads-maven-plugin</artifactId>
+            <version>0.6</version>
+            <configuration>
+              <description>${project.version} release of ${project.name}</description>
+              <override>true</override>
+              <includeAttached>false</includeAttached>
+            </configuration>
+          </plugin>
+          -->
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- Configuration for uploading a new release's site. Run as "mvn site -DdeployGitHubSite=true" -->
+    <!-- Note that we do *not* use mvn site:deploy -->
+    <profile>
+      <id>deploy-github-site</id>
+      <activation>
+        <property>
+          <name>deployGitHubSite</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <!-- Upload site to github pages -->
+          <plugin>
+            <groupId>com.github.github</groupId>
+            <artifactId>site-maven-plugin</artifactId>
+            <version>0.7</version>
+            <configuration>
+              <message>Updated site for v${project.version}</message>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <!--suppress MavenModelInspection -->
+                  <goal>site</goal>
+                </goals>
+                <phase>site</phase>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <properties>
+    <jvm.class.format>1.6</jvm.class.format>
+    <jvm.class.format.target>1.6</jvm.class.format.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
+
+    <github.global.server>github</github.global.server>
+    <site.artifact.prefix>jcommon</site.artifact.prefix>
+
+    <!-- Site generation (velocity) cannot interpret custom properties with a (.) in them -->
+    <vm_site_artifact_prefix>${site.artifact.prefix}</vm_site_artifact_prefix>
+  </properties>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>David Hoyt</id>
+      <name>David Hoyt</name>
+      <email>dhoyt@hoytsoft.org</email>
+      <url>http://www.hoytsoft.org/</url>
+      <organization>HoytSoft</organization>
+      <organizationUrl>http://www.hoytsoft.org/</organizationUrl>
+      <roles>
+        <role>architect</role>
+        <role>developer</role>
+      </roles>
+    </developer>
+    <developer>
+      <id>Brendan Benke</id>
+      <name>Brendan Benke</name>
+      <email>bbenke@hotmail.com</email>
+      <url>https://github.com/benke/</url>
+      <roles>
+        <role>architect</role>
+        <role>developer</role>
+      </roles>
+    </developer>
+  </developers>
+
+  <!-- Please see https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide -->
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+</project>

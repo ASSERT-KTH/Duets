@@ -1,0 +1,355 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>nl.tudelft.st01</groupId>
+  <artifactId>sql-coverage-target-generator</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+
+  <properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <clean.plugin.version>3.1.0</clean.plugin.version>
+    <compiler.plugin.version>3.8.0</compiler.plugin.version>
+    <deploy.plugin.version>2.8.2</deploy.plugin.version>
+    <enforcer.plugin.version>3.0.0-M2</enforcer.plugin.version>
+    <install.plugin.version>2.5.2</install.plugin.version>
+    <jar.plugin.version>3.1.0</jar.plugin.version>
+    <javadoc.plugin.version>3.0.1</javadoc.plugin.version>
+    <jxr.plugin.version>3.0.0</jxr.plugin.version>
+    <projectinfo.plugin.version>3.0.0</projectinfo.plugin.version>
+    <resources.plugin.version>3.1.0</resources.plugin.version>
+    <site.plugin.version>3.7.1</site.plugin.version>
+    <surefire.plugin.version>3.0.0-M3</surefire.plugin.version>
+
+    <!--<checkstyle.plugin.version>3.0.0</checkstyle.plugin.version>
+    <checkstyle.version>8.14</checkstyle.version>-->
+
+    <clover.version>4.3.1</clover.version>
+
+    <jsqlparser.version>2.0</jsqlparser.version>
+
+    <junit.jupiter.version>5.4.2</junit.jupiter.version>
+
+    <mockito.version>2.27.0</mockito.version>
+    <mockito.junit.jupiter.version>2.27.0</mockito.junit.jupiter.version>
+
+    <!--<pmd.plugin.version>3.10.0</pmd.plugin.version>-->
+
+    <spotbugs.version>3.1.12</spotbugs.version>
+    <spotbugs.annotations.version>3.1.12</spotbugs.annotations.version>
+    <spotbugs.plugin.version>3.1.11</spotbugs.plugin.version>
+  </properties>
+
+
+  <dependencies>
+    <dependency>
+      <groupId>com.github.jsqlparser</groupId>
+      <artifactId>jsqlparser</artifactId>
+      <version>${jsqlparser.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.github.spotbugs</groupId>
+      <artifactId>spotbugs</artifactId>
+      <version>${spotbugs.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.github.spotbugs</groupId>
+      <artifactId>spotbugs-annotations</artifactId>
+      <version>${spotbugs.annotations.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>${mockito.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>${mockito.junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.openclover</groupId>
+      <artifactId>clover-maven-plugin</artifactId>
+      <version>${clover.version}</version>
+      <type>maven-plugin</type>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>${clean.plugin.version}</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.openclover</groupId>
+        <artifactId>clover-maven-plugin</artifactId>
+        <version>${clover.version}</version>
+        <executions>
+          <execution>
+            <id>execution-pre-site</id>
+            <phase>pre-site</phase>
+            <goals>
+              <goal>instrument</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>execution-verify</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>instrument</goal>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${compiler.plugin.version}</version>
+        <configuration>
+          <source>${maven.compiler.source}</source>
+          <target>${maven.compiler.target}</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>${deploy.plugin.version}</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>${enforcer.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>enforce-maven</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>[3.3.9,)</version>
+                </requireMavenVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>${install.plugin.version}</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>${jar.plugin.version}</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>${resources.plugin.version}</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>${site.plugin.version}</version>
+      </plugin>
+
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>${spotbugs.plugin.version}</version>
+        <configuration>
+          <includeTests>true</includeTests>
+          <failOnError>true</failOnError>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${surefire.plugin.version}</version>
+        <configuration>
+          <skipTests>false</skipTests>
+          <trimStackTrace>false</trimStackTrace>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.openclover</groupId>
+        <artifactId>clover-maven-plugin</artifactId>
+        <version>${clover.version}</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>${javadoc.plugin.version}</version>
+        <configuration>
+          <failOnError>false</failOnError>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <id>default</id>
+            <reports>
+              <report>javadoc</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <version>${jxr.plugin.version}</version>
+        <configuration>
+          <linkJavadoc>true</linkJavadoc>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>${projectinfo.plugin.version}</version>
+      </plugin>
+
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <version>${spotbugs.plugin.version}</version>
+        <configuration>
+          <xmlOutput>true</xmlOutput>
+          <includeTests>true</includeTests>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>${surefire.plugin.version}</version>
+      </plugin>
+    </plugins>
+  </reporting>
+
+
+  <name>SQL Coverage Target Generator</name>
+  <description>A SQL coverage target generator for EvoSQL by Daan den Ouden, Dylan Franken, Mark Bekooy, Matthijs Halvemaan, Rolf Piepenbrink and Timon Bestebreur.</description>
+  <url>https://gitlab.ewi.tudelft.nl/TI2806/2018-2019/ST/cp19-st-01/st-01</url>
+  <inceptionYear>2019</inceptionYear>
+  <developers>
+    <developer>
+      <id>drdenouden</id>
+      <name>Daan den Ouden</name>
+      <email>d.r.denouden@student.tudelft.nl</email>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>Europe/Amsterdam</timezone>
+    </developer>
+    <developer>
+      <id>dtfranken</id>
+      <name>Dylan Franken</name>
+      <email>d.t.franken@student.tudelft.nl</email>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>Europe/Amsterdam</timezone>
+    </developer>
+    <developer>
+      <id>mhalvemaan</id>
+      <name>Matthijs Halvemaan</name>
+      <email>m.j.w.halvemaan@student.tudelft.nl</email>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>Europe/Amsterdam</timezone>
+    </developer>
+    <developer>
+      <id>mbekooy</id>
+      <name>Mark Bekooy</name>
+      <email>m.j.bekooy@student.tudelft.nl</email>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>Europe/Amsterdam</timezone>
+    </developer>
+    <developer>
+      <id>rpiepenbrink</id>
+      <name>Rolf Piepenbrink</name>
+      <email>r.h.piepenbrink@student.tudelft.nl</email>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>Europe/Amsterdam</timezone>
+    </developer>
+    <developer>
+      <id>tbestebreur</id>
+      <name>Timon Bestebreur</name>
+      <email>t.a.a.bestebreur@student.tudelft.nl</email>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>Europe/Amsterdam</timezone>
+    </developer>
+  </developers>
+
+
+  <repositories>
+    <repository>
+      <id>jsqlparser-snapshots</id>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <url>https://oss.sonatype.org/content/groups/public/</url>
+    </repository>
+  </repositories>
+</project>

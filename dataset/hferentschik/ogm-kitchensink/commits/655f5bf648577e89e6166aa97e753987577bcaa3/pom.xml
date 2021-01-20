@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- JBoss, Home of Professional Open Source Copyright 2012, Red Hat, Inc. 
+    and/or its affiliates, and individual contributors by the @authors tag. See 
+    the copyright.txt in the distribution for a full listing of individual contributors. 
+    Licensed under the Apache License, Version 2.0 (the "License"); you may not 
+    use this file except in compliance with the License. You may obtain a copy 
+    of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required 
+    by applicable law or agreed to in writing, software distributed under the 
+    License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS 
+    OF ANY KIND, either express or implied. See the License for the specific 
+    language governing permissions and limitations under the License. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.jboss.as.quickstarts</groupId>
+    <artifactId>ogm-kitchensink</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>war</packaging>
+
+    <name>OGM Kitchensink</name>
+    <description>A OGM demo based on AS 7 demo app kitchensink</description>
+    <url>http://ogm.hibernate.org</url>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <distribution>repo</distribution>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+        </license>
+    </licenses>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Define the version of JBoss' Java EE 6 APIs and Tools we want to import. -->
+        <jboss.bom.version>1.0.0.Final</jboss.bom.version>
+
+        <hibernateOgmVersion>4.0.0-SNAPSHOT</hibernateOgmVersion>
+        <hibernateSearchVersion>4.2.0-SNAPSHOT</hibernateSearchVersion>
+        <applicationServer7Version>7.1.1.Final</applicationServer7Version>
+        <jbossTargetDir>${project.build.directory}/cargo/installs/jboss-as-dist-${applicationServer7Version}/jboss-as-${applicationServer7Version}</jbossTargetDir>
+        <beanValidationVersion>4.3.0.Final</beanValidationVersion>
+        <infinispanVersion>5.1.5.FINAL</infinispanVersion>
+    </properties>
+
+    <repositories>
+        <!-- The JBoss Community public repository is a composite repository
+                 of several major repositories -->
+        <!-- see http://community.jboss.org/wiki/MavenGettingStarted-Users -->
+        <repository>
+            <id>jboss-public-repository</id>
+            <name>JBoss Repository</name>
+            <url>http://repository.jboss.org/nexus/content/groups/public</url>
+            <!-- These optional flags are designed to speed up your builds by
+                        reducing remote server calls -->
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>jboss-public-repository</id>
+            <name>JBoss Repository</name>
+            <url>http://repository.jboss.org/nexus/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- JBoss distributes a complete set of Java EE 6 APIs including 
+                a Bill of Materials (BOM). A BOM specifies the versions of a "stack" (or 
+                a collection) of artifacts. We use this here so that we always get the correct 
+                versions of artifacts. Here we use the jboss-javaee-6.0-with-tools stack 
+                (you can read this as the JBoss stack of the Java EE 6 APIs, with some extras 
+                tools for your project, such as Arquillian for testing) and the jboss-javaee-6.0-with-hibernate 
+                stack you can read this as the JBoss stack of the Java EE 6 APIs, with extras 
+                from the Hibernate family of projects) -->
+            <dependency>
+                <groupId>org.jboss.bom</groupId>
+                <artifactId>jboss-javaee-6.0-with-tools</artifactId>
+                <version>${jboss.bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.bom</groupId>
+                <artifactId>jboss-javaee-6.0-with-hibernate</artifactId>
+                <version>${jboss.bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate.ogm</groupId>
+                <artifactId>hibernate-ogm-core</artifactId>
+                <version>${hibernateOgmVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-search-orm</artifactId>
+                <version>${hibernateSearchVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-search-engine</artifactId>
+                <version>${hibernateSearchVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-search-analyzers</artifactId>
+                <version>${hibernateSearchVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-search-infinispan</artifactId>
+                <version>${hibernateSearchVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.infinispan</groupId>
+                <artifactId>infinispan-lucene-directory</artifactId>
+                <version>${infinispanVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+                <version>1.6.6</version>
+            </dependency>
+            <dependency>
+                <artifactId>infinispan-core</artifactId>
+                <groupId>org.infinispan</groupId>
+                <version>${infinispanVersion}</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+
+        <!-- First declare the APIs we depend on and need for compilation. 
+            All of them are provided by JBoss AS 7 -->
+
+        <!-- Import the CDI API, we use provided scope as the API is included 
+            in JBoss AS 7 -->
+        <dependency>
+            <groupId>javax.enterprise</groupId>
+            <artifactId>cdi-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Import the Common Annotations API (JSR-250), we use provided 
+            scope as the API is included in JBoss AS 7 -->
+        <dependency>
+            <groupId>org.jboss.spec.javax.annotation</groupId>
+            <artifactId>jboss-annotations-api_1.1_spec</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Import the JAX-RS API, we use provided scope as the API is included 
+            in JBoss AS 7 -->
+        <dependency>
+            <groupId>org.jboss.spec.javax.ws.rs</groupId>
+            <artifactId>jboss-jaxrs-api_1.1_spec</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Import the JPA API, we use provided scope as the API is included 
+            in JBoss AS 7 -->
+        <dependency>
+            <groupId>org.hibernate.javax.persistence</groupId>
+            <artifactId>hibernate-jpa-2.0-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Import the EJB API, we use provided scope as the API is included 
+            in JBoss AS 7 -->
+        <dependency>
+            <groupId>org.jboss.spec.javax.ejb</groupId>
+            <artifactId>jboss-ejb-api_3.1_spec</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- JSR-303 (Bean Validation) Implementation -->
+        <!-- Provides portable constraints such as @Email -->
+        <!-- Hibernate Validator is shipped in JBoss AS 7 -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Import the JSF API, we use provided scope as the API is included 
+            in JBoss AS 7 -->
+        <dependency>
+            <groupId>org.jboss.spec.javax.faces</groupId>
+            <artifactId>jboss-jsf-api_2.1_spec</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Now we declare any tools needed -->
+
+        <!-- Annotation processor to generate the JPA 2.0 metamodel classes 
+            for typesafe criteria queries -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-jpamodelgen</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Annotation processor that raising compilation errors whenever 
+            constraint annotations are incorrectly used. -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator-annotation-processor</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Needed for running tests (you may also use TestNG) -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Optional, but highly recommended -->
+        <!-- Arquillian allows you to test enterprise code such as EJBs and 
+            Transactional(JTA) JPA from JUnit/TestNG -->
+        <dependency>
+            <groupId>org.jboss.arquillian.junit</groupId>
+            <artifactId>arquillian-junit-container</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.as</groupId>
+            <artifactId>jboss-as-arquillian-container-managed</artifactId>
+            <version>${applicationServer7Version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jboss.arquillian.protocol</groupId>
+            <artifactId>arquillian-protocol-servlet</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-search-orm</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-search-infinispan</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.infinispan</groupId>
+            <artifactId>infinispan-lucene-directory</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <!-- Maven will append the version to the finalName (which is the 
+            name given to the generated war, and hence the context root) -->
+        <finalName>${project.artifactId}</finalName>
+
+        <testResources>
+            <testResource>
+                <filtering>true</filtering>
+                <directory>src/test/resources</directory>
+            </testResource>
+        </testResources>
+
+        <plugins>
+            <!-- Compiler plugin enforces Java 1.6 compatibility and activates 
+                annotation processors -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.1</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.1.1</version>
+                <configuration>
+                    <!-- Java EE 6 doesn't require web.xml, Maven needs to catch up! -->
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <packagingExcludes>
+                        WEB-INF/lib/jackson-*.jar,WEB-INF/lib/aether-*.jar,WEB-INF/lib/dom4j-*.jar,WEB-INF/lib/hibernate-core-*.jar,WEB-INF/lib/javassist-*.jar,WEB-INF/lib/jboss-*.jar,WEB-INF/lib/log4j-*.jar,WEB-INF/lib/maven-*.jar,WEB-INF/lib/plexus-*.jar,WEB-INF/lib/shrinkwrap-*.jar,WEB-INF/lib/solr-*.jar,WEB-INF/lib/hibernate-commons-*.jar,WEB-INF/lib/wagon-*.jar,WEB-INF/lib/xbean-*.jar,WEB-INF/lib/antlr-*.jar
+                    </packagingExcludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.cargo</groupId>
+                <artifactId>cargo-maven2-plugin</artifactId>
+                <version>1.2.1</version>
+                <configuration>
+                    <container>
+                        <containerId>jboss71x</containerId>
+                        <artifactInstaller>
+                            <groupId>org.jboss.as</groupId>
+                            <artifactId>jboss-as-dist</artifactId>
+                            <version>7.1.1.Final</version>
+                        </artifactInstaller>
+                    </container>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>install-container</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>install</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.gmaven</groupId>
+                <artifactId>gmaven-plugin</artifactId>
+                <version>1.3</version>
+                <executions>
+                    <execution>
+                        <id>copy-modules</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>
+                                def toDir = new File(project.properties['jbossTargetDir'], 'modules')
+                                def fromDir = new File(project.basedir, '.openshift/config/modules')
+                                log.info('Copying OGM module from ' + fromDir + ' to ' + toDir)
+                                ant.copy(todir: toDir) {
+                                fileset(dir: fromDir) {
+                                exclude(name: 'README')
+                                }
+                                }
+                            </source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <!-- When built in OpenShift the 'openshift' profile will be 
+                used when invoking mvn. -->
+            <!-- Use this profile for any OpenShift specific customization 
+                your app will need. -->
+            <!-- By default that is to put the resulting archive into the 
+                'deployments' folder. -->
+            <!-- http://maven.apache.org/guides/mini/guide-building-for-different-environments.html -->
+            <id>openshift</id>
+            <build>
+                <finalName>kitchensink</finalName>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <version>2.1.1</version>
+                        <configuration>
+                            <outputDirectory>deployments</outputDirectory>
+                            <warName>ROOT</warName>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+    </profiles>
+</project>

@@ -1,0 +1,136 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+<!-- 
+Use with
+mvn install -DskipTests -DXSB_BIN_DIRECTORY=/Users/mc/subversion/XSB/bin
+or
+mvn -DargLine="-DXSB_BIN_DIRECTORY=/Users/mc/subversion/XSB/bin -DSWI_BIN_DIRECTORY=/opt/local/bin" install
+(pls adapt your local paths to the installed Prolog engines)
+To run a XSB Prolog listener:
+java -DXSB_BIN_DIRECTORY=/Users/mc/subversion/XSB/bin -cp /Users/mc/.m2/repository/com/interprolog/java-bridge/3.1.1/java-bridge-3.1.1.jar  com.declarativa.interprolog.gui.XSBSubprocessEngineWindow
+ -->
+	
+<groupId>com.interprolog</groupId>
+<artifactId>java-bridge</artifactId>
+<version>3.1.2</version>
+<packaging>jar</packaging>
+
+<name>interprolog</name>
+<description>Java library for integration with XSB and SWI Prolog</description>
+<url>http://interprolog.com/java-bridge/</url>
+
+<licenses>
+<license>
+  <name>Apache License, Version 2.0</name>
+  <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+  <distribution>repo</distribution>
+</license>
+</licenses>
+
+<scm>
+<url>https://github.com/mcalejo/interprolog</url>
+</scm>
+
+<properties>
+<maven.compiler.target>1.8</maven.compiler.target>
+<maven.compiler.source>1.8</maven.compiler.source>
+<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+<!-- The next property is necessary to build the Prolog (xwam) resources, and execute tests; this could be obtained from 
+	our system environment instead -->
+<prolog.XSB_BIN_DIRECTORY>/Users/mc/subversion/XSB/bin</prolog.XSB_BIN_DIRECTORY>
+<!-- <prolog.SWI_BIN_DIRECTORY>/Applications/SWI-Prolog8.1.1.app/Contents/MacOS</prolog.SWI_BIN_DIRECTORY> -->
+</properties>
+
+<build>
+<pluginManagement>
+<plugins>
+<plugin>
+	 <groupId>org.eclipse.m2e</groupId>
+	 <artifactId>lifecycle-mapping</artifactId>
+	 <version>1.0.0</version>
+	 <configuration>
+	   <lifecycleMappingMetadata>
+	     <pluginExecutions>
+	       <pluginExecution>
+	         <pluginExecutionFilter>
+	           <groupId>org.codehaus.mojo</groupId>
+	           <artifactId>exec-maven-plugin</artifactId>
+	           <versionRange>[1.0.0,)</versionRange>
+	           <goals>
+	             <goal>exec</goal>
+	           </goals>
+	         </pluginExecutionFilter>
+	         <action>
+	           <execute>
+	           <runOnIncremental>false</runOnIncremental>
+	           </execute>
+	         </action>
+	       </pluginExecution>
+	     </pluginExecutions>
+	   </lifecycleMappingMetadata>
+	 </configuration>
+</plugin>
+</plugins>
+</pluginManagement>
+<plugins>
+<plugin>
+  <artifactId>exec-maven-plugin</artifactId>
+  <groupId>org.codehaus.mojo</groupId>
+  <version>1.6.0</version>
+  <executions>
+    <execution>
+      <id>Generate xwam files</id>
+      <phase>generate-resources</phase>
+      <goals>
+        <goal>exec</goal>
+      </goals>
+      <configuration>
+      	<workingDirectory>${project.build.sourceDirectory}</workingDirectory>
+        <executable>${prolog.XSB_BIN_DIRECTORY}/xsb</executable>
+        <commandlineArgs>-e "catch((dcg:set_dcg_terminal_functor(interprolog,ipGrammarChandler), compile('com/declarativa/interprolog/interprolog.P'), dcg:set_dcg_terminal_functor(dcg,'C'), compile('com/declarativa/interprolog/gui/visualization.P'), compile('com/declarativa/interprolog/tests.P')),_,sys_exit(1)), halt."</commandlineArgs>
+      </configuration>
+    </execution>
+  </executions>
+</plugin>
+ <plugin>
+     <groupId>org.apache.maven.plugins</groupId>
+     <artifactId>maven-surefire-plugin</artifactId>
+     <configuration>
+     	 <forkCount>2</forkCount><reuseForks>true</reuseForks>
+         <systemPropertyVariables>
+             <XSB_BIN_DIRECTORY>${prolog.XSB_BIN_DIRECTORY}</XSB_BIN_DIRECTORY>
+<!--              <SWI_BIN_DIRECTORY>${prolog.SWI_BIN_DIRECTORY}</SWI_BIN_DIRECTORY> -->
+         </systemPropertyVariables>
+         <argLine>-Djava.library.path=${prolog.XSB_BIN_DIRECTORY}</argLine>
+          <excludes>
+            <exclude>**/XSBNativeEngineTest.java</exclude>
+            <exclude>**/SWISubprocessEngineTest.java</exclude>
+          </excludes>
+     </configuration>
+ </plugin>
+</plugins>
+
+<resources> 
+    <resource>
+      <directory>src/main/java</directory>
+      <includes>
+        <include>**/*.pl</include>
+        <include>**/*.P</include>
+        <include>**/*.xwam</include>
+      </includes>
+    </resource>  
+</resources>
+
+
+</build>
+
+<dependencies>
+	<dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.5</version>
+      <scope>test</scope>
+	</dependency>
+</dependencies>
+</project>

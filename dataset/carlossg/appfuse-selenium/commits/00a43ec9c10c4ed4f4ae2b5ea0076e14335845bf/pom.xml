@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Copyright (c) 2009 G2iX and others
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    
+    http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+<!--
+  <parent>
+    <groupId>org.appfuse</groupId>
+    <artifactId>appfuse-web</artifactId>
+    <version>2.0.2</version>
+  </parent>
+-->
+
+  <groupId>org.appfuse</groupId>
+  <artifactId>appfuse-selenium</artifactId>
+  <version>2.0.2-SNAPSHOT</version>
+  <packaging>war</packaging>
+  <name>AppFuse Selenium testing</name>
+
+  <description>
+    Selenium tests for AppFuse
+  </description>
+
+  <properties>
+    <cargo.install.directory>${project.build.directory}/installs</cargo.install.directory>
+    <selenium.background>true</selenium.background>
+    <web.host>localhost</web.host>
+    <servlet.port>18880</servlet.port>
+    <webSite>http://${web.host}:${servlet.port}</webSite>
+    <selenium.host>localhost</selenium.host>
+    <selenium.port>4444</selenium.port>
+    <selenium.background>true</selenium.background>
+   </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>${pom.groupId}</groupId>
+      <artifactId>appfuse-struts</artifactId>
+      <version>2.0.2</version>
+      <type>war</type>
+    </dependency>
+    <!--
+      we add this dependency on a pom so we can copy all the
+      dependencies into WEB-INF/lib appfuse-struts is a skinny war, with
+      no jars inside
+    -->
+    <dependency>
+      <groupId>${pom.groupId}</groupId>
+      <artifactId>appfuse-struts</artifactId>
+      <version>2.0.2</version>
+      <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>org.seleniumhq.selenium.client-drivers</groupId>
+      <artifactId>selenium-java-client-driver</artifactId>
+      <version>1.0-beta-2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>5.8</version>
+      <classifier>jdk15</classifier>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <!-- needed to get org.appfuse:appfuse-web-common:warpath:2.0.2 -->
+        <groupId>org.appfuse</groupId>
+        <artifactId>maven-warpath-plugin</artifactId>
+        <version>2.0.2</version>
+        <extensions>true</extensions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.0.2</version>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.0</version>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/${project.artifactId}-${project.version}/WEB-INF/lib</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <includeTypes>jar</includeTypes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.cargo</groupId>
+        <artifactId>cargo-maven2-plugin</artifactId>
+        <version>1.0</version>
+        <executions>
+          <execution>
+            <id>start-container</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>start</goal>
+            </goals>
+            <configuration>
+              <wait>false</wait>
+            </configuration>
+          </execution>
+          <execution>
+            <id>stop-container</id>
+            <phase>post-integration-test</phase>
+            <goals>
+              <goal>stop</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <container>
+            <containerId>${container.name}</containerId>
+            <type>embedded</type>
+            <!--
+              <zipUrlInstaller> <url>${container.url}</url>
+              <installDir>${cargo.install.directory}/${container.name}</installDir>
+              </zipUrlInstaller>
+            -->
+            <log>${project.build.directory}/logs/${container.name}.log</log>
+            <output>${project.build.directory}/logs/${container.name}.out</output>
+            <timeout>600000</timeout>
+          </container>
+          <configuration>
+            <!--
+              <home>${project.build.directory}/${container.name}conf</home>
+              <type>existing</type>
+            -->
+            <properties>
+              <cargo.servlet.port>${servlet.port}</cargo.servlet.port>
+              <cargo.rmi.port>1099</cargo.rmi.port>
+            </properties>
+            <!-- application to deploy -->
+            <!--
+              <deployables> <deployable>
+              <groupId>${pom.groupId}</groupId>
+              <artifactId>appfuse-struts</artifactId> <type>war</type>
+              <properties> <context>acontext</context> </properties>
+              </deployable> </deployables>
+            -->
+          </configuration>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.4.3</version>
+        <configuration>
+          <!--
+            Skip the normal tests, we'll run them in the
+            integration-test phase
+          -->
+          <skip>true</skip>
+          <suiteXmlFiles>
+            <suiteXmlFile>src/test/resources/testng.xml</suiteXmlFile>
+          </suiteXmlFiles>
+          <systemProperties>
+            <!-- we'll launch in all browsers in parallel
+            <property>
+              <name>browser</name>
+              <value>${browser}</value>
+            </property>
+            -->
+            <property>
+              <name>seleniumHost</name>
+              <value>${selenium.host}</value>
+            </property>
+            <property>
+              <name>seleniumPort</name>
+              <value>${selenium.port}</value>
+            </property>
+            <property>
+              <name>webSite</name>
+              <value>${webSite}</value>
+            </property>
+          </systemProperties>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>integration-test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <skip>false</skip>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>selenium-maven-plugin</artifactId>
+        <version>1.0-rc-1</version>
+        <!--
+          to run headless in a Unix server with a virtual framebuffer X
+          server Xvfb you need to call first the goal selenium:xvfb ie.
+          "mvn clean selenium:xvfb install" see
+          http://mojo.codehaus.org/selenium-maven-plugin/examples/headless-with-xvfb.html
+        -->
+        <executions>
+          <execution>
+            <id>start-selenium</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>start-server</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <background>${selenium.background}</background>
+          <port>${selenium.port}</port>
+          <logOutput>true</logOutput>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.mortbay.jetty</groupId>
+        <artifactId>maven-jetty-plugin</artifactId>
+        <version>6.1.15</version>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>jetty6x</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <container.name>jetty6x</container.name>
+        <!-- <container.url></container.url> -->
+      </properties>
+    </profile>
+    <profile>
+      <id>firefox</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <browser>*firefox</browser>
+      </properties>
+    </profile>
+    <profile>
+      <id>iexplore</id>
+      <properties>
+        <browser>*iexplore</browser>
+      </properties>
+    </profile>
+    <profile>
+      <id>otherbrowser</id>
+      <properties>
+        <browser>*custom ${browserPath}</browser>
+      </properties>
+    </profile>
+    <profile>
+      <id>dev</id>
+      <properties>
+        <selenium.background>false</selenium.background>
+      </properties>
+    </profile>
+  </profiles>
+
+  <repositories>
+    <repository>
+      <id>openqa.org</id>
+      <name>OpenQA Repository</name>
+      <url>http://nexus.openqa.org/content/repositories/releases</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </repository>
+  </repositories>
+
+</project>
+

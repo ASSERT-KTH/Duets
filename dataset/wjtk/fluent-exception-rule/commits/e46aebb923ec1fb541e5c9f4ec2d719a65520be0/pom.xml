@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>pl.wkr</groupId>
+    <artifactId>fluent-exception-rule</artifactId>
+    <version>1.0.2-SNAPSHOT</version>
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>fluent exception rule on assertj assertions for junit</description>
+    <url>https://github.com/wjtk/fluent-exception-rule</url>
+
+    <developers>
+        <developer>
+            <name>Wojciech Krak</name>
+            <email>wojciech.krak@gmail.com</email>
+        </developer>
+    </developers>
+
+    <issueManagement>
+        <system>github</system>
+        <url>https://github.com/wjtk/fluent-exception-rule/issues</url>
+    </issueManagement>
+
+    <scm>
+        <developerConnection>scm:git:git@github.com:wjtk/fluent-exception-rule.git</developerConnection>
+        <connection>scm:git:git@github.com:wjtk/fluent-exception-rule.git</connection>
+        <url>scm:git:git@github.com:wjtk/fluent-exception-rule.git</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+        </dependency>
+        <!-- ^ not optionals -->
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib-nodep</artifactId>
+            <version>3.1</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- test -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- pitest depends on testng, and when testng is present surefire runs testng tests.
+             have to manually configure surefire to run junit tests
+        -->
+        <dependency>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest</artifactId>
+            <version>${pitest.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>pl.pragmatists</groupId>
+            <artifactId>JUnitParams</artifactId>
+            <version>${junitparams.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire-plugin.version}</version>
+                <configuration>
+                    <testNGArtifactName>none:none</testNGArtifactName>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*IT.java</include>
+                        <!-- Our integration test are not so complicated to use failsafe -->
+                    </includes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>jarjar-maven-plugin</artifactId>
+                <version>1.9</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jarjar</goal>
+                        </goals>
+                        <configuration>
+                            <includes>
+                                <include>cglib:cglib-nodep</include>
+                            </includes>
+                            <rules>
+                                <rule>
+                                    <pattern>net.sf.cglib.**</pattern>
+                                    <result>pl.wkr.fluentrule.internal.cglib.@1</result>
+                                </rule>
+                                <keep>
+                                    <pattern>pl.wkr.fluentrule.**</pattern>
+                                </keep>
+
+                            </rules>
+                            <overwrite>true</overwrite>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--
+            1) Not in reporting branch because: 'mvn javadoc:javadoc' starts 'default-cli' execution which using
+                configuration from 'build', not 'reporting'.
+            2) 'mvn site:site' - uses configuration in 'reporting', but doesn't generate javadocs without javadoc plugin,
+                so to generate javadoc use 'mvn javadoc:javadoc'
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.1</version>
+                <configuration>
+                    <header>${project.build.finalName}</header>
+                    <links>
+                        <link>http://junit-team.github.io/junit/javadoc/latest/</link>
+                        <link>http://joel-costigliola.github.io/assertj/core/api/</link>
+                    </links>
+                    <!-- <show>public</show> some classes need protected members to be explained -->
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- run on travis, build is rejected when there isn't {mutationThreshold}% mutation coverage -->
+        <profile>
+            <id>ci</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-maven</artifactId>
+                        <version>${pitest.version}</version>
+                        <executions>
+                            <execution>
+                                <phase>test</phase>
+                                <goals><goal>mutationCoverage</goal></goals>
+                            </execution>
+                        </executions>
+
+                        <configuration>
+                            <targetClasses>
+                                <param>pl.wkr.fluentrule.*</param>
+                            </targetClasses>
+                            <targetTests>
+                                <param>pl.wkr.fluentrule.*</param>
+                            </targetTests>
+                            <outputFormats>
+                                <param>XML</param>
+                                <param>HTML</param>
+                            </outputFormats>
+                            <verbose>false</verbose>
+                            <mutationThreshold>100</mutationThreshold>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- run on travis, to update coveralls. Now based on jacoco, because maven-coveralls-plugin doesn't support pitest -->
+        <profile>
+            <id>coveralls</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>${jacoco.version}</version>
+                        <executions>
+                            <execution>
+                                <id>prepare-agent</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.eluder.coveralls</groupId>
+                        <artifactId>coveralls-maven-plugin</artifactId>
+                        <version>${coveralls-maven.version}</version>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>2.4</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.10.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.5</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+    </profiles>
+
+    <properties>
+        <junit.version>4.12</junit.version>
+        <assertj.version>1.7.1</assertj.version>
+        <mockito.version>1.10.19</mockito.version>
+        <junitparams.version>1.0.4</junitparams.version>
+
+        <jacoco.version>0.7.2.201409121644</jacoco.version>
+        <coveralls-maven.version>3.0.1</coveralls-maven.version>
+        <pitest.version>1.1.4</pitest.version>
+        <surefire-plugin.version>2.18.1</surefire-plugin.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.source>1.6</maven.compiler.source>
+        <maven.compiler.target>1.6</maven.compiler.target>
+    </properties>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+</project>

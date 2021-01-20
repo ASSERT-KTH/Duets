@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.vaadin.directory</groupId>
+  <artifactId>runnable-jar-vaadin</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <vaadin.version>7.7.14</vaadin.version>
+    <jetty.version>9.2.3.v20140905</jetty.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.vaadin</groupId>
+      <artifactId>vaadin-server</artifactId>
+      <version>${vaadin.version}</version>
+      <type>jar</type>
+      <exclusions>
+        <exclusion>
+          <groupId>com.vaadin.external.flute</groupId>
+          <artifactId>flute</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.vaadin.external.google</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.vaadin</groupId>
+          <artifactId>vaadin-sass-compiler</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.vaadin.external.streamhtmlparser</groupId>
+          <artifactId>streamhtmlparser-jsilver</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- Instead of Valo, we use dawn, from CDN -->
+    <!--        <dependency>
+        <groupId>org.peimari</groupId>
+        <artifactId>dawn</artifactId>
+        <version>4</version>
+    </dependency>        -->
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-servlet</artifactId>
+      <version>${jetty.version}</version>
+      <type>jar</type>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.codeborne</groupId>
+      <artifactId>selenide</artifactId>
+      <version>4.12.2</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>in.virit.vwscdn</groupId>
+        <artifactId>vwscdn-maven-plugin</artifactId>
+        <version>1.3.3</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.4.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>com/google/**</exclude>
+                    <exclude>img/**</exclude>
+                    <exclude>css/**</exclude>
+                    <exclude>**/*.java</exclude>
+                    <exclude>**/*.scss</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <manifestEntries>
+                    <Main-Class>org.vaadin.lightvaadin.App</Main-Class>
+                  </manifestEntries>
+                </transformer>
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- make the jar executable -->
+      <plugin>
+        <artifactId>exec-maven-plugin</artifactId>
+        <groupId>org.codehaus.mojo</groupId>
+        <version>1.4.0</version>
+        <executions>
+          <execution>
+            <id>cat</id>
+            <phase>package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>cat</executable>
+              <arguments>
+                <argument>${basedir}/src/main/resources/run.sh</argument>
+                <argument>${basedir}/target/${project.build.finalName}.jar</argument>
+              </arguments>
+              <outputFile>${basedir}/target/${project.build.finalName}</outputFile>
+            </configuration>
+          </execution>
+          <execution>
+            <id>chmod</id>
+            <phase>package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>chmod</executable>
+              <commandlineArgs>u+x ${basedir}/target/${project.build.finalName}</commandlineArgs>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.22.0</version>
+        <configuration>
+          <systemPropertyVariables>
+            <selenide.headless>true</selenide.headless>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <repositories>
+    <repository>
+      <id>vaadin-addons</id>
+      <url>http://maven.vaadin.com/vaadin-addons</url>
+    </repository>
+  </repositories>
+  <name>runnable-jar-vaadin</name>
+</project>

@@ -1,0 +1,626 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.greencheek.spray</groupId>
+    <artifactId>spray-cache-spymemcached</artifactId>
+    <version>0.2.3-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>Spray Spy Memcached Cache Implementation</name>
+    <description>Spy Memcached Backend for the Spray Cache API</description>
+    <url>https://github.com/tootedom/spray-cache-spymemcached</url>
+    <properties>
+        <spy.version>2.11.4</spy.version>
+        <jsr666e.version>1.1.0</jsr666e.version>
+        <slf4j.version>1.7.6</slf4j.version>
+        <memcachedtest.version>1.0.0</memcachedtest.version>
+        <finaglememcached.version>6.13.1</finaglememcached.version>
+        <xxhashing.version>1.2.0</xxhashing.version>
+        <jsnappy.version>0.3</jsnappy.version>
+        <logback.version>1.1.1</logback.version>
+        <spray.version>1.3.1</spray.version>
+        <akka.version>2.3.2</akka.version>
+        <scalatest.version>2.1.3</scalatest.version>
+        <specs2.version>2.4</specs2.version>
+        <junit.version>4.11</junit.version>
+        <netty.version>4.0.21.Final</netty.version>
+
+        <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
+        <maven-source-plugin.version>2.2.1</maven-source-plugin.version>
+        <maven-assembly-plugin.version>2.4</maven-assembly-plugin.version>
+        <maven-jar-plugin.version>2.4</maven-jar-plugin.version>
+        <scala-maven-plugin.version>3.1.6</scala-maven-plugin.version>
+        <maven-surefire-plugin.version>2.16</maven-surefire-plugin.version>
+        <maven-release-plugin.version>2.3.2</maven-release-plugin.version>
+        <maven-license-plugin.version>1.10.b1</maven-license-plugin.version>
+        <maven-plugin-plugin.version>3.2</maven-plugin-plugin.version>
+        <maven-shade-plugin.version>2.2</maven-shade-plugin.version>
+        <maven-site-plugin.version>3.3</maven-site-plugin.version>
+    </properties>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+    <!-- Required: developer information: -->
+    <developers>
+        <developer>
+            <id>tootedom</id>
+            <name>Dominic Tootell</name>
+            <email>dominic.tootell@relateit.io</email>
+            <organization>greencheek.org</organization>
+            <organizationUrl>https://github.com/tootedom</organizationUrl>
+            <url>https://github.com/tootedom</url>
+        </developer>
+    </developers>
+    <scm>
+        <connection>scm:git:git@github.com:tootedom/spray-cache-spymemcached.git</connection>
+        <url>scm:git:git@github.com:tootedom/spray-cache-spymemcached.git</url>
+        <developerConnection>scm:git:git@github.com:tootedom/spray-cache-spymemcached.git</developerConnection>
+        <tag>spray-cache-spymemcached-0.2.2</tag>
+    </scm>
+    <repositories>
+        <repository>
+            <id>scala-tools.org</id>
+            <name>Scala-tools Maven2 Repository</name>
+            <url>http://scala-tools.org/repo-releases</url>
+        </repository>
+        <repository>
+            <id>akka-releases</id>
+            <name>akka repo</name>
+            <url>http://repo.akka.io/releases</url>
+        </repository>
+        <repository>
+            <id>sonatype-releases</id>
+            <url>https://oss.sonatype.org/content/repositories/releases/</url>
+        </repository>
+        <repository>
+            <id>scct-plugin-repo</id>
+            <url>http://mtkopone.github.com/scct/maven-repo</url>
+        </repository>
+        <repository>
+            <id>sonatype.oss.snapshots</id>
+            <name>Sonatype OSS Snapshot Repository</name>
+            <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>twitter-twttr</id>
+            <url>http://maven.twttr.com/</url>
+        </repository>
+
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>scala-tools.org</id>
+            <name>Scala-tools Maven2 Repository</name>
+            <url>http://scala-tools.org/repo-releases</url>
+        </pluginRepository>
+
+        <pluginRepository>
+            <id>tims-repo</id>
+            <url>http://timezra.github.com/maven/releases</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+        <pluginRepository>
+            <id>sonatype.oss.snapshots</id>
+            <name>Sonatype OSS Snapshot Repository</name>
+            <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+    <dependencies>
+        <!-- to reduce -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>${netty.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.spray</groupId>
+            <artifactId>spray-caching</artifactId>
+            <version>${spray.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-actor_2.10</artifactId>
+            <version>${akka.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+
+        <dependency>
+            <groupId>net.spy</groupId>
+            <artifactId>spymemcached</artifactId>
+            <version>${spy.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.twitter</groupId>
+            <artifactId>jsr166e</artifactId>
+            <version>${jsr666e.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.jpountz.lz4</groupId>
+            <artifactId>lz4</artifactId>
+            <version>${xxhashing.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.iq80.snappy</groupId>
+            <artifactId>snappy</artifactId>
+            <version>${jsnappy.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>de.ruedigermoeller</groupId>
+            <artifactId>fst</artifactId>
+            <version>1.58</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.0.21.Final</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty</artifactId>
+            <version>3.9.2.Final</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.thimbleware.jmemcached</groupId>
+            <artifactId>jmemcached-core</artifactId>
+            <version>${memcachedtest.version}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jboss.netty</groupId>
+                    <artifactId>netty</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>0.8</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>0.8</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- test -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.specs2</groupId>
+            <artifactId>specs2_2.10</artifactId>
+            <version>${specs2.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.scalatest</groupId>
+            <artifactId>scalatest_2.10</artifactId>
+            <version>${scalatest.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.1.201405082137</version>
+                <executions>
+                    <!--
+                       Prepares the property pointing to the JaCoCo runtime agent which
+                       is passed as VM argument when Maven the Surefire plugin is executed.
+                   -->
+                    <execution>
+                        <id>pre-unit-test</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Sets the path to the file which contains the execution data. -->
+                            <destFile>${project.build.directory}/coverage-reports/jacoco-ut.exec</destFile>
+                            <!--
+                               Sets the name of the property containing the settings
+                               for JaCoCo runtime agent.
+                           -->
+                            <propertyName>surefireArgLine</propertyName>
+                        </configuration>
+                    </execution>
+                    <!--
+                       Ensures that the code coverage report for unit tests is created after
+                       unit tests have been run.
+                   -->
+                </executions>
+
+            </plugin>
+            <plugin>
+                <groupId>timezra.maven</groupId>
+                <artifactId>jacoco-scala-maven-plugin</artifactId>
+                <version>0.6.3.1</version>
+                <executions>
+
+                    <execution>
+                        <id>post-integration-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Sets the path to the file which contains the execution data. -->
+                            <dataFile>${project.build.directory}/coverage-reports/jacoco-ut.exec</dataFile>
+                            <!-- Sets the output directory for the code coverage report. -->
+                            <outputDirectory>${project.reporting.outputDirectory}/jacoco-ut</outputDirectory>
+                            <filters>
+                                <filter>SCALAC.MIXIN</filter>
+                                <filter>SCALAC.CASE</filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.1.2</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codehaus.plexus</groupId>
+                        <artifactId>plexus-io</artifactId>
+                        <version>1.0.1</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <configuration>
+                    <useStandardDocletOptions>true</useStandardDocletOptions>
+                    <show>public</show>
+                    <charset>UTF-8</charset>
+                    <encoding>UTF-8</encoding>
+                    <docencoding>UTF-8</docencoding>
+                    <breakiterator>true</breakiterator>
+                    <version>true</version>
+                    <author>true</author>
+                    <keywords>true</keywords>
+                    <maxmemory>512m</maxmemory>
+                    <links>
+                        <link>http://docs.oracle.com/javase/6/docs/api/</link>
+                    </links>
+                    <additionalJOption>-J-XX:MaxPermSize=256m</additionalJOption>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${maven-jar-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>test-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <!-- Sets the VM argument line used when unit tests are run. -->
+                    <argLine>-Xmx1024m ${surefireArgLine}</argLine>
+                    <useFile>false</useFile>
+                    <includes>
+                        <include>**/*Spec.*</include>
+                        <include>**/*Test.*</include>
+                    </includes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>${maven-site-plugin.version}</version>
+                <configuration>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.4.1</version>
+                <configuration>
+
+                    <!-- Automated passphrase entry: -->
+
+                    <!-- To pass your passphrase to the build automatically, so avoiding
+                        manual interaction, you'll need to put the passphrase into settings.xml.
+                        You don't really want that to be in plain text, so you'll want to follow:
+                        http://maven.apache.org/guides/mini/guide-encryption.html -->
+                    <!-- <arguments>-Dgpg.passphrase=${gpg.passphrase}</arguments> -->
+
+                    <!-- Manual passphrase entry: -->
+
+                    <!-- This is the simplest secure solution, but requires you to type
+                        your key passphrase in manually when performing a release. No biggie unless
+                        you want your CI server to decide when to release for you. -->
+                    <mavenExecutorId>forked-path</mavenExecutorId>
+
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-scm-plugin</artifactId>
+                <version>1.1</version>
+            </plugin>
+
+            <!-- JMH Here: -->
+
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>process-test-sources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/src/performance-test/java</source>
+                                <source>${project.basedir}/src/performance-test/scala</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--
+                2. Compile Scala sources
+              -->
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>${scala-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <phase>process-sources</phase>
+                        <id>main-scalac</id>
+                        <goals>
+                            <goal>add-source</goal>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <args>
+                                <arg>-encoding</arg>
+                                <arg>UTF-8</arg>
+                                <arg>-target:jvm-1.6</arg>
+                                <arg>-deprecation</arg>
+                                <arg>-feature</arg>
+                                <arg>-unchecked</arg>
+                                <arg>-language:implicitConversions</arg>
+                                <arg>-language:reflectiveCalls</arg>
+                                <arg>-language:postfixOps</arg>
+                            </args>
+                            <jvmArgs>
+                                <jvmArg>-Xms256m</jvmArg>
+                                <jvmArg>-Xmx1024m</jvmArg>
+                                <jvmArg>-XX:MaxPermSize=512m</jvmArg>
+                            </jvmArgs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <phase>process-test-sources</phase>
+                        <id>test-scalac</id>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                        <configuration>
+                            <args>
+                                <arg>-encoding</arg>
+                                <arg>UTF-8</arg>
+                                <arg>-target:jvm-1.6</arg>
+                                <arg>-deprecation</arg>
+                                <arg>-feature</arg>
+                                <arg>-unchecked</arg>
+                                <arg>-language:implicitConversions</arg>
+                                <arg>-language:reflectiveCalls</arg>
+                                <arg>-language:postfixOps</arg>
+                            </args>
+                            <jvmArgs>
+                                <jvmArg>-Xms256m</jvmArg>
+                                <jvmArg>-Xmx1024m</jvmArg>
+                                <jvmArg>-XX:MaxPermSize=512m</jvmArg>
+                            </jvmArgs>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>doc-jar</goal>
+                        </goals>
+                        <configuration>
+                            <jvmArgs>
+                                <jvmArg>-Xms64m</jvmArg>
+                                <jvmArg>-Xmx1024m</jvmArg>
+                                <jvmArg>-XX:MaxPermSize=512m</jvmArg>
+                            </jvmArgs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/main/assembly/test-jar-with-dependencies.xml</descriptor>
+                    </descriptors>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.greencheek.spray.cache.memcached.performancetest.runner.BenchmarkRunner</mainClass>
+                        </manifest>
+                    </archive>
+                    <finalName>performancetests</finalName>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <!-- Include the README, NOTICE and LICENSE files: -->
+        <resources>
+            <resource>
+                <directory>${project.basedir}</directory>
+                <includes>
+                    <include>README*</include>
+                    <include>NOTICE*</include>
+                    <include>LICENSE*</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>*.xml</include>
+                    <include>*.conf</include>
+                </includes>
+            </resource>
+        </resources>
+    </build>
+    <distributionManagement>
+        <!-- You'll probably want to test this out with a local copy of Nexus OSS. -->
+        <!-- Remove these entries and uncomment the Sonatype Nexus repositories
+            below when you actually want to release. -->
+        <!--
+        <snapshotRepository>
+            <id>localhost-nexus-snapshots</id>
+            <name>Local Nexus snapshot repository</name>
+            <url>http://localhost:8081/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>localhost-nexus-staging</id>
+            <name>Local Nexus release repository</name>
+            <url>http://localhost:8081/nexus/content/repositories/releases/</url>
+        </repository>
+        -->
+        <snapshotRepository>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Sonatype Nexus snapshot repository</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>sonatype-nexus-staging</id>
+            <name>Sonatype Nexus release repository</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
+    </distributionManagement>
+    <profiles>
+        <profile>
+            <id>nocoverage</id>
+            <properties>
+                <surefireArgLine />
+            </properties>
+        </profile>
+        <!-- GPG Signature on release -->
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.4</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

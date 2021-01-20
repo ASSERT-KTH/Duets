@@ -1,0 +1,180 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.basepom</groupId>
+        <artifactId>basepom-oss</artifactId>
+        <version>28</version>
+    </parent>
+
+    <groupId>io.github.mweirauch</groupId>
+    <artifactId>micrometer-jvm-extras</artifactId>
+    <version>0.1.4</version>
+
+    <name>${project.artifactId}</name>
+    <description>A set of additional JVM process metrics for micrometer.io.</description>
+    <inceptionYear>2017</inceptionYear>
+    <url>https://github.com/mweirauch/micrometer-jvm-extras</url>
+
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Michael Weirauch</name>
+            <email>michael.weirauch@gmail.com</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:https://github.com/mweirauch/micrometer-jvm-extras.git</connection>
+        <developerConnection>scm:git:https://github.com/mweirauch/micrometer-jvm-extras.git</developerConnection>
+        <url>https://github.com/mweirauch/micrometer-jvm-extras</url>
+        <tag>0.1.4</tag>
+    </scm>
+
+    <properties>
+        <slf4j.version>1.7.26</slf4j.version>
+        <jmh.version>1.21</jmh.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <version>1.1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>2.28.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava-testlib</artifactId>
+            <version>27.1-jre</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>${jmh.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>${jmh.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <configuration>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    <excludes>**/*_jmh*.java</excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <configuration>
+                    <printFailingErrors>true</printFailingErrors>
+                    <includeTests>true</includeTests>
+                    <excludes>**/*_jmh*.java</excludes>
+                    <failurePriority>5</failurePriority>
+                    <rulesets>
+                        <ruleset>src/build/resources/pmd-ruleset.xml</ruleset>
+                    </rulesets>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.basepom.maven</groupId>
+                <artifactId>duplicate-finder-maven-plugin</artifactId>
+                <configuration>
+                    <ignoredClassPatterns>
+                        <ignoredClassPattern>.*module-info$</ignoredClassPattern>
+                    </ignoredClassPatterns>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <configuration>
+                    <header>src/build/resources/license-header.txt</header>
+                    <properties>
+                        <owner>Michael Weirauch</owner>
+                        <email>michael.weirauch@gmail.com</email>
+                    </properties>
+                    <excludes>
+                        <exclude>pom.xml</exclude>
+                        <exclude>src/build/resources/**/*.*</exclude>
+                        <exclude>src/test/resources/**/*.*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- Help Eclipse processing the JMH benchmarks. -->
+                    <!-- (Otherwise META-INF/BenchmarkList is not generated.) -->
+                    <annotationProcessorPaths>
+                        <annotationProcessorPath>
+                            <groupId>org.openjdk.jmh</groupId>
+                            <artifactId>jmh-generator-annprocess</artifactId>
+                            <version>${jmh.version}</version>
+                        </annotationProcessorPath>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <tagNameFormat>@{project.version}</tagNameFormat>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <!-- false-positive: https://github.com/spotbugs/spotbugs/issues/756 -->
+            <id>spotbugs-jdk11</id>
+            <activation>
+                <jdk>11</jdk>
+            </activation>
+            <properties>
+                <basepom.check.fail-spotbugs>false</basepom.check.fail-spotbugs>
+            </properties>
+        </profile>
+    </profiles>
+
+</project>

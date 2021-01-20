@@ -1,0 +1,195 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.jenkins-ci.plugins</groupId>
+		<artifactId>plugin</artifactId>
+		<version>1.532.3</version>
+	</parent>
+
+	<artifactId>openshift-deployer</artifactId>
+	<version>1.2.1-SNAPSHOT</version>
+	<packaging>hpi</packaging>
+
+	<name>OpenShift Deployer Plugin</name>
+	<description>This plugin enable Jenkins jobs to create containers(gears) on OpenShift and deploy applications to it</description>
+	<url>http://wiki.jenkins-ci.org/display/JENKINS/OpenShift+Deployer+Plugin</url>
+
+	<developers>
+		<developer>
+			<id>siamaksade</id>
+			<name>Siamak Sadeghianfar</name>
+			<email>ssadeghi@redhat.com</email>
+		</developer>
+		<developer>
+			<id>juhoffma</id>
+			<name>Juergen Hoffmann</name>
+			<email>juhoffma@redhat.com</email>
+		</developer>
+		<developer>
+			<id>enham</id>
+			<name>Evong Nham</name>
+			<email>enham@redhat.com</email>
+		</developer>
+	</developers>
+
+	<scm>
+		<connection>scm:git:ssh://github.com/jenkinsci/openshift-deployer-plugin.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/openshift-deployer-plugin.git</developerConnection>
+		<url>https://github.com/jenkinsci/openshift-deployer-plugin</url>
+		<tag>HEAD</tag>
+	</scm>
+
+	<distributionManagement>
+		<repository>
+			<id>maven.jenkins-ci.org</id>
+			<url>http://maven.jenkins-ci.org:8081/content/repositories/releases/</url>
+		</repository>
+	</distributionManagement>
+
+	<repositories>
+		<repository>
+			<id>repo.jenkins-ci.org</id>
+			<url>http://repo.jenkins-ci.org/public/</url>
+		</repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>repo.jenkins-ci.org</id>
+			<url>http://repo.jenkins-ci.org/public/</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<properties>
+		<openshift-client.version>2.6.2.Final</openshift-client.version>
+		<jgit.version>3.5.1.201410131835-r</jgit.version>
+		<powermock.version>1.6.0</powermock.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.openshift</groupId>
+			<artifactId>openshift-java-client</artifactId>
+			<version>${openshift-client.version}</version>
+		</dependency>
+
+		<dependency>
+			<artifactId>org.eclipse.jgit</artifactId>
+			<groupId>org.eclipse.jgit</groupId>
+			<version>${jgit.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>1.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.3.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>token-macro</artifactId>
+			<version>1.9</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.jcraft</groupId>
+			<artifactId>jsch</artifactId>
+			<version>0.1.51</version>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.9.5</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-core</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<tagNameFormat>v@{project.version}</tagNameFormat>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.18.1</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.maven.surefire</groupId>
+						<artifactId>surefire-junit47</artifactId>
+						<version>2.18.1</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<includes>
+						<include>**/*.class</include>
+					</includes>
+					<excludedGroups>org.jenkinsci.plugins.openshift.annotation.IntegrationTest</excludedGroups>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>2.18.1</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.maven.surefire</groupId>
+						<artifactId>surefire-junit47</artifactId>
+						<version>2.18.1</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<groups>org.jenkinsci.plugins.openshift.annotation.IntegrationTest</groups>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+						</goals>
+						<configuration>
+							<includes>
+								<include>**/*.class</include>
+							</includes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

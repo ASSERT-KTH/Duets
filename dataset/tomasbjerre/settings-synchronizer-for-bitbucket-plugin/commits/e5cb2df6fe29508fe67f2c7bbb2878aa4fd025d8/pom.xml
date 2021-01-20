@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+ <modelVersion>4.0.0</modelVersion>
+ <groupId>se.bjurr.ssfb</groupId>
+ <artifactId>settings-synchronizer-for-bitbucket</artifactId>
+ <version>1.11-SNAPSHOT</version>
+ <organization>
+  <name>Tomas Bjerre</name>
+  <url>http://bjurr.se/</url>
+ </organization>
+ <name>settings-synchronizer-for-bitbucket</name>
+ <description>This is the Settings Synchronizer for Bitbucket Server. See https://github.com/tomasbjerre/settings-synchronizer-for-bitbucket-plugin for documentation and source code.</description>
+ <packaging>atlassian-plugin</packaging>
+ <scm>
+  <developerConnection>scm:git:git@github.com:tomasbjerre/settings-synchronizer-for-bitbucket-plugin.git</developerConnection>
+  <url>https://github.com/tomasbjerre/settings-synchronizer-for-bitbucket-plugin</url>
+  <tag>HEAD</tag>
+ </scm>
+ <distributionManagement>
+  <repository>
+   <id>local-repo</id>
+   <name>LocalDir</name>
+   <url>file://${project.basedir}/dist-maven</url>
+  </repository>
+ </distributionManagement>
+ <repositories>
+  <repository>
+   <id>atlassian-public</id>
+   <url>https://maven.atlassian.com/repository/public</url>
+   <snapshots>
+    <enabled>true</enabled>
+    <updatePolicy>never</updatePolicy>
+    <checksumPolicy>warn</checksumPolicy>
+   </snapshots>
+   <releases>
+    <enabled>true</enabled>
+    <checksumPolicy>warn</checksumPolicy>
+   </releases>
+  </repository>
+ </repositories>
+ <dependencyManagement>
+  <dependencies>
+   <dependency>
+    <groupId>com.atlassian.bitbucket.server</groupId>
+    <artifactId>bitbucket-parent</artifactId>
+    <version>${bitbucket.version}</version>
+    <type>pom</type>
+    <scope>import</scope>
+   </dependency>
+  </dependencies>
+ </dependencyManagement>
+ <dependencies>
+  <!-- PROD // -->
+  <dependency>
+   <groupId>com.atlassian.templaterenderer</groupId>
+   <artifactId>atlassian-template-renderer-api</artifactId>
+   <scope>provided</scope>
+  </dependency>
+  <dependency>
+   <groupId>com.atlassian.bitbucket.server</groupId>
+   <artifactId>bitbucket-api</artifactId>
+   <scope>provided</scope>
+  </dependency>
+  <dependency>
+   <groupId>com.atlassian.sal</groupId>
+   <artifactId>sal-api</artifactId>
+   <scope>provided</scope>
+  </dependency>
+  <dependency>
+   <groupId>javax.servlet</groupId>
+   <artifactId>javax.servlet-api</artifactId>
+   <scope>provided</scope>
+  </dependency>
+  <dependency>
+   <groupId>javax.ws.rs</groupId>
+   <artifactId>jsr311-api</artifactId>
+   <version>1.1.1</version>
+   <scope>provided</scope>
+  </dependency>
+  <dependency>
+   <groupId>com.google.guava</groupId>
+   <artifactId>guava</artifactId>
+   <scope>provided</scope>
+  </dependency>
+  <dependency>
+   <groupId>com.google.code.gson</groupId>
+   <artifactId>gson</artifactId>
+   <scope>provided</scope>
+  </dependency>
+  <dependency>
+   <groupId>org.apache.httpcomponents</groupId>
+   <artifactId>httpclient</artifactId>
+   <scope>provided</scope>
+  </dependency>
+
+  <!-- TEST // -->
+  <dependency>
+   <groupId>org.mockito</groupId>
+   <artifactId>mockito-all</artifactId>
+   <version>1.8.5</version>
+   <scope>test</scope>
+  </dependency>
+  <dependency>
+   <groupId>junit</groupId>
+   <artifactId>junit</artifactId>
+   <version>4.12</version>
+   <scope>test</scope>
+  </dependency>
+  <dependency>
+   <groupId>com.sun.jersey</groupId>
+   <artifactId>jersey-client</artifactId>
+   <version>1.19</version>
+   <scope>test</scope>
+  </dependency>
+  <dependency>
+   <groupId>org.assertj</groupId>
+   <artifactId>assertj-core</artifactId>
+   <version>3.3.0</version>
+   <scope>test</scope>
+  </dependency>
+  <dependency>
+   <groupId>commons-logging</groupId>
+   <artifactId>commons-logging</artifactId>
+   <version>1.2</version>
+   <scope>test</scope>
+  </dependency>
+ </dependencies>
+ <build>
+  <plugins>
+   <plugin>
+    <groupId>se.bjurr.gitchangelog</groupId>
+    <artifactId>git-changelog-maven-plugin</artifactId>
+    <version>${changelog.version}</version>
+    <executions>
+     <execution>
+      <id>GenerateGitChangelog</id>
+      <phase>generate-sources</phase>
+      <goals>
+       <goal>git-changelog</goal>
+      </goals>
+      <configuration>
+       <readableTagName>-([^-]+?)$</readableTagName>
+       <gitHubApi>https://api.github.com/repos/tomasbjerre/settings-synchronizer-for-bitbucket-plugin</gitHubApi>
+       <gitHubToken>${GITHUB_OAUTH2TOKEN}</gitHubToken>
+       <gitHubIssuePattern>#([0-9]*)</gitHubIssuePattern>
+       <filePath>CHANGELOG.md</filePath>
+       <templateContent>
+        <![CDATA[
+# Settings Synchronizer for Bitbucket Changelog
+
+Changelog of Settings Synchronizer for Bitbucket.
+
+{{#tags}}
+## {{name}}
+ {{#issues}}
+  {{#hasIssue}}
+   {{#hasLink}}
+### {{name}} [{{issue}}]({{link}}) {{title}}
+   {{/hasLink}}
+   {{^hasLink}}
+### {{name}} {{issue}} {{title}}
+   {{/hasLink}}
+  {{/hasIssue}}
+  {{^hasIssue}}
+### {{name}}
+  {{/hasIssue}}
+
+  {{#commits}}
+**{{{messageTitle}}}**
+
+{{#messageBodyItems}}
+ * {{.}} 
+{{/messageBodyItems}}
+
+[{{hash}}](https://github.com/tomasbjerre/settings-synchronizer-for-bitbucket-plugin/commit/{{hash}}) {{authorName}} *{{commitTime}}*
+
+  {{/commits}}
+
+ {{/issues}}
+{{/tags}}
+]]>
+       </templateContent>
+      </configuration>
+     </execution>
+    </executions>
+   </plugin>
+   <plugin>
+    <groupId>com.atlassian.maven.plugins</groupId>
+    <artifactId>bitbucket-maven-plugin</artifactId>
+    <version>${amps.version}</version>
+    <extensions>true</extensions>
+    <configuration>
+     <products>
+      <product>
+       <id>bitbucket</id>
+       <instanceId>bitbucket</instanceId>
+       <version>${bitbucket.version}</version>
+       <dataVersion>${bitbucket.data.version}</dataVersion>
+      </product>
+     </products>
+    </configuration>
+   </plugin>
+   <plugin>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <configuration>
+     <source>1.8</source>
+     <target>1.8</target>
+    </configuration>
+   </plugin>
+   <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-release-plugin</artifactId>
+    <version>2.5</version>
+   </plugin>
+   <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>2.17</version>
+   </plugin>
+  </plugins>
+  <resources>
+   <resource>
+    <directory>src/main/resources</directory>
+    <filtering>true</filtering>
+   </resource>
+  </resources>
+ </build>
+ <properties>
+  <bitbucket.version>5.0.0</bitbucket.version>
+  <bitbucket.data.version>${bitbucket.version}</bitbucket.data.version>
+  <quick.reload.version>2.0.0</quick.reload.version>
+  <amps.version>6.3.0</amps.version>
+  <changelog.version>1.54</changelog.version>
+ </properties>
+</project>

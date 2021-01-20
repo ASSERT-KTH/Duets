@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.yss</groupId>
+    <artifactId>Thallo</artifactId>
+    <version>0.0.1</version>
+
+
+    <properties>
+        <vertx.version>3.6.2</vertx.version>
+        <hadoop.version>2.7.3</hadoop.version>
+        <junit.version>4.11</junit.version>
+        <jdk.version>1.8</jdk.version>
+    </properties>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>log4j</artifactId>
+                    <groupId>log4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-yarn-client</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>log4j</artifactId>
+                    <groupId>log4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>log4j</artifactId>
+                    <groupId>log4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-core</artifactId>
+            <version>${hadoop.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>log4j</artifactId>
+                    <groupId>log4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-core</artifactId>
+            <version>${vertx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-web</artifactId>
+            <version>${vertx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-jdbc-client</artifactId>
+            <version>${vertx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>2.3.3</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.1.11</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+            <version>1.1.11</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.22</version>
+        </dependency>
+    </dependencies>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <compilerArgs>
+                        <arg>-Acodetrans.output=${project.basedir}/src/main</arg>
+                        <arg>-Acodetrans.config=${basedir}/codetrans-config.json</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+
+            <!-- self-contained jars for each example -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>${profiles.mainClass}</mainClass>
+                                </transformer>
+                            </transformers>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+
+                    <execution>
+                        <id>package_ui</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <echo message="package ui project"/>
+                                <exec executable="npm"
+                                      dir="${project.basedir}/../thallo-ui">
+                                    <arg value="run"/>
+                                    <arg value="build"/>
+                                </exec>
+                                <copy file="${project.basedir}/../thallo-ui/dist/index.html"
+                                      tofile="${project.basedir}/src/main/resources/webroot/index.html"/>
+                                <copy file="${project.basedir}/../thallo-ui/dist/umi.css"
+                                      tofile="${project.basedir}/src/main/resources/webroot/umi.css"></copy>
+                                <copy file="${project.basedir}/../thallo-ui/dist/umi.js"
+                                      tofile="${project.basedir}/src/main/resources/webroot/umi.js"></copy>
+                                <exec executable="cp" dir="${project.basedir}/../thallo-ui/dist">
+                                    <arg value="-r"></arg>
+                                    <arg value="${project.basedir}/../thallo-ui/dist/static"/>
+                                    <arg value="${project.basedir}/src/main/resources/webroot/static"></arg>
+                                </exec>
+                            </target>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>rename</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <echo message="copy to jar package: ${profiles.jarName}"/>
+                                <copy file="${project.basedir}/target/${artifactId}-${version}.jar"
+                                      tofile="${project.basedir}/target/thallo/lib/${profiles.jarName}.jar"/>
+                                <copy file="${project.basedir}/bin/thallo-submit.sh"
+                                      tofile="${project.basedir}/target/thallo/bin/thallo-submit.sh"/>
+                                <exec executable="sh"
+                                      dir="${project.build.directory}/thallo/bin">
+                                      <!--spawn="true">-->
+                                    <arg value="thallo-submit.sh"/>
+                                </exec>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>client</id>
+            <properties>
+                <profiles.mainClass>com.yss.thallo.client.Client</profiles.mainClass>
+                <profiles.jarName>thallo-hadoop-${hadoop.version}</profiles.jarName>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+    </profiles>
+
+
+</project>

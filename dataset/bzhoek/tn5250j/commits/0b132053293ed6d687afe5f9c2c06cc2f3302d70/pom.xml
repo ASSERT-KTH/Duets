@@ -1,0 +1,130 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.hoek</groupId>
+  <artifactId>tn5250j.slim</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <dependencies>
+
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.14</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.activation</groupId>
+      <artifactId>activation</artifactId>
+      <version>1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.mail</groupId>
+      <artifactId>mail</artifactId>
+      <version>1.4.5</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>smtp</artifactId>
+      <version>1.4.5</version>
+    </dependency>
+    <dependency>
+      <groupId>com.lowagie</groupId>
+      <artifactId>itext</artifactId>
+      <version>1.2.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.python</groupId>
+      <artifactId>jython</artifactId>
+      <version>2.2</version>
+    </dependency>
+    <dependency>
+      <groupId>net.sf.jt400</groupId>
+      <artifactId>jt400</artifactId>
+      <version>6.7</version>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.fitnesse</groupId>
+      <artifactId>fitnesse</artifactId>
+      <version>20121220</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>commons-lang</groupId>
+          <artifactId>commons-lang</artifactId>
+        </exclusion>
+      </exclusions>
+
+    </dependency>
+    <dependency>
+      <groupId>org.apache.velocity</groupId>
+      <artifactId>velocity</artifactId>
+      <version>1.7</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <archive>
+            <manifestFile>src/main/resources/Meta-inf/Manifest.mf</manifestFile>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>fitnesse</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.7</version>
+            <executions>
+              <execution>
+                <phase>integration-test</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target>
+                    <property name="plugin_classpath" refid="maven.test.classpath"/>
+                    <property name="test_classpath" value="${plugin_classpath}"/>
+                    <echo message="Running FitNesse with classpath ${test_classpath}"/>
+
+                    <!--<java fork="true" jar="fitnesse-standalone.jar">-->
+                    <java fork="true" classname="fitnesseMain.FitNesseMain" classpath="${test_classpath}">
+                      <jvmarg value="-DmavenRepository=${settings.localRepository}"/>
+                      <jvmarg value="-DclassPath=${test_classpath}${path.separator}target/test-classes"/>
+                      <jvmarg value="-DcommandPattern=java -cp ${classPath} %m"/>
+                      <jvmarg value="-Dusername=${username}"/>
+                      <jvmarg value="-Dpassword=${password}"/>
+                      <arg line="-r src/test/resources/FitNesseRoot"/> <!-- Working directory -->
+                      <arg line="-e 0"/> <!-- Don't keep page history -->
+                      <arg line="-p 8001"/> <!-- Port number to start on -->
+                      <arg line="-o"/> <!-- Don't update FitNesseRoot -->
+                      <arg line="-l ${basedir}/target"/>
+                    </java>
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

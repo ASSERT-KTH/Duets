@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.parabot</groupId>
+    <artifactId>client</artifactId>
+    <version>2.8.1</version>
+  
+    <packaging>jar</packaging>
+
+    <properties>
+        <jdk.version>1.7</jdk.version>
+        <build.version></build.version>
+        <additionalparam>-Xdoclint:none</additionalparam>
+    </properties>
+
+    <name>Parabot client</name>
+    <description>The best open-source (Runescape Private Server) bot</description>
+    <url>http://www.parabot.org/</url>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <repositories>
+        <repository>
+            <id>parabot-maven</id>
+            <name>Parabot its Maven Repository</name>
+            <url>http://maven.parabot.org/</url>
+        </repository>
+        <repository>
+            <id>git-parabot</id>
+            <name>Parabot's Git based repo</name>
+            <url>https://github.com/parabot/Maven-Repository/raw/master/</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>javafx</groupId>
+            <artifactId>javafx</artifactId>
+            <version>1.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-all</artifactId>
+            <version>5.0.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.parabot</groupId>
+            <artifactId>internal-api</artifactId>
+            <version>1.53.1</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>Parabot-V${version}${build.version}</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+            <resource>
+                <directory>deploy</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <nonFilteredFileExtensions>
+                        <nonFilteredFileExtension>ttf</nonFilteredFileExtension>
+                    </nonFilteredFileExtensions>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>${jdk.version}</source>
+                    <target>${jdk.version}</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.4</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <phase>deploy</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <doctitle>${project.name} V${project.version}</doctitle>
+                    <failOnError>false</failOnError>
+                    <quiet>true</quiet>
+                    <outputDirectory>${project.build.directory}/apidocs/${project.version}</outputDirectory>
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.5.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-descriptor</id>
+                        <goals>
+                            <goal>attach-descriptor</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.parabot.Landing</mainClass>
+                        </manifest>
+                    </archive>
+                    <outputDirectory>${project.build.directory}/final/</outputDirectory>
+                    <appendAssemblyId>false</appendAssemblyId>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-ftp</artifactId>
+                <version>2.10</version>
+            </extension>
+        </extensions>
+    </build>
+
+    <distributionManagement>
+        <downloadUrl>https://maven.parabot.org/</downloadUrl>
+        <repository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>parabot-maven</id>
+            <name>Custom Maven Repository</name>
+            <url>ftp://maven.parabot.org/public_html</url>
+            <layout>default</layout>
+        </repository>
+        <site>
+            <id>parabot-maven</id>
+            <name>Frontend Parabot Maven</name>
+            <url>ftp://maven.parabot.org/public_html/docs/${artifactId}/</url>
+        </site>
+    </distributionManagement>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </reporting>
+</project>

@@ -1,0 +1,581 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>cat.calidos.morfeu</groupId>
+	<artifactId>morfeu-webapp</artifactId>	
+	<version>0.6.2-SNAPSHOT</version>
+	<packaging>war</packaging>
+
+	<name>Morfeu web application</name>
+	<!-- find . -name "*.ts" -exec bash -c 'unexpand -t 4 "$0" > /tmp/a && mv -v /tmp/a "$0"' {} \; -->
+	<description>TBD</description>
+	<inceptionYear>2016</inceptionYear>
+
+	<properties>
+		<jetty-http-port>8980</jetty-http-port>
+		<jetty-stop-port>8981</jetty-stop-port>
+		<jetty-context-path>/</jetty-context-path>
+		<webapp-prefix>http://localhost:${jetty-http-port}${jetty-context-path}/</webapp-prefix>
+		<resources-prefix>file://${project.basedir}/</resources-prefix>
+		<async-timeout>2000</async-timeout>
+		<dagger-2-version>2.27</dagger-2-version>
+		<jackson-2-version>2.10.3</jackson-2-version>
+		<jetty-version>9.4.24.v20191120</jetty-version>
+		<jtwig-version>5.87.0.RELEASE</jtwig-version>
+		<selenide-version>5.11.1</selenide-version>
+		<selenium-version>3.141.59</selenium-version>
+		<jupiter-version>5.5.2</jupiter-version>
+		<junit-platform-version>1.5.2</junit-platform-version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	</properties>
+
+	<build>
+
+		<resources>	<!-- skip moving node modules about -->
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>src/test/resources</directory>
+			</resource>
+			<resource>											<!-- folder for angular app distribution -->
+				<directory>src/main/angular/dist</directory>	<!-- will create any empty dist dir in target -->
+				<targetPath>${project.build.directory}/dist</targetPath>
+			</resource>
+			<resource>
+				<directory>src/main/scripts</directory>
+				<filtering>true</filtering>
+				<targetPath>${project.build.directory}/scripts</targetPath>
+			</resource>
+		</resources>
+
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.6.1</version>
+				<configuration>
+					<source>1.10</source>
+					<target>1.10</target>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>com.google.dagger</groupId>
+							<artifactId>dagger-compiler</artifactId>
+							<version>${dagger-2-version}</version>
+						</path>
+					</annotationProcessorPaths>
+					<generatedSourcesDirectory>target/generated-sources/annotations</generatedSourcesDirectory>
+				</configuration>
+			</plugin>
+<!-- plugin>
+  <groupId>org.bsc.maven</groupId>
+  <artifactId>maven-processor-plugin</artifactId>
+  <version>3.3.3</version>
+  <executions>
+    <execution>
+      <id>process</id>
+      <goals>
+        <goal>process</goal>
+      </goals>
+      <phase>generate-sources</phase>
+      <configuration>
+        <outputDirectory>target/generated-sources/annotations</outputDirectory>
+      <processors>
+                            <processor>com.google.dagger.*</processor>
+                        </processors>
+      </configuration> 
+      
+    </execution>
+  </executions>
+</plugin-->
+
+
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.0.2</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>test-jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>        <!-- run test scripts -->
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.6.0</version>
+				<executions>
+					<execution>
+						<id>build-angular</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>bash</executable>
+							<workingDirectory></workingDirectory>
+							<arguments>
+								<argument>-c</argument>
+								<argument>
+									chmod a+x ${project.build.directory}/scripts/angular.sh &amp;&amp; \
+									${project.build.directory}/scripts/angular.sh
+								</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>	<!--  mvn package war:war install -DarchiveClasses=true -DattachClasses=true -DskipITs -DskipTests=true -Djetty.skip -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>3.2.2</version>
+				<configuration>
+					<webResources>
+						<resource>
+							<directory>${project.build.directory}/dist</directory> <!-- add build distribution to root of WAR -->
+						</resource>
+						<resource>
+							<directory>${project.build.outputDirectory}/test-resources</directory>	<!-- test material for dev env compatibility -->
+							<targetPath>target/test-classes/test-resources</targetPath>
+						</resource>
+						<resource>
+							<directory>${project.build.outputDirectory}/test-resources</directory>	<!-- test material for dev env compatibility -->
+							<targetPath>test-resources</targetPath>
+						</resource>
+					</webResources>
+					<attachClasses>true</attachClasses>	<!-- creates a jar with the classes and attaches an artifact -->
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-maven-plugin</artifactId>
+				<version>${jetty-version}</version>
+				<dependencies>	<!--  to add GZIP compression -->
+					<dependency>
+						<groupId>org.eclipse.jetty</groupId>
+						<artifactId>jetty-servlets</artifactId>
+						<version>${jetty-version}</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<dumpOnStart>false</dumpOnStart> <!-- set to true for debugging -->
+					<scanIntervalSeconds>1</scanIntervalSeconds>
+					<stopPort>${jetty-stop-port}</stopPort>
+					<stopKey>STOP</stopKey>
+					<useTestScope>true</useTestScope>
+					<webApp>
+						<contextPath>${jetty-context-path}</contextPath>
+						<!-- we add this extra classpath so jetty loads templates and all jar deps like jackson and stuff -->
+						<extraClasspath>${project.build.directory}/${project.artifactId}-${project.version}/WEB-INF/lib</extraClasspath>
+						<resourceBases>
+							<resourceBase>${project.build.outputDirectory}</resourceBase>	<!-- data files for angular app -->
+							<!-- fallback for testing: /morfeu/target/test-classes/test-resources/.. is ok -->
+							<resourceBase>${basedir}</resourceBase>								<!-- more data files, compatible with int tests -->
+							<!--resourceBase>${project.build.directory}/dist</resourceBase-->
+						</resourceBases>
+						<webInfIncludeJarPattern>^$</webInfIncludeJarPattern>
+					</webApp>
+					<testClassesDirectory>${project.build.directory}/SKIPSCANTESTCLASSES</testClassesDirectory>
+					<systemProperties>
+						<systemProperty>
+							<name>org.eclipse.jetty.annotations.maxWait</name>
+							<value>60000</value>
+						</systemProperty>
+						<systemProperty> <!-- mvn jetty:run -D__RESOURCES_PREFIX=file://$(PWD)/  -->
+							<name>__RESOURCES_PREFIX</name>
+							<value>${resources-prefix}</value>
+						</systemProperty>
+						<systemProperty> <!-- mvn jetty:run -D__ASYNC_TIMEOUT=1000  -->
+							<name>__ASYNC_TIMEOUT</name>
+							<value>${async-timeout}</value>
+						</systemProperty>
+						<systemProperty>
+							<name>org.eclipse.jetty.util.log.Log</name>
+							<value>org.eclipse.jetty.util.log.Slf4jLog</value>
+						</systemProperty>
+						<systemProperty>
+							<name>logback.configurationFile</name>
+							<value>src/main/resources/logback.xml</value>
+						</systemProperty>
+					</systemProperties>
+					<httpConnector>
+						<port>${jetty-http-port}</port>
+					</httpConnector>
+				</configuration>
+				<executions>
+					<execution>	<!-- start jetty when target is integration testing -->
+					<id>start-jetty-integration-test</id>
+					<phase>pre-integration-test</phase>
+					<goals>
+						<goal>run</goal>
+					</goals>
+					<configuration>
+						<scanIntervalSeconds>0</scanIntervalSeconds>
+						<daemon>true</daemon>
+					</configuration>
+					</execution>
+					<execution>	<!-- stop jetty when completed integration testing-->
+						<id>stop-jetty</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>stop</goal>
+						</goals>
+						<configuration>
+							<stopKey>STOP</stopKey>
+							<stopPort>${jetty-stop-port}</stopPort>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.0.0-M4</version>
+				<configuration>
+					<excludes>	<!-- no UI/integration tests in unit testing -->
+						<exclude>**/*IntTest*</exclude>
+						<exclude>**/*UITest*</exclude>
+						<exclude>**/*ComponentTest*</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>3.0.0-M4</version>
+				<configuration>
+					<systemPropertyVariables>
+						<TMP_FOLDER>${project.build.directory}/integration-tests-tmp</TMP_FOLDER>
+					</systemPropertyVariables>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+						<configuration>
+							<includes>
+								<include>**/*IntTest*</include>
+								<include>**/*UITest*</include>
+								<include>**/*ComponentTest*</include>
+							</includes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
+	</build>
+	<dependencies>
+		<!-- DEPENDENCY INJECTION dependencies (optionals not included in the final WAR archive) -->
+		<dependency>
+			<groupId>com.google.dagger</groupId>
+			<artifactId>dagger</artifactId>
+			<version>${dagger-2-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.dagger</groupId>
+			<artifactId>dagger-producers</artifactId>
+			<version>${dagger-2-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.dagger</groupId>
+			<artifactId>dagger-compiler</artifactId>
+			<version>${dagger-2-version}</version>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>javax.inject</groupId>
+			<artifactId>javax.inject</artifactId>
+			<version>1.0.0.redhat-6</version>
+			<!-- scope>provided</scope -->
+		</dependency>
+
+		<!-- XML Schema parsing (compatible license, see here https://xsom.java.net) -->
+		<dependency>
+			<groupId>com.sun.xsom</groupId>
+			<artifactId>xsom</artifactId>
+			<version>20140925.0.0.redhat-1</version>
+		</dependency>
+
+
+		<!-- Jackson JSON lib stuff -->
+		 <!-- the core, which includes Streaming API, shared low-level abstractions (but NOT data-binding) -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>${jackson-2-version}</version>
+		</dependency>
+
+		 <!-- Just the annotations; use this dependency if you want to attach annotations
+		      to classes without connecting them to the code. -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>${jackson-2-version}</version>
+		</dependency>
+
+		<!-- databinding; ObjectMapper, JsonNode and related classes are here -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson-2-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-yaml</artifactId>
+			<version>${jackson-2-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jdk8</artifactId>
+			<version>${jackson-2-version}</version>
+		</dependency>
+
+		<!-- JETTY RUNTIME -->
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>${jetty-version}</version>
+		</dependency>
+		<!-- dependency>
+			<groupId>org.apache.velocity</groupId>
+			<artifactId>velocity</artifactId>
+			<version>1.7</version>
+		</dependency-->
+
+		<!-- HELPERS -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.6</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpasyncclient</artifactId>
+			<version>4.1.4.redhat-00001</version>
+		</dependency>
+		<dependency><!-- to test dynamic preview with SVG -->
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-dom</artifactId>
+			<version>1.12</version>
+			<!-- get rid of java 1.9 module clashing old xml api dupes -->
+			<exclusions>
+				<exclusion>  <!-- declare the exclusion here -->
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis</artifactId>
+				</exclusion>
+				<exclusion>  <!-- declare the exclusion here -->
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis-ext</artifactId>
+				</exclusion>
+			</exclusions> 
+		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-svggen</artifactId>
+			<version>1.12</version>
+		</dependency>
+
+		<!-- logback -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.3.0-alpha5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>2.0.0-alpha1</version>
+		</dependency>
+
+		<!--  templating -->
+		<dependency>
+			<groupId>org.jtwig</groupId>
+			<artifactId>jtwig-core</artifactId>
+			<version>${jtwig-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jtwig</groupId>
+			<artifactId>jtwig-reflection</artifactId>
+			<version>${jtwig-version}</version>
+		</dependency>
+
+		<!-- request proxying -->
+		<dependency>
+			<groupId>org.mitre.dsmiley.httpproxy</groupId>
+			<artifactId>smiley-http-proxy-servlet</artifactId>
+			<version>1.11</version>
+		</dependency>
+
+		<!-- process execution -->
+		<dependency>
+			<groupId>org.zeroturnaround</groupId>
+			<artifactId>zt-exec</artifactId>
+			<version>1.11</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.zeroturnaround</groupId>
+		    <artifactId>zt-process-killer</artifactId>
+		    <version>1.10</version>
+		</dependency>
+
+		<!-- UNIT TESTING -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<version>${jupiter-version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<version>${jupiter-version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.vintage</groupId>
+			<artifactId>junit-vintage-engine</artifactId>
+			<version>${jupiter-version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.platform</groupId>
+			<artifactId>junit-platform-launcher</artifactId>
+			<version>${junit-platform-version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.platform</groupId>
+			<artifactId>junit-platform-runner</artifactId>
+			<version>${junit-platform-version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>3.3.3</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- INTEGRATION TESTING -->
+		<dependency>	<!-- web driver manager -->
+			<groupId>io.github.bonigarcia</groupId>
+			<artifactId>webdrivermanager</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<version>${selenium-version}</version>
+			<scope>test</scope>
+			<exclusions>
+                <!--exclusion>
+                   <groupId>org.seleniumhq.selenium</groupId>
+                    <artifactId>selenium-chrome-driver</artifactId>
+                </exclusion-->
+				<exclusion>
+					<groupId>org.seleniumhq.selenium</groupId>
+					<artifactId>selenium-firefox-driver</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.seleniumhq.selenium</groupId>
+					<artifactId>selenium-ie-driver</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.seleniumhq.selenium</groupId>
+					<artifactId>selenium-iphone-driver</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.seleniumhq.selenium</groupId>
+					<artifactId>selenium-htmlunit-driver</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.seleniumhq.selenium</groupId>
+					<artifactId>selenium-android-driver</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-server</artifactId>
+			<version>${selenium-version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-chrome-driver</artifactId>
+			<version>${selenium-version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.codeborne</groupId>
+			<artifactId>selenide</artifactId>
+			<version>${selenide-version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.xmlunit</groupId>
+			<artifactId>xmlunit-core</artifactId>
+			<version>2.6.4</version>
+		</dependency>
+
+	</dependencies>
+
+
+	<repositories>
+		<!--repository>
+			<id>Maven-Central</id>
+			<name>Maven central</name>
+			<url>https://repo1.maven.org/maven2/</url>
+		</repository-->
+		<repository>
+			<id>Apache-releases</id>
+			<name>Apache releases</name>
+			<url>https://repository.apache.org/content/repositories/releases</url>
+		</repository>
+		<repository>
+			<id>RedHat-GA</id>
+			<name>RedHat GA repository</name>
+			<url>https://maven.repository.redhat.com/ga/</url>
+		</repository>
+		<repository>
+			<id>jcenter</id>
+			<url>https://jcenter.bintray.com/</url>
+		</repository>
+	</repositories>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+			<comments>Copyright (C) 2020 Daniel Giribet</comments>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<id>danigiri</id>
+			<name>Daniel Giribet</name>
+			<email>dani AT calidos DOT cat</email>
+			<url>http//dani.calidos.com</url>
+			<roles>
+				<role>creator</role>
+				<role>developer</role>
+			</roles>
+			<timezone>+1</timezone>
+		</developer>
+	</developers>
+
+</project>
+

@@ -1,0 +1,225 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.opentext.otag.sdk</groupId>
+    <artifactId>otag-service-development-kit</artifactId>
+    <version>16</version>
+    <packaging>jar</packaging>
+
+    <name>Open Text AppWorks Gateway Service Developer Kit (SDK)</name>
+
+    <description>This module provides access to the set of utility classes required to interact with an
+        instance of an AppWorks Gateway from an AppWorks Service. It covers AppWorks dedicated service
+        deployment API, which is a limited subset of the full AppWorks admin API.
+
+        We currently provide the facility for services to listen to service life-cycle events such as 'service
+        installed', 'service upgraded' and 'service uninstalled'.
+
+        We also provide the facility for centralised configuration setting management. As AppWorks services
+        are edited from the AppWork Gateway administration console, we provide the ability to respond to
+        updates made here, and also expose creation and update end points for these settings.
+    </description>
+
+    <url>https://github.com/opentext/otag-service-development-kit</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jackson.version>2.6.2</jackson.version>
+        <appworks.platform.version>16</appworks.platform.version>
+    </properties>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>${project.basedir}/src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>${project.build.directory}/licenses</directory>
+                <targetPath>META-INF</targetPath>
+            </resource>
+            <resource>
+                <directory>${project.build.directory}/generated-sources/license</directory>
+                <targetPath>META-INF</targetPath>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+
+            <!-- Deploy sources as well as built artifacts so we can debug effectively-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- enable deployment for this module -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.8.2</version>
+                <executions>
+                    <execution>
+                        <id>default-deploy</id>
+                        <phase>deploy</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- generate JavaDoc on 'mvn install' -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.3</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.fortify.ps.maven.plugin</groupId>
+                <artifactId>sca-maven-plugin</artifactId>
+                <version>4.40</version>
+                <configuration>
+                    <projectName>awg-service-development-kit</projectName>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <licenses>
+        <license>
+            <name>Open Text End User License Agreement</name>
+            <url>https://developer.opentext.com/awd/resources/articles/15235159/end+user+software+license+agreement+for+open+text+corporation+software</url>
+        </license>
+        <license>
+            <name>Trial Use Agreement</name>
+            <url>https://developer.opentext.com/awd/resources/articles/15235173/trial+use+agreement</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Rhys Evans</name>
+            <email>rhyse@opentext.com</email>
+            <organization>Open Text</organization>
+            <organizationUrl>http://www.opentext.com/</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git@github.com:opentext/otag-service-development-kit.git</connection>
+        <developerConnection>scm:git:git@github.com:opentext/otag-service-development-kit.git</developerConnection>
+        <url>git@github.com:opentext/otag-service-development-kit.git</url>
+    </scm>
+
+    <dependencies>
+
+        <!-- We expect developers to include this dependency themselves as a separate Jar
+            in their WAR -->
+        <dependency>
+            <groupId>com.opentext.otag.service.context</groupId>
+            <artifactId>otag-service-context</artifactId>
+            <version>${appworks.platform.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.opentext.otag.tomcat</groupId>
+            <artifactId>otag-tomcat-listener</artifactId>
+            <version>${appworks.platform.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.3.5</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.jaxrs</groupId>
+            <artifactId>jackson-jaxrs-json-provider</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>2.8</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.10</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Fluent assertions -->
+        <dependency>
+            <groupId>org.easytesting</groupId>
+            <artifactId>fest-assert-core</artifactId>
+            <version>2.0M10</version>
+            <scope>test</scope>
+        </dependency>
+        <!--Mocking library-->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.10.19</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+</project>

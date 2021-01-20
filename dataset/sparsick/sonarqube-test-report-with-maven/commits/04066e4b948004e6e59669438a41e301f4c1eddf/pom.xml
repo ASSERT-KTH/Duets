@@ -1,0 +1,149 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>de.kosmalla.sandra.sonarqube</groupId>
+    <artifactId>sonarqube-test-report-with-maven</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>sonarqube-test-report-with-maven</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>1.7</java.version>
+
+        <!-- sonar properties -->
+        <sonar.jacoco.reportPath>${project.basedir}/target/jacoco.exec</sonar.jacoco.reportPath>  
+        <sonar.jacoco.itReportPath>${project.basedir}/target/jacoco-it.exec</sonar.jacoco.itReportPath>  
+        <sonar.language>java</sonar.language>  
+        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>  
+        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+    </properties>
+  
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.sonar</groupId>
+                    <artifactId>sonar-maven3-plugin</artifactId>
+                    <version>3.2.1</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>add-test-source</id>
+                        <phase>process-test-sources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>src/it/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>add-test-resources</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>add-test-resource</goal>
+                        </goals>
+                        <configuration>
+                            <resources>
+                                <resource>
+                                    <directory>src/it/resources</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.12</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.13</version>
+                <configuration>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>failsafe-integration-tests</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.6.4.201312101107</version>  
+                <executions>    
+                    <execution>  
+                        <configuration>  
+                            <!-- we want to include all classes starting with example.* in raport -->  
+                            <includes>
+                                <include>de.kosmalla.sandra.*</include>
+                            </includes>  
+                            <destFile>${sonar.jacoco.reportPath}</destFile>  
+                        </configuration>  
+                        <id>pre-test</id>
+                        <phase>process-test-classes</phase>  
+                        <goals>  
+                            <goal>prepare-agent</goal>  
+                        </goals>  
+                    </execution>  
+                    <!-- we want to execute jacoco:prepare-agent-integration in test phase,  
+                    but before executing maven failsafe plugin -->  
+                    <execution>  
+                        <configuration>  
+                            <!-- we want to include all classes starting with example.* in raport -->  
+                            <includes>
+                                <include>de.kosmalla.sandra.*</include>
+                            </includes>  
+                            <destFile>${sonar.jacoco.itReportPath}</destFile>  
+                        </configuration>  
+                        <id>pre-itest</id>
+                        <phase>pre-integration-test</phase>  
+                        <goals>  
+                            <goal>prepare-agent-integration</goal>  
+                        </goals>  
+                    </execution>  
+                </executions>  
+            </plugin>
+        </plugins>
+    </build>
+  
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

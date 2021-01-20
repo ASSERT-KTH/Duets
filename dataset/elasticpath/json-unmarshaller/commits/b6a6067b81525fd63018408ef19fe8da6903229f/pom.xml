@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.elasticpath</groupId>
+		<artifactId>grandparent</artifactId>
+		<version>80</version>
+		<relativePath/>
+	</parent>
+
+	<groupId>com.elasticpath.rest</groupId>
+	<artifactId>json-unmarshaller</artifactId>
+	<version>0-SNAPSHOT</version>
+	<packaging>bundle</packaging>
+
+	<name>EP ∷ Json Unmarshaller</name>
+	<description>Provides concise annotation based unmarshalling of Json using JsonPath and Jackson</description>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<com.fasterxml.jackson.version>2.4.2</com.fasterxml.jackson.version>
+		<org.glassfish.jersey.version>2.12</org.glassfish.jersey.version>
+		<org.slf4j.version>1.7.6</org.slf4j.version>
+	</properties>
+
+	<organization>
+		<name>Elastic Path Software, Inc</name>
+		<url>http://www.elasticpath.com</url>
+	</organization>
+
+	<dependencies>
+		<!--JAX-RS api-->
+		<dependency>
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>javax.ws.rs-api</artifactId>
+			<version>2.0.1</version>
+		</dependency>
+
+		<!-- Google Guice Dependency Injection -->
+		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+			<version>3.0</version>
+		</dependency>
+
+
+		<!--JsonPath for complex unmarshalling -->
+		<dependency>
+			<groupId>com.jayway.jsonpath</groupId>
+			<artifactId>json-path</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+
+		<!--Jackson annotations for specific deserialization config-->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>${com.fasterxml.jackson.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.jaxrs</groupId>
+			<artifactId>jackson-jaxrs-base</artifactId>
+			<version>${com.fasterxml.jackson.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>18.0</version>
+		</dependency>
+
+		<!--Logging-->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${org.slf4j.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!--OSGI-->
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.core</artifactId>
+			<version>4.3.1</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!--Test-->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.codehaus.groovy</groupId>
+			<artifactId>groovy-all</artifactId>
+			<version>2.4.0-beta-3</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.9.5</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!--No logging in tests-->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-nop</artifactId>
+			<version>${org.slf4j.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.tomakehurst</groupId>
+			<artifactId>wiremock</artifactId>
+			<version>1.48</version>
+			<scope>test</scope>
+			<!-- Include this if you have dependency conflicts for Guava, Jetty, Jackson or Apache HTTP Client -->
+			<classifier>standalone</classifier>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>2.5.3</version>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Bundle-Activator>com.elasticpath.rest.json.unmarshalling.config.Activator</Bundle-Activator>
+						<Embed-Dependency>*;scope=compile|runtime</Embed-Dependency>
+						<Embed-Directory>OSGI-INF/lib</Embed-Directory>
+						<Embed-Transitive>true</Embed-Transitive>
+						<Export-Package>
+							com.elasticpath.rest.json.unmarshalling.*,
+							com.elasticpath.rest.client.unmarshalling.annotations
+						</Export-Package>
+						<Import-Package>
+							com.fasterxml.jackson.annotation,
+							*;resolution:=optional
+						</Import-Package>
+					</instructions>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.7.2.201409121644</version>
+				<executions>
+					<execution>
+						<id>default-prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>default-report</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.1</version>
+					<executions>
+						<execution>
+							<!-- Override only the testCompile execution, as javac is still the desired compiler for production code -->
+							<id>default-testCompile</id>
+							<configuration>
+								<!-- Groovy compilation doesn't seem to be compatible with -Werror and -Xlint:all -->
+								<compilerArgs combine.self="override"/>
+								<compilerId>groovy-eclipse-compiler</compilerId>
+							</configuration>
+						</execution>
+					</executions>
+					<configuration>
+						<source>1.7</source>
+						<target>1.7</target>
+					</configuration>
+					<dependencies>
+						<dependency>
+							<groupId>org.codehaus.groovy</groupId>
+							<artifactId>groovy-eclipse-compiler</artifactId>
+							<version>2.9.0-01</version>
+						</dependency>
+						<dependency>
+							<groupId>org.codehaus.groovy</groupId>
+							<artifactId>groovy-eclipse-batch</artifactId>
+							<version>2.3.4-01</version>
+						</dependency>
+					</dependencies>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<distributionManagement>
+		<repository>
+			<id>releases</id>
+			<url>${release.repository.url}</url>
+		</repository>
+		<snapshotRepository>
+			<id>snapshots</id>
+			<url>${snapshot.repository.url}</url>
+		</snapshotRepository>
+		<site>
+			<id>site</id>
+			<url>${site.url}</url>
+		</site>
+	</distributionManagement>
+</project>

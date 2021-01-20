@@ -1,0 +1,154 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>me.coley</groupId>
+	<artifactId>recaf</artifactId>
+	<url>https://github.com/Col-E/Recaf/</url>
+	<version>0.9</version>
+	<name>Recaf</name>
+	<description>A modern java bytecode editor</description>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	<repositories>
+		<!-- 
+		Local repository.
+		Thanks to Mark S. Kolich for: http://mark.koli.ch/maven-add-local-jar-dependency-to-classpath
+		-->
+		<repository>
+			<id>locals</id>
+			<url>file://${basedir}/dependencies</url>
+		</repository>
+	</repositories>
+	<dependencies>
+		<dependency>
+			<groupId>info.picocli</groupId>
+			<artifactId>picocli</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fifesoft</groupId>
+			<artifactId>rsyntaxtextarea</artifactId>
+			<version>2.6.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ow2.asm</groupId>
+			<artifactId>asm-debug-all</artifactId>
+			<version>6.0_BETA</version>
+		</dependency>
+		<dependency>
+			<groupId>com.eclipsesource.minimal-json</groupId>
+			<artifactId>minimal-json</artifactId>
+			<version>0.9.4</version>
+		</dependency>
+		<dependency>
+			<!-- Local, see http://www.benf.org/other/cfr/faq.html for why -->
+			<groupId>org.benf</groupId>
+			<artifactId>cfr</artifactId>
+			<version>123</version>
+		</dependency>
+		<dependency>
+			<!-- Local, version on maven is outdated (bug fixes) -->
+		  <groupId>org.mdkt</groupId>
+		  <artifactId>InMemoryJavaCompiler</artifactId>
+		  <version>1.4.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<!-- 
+				Local
+				I know its supposed to be com.sun.tools but maven didn't seem to like that one extra sub-directory.
+				¯\_(ツ)_/¯
+				Also, this is local so I can distribute a minfied jar using only the classes needed (0.1% of the original tools.jar)
+			-->
+			<groupId>com.sun</groupId>
+			<artifactId>attach</artifactId>
+			<version>7</version>
+		</dependency>
+	</dependencies>
+	<build>
+		<sourceDirectory>src</sourceDirectory>
+		<resources>
+			<resource>
+				<directory>src</directory>
+				<includes>
+					<include>resources/**/*</include>
+				</includes>
+			</resource>
+		</resources>
+		<plugins>		
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.6.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>me.coley.recaf.Recaf</mainClass>
+							
+						</manifest>
+						<manifestEntries>
+							<Premain-Class>me.coley.recaf.agent.Agent</Premain-Class>
+							<Agent-Class>me.coley.recaf.agent.Agent</Agent-Class>
+							<Can-Redefine-Classes>true</Can-Redefine-Classes>
+							<Can-Retransform-Classes>true</Can-Retransform-Classes>
+						</manifestEntries>
+					</archive>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>findbugs-maven-plugin</artifactId>
+				<version>3.0.5</version>
+				<configuration>
+					<!--
+					    Enables analysis which takes more memory but finds more bugs.
+					    If you run out of memory, changes the value of the effort element
+					    to 'low'.
+					-->
+					<effort>Max</effort>
+					<!-- Reports all bugs (other values are medium and max) -->
+					<threshold>Low</threshold>
+					<!-- Produces XML report -->
+					<xmlOutput>true</xmlOutput>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>2.17</version>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>checkstyle</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.0.0-M1</version>
+			</plugin>
+		</plugins>
+	</reporting>
+</project>

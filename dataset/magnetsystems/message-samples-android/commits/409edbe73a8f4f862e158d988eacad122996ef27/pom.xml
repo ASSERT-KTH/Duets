@@ -1,0 +1,90 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.magnet.mmx</groupId>
+    <artifactId>android-samples</artifactId>
+    <version>2.3.0</version>
+    <packaging>jar</packaging>
+    <name>android-samples</name>
+    <url>http://maven.apache.org</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+
+    </dependencies>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <url>http://dev-repo.magneteng.com:8081/artifactory/blowfish-snapshot-local</url>
+        </snapshotRepository>
+        <repository>
+            <id>release</id>
+            <url>http://dev-repo.magneteng.com:8081/artifactory/blowfish-release-local</url>
+        </repository>
+    </distributionManagement>
+    
+    <build>
+        <!-- Assemble it all into a zip for installation.-->
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>copy-server</id>
+                        <phase>install</phase>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${basedir}/target/android-samples" />
+                                <exec executable="zip" dir="${basedir}">
+                                    <arg value="-r" />
+                                    <arg value="-y" />
+                                    <arg value="${basedir}/target/android-samples/quickstart-android.zip" />
+                                    <arg value="QuickStart" />
+                                </exec>
+                                <exec executable="zip" dir="${basedir}">
+                                    <arg value="-r" />
+                                    <arg value="-y" />
+                                    <arg value="${basedir}/target/android-samples/soapbox-android.zip" />
+                                    <arg value="Soapbox" />
+                                </exec>
+                                <exec executable="zip" dir="${basedir}">
+                                    <arg value="-r" />
+                                    <arg value="-y" />
+                                    <arg value="${basedir}/target/android-samples/rpsls-android.zip" />
+                                    <arg value="RPSLS" />
+                                </exec>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.bazaarvoice.maven.plugins</groupId>
+                <artifactId>s3-upload-maven-plugin</artifactId>
+                <version>1.3</version>
+                <executions>
+                    <execution>
+                        <id>deploy-server-s3</id>
+                        <phase>install</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <accessKey>${accessKey}</accessKey>
+                    <secretKey>${secretKey}</secretKey>
+                    <bucketName>${bucketName}</bucketName>
+                    <source>${project.build.directory}/android-samples</source>
+                    <destination>${version}/android-samples</destination>
+                    <recursive>true</recursive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

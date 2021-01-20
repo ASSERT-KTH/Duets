@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.javamoney</groupId>
+        <artifactId>javamoney-parent</artifactId>
+        <version>1.0</version>
+    </parent>
+
+    <artifactId>moneta-bp</artifactId>
+    <version>1.0</version>
+    <packaging>jar</packaging>
+ 
+    <name>Moneta (JSR 354 RI) - Java7 Compatible</name>
+
+    <description>JSR 354 provides an API for representing, transporting, and performing comprehensive calculations with
+        Money and Currency.
+        This module implements JSR 354.
+    </description>
+
+    <licenses>
+        <license>
+            <name>Apache 2 License</name>
+            <url>LICENSE.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <properties>
+        <jsr.version>1.0</jsr.version>
+        <jdkVersion>1.7</jdkVersion>
+        <maven.compile.targetLevel>${jdkVersion}</maven.compile.targetLevel>
+        <maven.compile.sourceLevel>${jdkVersion}</maven.compile.sourceLevel>
+
+        <moduleDir>.</moduleDir>
+        <basedir>.</basedir>
+        <!-- dependency versions -->
+        <testng.version>6.8.5</testng.version>
+        <additionalparam>-Xdoclint:none</additionalparam>
+    </properties>
+
+    <ciManagement>
+        <system>Travis-CI</system>
+        <url>https://travis-ci.org/JavaMoney/javamoney-moneta-bp</url>
+    </ciManagement>
+
+    <issueManagement>
+        <system>GITHUB</system>
+        <url>https://github.com/JavaMoney/javamoney-moneta-bp/issues</url>
+    </issueManagement>
+
+    <scm>
+        <connection>scm:git:https://github.com/JavaMoney/javamoney-moneta-bp.git</connection>
+        <tag>master</tag>
+        <developerConnection>scm:git:https://github.com/JavaMoney/javamoney-moneta-bp.git</developerConnection>
+        <url>https://github.com/JavaMoney/javamoney-moneta-bp</url>
+    </scm>
+
+    <repositories>
+        <repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>central</id>
+            <name>libs-release</name>
+            <url>http://oss.jfrog.org/artifactory/libs-release</url>
+        </repository>
+        <repository>
+            <snapshots />
+            <id>snapshots</id>
+            <name>libs-snapshot</name>
+            <url>http://oss.jfrog.org/artifactory/libs-snapshot</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${testng.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.money</groupId>
+            <artifactId>money-api-bp</artifactId>
+            <version>${jsr.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.2</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <defaultGoal>install</defaultGoal>
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-ssh</artifactId>
+                <version>2.4</version>
+            </extension>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-webdav-jackrabbit</artifactId>
+                <version>2.2</version>
+            </extension>
+        </extensions>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>versions-maven-plugin</artifactId>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>enforce-versions</id>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <requireMavenVersion>
+                                        <version>3.0.4</version>
+                                    </requireMavenVersion>
+                                    <requireJavaVersion>
+                                        <version>1.7.0</version>
+                                    </requireJavaVersion>
+                                    <!-- <bannedDependencies> <excludes> <exclude>commons-logging:*</exclude>
+                                        </excludes> </bannedDependencies> -->
+                                    <requirePluginVersions>
+                                        <banLatest>true</banLatest>
+                                        <banRelease>true</banRelease>
+                                        <banSnapshots>true</banSnapshots>
+                                        <!-- <unCheckedPluginList>org.codehaus.mojo:sonar-maven-plugin</unCheckedPluginList> -->
+                                    </requirePluginVersions>
+                                </rules>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <!-- ======================================================= -->
+                <!-- Packaging (OSGi bundle) -->
+                <!-- ======================================================= -->
+                <plugin>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>maven-bundle-plugin</artifactId>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>0.7.2.201409121644</version>
+                    <executions>
+                        <execution>
+                            <id>prepare-agent</id>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <inherited>true</inherited>
+                <reportSets>
+                    <reportSet>
+                        <inherited>true</inherited>
+                        <reports>
+                            <report>aggregate</report>
+                        </reports>
+                        <configuration>
+                            <detectLinks>true</detectLinks>
+                            <!-- excludePackageNames>blabla</excludePackageNames -->
+                            <keywords>true</keywords>
+                            <linksource>true</linksource>
+                            <!-- overview>${basedir}/overview.html</overview -->
+                            <source>${project.build.sourceCompilerLevel}</source>
+                            <!-- stylesheetfile>${basedir}/src/site/css/money-jdoc.css</stylesheetfile -->
+                            <verbose>true</verbose>
+                            <aggregate>true</aggregate>
+                            <doclet>org.umlgraph.doclet.UmlGraphDoc</doclet>
+                            <docletArtifact>
+                                <groupId>org.umlgraph</groupId>
+                                <artifactId>umlgraph</artifactId>
+                                <version>5.6</version>
+                            </docletArtifact>
+                            <show>private</show>
+                            <additionalparam>
+                                -Xdoclint:none
+                                -inferrel -inferdep -quiet -hide java.*
+                                -collpackages java.util.*
+                                -postfixpackage -nodefontname Tahoma
+                                -nodefontsize 9
+                                -nodefontpackagesize 7 -outputencoding UTF-8
+                            </additionalparam>
+                        </configuration>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jdepend-maven-plugin</artifactId>
+                <version>2.0-beta-2</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>2.15</version>
+                <configuration>
+                    <aggregate>true</aggregate>
+                    <xrefLocation>${project.reporting.outputDirectory}/../xref-test</xrefLocation>
+                    <linkXRef>true</linkXRef>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>3.0.1</version>
+                <configuration>
+                    <targetJdk>${maven.compile.targetLevel}</targetJdk>
+                    <format>xml</format>
+                    <linkXRef>true</linkXRef>
+                    <aggregate>true</aggregate>
+                    <sourceEncoding>${project.build.sourceEncoding}</sourceEncoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>taglist-maven-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <aggregate>true</aggregate>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <tagListOptions>
+                        <tagClasses>
+                            <tagClass>
+                                <displayName>Important fixes that have to be done until the
+                                    next
+                                    release
+                                </displayName>
+                                <tags>
+                                    <tag>
+                                        <matchString>FIXME</matchString>
+                                        <matchType>ignoreCase</matchType>
+                                    </tag>
+                                </tags>
+                            </tagClass>
+                            <tagClass>
+                                <displayName>Things to verify and to check</displayName>
+                                <tags>
+                                    <tag>
+                                        <matchString>// check:</matchString>
+                                        <matchType>ignoreCase</matchType>
+                                    </tag>
+                                </tags>
+                            </tagClass>
+                            <tagClass>
+                                <displayName>Just things to do</displayName>
+                                <tags>
+                                    <tag>
+                                        <matchString>todo</matchString>
+                                        <matchType>ignoreCase</matchType>
+                                    </tag>
+                                    <tag>
+                                        <matchString>@todo</matchString>
+                                        <matchType>ignoreCase</matchType>
+                                    </tag>
+                                    <tag>
+                                        <matchString>XXX</matchString>
+                                        <matchType>ignoreCase</matchType>
+                                    </tag>
+                                </tags>
+                            </tagClass>
+                        </tagClasses>
+                    </tagListOptions>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jxr-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <aggregate>true</aggregate>
+                    <linkJavadoc>true</linkJavadoc>
+                    <aggregate>true</aggregate>
+                    <javadocDir>${project.name}/apidocs</javadocDir>
+                    <!-- stylesheet>${basedir}/src/site/css/javamoneys-jdoc.css</stylesheet -->
+                    <windowTitle>JSR 354 - Java Money Sources</windowTitle>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.8</version>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.6.3.201306030806</version>
+                <configuration>
+                    <destFile>${basedir}/target/coverage-reports/jacoco-unit.exec</destFile>
+                    <dataFile>${basedir}/target/coverage-reports/jacoco-unit.exec</dataFile>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>2.5.2</version>
+                <configuration>
+                    <xrefLocation>${project.reporting.outputDirectory}/../xref</xrefLocation>
+                    <xmlOutput>true</xmlOutput>
+                    <effort>Max</effort>
+                    <threshold>Low</threshold>
+                    <failOnError>false</failOnError>
+                    <findbugsXmlOutput>true</findbugsXmlOutput>
+                    <findbugsXmlOutputDirectory>target/site</findbugsXmlOutputDirectory>
+                    <xrefLocation>xref/</xrefLocation>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.7</version>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>2.5.2</version>
+                <configuration>
+                    <xrefLocation>${project.reporting.outputDirectory}/../xref</xrefLocation>
+                    <xmlOutput>true</xmlOutput>
+                    <effort>Max</effort>
+                    <threshold>Low</threshold>
+                    <failOnError>false</failOnError>
+                    <findbugsXmlOutput>true</findbugsXmlOutput>
+                    <findbugsXmlOutputDirectory>target/site</findbugsXmlOutputDirectory>
+                    <xrefLocation>xref/</xrefLocation>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </reporting>
+
+</project>

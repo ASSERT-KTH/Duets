@@ -1,0 +1,182 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+      <groupId>com.fasterxml.jackson</groupId>
+      <artifactId>jackson-bom</artifactId>
+      <version>2.9.0.pr2</version>
+    </parent>
+
+    <artifactId>jackson-benchmarks</artifactId>
+    <name>Jackson Benchmarks</name>
+    <packaging>jar</packaging>
+
+    <description>JMH-based micro-benchmark used for Jackson performance engineering
+</description>
+
+    <properties>
+	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <version.jackson.bson>2.7.0</version.jackson.bson>
+        <version.jmh>1.9.3</version.jmh>
+    </properties>
+
+    <dependencies>
+      <dependency>
+        <groupId>org.openjdk.jmh</groupId>
+        <artifactId>jmh-core</artifactId>
+        <version>${version.jmh}</version>
+      </dependency>
+
+      <!-- As per [http://stackoverflow.com/questions/23891586/jmh-not-working-in-eclipse-as-maven-project-no-benchmarks-to-run]
+           we need another dep
+        -->
+      <dependency>
+        <groupId>org.openjdk.jmh</groupId>
+        <artifactId>jmh-generator-annprocess</artifactId>
+        <version>${version.jmh}</version>
+        <!-- the processor artifact is required only during compilation and 
+           does not need to be transitive, hence provided scope
+          -->
+	<scope>provided</scope> 
+      </dependency>
+
+      <!-- First, a boatload of Jackson deps -->
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-properties</artifactId>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-avro</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-cbor</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-csv</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-ion</artifactId>
+<version>2.9.0.pr3-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-protobuf</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-smile</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-xml</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-yaml</artifactId>
+      </dependency>
+      <!-- also need a GOOD Stax impl; JDK one sucks goat balls. Aalto fastest. -->
+      <dependency>
+        <groupId>com.fasterxml</groupId>
+        <artifactId>aalto-xml</artifactId>
+        <version>1.0.0</version>
+      </dependency>
+
+      <!--  Then more experimental ones -->
+
+      <dependency>
+        <groupId>org.msgpack</groupId>
+        <artifactId>jackson-dataformat-msgpack</artifactId>
+        <version>0.8.3</version>
+      </dependency>
+      <dependency>
+        <groupId>de.undercouch</groupId>
+        <artifactId>bson4jackson</artifactId>
+        <version>${version.jackson.bson}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.module</groupId>
+        <artifactId>jackson-module-afterburner</artifactId>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.jr</groupId>
+        <artifactId>jackson-jr-objects</artifactId>
+      </dependency>
+
+      <!-- And then some other Java JSON libs: -->
+      <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>2.3.1</version>
+      </dependency>
+
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <scope>test</scope>
+      </dependency>
+    </dependencies>
+
+    <build>
+	<plugins>
+	  <plugin>
+	    <groupId>org.apache.maven.plugins</groupId>
+	    <artifactId>maven-compiler-plugin</artifactId>
+	    <version>3.1</version>
+<!-- 04-Apr-2017, tatu: Let's only benchmark on 1.8 from now on, to avoid
+   accidental odd results (they vary between major JDK versions)
+  -->
+            <configuration>
+              <source>1.8</source>
+              <target>1.8</target>
+              <showDeprecation>true</showDeprecation>
+              <showWarnings>true</showWarnings>
+              <optimize>true</optimize>
+            </configuration>
+	  </plugin>
+	  <plugin>
+	    <groupId>org.apache.maven.plugins</groupId>
+	    <artifactId>maven-shade-plugin</artifactId>
+	    <version>2.0</version>
+	    <executions>
+	      <execution>
+		<phase>package</phase>
+		<goals>
+		  <goal>shade</goal>
+		</goals>
+		<configuration>
+		  <finalName>microbenchmarks</finalName>
+		  <transformers>
+		    <transformer
+		       implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+		      <mainClass>org.openjdk.jmh.Main</mainClass>
+		    </transformer>
+		  </transformers>
+		</configuration>
+	      </execution>
+	    </executions>
+	  </plugin>
+	</plugins>
+      </build>
+</project>

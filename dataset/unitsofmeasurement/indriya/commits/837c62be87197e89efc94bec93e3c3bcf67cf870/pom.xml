@@ -1,0 +1,852 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xmlns="http://maven.apache.org/POM/4.0.0"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>tech.units</groupId>
+	<artifactId>indriya</artifactId>
+	<url>http://units.tech</url>
+	<organization>
+		<name>Units of Measurement project</name>
+		<url>http://unitsofmeasurement.github.io</url>
+	</organization>
+	<name>Units of Measurement Reference Implementation</name>
+	<version>2.0.5-SNAPSHOT</version>
+	<description>Unit Standard (JSR 385) Reference Implementation.</description>
+	<packaging>bundle</packaging>
+	<parent>
+		<groupId>tech.uom</groupId>
+		<artifactId>uom-parent</artifactId>
+		<version>2.0.3</version>
+	</parent>
+
+	<scm>
+		<url>https://github.com/unitsofmeasurement/indriya.git</url>
+	</scm>
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/unitsofmeasurement/indriya/issues</url>
+	</issueManagement>
+	<licenses>
+		<license>
+			<name>BSD 3-Clause</name>
+			<url>LICENSE</url>
+		</license>
+	</licenses>
+
+	<!-- ======================================================= -->
+	<!-- Build Settings -->
+	<!-- ======================================================= -->
+	<properties>
+		<jsr.version>2.0</jsr.version>
+		<lib.version>2.0.1</lib.version>
+		<sourceEncoding>UTF-8</sourceEncoding>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>${sourceEncoding}</project.reporting.outputEncoding>
+		<jdkVersion>8</jdkVersion>
+		<!-- The oldest Java version supported by this tool. -->
+		<!-- Will control compilation of the main code and the unit tests. -->
+		<base.java.version>8</base.java.version>
+
+		<project.build.javaVersion>${jdkVersion}</project.build.javaVersion>
+		<maven.compile.targetLevel>${jdkVersion}</maven.compile.targetLevel>
+		<maven.compile.sourceLevel>${jdkVersion}</maven.compile.sourceLevel>
+		<additionalparam>-Xdoclint:none</additionalparam>
+		<maven.surefire.version>2.22.2</maven.surefire.version>
+		<jacoco.version>0.8.5</jacoco.version>
+		<compile.exclude.files>module-info.java</compile.exclude.files>
+		<thisYear>2020</thisYear>
+
+		<!-- OSGI support -->
+		<osgi.version>5.0.0</osgi.version>
+		<osgi.compendium.version>${osgi.version}</osgi.compendium.version>
+		<osgi.annotation.version>6.0.0</osgi.annotation.version>
+
+		<!-- Test settings -->
+		<hamcrest.version>2.2</hamcrest.version>
+		<junit.platform.version>1.2.0</junit.platform.version>
+		<excludedTests>**/Local*Test.java</excludedTests>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>javax.measure</groupId>
+			<artifactId>unit-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>tech.uom.lib</groupId>
+			<artifactId>uom-lib-common</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>javax.inject</groupId>
+			<artifactId>javax.inject</artifactId>
+			<version>1</version>
+		</dependency>
+		<!-- OSGI support -->
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.annotation</artifactId>
+			<scope>provided</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.compendium</artifactId>
+			<scope>provided</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.core</artifactId>
+			<scope>provided</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-library</artifactId>
+			<version>${hamcrest.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<version>${junit.jupiter.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-params</artifactId>
+			<version>${junit.jupiter.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<version>${junit.jupiter.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.platform</groupId>
+			<artifactId>junit-platform-launcher</artifactId>
+			<version>${junit.platform.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.platform</groupId>
+			<artifactId>junit-platform-runner</artifactId>
+			<version>${junit.platform.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>tech.uom.lib</groupId>
+				<artifactId>uom-lib-common</artifactId>
+				<version>${lib.version}</version>
+			</dependency>
+
+			<!-- OSGI support -->
+			<dependency>
+				<groupId>org.osgi</groupId>
+				<artifactId>org.osgi.annotation</artifactId>
+				<scope>provided</scope>
+				<version>${osgi.annotation.version}</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<groupId>org.osgi</groupId>
+				<artifactId>org.osgi.compendium</artifactId>
+				<scope>provided</scope>
+				<version>${osgi.compendium.version}</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<groupId>org.osgi</groupId>
+				<artifactId>org.osgi.core</artifactId>
+				<version>${osgi.version}</version>
+				<scope>provided</scope>
+				<optional>true</optional>
+			</dependency>
+
+			<dependency>
+				<groupId>org.hamcrest</groupId>
+				<artifactId>hamcrest-all</artifactId>
+				<version>${hamcrest.version}</version>
+				<scope>test</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	<build>
+		<plugins>
+			<!-- Use toolchains to select the compilers -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-toolchains-plugin</artifactId>
+				<version>3.0.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>toolchain</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<toolchains>
+						<jdk>
+							<version>[8,)</version>
+						</jdk>
+					</toolchains>
+				</configuration>
+			</plugin>
+
+			<!-- define the possible compilations -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${base.java.version}</source>
+					<target>${base.java.version}</target>
+				</configuration>
+				<executions>
+					<!-- for Java 9 -->
+					<execution>
+						<id>java9</id>
+						<phase/>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<release>9</release>
+							<jdkToolchain>
+								<version>9</version>
+							</jdkToolchain>
+							<compileSourceRoots>
+								<compileSourceRoot>${project.basedir}/src/main/jdk9</compileSourceRoot>
+							</compileSourceRoots>
+							<multiReleaseOutput>true</multiReleaseOutput>
+						</configuration>
+					</execution>
+					<!-- for Java 12 -->
+					<execution>
+						<id>java12</id>
+						<phase/>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<release>12</release>
+							<jdkToolchain>
+								<version>12</version>
+							</jdkToolchain>
+							<compileSourceRoots>
+								<compileSourceRoot>${project.basedir}/src/main/jdk12</compileSourceRoot>
+							</compileSourceRoots>
+							<multiReleaseOutput>true</multiReleaseOutput>
+						</configuration>
+					</execution>
+					<!-- for Java 14-->
+					<execution>
+						<id>java14</id>
+						<phase/>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<release>14</release>
+							<jdkToolchain>
+								<version>14</version>
+							</jdkToolchain>
+							<compileSourceRoots>
+								<compileSourceRoot>${project.basedir}/src/main/jdk14</compileSourceRoot>
+							</compileSourceRoots>
+							<multiReleaseOutput>true</multiReleaseOutput>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Rerun unittests with the multirelease jar, cannot be done with exploded directory of classes  -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>2.21.0</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>integration-test</goal>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<includes>
+						<include>**/*Test.java</include>
+					</includes>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<excludedGroups>l10n</excludedGroups>
+					<excludes>
+						<exclude>${excludedTests}</exclude>
+					</excludes>
+					<argLine>${argLine} --enable-preview -Xms2048m -Xmx4g -XX:MaxPermSize=512m</argLine>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.junit.platform</groupId>
+						<artifactId>junit-platform-surefire-provider</artifactId>
+						<version>${junit.platform.version}</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+
+			<!-- JAR packaging -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
+						<manifestEntries>
+							<Specification-Title>Unit API</Specification-Title>
+							<Specification-Version>${jsr.version}</Specification-Version>
+							<Specification-Vendor>Unit-API contributors</Specification-Vendor>
+							<Implementation-Title>${project.name}</Implementation-Title>
+							<Implementation-Version>${project.version}</Implementation-Version>
+							<Implementation-Vendor>${project.organization.name}</Implementation-Vendor>
+							<Implementation-URL>http://units.tech</Implementation-URL>
+							<Automatic-Module-Name>tech.units.indriya</Automatic-Module-Name>
+							<Multi-Release>true</Multi-Release>
+						</manifestEntries>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>test-jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Packaging (OSGi bundle) -->
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+			</plugin>
+
+			<!-- Code analysis -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.2</version>
+				<configuration>
+					<sourceEncoding>${project.build.sourceEncoding}</sourceEncoding>
+					<targetJdk>${project.build.javaVersion}</targetJdk>
+				</configuration>
+			</plugin>
+
+			<!-- Report on test results -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-report-plugin</artifactId>
+			</plugin>
+
+			<!-- Coverage -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<configuration>
+					<destfile>${basedir}/target/coverage-reports/jacoco-unit.exec</destfile>
+					<datafile>${basedir}/target/coverage-reports/jacoco-unit.exec</datafile>
+					<excludes>
+						<exclude>**/META-INF/versions/**</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>pre-unit-test</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>post-unit-test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<rule>
+									<element>BUNDLE</element>
+									<limits>
+										<limit implementation="org.jacoco.report.check.Limit">
+											<counter>INSTRUCTION</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.0</minimum>
+										</limit>
+										<limit>
+											<counter>COMPLEXITY</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.0</minimum>
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Report on test coverage -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>cobertura-maven-plugin</artifactId>
+				<version>2.7</version>
+				<configuration>
+					<formats>
+						<format>html</format>
+						<format>xml</format>
+					</formats>
+					<check/>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.eluder.coveralls</groupId>
+				<artifactId>coveralls-maven-plugin</artifactId>
+				<version>4.3.0</version>
+				<configuration>
+					<repoToken>${env.COVERALLS_REPO_TOKEN}</repoToken>
+				</configuration>
+			</plugin>
+
+			<!-- Attach Sources -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Attach JavaDocs -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<detectLinks>true</detectLinks>
+					<keywords>true</keywords>
+					<linksource>true</linksource>
+					<failOnError>false</failOnError>
+					<source>${maven.compile.sourceLevel}</source>
+					<verbose>true</verbose>
+					<tags>
+						<tag>
+							<name>apiNote</name>
+							<placement>a</placement>
+							<head>API Note:</head>
+						</tag>
+						<tag>
+							<name>implSpec</name>
+							<placement>a</placement>
+							<head>Implementation Requirements:</head>
+						</tag>
+					</tags>
+					<sourceFileExcludes>
+						<exclude>**/module-info.java</exclude>
+					</sourceFileExcludes>
+				</configuration>
+			</plugin>
+
+			<!-- ======================================================= -->
+			<!-- Maven License Plugin -->
+			<!-- ======================================================= -->
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<configuration>
+					<header>src/main/config/header.txt</header>
+					<properties>
+						<owner>Jean-Marie Dautelle, Werner Keil, Otavio Santana</owner>
+						<currentYear>${thisYear}</currentYear>
+					</properties>
+					<excludes>
+						<exclude>.editorconfig</exclude>
+						<exclude>.gitattributes</exclude>
+						<exclude>.circleci/**</exclude>
+						<exclude>.github/**</exclude>
+						<exclude>**/LICENSE</exclude>
+						<exclude>**/README</exclude>
+						<exclude>**/pom.xml</exclude>
+						<exclude>**/settings.xml</exclude>
+						<exclude>docs/**</exclude>
+						<exclude>src/test/resources/**</exclude>
+						<exclude>src/main/resources/**</exclude>
+						<exclude>src/main/config/**</exclude>
+						<exclude>src/main/emf/**</exclude>
+						<exclude>src/site/**</exclude>
+						<exclude>src/etc/**</exclude>
+						<exclude>*.css</exclude>
+						<exclude>*.jpg</exclude>
+						<exclude>*.png</exclude>
+						<exclude>*.yml</exclude>
+						<exclude>*.xml</exclude>
+					</excludes>
+					<headerDefinitions>
+						<headerDefinition>src/main/config/headers.xml</headerDefinition>
+					</headerDefinitions>
+					<mapping>
+						<java>JAVA_STYLE</java>
+					</mapping>
+				</configuration>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.apache.maven.plugins
+										</groupId>
+										<artifactId>
+											maven-toolchains-plugin
+										</artifactId>
+										<versionRange>
+											[3.0.0,)
+										</versionRange>
+										<goals>
+											<goal>toolchain</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<!-- Additional repositories -->
+	<!-- Helps to resolve Parent POM and Snapshot artifacts -->
+	<repositories>
+		<repository>
+			<id>jcenter</id>
+			<name>JCenter</name>
+			<url>https://jcenter.bintray.com</url>
+		</repository>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>bintray-release</id>
+			<name>libs-release</name>
+			<url>https://oss.jfrog.org/artifactory/libs-release</url>
+		</repository>
+		<repository>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<id>bintray-snapshot</id>
+			<name>libs-snapshot</name>
+			<url>https://oss.jfrog.org/artifactory/libs-snapshot</url>
+		</repository>
+	</repositories>
+
+	<distributionManagement>
+		<repository>
+			<id>bintray-release</id>
+			<name>oss-jfrog-artifactory-release</name>
+			<url>https://oss.jfrog.org/artifactory/oss-release-local</url>
+		</repository>
+		<snapshotRepository>
+			<id>bintray-snapshot</id>
+			<name>oss-jfrog-artifactory-snapshot</name>
+			<url>https://oss.jfrog.org/artifactory/oss-snapshot-local</url>
+		</snapshotRepository>
+	</distributionManagement>
+	<ciManagement>
+		<system>CircleCI</system>
+		<url>https://circleci.com/gh/unitsofmeasurement/indriya</url>
+	</ciManagement>
+
+	<profiles>
+		<!-- enable java9 compilation -->
+		<profile>
+			<id>compile-java9</id>
+			<activation>
+				<jdk>[9,)</jdk>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>java9</id>
+								<phase>compile</phase>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- enable java12 compilation -->
+		<profile>
+			<id>compile-java12</id>
+			<activation>
+				<jdk>[12,)</jdk>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>java12</id>
+								<phase>compile</phase>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- enable java14 compilation -->
+		<profile>
+			<id>compile-java14</id>
+			<activation>
+				<jdk>[14,)</jdk>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>java14</id>
+								<phase>compile</phase>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>test-toolchains-bypass</id>
+			<activation>
+				<property>
+					<name>!multi_release</name>
+				</property>
+			</activation>
+
+			<build>
+				<plugins>
+					<!-- Run the unit tests with the JVM used to run maven -->
+					<plugin>
+						<artifactId>maven-surefire-plugin</artifactId>
+
+						<configuration>
+							<jvm>${env.JAVA_HOME}/bin/java</jvm>
+							<!-- this shows that the Java 9 code isn't tested -->
+							<testFailureIgnore>true</testFailureIgnore>
+							<argLine>${argLine} --enable-preview -Xmx4g</argLine>
+							<!-- exclude tags -->
+							<excludedGroups>l10n</excludedGroups>
+							<excludes>
+								<exclude>${excludedTests}</exclude>
+							</excludes>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>multi-jar</id>
+			<activation>
+				<property>
+					<name>multi_release</name>
+				</property>
+			</activation>
+
+			<build>
+				<plugins>
+					<!-- enable java9 - java11 compilations -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>java9</id>
+								<phase>compile</phase>
+							</execution>
+							<execution>
+								<id>java12</id>
+								<phase>compile</phase>
+							</execution>
+							<execution>
+								<id>java14</id>
+								<phase>compile</phase>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!-- add the multi-release:true manifest entry -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jar-plugin</artifactId>
+						<version>2.4</version>
+						<configuration>
+							<archive>
+								<manifestEntries>
+									<Multi-Release>true</Multi-Release>
+								</manifestEntries>
+							</archive>
+							<excludes>
+								<exclude>**/javac*</exclude>
+								<exclude>**/org.codehaus.plexus.compiler.javac.JavacCompiler*arguments</exclude>
+							</excludes>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<id>p2</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.reficio</groupId>
+						<artifactId>p2-maven-plugin</artifactId>
+						<version>1.3.0</version>
+						<executions>
+							<execution>
+								<id>default-cli</id>
+								<configuration>
+									<artifacts>
+										<!-- specify your depencies here -->
+										<!-- <id>groupId:artifactId:version</id> -->
+										<artifact>
+											<id>javax.measure:unit-api:${jsr.version}</id>
+										</artifact>
+										<artifact>
+											<id>tech.uom.lib:uom-lib-common:${lib.version}</id>
+										</artifact>
+										<artifact>
+											<id>tech.units:indriya:${project.version}</id>
+										</artifact>
+									</artifacts>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+
+			<pluginRepositories>
+				<pluginRepository>
+					<id>reficio</id>
+					<url>https://repo.reficio.org/maven/</url>
+				</pluginRepository>
+			</pluginRepositories>
+		</profile>
+
+		<profile>
+			<!-- profile that activates on eclipse, to specifically fix eclipse build
+				and test issues -->
+			<id>m2e</id>
+			<activation>
+				<property>
+					<name>m2e.version</name>
+				</property>
+			</activation>
+			<properties>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<configuration>
+							<release>1.8</release>
+						</configuration>
+						<executions>
+							<execution>
+								<id>default-compile</id>
+								<configuration>
+									<jdkToolchain>
+										<version>8</version>
+									</jdkToolchain>
+									<release>8</release>
+								</configuration>
+							</execution>
+							<execution>
+								<id>base-compile</id>
+								<goals>
+									<goal>compile</goal>
+								</goals>
+								<configuration>
+									<source>8</source>
+									<target>8</target>
+									<excludes>
+										<exclude>tech/units/indriya/module-info.java</exclude>
+									</excludes>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<profile>
+			<!-- profile that runs all tests, also those consuming more memory -->
+			<id>allTests</id>
+			<properties>
+				<excludedTests></excludedTests>
+			</properties>
+		</profile>
+	</profiles>
+</project>

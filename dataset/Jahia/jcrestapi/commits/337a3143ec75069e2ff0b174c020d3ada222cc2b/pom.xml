@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    ==========================================================================================
+    =                   JAHIA'S DUAL LICENSING - IMPORTANT INFORMATION                       =
+    ==========================================================================================
+
+                                    http://www.jahia.com
+
+        Copyright (C) 2002-2016 Jahia Solutions Group SA. All rights reserved.
+
+        THIS FILE IS AVAILABLE UNDER TWO DIFFERENT LICENSES:
+        1/GPL OR 2/JSEL
+
+        1/ GPL
+        ==================================================================================
+
+        IF YOU DECIDE TO CHOOSE THE GPL LICENSE, YOU MUST COMPLY WITH THE FOLLOWING TERMS:
+
+        This program is free software: you can redistribute it and/or modify
+        it under the terms of the GNU General Public License as published by
+        the Free Software Foundation, either version 3 of the License, or
+        (at your option) any later version.
+
+        This program is distributed in the hope that it will be useful,
+        but WITHOUT ANY WARRANTY; without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+        GNU General Public License for more details.
+
+        You should have received a copy of the GNU General Public License
+        along with this program. If not, see <http://www.gnu.org/licenses />.
+
+
+        2/ JSEL - Commercial and Supported Versions of the program
+        ===================================================================================
+
+        IF YOU DECIDE TO CHOOSE THE JSEL LICENSE, YOU MUST COMPLY WITH THE FOLLOWING TERMS:
+
+        Alternatively, commercial and supported versions of the program - also known as
+        Enterprise Distributions - must be used in accordance with the terms and conditions
+        contained in a separate written agreement between you and Jahia Solutions Group SA.
+
+        If you are unsure which license is appropriate for your use,
+        please contact the sales department at sales@jahia.com.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>jahia-modules</artifactId>
+        <groupId>org.jahia.modules</groupId>
+        <version>7.2.0.0-SNAPSHOT</version>
+        <relativePath />
+    </parent>
+    <artifactId>jcrestapi</artifactId>
+    <name>Jahia RESTful JCR Access</name>
+    <version>2.3.0-SNAPSHOT</version>
+    <packaging>bundle</packaging>
+    <description>Module implementing a RESTful API to access JCR data.</description>
+
+    <!-- Import dependencies from jaxrs-osgi-extender for Jersey and related, json-generation for Jackson -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.jahia.modules</groupId>
+                <artifactId>jaxrs-osgi-extender-bom</artifactId>
+                <version>2.0.4-SNAPSHOT</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jahia.modules</groupId>
+                <artifactId>json-generation</artifactId>
+                <version>1.1.1</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <properties>
+        <slf4j.version>1.6.6</slf4j.version>
+        <mockito.version>1.9.5</mockito.version>
+        <assertj.version>1.6.0</assertj.version>
+        <jmockit.version>1.17</jmockit.version>
+        <skipTests>true</skipTests>
+    </properties>
+
+    <scm>
+        <connection>scm:git:git@github.com:Jahia/jcrestapi.git</connection>
+        <developerConnection>scm:git:git@github.com:Jahia/jcrestapi.git</developerConnection>
+        <url>http://git@github.com:Jahia/jcrestapi.git</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <repositories>
+        <repository>
+            <id>jahia-public</id>
+            <name>Jahia Public Repository</name>
+            <url>https://devtools.jahia.com/nexus/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>javax.jcr</groupId>
+            <artifactId>jcr</artifactId>
+            <version>2.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jahia.modules</groupId>
+            <artifactId>json-generation</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Jersey -->
+        <dependency>
+            <groupId>org.glassfish.jersey.bundles</groupId>
+            <artifactId>jaxrs-ri</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-multipart</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>org.glassfish.jersey.test-framework.providers</groupId>
+            <artifactId>jersey-test-framework-provider-jdk-http</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jersey.test-framework</groupId>
+            <artifactId>jersey-test-framework-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.hamcrest</groupId>
+                    <artifactId>hamcrest-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.jayway.restassured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>2.4.1</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.codehaus.groovy</groupId>
+                    <artifactId>groovy</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- Needed for restassured 2.4.1 -->
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-backports-compat23</artifactId>
+            <version>2.3.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jmockit</groupId>
+            <artifactId>jmockit</artifactId>
+            <version>${jmockit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+
+        <!-- Needed to run the TransientRepository -->
+        <dependency>
+            <groupId>org.apache.jackrabbit</groupId>
+            <artifactId>jackrabbit-core</artifactId>
+            <version>2.4.5-jahia2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- To load ACME Space Elektra in integration tests -->
+        <!--<dependency>
+            <groupId>org.jahia.prepackagedsites</groupId>
+            <artifactId>acmespaceelektra</artifactId>
+            <version>2.0.0</version>
+            <type>zip</type>
+            <scope>test</scope>
+        </dependency>-->
+    </dependencies>
+
+    <build>
+        <!-- To filter jcrestapi.properties to access proper version number -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <!-- to get revision id from git, gets used in jcrestapi.properties to be output by /version -->
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>2.1.9</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--<plugin>
+                &lt;!&ndash; to generated API documentation &ndash;&gt;
+                <groupId>com.qmino</groupId>
+                <artifactId>miredot-plugin</artifactId>
+                <version>1.6.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>restdoc</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <license>
+                        UHJvamVjdHxvcmcuamFoaWEubW9kdWxlcy5qY3Jlc3RhcGl8MjAxNi0xMC0xNHx0cnVlI01DMENGUUNUelZadWo1a2MvTVhsYmtzL2hNOERCRUh1VFFJVU8vOEdYWXVZZDNkMmVmN2E5QW1KdjhTQ0xhZz0=
+                    </license>
+                    <output>
+                        <title>Documentation for Digital Experience Manager's RESTful API ${project.version}</title>
+                        <html>
+                            &lt;!&ndash; optional html configuration &ndash;&gt;
+                        </html>
+                    </output>
+                    <restModel>
+                        <restFramework>
+                            <name>jax-rs</name>
+                        </restFramework>
+                    </restModel>
+                    &lt;!&ndash; insert other configuration here (optional) &ndash;&gt;
+                </configuration>
+            </plugin>-->
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Jahia-Depends>default,jaxrs-osgi-extender</Jahia-Depends>
+                        <Jahia-Module-Type>system</Jahia-Module-Type>
+                        <Private-Package>
+                            org.jahia.modules.jcrestapi.*
+                        </Private-Package>
+                        <Export-Package>
+                            org.jahia.modules.jcrestapi.api
+                        </Export-Package>
+                        <Import-Package>
+                            javax.jcr.*,
+                            javax.xml.bind.annotation,
+                            javax.xml.bind.annotation.adapters,
+                            javax.ws.rs.*,
+                            org.glassfish.hk2.*;
+                            org.glassfish.jersey.server,
+                            org.glassfish.jersey.media.multipart.*,
+                            org.jahia.services.templates.*,
+                            org.jahia.services.content.*,
+                            org.jahia.utils;
+                            org.slf4j,
+                            ${jahia.plugin.projectPackageImport}
+                        </Import-Package>
+                        <!-- would be nice if the macro didn't also include WADL-related class found on classpath -->
+                        <!--<JAX-RS-Classes>$(classes;ANNOTATION;javax.ws.rs.Path)</JAX-RS-Classes>-->
+                        <JAX-RS-Alias>/api/jcr/v1</JAX-RS-Alias>
+                        <JAX-RS-Application>org.jahia.modules.jcrestapi.APIApplication</JAX-RS-Application>
+                    </instructions>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>2.4.1</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>repository</directory>
+                            <includes>
+                                <include>**/*</include>
+                            </includes>
+                        </fileset>
+                        <fileset>
+                            <directory>${basedir}</directory>
+                            <includes>
+                                <include>repository.xml</include>
+                                <include>repository</include>
+                                <include>derby.log</include>
+                            </includes>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.17</version>
+                <configuration>
+                    <skipTests>${skipTests}</skipTests>
+                    <forkCount>1C</forkCount>
+                    <reuseForks>true</reuseForks>
+                    <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
+                    <!--<excludes>
+                        <exclude>**/*IT.java</exclude>
+                    </excludes>-->
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!--<profiles>
+        <profile>
+            <id>integration</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>2.17</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>-->
+</project>

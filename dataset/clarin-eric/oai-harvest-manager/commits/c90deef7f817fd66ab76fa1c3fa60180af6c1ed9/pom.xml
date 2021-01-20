@@ -1,0 +1,304 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>nl.mpi</groupId>
+  <artifactId>oai-harvest-manager</artifactId>
+  <packaging>jar</packaging>
+  <version>0.5</version>
+  <name>OAI Harvest Manager</name>
+  <description>This application manages OAI-PMH harvesting workflows</description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <versionNumber>${project.version}.${buildNumber}</versionNumber>
+  </properties>
+
+  <scm>
+    <connection>scm:git:https://github.com/TheLanguageArchive/oai-harvest-manager.git</connection>
+    <developerConnection>scm:git:https://github.com/TheLanguageArchive/oai-harvest-manager.git</developerConnection>
+  </scm>
+
+  <!-- REPOSITORIES -->
+  <repositories>
+
+    <!-- The OCLC harvester2 artifact is in the MPI repository
+	 (because the owner of the project does not currently make it
+	 available via Maven).
+      -->
+    <repository>
+      <id>MPI</id>
+      <name>MPI LAT Repository</name>
+      <url>http://lux15.mpi.nl/nexus/content/groups/public</url>
+    </repository>
+
+    <repository>
+      <id>ibiblio</id>
+      <name>ibiblio.org</name>
+      <url>http://mirrors.ibiblio.org/pub/mirrors/maven2</url>
+    </repository>
+  </repositories>
+
+  <!-- DEPENDENCIES -->
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>2.5</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.5</version>
+    </dependency>
+
+    <dependency>
+	<groupId>net.sf.saxon</groupId>
+	<artifactId>Saxon-HE</artifactId>
+	<version>9.5.1-8</version>
+    </dependency>
+
+    <dependency>
+	<groupId>xalan</groupId>
+	<artifactId>xalan</artifactId>
+	<version>2.7.2</version>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.9</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>2.2</version>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.5</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.9.5</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.codehaus.woodstox</groupId>
+        <artifactId>woodstox-core-asl</artifactId>
+        <version>4.1.3</version>
+        <type>jar</type>
+    </dependency>
+
+  </dependencies>
+
+  <!-- Build cycle referred plugins -->
+  <build>
+    <finalName>${project.artifactId}-${versionNumber}</finalName>
+    <!-- Define the location of the resources used for testing -->
+    <testResources>
+      <testResource>
+        <directory>src/test/resources</directory>
+        <includes>
+          <include>**</include>
+        </includes>
+      </testResource>
+    </testResources>
+
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <!-- Disable deployment because has not been configured -->
+          <artifactId>maven-deploy-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+
+      <!-- Configure the java compiler version, set it to 1.8 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+
+      <!-- Include the javadoc plugin allowing the build lifecycle to generate
+       the project's javadoc. Alternatively, the plugin is included in the site
+       cycle as well.-->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.10.3</version>
+        <configuration>
+            <sourcepath>src/main/java;target/generated-sources/jaxb</sourcepath>
+        </configuration>
+      </plugin>
+
+      <!-- Configure the Maven dependency plugin to include the libraries the
+       harvest manager depends on in the jar -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>target/lib
+              </outputDirectory>
+              <overWriteReleases>true</overWriteReleases>
+              <overWriteSnapshots>true
+              </overWriteSnapshots>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Configure the Maven jar plugin to create the jar. Set the manifest
+       entries to the identifications known to the POM. Also, exclude the log4j
+       properties file from the jar. This avoids the properties being loaded
+       from a file different from one intentionally included in the existing
+       classpath -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <classesDirectory>target/classes</classesDirectory>
+          <archive>
+            <manifest>
+              <classpathPrefix>lib/</classpathPrefix>
+              <addClasspath>true</addClasspath>
+              <mainClass>nl.mpi.oai.harvester.control.Main</mainClass>
+            </manifest>
+            <manifestEntries>
+              <Built-By>${user.name}</Built-By>
+              <Built-On>${maven.build.timestamp}</Built-On>
+              <Version>${project.version}</Version>
+              <Revision>${buildNumber}</Revision>
+              <Class-Path>${project.artifactId}-${versionNumber}.jar</Class-Path>
+              <Class-Path>.</Class-Path>
+            </manifestEntries>
+          </archive>
+          <excludes>
+            <exclude>**/log4j.properties</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+
+      <!-- Configure the Maven assembly plugin to create the deployment
+       package, the tarball. The plugin builds package's name from the artifact
+       id and version number. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+	      <finalName>${project.artifactId}-${versionNumber}</finalName>
+	      <appendAssemblyId>false</appendAssemblyId>
+          <descriptors>
+            <descriptor>assembly.xml</descriptor>
+          </descriptors>
+        </configuration>
+      </plugin>
+
+      <!-- Add the build number plugin for generating a unique identification
+       for every build. Maven stores the ${buildNumber} variable. Please note
+       that in this project the number is part of the the version number. On
+       its turn, this number is reflected in the jar and the package names. -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <version>1.2</version>
+        <executions>
+          <execution>
+            <phase>validate</phase>
+            <goals>
+              <goal>create</goal>
+            </goals>
+            <configuration>
+              <revisionOnScmFailure>none</revisionOnScmFailure>
+	          <shortRevisionLength>6</shortRevisionLength>
+            </configuration>
+          </execution>
+        </executions>
+        <configuration>
+          <doCheck>false</doCheck>
+          <doUpdate>false</doUpdate>
+        </configuration>
+      </plugin>
+
+      <!-- Add the plugin for generating sources that establish finalisation
+       of XML files defined by the XSD in src/main/xsd. You can invoke the plugin
+       by running: mvn jaxb2:xjc Note that the generated files will end up in the
+       generated package. Refer to the plugin documentation for alternative
+       plugin configuration. -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jaxb2-maven-plugin</artifactId>
+       <!-- <version>1.6</version> -->
+        <version>2.1</version>
+        <executions>
+          <execution>
+            <id>xjc</id>
+            <goals>
+              <goal>xjc</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <packageName>
+            nl.mpi.oai.harvester.generated
+          </packageName>
+        </configuration>
+      </plugin>
+
+      <!-- Add and configure the plugin for Findbugs. You can run the Findbugs
+       gui as the findbugs:gui target. For more information Findbugs, refer to
+       the manual: http://findbugs.sourceforge.net/manual -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>3.0.0</version>
+        <configuration>
+          <threshold>Normal</threshold>
+          <effort>Min</effort>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <!-- Site cycle referred plugins -->
+  <reporting>
+    <plugins>
+
+      <!-- Include the javadoc plugin allowing the site lifecycle to generate
+       the project's javadoc. Alternatively, the plugin is included in the build
+       cycle as well. This allows you to generate javadoc separately. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.10.3</version>
+      </plugin>
+    </plugins>
+  </reporting>
+</project>

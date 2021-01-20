@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2015 Red Hat, Inc.
+  ~
+  ~  All rights reserved. This program and the accompanying materials
+  ~  are made available under the terms of the Eclipse Public License v1.0
+  ~  and Apache License v2.0 which accompanies this distribution.
+  ~
+  ~  The Eclipse Public License is available at
+  ~  http://www.eclipse.org/legal/epl-v10.html
+  ~
+  ~  The Apache License v2.0 is available at
+  ~  http://www.opensource.org/licenses/apache2.0.php
+  ~
+  ~  You may elect to redistribute this code under either of these licenses.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.vertx</groupId>
+    <artifactId>vertx-ext-parent</artifactId>
+    <version>17</version>
+  </parent>
+
+  <artifactId>vertx-monitor</artifactId>
+  <version>3.2.0-SNAPSHOT</version>
+
+  <name>Vert.x Monitor</name>
+  <description>Hawkular implementation of the Vert.x Metrics SPI</description>
+
+  <scm>
+    <connection>scm:git:ssh://github.com/tsegismont/vertx-monitor</connection>
+    <developerConnection>scm:git:ssh://github.com/tsegismont/vertx-monitor</developerConnection>
+    <url>https://github.com/tsegismont/vertx-monitor</url>
+  </scm>
+  <ciManagement>
+    <system>Travis-ci</system>
+    <url>https://travis-ci.org/tsegismont/vertx-monitor</url>
+  </ciManagement>
+
+  <properties>
+    <!-- Versioning properties -->
+    <version.vertx.stack>3.2.0-SNAPSHOT</version.vertx.stack>
+    <version.org.wildfly>9.0.1.Final</version.org.wildfly>
+    <!-- Test setup properties -->
+    <test.port.offset>3</test.port.offset>
+    <!-- IMPORTANT: The management port must be the port offset + 9990. -->
+    <test.hawkular.server.management.port>9993</test.hawkular.server.management.port>
+    <!-- IMPORTANT: The port must be the port offset + 8080. -->
+    <test.hawkular.server.base-url>http://127.0.0.1:8083/hawkular/metrics/</test.hawkular.server.base-url>
+    <test.hawkular.server.logging.console.level>INFO</test.hawkular.server.logging.console.level>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-dependencies</artifactId>
+        <version>${version.vertx.stack}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hawkular.metrics</groupId>
+      <artifactId>clients-common</artifactId>
+      <version>0.3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-codegen</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-docgen</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-lang-groovy</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-unit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy-all</artifactId>
+      <version>2.3.8</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.groovy.modules.http-builder</groupId>
+      <artifactId>http-builder</artifactId>
+      <version>0.7.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hawkular.metrics</groupId>
+      <artifactId>hawkular-metrics-api-jaxrs</artifactId>
+      <version>0.8.0.Final</version>
+      <type>war</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hawkular.commons</groupId>
+      <artifactId>hawkular-commons-embedded-cassandra-ear</artifactId>
+      <version>0.2.3.Final-SNAPSHOT</version>
+      <type>ear</type>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.gmavenplus</groupId>
+        <artifactId>gmavenplus-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/*ITest*</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>2.18.1</version>
+        <configuration>
+          <includes>
+            <include>**/*ITest*</include>
+          </includes>
+          <systemPropertyVariables>
+            <test.hawkular.server.base-url>${test.hawkular.server.base-url}</test.hawkular.server.base-url>
+          </systemPropertyVariables>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Around integration tests, start and stop a Wildfly server with Hawkular Metrics and Embedded Cassandra -->
+      <plugin>
+        <groupId>org.wildfly.plugins</groupId>
+        <artifactId>wildfly-maven-plugin</artifactId>
+        <version>1.1.0.Alpha4</version>
+        <configuration>
+          <port>${test.hawkular.server.management.port}</port>
+        </configuration>
+        <executions>
+          <execution>
+            <id>start-wildfly</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>start</goal>
+            </goals>
+            <configuration>
+              <javaOpts>
+                <javaOpt>-Xms64m</javaOpt>
+                <javaOpt>-Xmx1024m</javaOpt>
+                <javaOpt>-Xss256k</javaOpt>
+                <javaOpt>-Djava.net.preferIPv4Stack=true</javaOpt>
+                <javaOpt>-Dsun.rmi.dgc.client.gcInterval=3600000</javaOpt>
+                <javaOpt>-Dsun.rmi.dgc.server.gcInterval=3600000</javaOpt>
+                <javaOpt>-Djboss.socket.binding.port-offset=${test.port.offset}</javaOpt>
+                <javaOpt>-Dcassandra.keyspace=vertx_monitor_tests</javaOpt>
+                <javaOpt>-Dcassandra.resetdb</javaOpt>
+                <javaOpt>-Dhawkular.metrics.waitForService</javaOpt>
+                <javaOpt>-Dhawkular.log.cassandra=ERROR</javaOpt>
+                <javaOpt>-Dhawkular.backend=embedded_cassandra</javaOpt>
+              </javaOpts>
+            </configuration>
+          </execution>
+          <execution>
+            <id>configure-loggers</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>execute-commands</goal>
+            </goals>
+            <configuration>
+              <jbossHome>${project.build.directory}/wildfly-run/wildfly-${version.org.wildfly}</jbossHome>
+              <executeCommands>
+                <commands>
+                  <command>
+                    /subsystem=logging/root-logger=ROOT:write-attribute(name=handlers,value=[CONSOLE])
+                  </command>
+                  <command>
+                    /subsystem=logging/logger=org.hawkular:add(level="TRACE")
+                  </command>
+                  <command>
+                    /subsystem=logging/console-handler=CONSOLE:write-attribute(name="level",value="${test.hawkular.server.logging.console.level}")
+                  </command>
+                </commands>
+              </executeCommands>
+            </configuration>
+          </execution>
+          <execution>
+            <id>deploy-embedded-cassandra</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>deploy-artifact</goal>
+            </goals>
+            <configuration>
+              <groupId>org.hawkular.commons</groupId>
+              <artifactId>hawkular-commons-embedded-cassandra-ear</artifactId>
+            </configuration>
+          </execution>
+          <execution>
+            <id>deploy-hawkular-metrics</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>deploy-artifact</goal>
+            </goals>
+            <configuration>
+              <groupId>org.hawkular.metrics</groupId>
+              <artifactId>hawkular-metrics-api-jaxrs</artifactId>
+            </configuration>
+          </execution>
+          <execution>
+            <id>undeploy-hawkular-metrics</id>
+            <phase>post-integration-test</phase>
+            <goals>
+              <goal>undeploy-artifact</goal>
+            </goals>
+            <configuration>
+              <groupId>org.hawkular.metrics</groupId>
+              <artifactId>hawkular-metrics-api-jaxrs</artifactId>
+            </configuration>
+          </execution>
+          <execution>
+            <id>undeploy-embedded-cassandra</id>
+            <phase>post-integration-test</phase>
+            <goals>
+              <goal>undeploy-artifact</goal>
+            </goals>
+            <configuration>
+              <groupId>org.hawkular.commons</groupId>
+              <artifactId>hawkular-commons-embedded-cassandra-ear</artifactId>
+            </configuration>
+          </execution>
+          <execution>
+            <id>stop-wildfly</id>
+            <phase>post-integration-test</phase>
+            <goals>
+              <goal>shutdown</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

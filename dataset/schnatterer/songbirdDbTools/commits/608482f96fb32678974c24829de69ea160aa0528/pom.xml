@@ -1,0 +1,168 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>info.schnatterer</groupId>
+	<artifactId>songbirdDbTools</artifactId>
+	<version>0.2-SNAPSHOT</version>
+	<name>Songbird Database Tools</name>
+	<description>A collection of tools to access a songbird database file</description>
+	<url>https://github.com/schnatterer/songbird2itunes</url>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:git:ssh://github.com/schnatterer/songbirdDbTools.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/schnatterer/songbirdDbTools.git</developerConnection>
+		<url>http://schnatterer.github.io/songbirdDbTools/</url>
+		<tag>HEAD</tag>
+	</scm>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
+		<buildNumber>v.${project.version} build ${maven.build.timestamp}</buildNumber>
+
+		<slf4j.version>1.7.12</slf4j.version>
+	</properties>
+
+	<repositories>
+		<repository>
+			<id>songbirdPlaylistExporterLocalRepo</id>
+			<url>file://${basedir}/lib</url>
+		</repository>
+		<repository>
+			<id>songbirdDbApi4j-mvn-repo</id>
+			<url>https://raw.github.com/schnatterer/songbirdDbApi4j/mvn-repo/</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<dependency>
+			<groupId>info.schnatterer</groupId>
+			<artifactId>songbirdDbApi4j</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.17</version>
+		</dependency>
+		<dependency>
+			<groupId>org.xerial</groupId>
+			<artifactId>sqlite-jdbc</artifactId>
+			<version>3.7.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.beust</groupId>
+			<artifactId>jcommander</artifactId>
+			<version>1.30</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>1.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>net.sourceforge.</groupId>
+			<artifactId>lizzy</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.10</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<finalName>${project.artifactId}-${pom.version}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.3</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5.1</version>
+				<configuration>
+					<arguments>-Prelease</arguments>
+					<!-- Make our tags look like e.g. "v.1.0.1" -->
+					<tagNameFormat>v.@{project.version}</tagNameFormat>
+				</configuration>
+			</plugin>
+			<!-- Deploy to local directory for now -->
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.8.1</version>
+				<configuration>
+					<altDeploymentRepository>internal.repo::default::file://${project.build.directory}/release</altDeploymentRepository>
+				</configuration>
+			</plugin>
+			<!-- The configuration of maven-assembly-plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<!-- The configuration of the plugin -->
+				<configuration>
+					<!-- Specifies the configuration file of the assembly plugin -->
+					<descriptors>
+						<descriptor>src/main/assembly/assembly.xml</descriptor>
+					</descriptors>
+				</configuration>
+				<!-- execute the assembly:single goal during the install phase. -->
+				<executions>
+					<execution>
+						<phase>install</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- The configuration of maven-jar-plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<!-- Use the same name for the jar, folder has version information (assembly) -->
+					<finalName>${project.artifactId}</finalName>
+					<!-- Configure archiver -->
+					<archive>
+						<!-- Set up manifest -->
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<!-- Within assembly, all dependencies are within lib dir -->
+							<classpathPrefix>lib/</classpathPrefix>
+							<mainClass>info.schnatterer.songbirdDbTools.SongbirdDatabaseTools</mainClass>
+						</manifest>
+						<manifestEntries>
+							<build>${buildNumber}</build>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

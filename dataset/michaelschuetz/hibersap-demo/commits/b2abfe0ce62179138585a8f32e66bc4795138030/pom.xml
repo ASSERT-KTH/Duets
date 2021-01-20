@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>de.akquinet</groupId>
+    <artifactId>hibersap-demo</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <name>Hibersap demo application</name>
+
+	<properties>
+	    <junit.version>4.8.1</junit.version>
+		<org.hibersap.version>1.0</org.hibersap.version>
+		<com.sap.jco.version>3.0.5</com.sap.jco.version>
+	</properties>
+	
+    <dependencies>
+        <!--Hibersap-->
+        <dependency>
+            <groupId>org.hibersap</groupId>
+            <artifactId>hibersap-core</artifactId>
+            <version>${org.hibersap.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibersap</groupId>
+            <artifactId>hibersap-jco</artifactId>
+            <version>${org.hibersap.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sap</groupId>
+            <artifactId>sap-jco</artifactId>
+            <version>${com.sap.jco.version}</version>
+        </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <!-- unpack native libes -->
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+
+                        <configuration>
+                            <outputDirectory>target/native</outputDirectory>
+
+                            <artifactItems>
+                                <!-- Win64 -->
+                                <artifactItem>
+                                    <groupId>com.sap</groupId>
+                                    <artifactId>sap-jco</artifactId>
+                                    <version>${com.sap.jco.version}</version>
+                                    <classifier>NTAMD64</classifier>
+                                    <type>jni</type>
+                                    <destFileName>sapjco3.dll</destFileName>
+                                </artifactItem>
+
+                                <!-- MAC64 -->
+                                <artifactItem>
+                                    <groupId>com.sap</groupId>
+                                    <artifactId>sap-jco</artifactId>
+                                    <version>${com.sap.jco.version}</version>
+                                    <classifier>darwinintel64</classifier>
+                                    <type>jni</type>
+                                    <destFileName>libsapjco3.jnilib</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+
+                        </configuration>
+                    </execution>
+                </executions>
+
+            </plugin>
+
+            <!-- path for native libs -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <environmentVariables>
+                        <LD_LIBRARY_PATH>target/native</LD_LIBRARY_PATH>
+                        <PATH>target/native</PATH>
+                    </environmentVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+
+    </build>
+
+</project>

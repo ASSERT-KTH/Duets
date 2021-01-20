@@ -1,0 +1,508 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>net.sf.latexdraw</groupId>
+    <artifactId>latexdraw</artifactId>
+    <name>LaTeXDraw</name>
+    <version>4.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <malai.version>3.1-SNAPSHOT</malai.version>
+        <antlr.version>4.7.1</antlr.version>
+        <java.version>11</java.version>
+        <junit.version>5.4.2</junit.version>
+        <jfx.version>11.0.2</jfx.version>
+        <testfx.version>4.0.15-alpha</testfx.version>
+        <mockito.version>2.27.0</mockito.version>
+        <javafx.platform>linux</javafx.platform>
+        <jmods.path>${java.home}</jmods.path>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>mavenTriskellRelease</id>
+            <name>http://maven.inria.fr-triskell-releases</name>
+            <url>http://maven.inria.fr/artifactory/triskell-public-release</url>
+            <snapshots><enabled>false</enabled></snapshots>
+            <releases><enabled>true</enabled></releases>
+        </repository>
+        <repository>
+            <id>mavenInriaSnapshot</id>
+            <name>http://maven.inria.fr-snapshots</name>
+            <url>http://maven.inria.fr/artifactory/malai-public-snapshot</url>
+            <snapshots><enabled>true</enabled></snapshots>
+            <releases><enabled>false</enabled></releases>
+        </repository>
+        <repository>
+            <id>mavenInriaRelease</id>
+            <name>http://maven.inria.fr-releases</name>
+            <url>http://maven.inria.fr/artifactory/malai-public-release</url>
+            <snapshots><enabled>false</enabled></snapshots>
+            <releases><enabled>true</enabled></releases>
+        </repository>
+    </repositories>
+
+    <profiles>
+        <profile>
+            <id>win</id>
+            <properties>
+                <javafx.platform>win</javafx.platform>
+                <jmods.path>/opt/jdk-11-win</jmods.path>
+            </properties>
+        </profile>
+        <profile>
+            <id>mac</id>
+            <properties>
+                <javafx.platform>mac</javafx.platform>
+                <jmods.path>/opt/jdk-11-mac/Contents/Home</jmods.path>
+            </properties>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <release>${java.version}</release>
+                    <compilerArgs combine.children="append">
+                        <arg>-XDcompilePolicy=simple</arg>
+                        <arg>-Xplugin:ErrorProne
+                            -Xep:InvalidParam:ERROR
+                            -Xep:InvalidTag:ERROR
+                            -Xep:InvalidThrows:ERROR
+                            -Xep:TypeParameterNaming:ERROR
+                            -Xep:ClassNamedLikeTypeParameter:ERROR
+                            -Xep:EqualsBrokenForNull:ERROR
+                            -Xep:RedundantThrows:ERROR
+                            -Xep:WildcardImport:ERROR
+                            -Xep:LambdaFunctionalInterface:ERROR
+                            -Xep:StringSplitter:OFF
+                            -Xep:DefaultCharset:OFF
+                            -XepExcludedPaths:.*/(generated-sources|test)/.*</arg>
+                    </compilerArgs>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>com.google.errorprone</groupId>
+                            <artifactId>error_prone_core</artifactId>
+                            <version>2.3.2</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.1</version>
+                <configuration>
+                    <outputDirectory>${project.build.directory}/modules</outputDirectory>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.1.1</version>
+                <executions>
+                    <execution>
+                        <id>main deps</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <excludeClassifiers>linux,win,mac</excludeClassifiers>
+                            <outputDirectory>
+                                ${project.build.directory}/modules
+                            </outputDirectory>
+                            <includeScope>runtime</includeScope>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>JFX deps</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <classifier>${javafx.platform}</classifier>
+                            <outputDirectory>
+                                ${project.build.directory}/modules
+                            </outputDirectory>
+                            <includeScope>runtime</includeScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <executions>
+                    <execution>
+                        <id>main module linux</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>${java.home}/bin/jar</executable>
+                            <arguments>
+                                <argument>--update</argument>
+                                <argument>--file=${project.build.directory}/modules/${project.build.finalName}.jar</argument>
+                                <argument>--main-class=net.sf.latexdraw.LaTeXDraw</argument>
+                                <argument>--module-version=${project.version}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>jlink</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>${java.home}/bin/jlink</executable>
+                            <arguments>
+                                <argument>--module-path=${project.build.directory}/modules:${jmods.path}/jmods</argument>
+                                <argument>--add-modules=latexdraw</argument>
+                                <argument>--launcher=latexdraw-run=latexdraw/net.sf.latexdraw.LaTeXDraw</argument>
+                                <argument>--output=${project.build.directory}/dist</argument>
+                                <argument>--strip-debug</argument>
+                                <argument>--compress=2</argument>
+                                <argument>--no-man-pages</argument>
+                                <argument>--no-header-files</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.1</version>
+                <configuration>
+                    <testFailureIgnore>false</testFailureIgnore>
+                    <!--<skipTests>true</skipTests>-->
+                    <!--<reuseForks>false</reuseForks>-->
+                    <argLine>@{argLine}
+                        -Xmx4000m
+                        -Dglass.platform=Monocle
+                        -Dheadless.geometry=1280x1024-32
+                        -Djava.awt.headless=true
+                        -Dtestfx.robot=glass
+                        -Dtestfx.headless=true
+                        -Dprism.order=sw
+                        --add-opens java.base/java.lang=ALL-UNNAMED
+                        --add-opens java.base/java.lang.reflect=latexdraw
+                        --add-opens javafx.graphics/com.sun.glass.ui=ALL-UNNAMED
+                        --add-opens javafx.graphics/com.sun.glass.ui.delegate=ALL-UNNAMED
+                        --add-opens javafx.graphics/com.sun.glass.utils=ALL-UNNAMED
+                        --add-opens javafx.graphics/com.sun.javafx.application=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.data=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.service=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.model=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.util=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.handler=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.parser=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.parser.svg=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.parser.svg.path=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.parser.pst=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.parser.ps=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.parser.css=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.ui=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.instrument=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.instrument.pencil=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.instrument.hand=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.instrument.editing=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.instrument.robot=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.command=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.command.shape=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.view=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.view.jfx=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.view.latex=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.view.pst=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.view.svg=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.model.api=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.model.api.shape=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.model.api.prop=ALL-UNNAMED
+                        --add-opens latexdraw/net.sf.latexdraw.model.impl=ALL-UNNAMED</argLine>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-maven-plugin</artifactId>
+                <version>${antlr.version}</version>
+                <configuration>
+                    <visitor>false</visitor>
+                    <listener>true</listener>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>antlr</id>
+                        <goals>
+                            <goal>antlr4</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.3</version>
+                <executions>
+                    <execution>
+                        <id>pre-unit-test</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>post-unit-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <sourceDirectories>
+                        <sourceDirectory>src/main/java</sourceDirectory>
+                        <sourceDirectory>src/test/java</sourceDirectory>
+                    </sourceDirectories>
+                    <failsOnError>true</failsOnError>
+                    <configLocation>checkstyle.xml</configLocation>
+                    <consoleOutput>true</consoleOutput>
+                    <linkXRef>false</linkXRef>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>checkstyle</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>8.20</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>1.4.7</version>
+                <configuration>
+                    <mutationEngine>descartes</mutationEngine>
+                    <excludedTestClasses>
+                        <param>net.sf.latexdraw.parsers*</param>
+                        <param>net.sf.latexdraw.TestLaTeXDraw</param>
+                        <param>net.sf.latexdraw.instruments*</param>
+                        <param>net.sf.latexdraw.view*</param>
+                    </excludedTestClasses>
+                    <threads>1</threads>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>eu.stamp-project</groupId>
+                        <artifactId>descartes</artifactId>
+                        <version>1.2.4</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>3.1.11</version>
+                <configuration>
+                    <includeTests>false</includeTests>
+                    <effort>Max</effort>
+                    <threshold>Low</threshold>
+                    <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
+                    <plugins>
+                        <plugin>
+                            <groupId>com.mebigfatguy.fb-contrib</groupId>
+                            <artifactId>fb-contrib</artifactId>
+                            <version>7.4.3.sb</version>
+                        </plugin>
+                    </plugins>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>findbugs-test-compile</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs</artifactId>
+                        <version>3.1.12</version>
+                        <scope>compile</scope>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>4.7.1-j11</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>16.0.1-j11</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.malai</groupId>
+            <artifactId>malai.javafx</artifactId>
+            <version>${malai.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-core</artifactId>
+            <version>${testfx.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-junit</artifactId>
+            <version>${testfx.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-junit5</artifactId>
+            <version>${testfx.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-junit</artifactId>
+            <version>2.0.0.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>openjfx-monocle</artifactId>
+            <version>jdk-11+26</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.codepoetics</groupId>
+            <artifactId>protonpack</artifactId>
+            <version>1.15</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-base</artifactId>
+            <version>${jfx.version}</version>
+            <classifier>${javafx.platform}</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-graphics</artifactId>
+            <version>${jfx.version}</version>
+            <classifier>${javafx.platform}</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${jfx.version}</version>
+            <classifier>${javafx.platform}</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${jfx.version}</version>
+            <classifier>${javafx.platform}</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-swing</artifactId>
+            <version>${jfx.version}</version>
+            <classifier>${javafx.platform}</classifier>
+        </dependency>
+    </dependencies>
+</project>

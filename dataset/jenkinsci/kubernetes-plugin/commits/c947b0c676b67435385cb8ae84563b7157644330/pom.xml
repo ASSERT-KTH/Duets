@@ -1,0 +1,336 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.jenkins-ci.plugins</groupId>
+    <artifactId>plugin</artifactId>
+    <version>4.13</version>
+    <relativePath />
+  </parent>
+
+  <groupId>org.csanchez.jenkins.plugins</groupId>
+  <artifactId>kubernetes</artifactId>
+  <version>${revision}${changelist}</version>
+  <name>Kubernetes plugin</name>
+  <description>Jenkins plugin to run dynamic agents in a Kubernetes cluster</description>
+  <packaging>hpi</packaging>
+  <url>https://github.com/jenkinsci/kubernetes-plugin</url>
+
+  <scm>
+    <connection>scm:git:https://github.com/jenkinsci/kubernetes-plugin.git</connection>
+    <developerConnection>scm:git:https://github.com/jenkinsci/kubernetes-plugin.git</developerConnection>
+    <url>https://github.com/jenkinsci/kubernetes-plugin</url>
+    <tag>${scmTag}</tag>
+  </scm>
+
+  <licenses>
+    <license>
+      <name>Apache License 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>carlos</id>
+      <name>Carlos Sanchez</name>
+      <email>carlos@apache.org</email>
+    </developer>
+  </developers>
+
+  <properties>
+    <revision>1.27.5</revision>
+    <changelist>-SNAPSHOT</changelist>
+    <!-- in minikube
+    minikube ip | sed -e 's/\([0-9]*\.[0-9]*\.[0-9]*\).*/\1.1/' -->
+    <connectorHost />
+    <jenkins.host.address />
+    <slaveAgentPort />
+    <java.level>8</java.level>
+    <jenkins.version>2.263</jenkins.version>
+    <no-test-jar>false</no-test-jar>
+    <pipeline-model-definition.version>1.7.2</pipeline-model-definition.version>
+    <useBeta>true</useBeta>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>kubernetes-client-api</artifactId>
+      <version>4.11.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>jackson2-api</artifactId>
+      <version>2.11.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>structs</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>credentials</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>plain-credentials</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkinsci.plugins</groupId>
+      <artifactId>kubernetes-credentials</artifactId>
+      <version>0.7.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>authentication-tokens</artifactId>
+      <version>1.4</version>
+    </dependency>
+
+    <dependency> <!-- Requires Permission -->
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>cloudbees-folder</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>durable-task</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>variant</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-step-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-api</artifactId>
+    </dependency>
+    <dependency> <!-- DeclarativeAgent -->
+      <groupId>org.jenkinsci.plugins</groupId>
+      <artifactId>pipeline-model-extensions</artifactId>
+      <version>${pipeline-model-definition.version}</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency> <!-- DeclarativeGeneratorTester -->
+      <groupId>org.jenkinsci.plugins</groupId>
+      <artifactId>pipeline-model-definition</artifactId>
+      <version>${pipeline-model-definition.version}</version>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-cps</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- for testing -->
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-job</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-basic-steps</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-durable-task-step</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency> <!-- SemaphoreStep -->
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-support</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkinsci.plugins</groupId>
+      <artifactId>pipeline-model-definition</artifactId>
+      <version>${pipeline-model-definition.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency> <!-- SnippetizerTest -->
+      <groupId>org.jenkins-ci.plugins.workflow</groupId>
+      <artifactId>workflow-cps</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>git</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>git</artifactId>
+      <classifier>tests</classifier>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>scm-api</artifactId>
+      <scope>test</scope>
+      <classifier>tests</classifier>
+    </dependency>
+    <!-- for ContainerExecDecoratorPipelineTest -->
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>ssh-agent</artifactId>
+      <version>1.20</version>
+      <scope>test</scope>
+      <exclusions>
+        <!-- conflict with sshd module -->
+        <exclusion>
+          <groupId>org.apache.sshd</groupId>
+          <artifactId>sshd-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>ssh-credentials</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>bouncycastle-api</artifactId>
+      <version>2.18</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.modules</groupId>
+      <artifactId>instance-identity</artifactId>
+      <version>2.2</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>pl.pragmatists</groupId>
+      <artifactId>JUnitParams</artifactId>
+      <version>1.1.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.jenkins</groupId>
+      <artifactId>configuration-as-code</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.jenkins.configuration-as-code</groupId>
+      <artifactId>test-harness</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>docker-workflow</artifactId>
+      <version>1.24</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <!-- Required to test run src/main/resources/org/csanchez/jenkins/plugins/kubernetes/pipeline/samples/maven.groovy -->
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.jenkins.tools.bom</groupId>
+        <artifactId>bom-2.263.x</artifactId>
+        <version>17</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>joda-time</groupId>
+        <artifactId>joda-time</artifactId>
+        <version>2.10.2</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <systemPropertyVariables>
+            <hudson.slaves.NodeProvisioner.initialDelay>0</hudson.slaves.NodeProvisioner.initialDelay>
+            <hudson.slaves.NodeProvisioner.recurrencePeriod>1000</hudson.slaves.NodeProvisioner.recurrencePeriod>
+            <!-- listen in this interface for connections from kubernetes pods -->
+            <connectorHost>${connectorHost}</connectorHost>
+            <!-- have pods connect to this address for Jenkins -->
+            <jenkins.host.address>${jenkins.host.address}</jenkins.host.address>
+            <slaveAgentPort>${slaveAgentPort}</slaveAgentPort>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.jenkins-ci.tools</groupId>
+        <artifactId>maven-hpi-plugin</artifactId>
+        <configuration>
+          <systemProperties>
+            <hudson.slaves.NodeProvisioner.initialDelay>0</hudson.slaves.NodeProvisioner.initialDelay>
+            <hudson.slaves.NodeProvisioner.MARGIN>50</hudson.slaves.NodeProvisioner.MARGIN>
+            <hudson.slaves.NodeProvisioner.MARGIN0>0.85</hudson.slaves.NodeProvisioner.MARGIN0>
+            <jenkins.host.address>${jenkins.host.address}</jenkins.host.address>
+          </systemProperties>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <!-- get every artifact through repo.jenkins-ci.org, which proxies all the artifacts that we need -->
+  <repositories>
+    <repository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <profiles>
+    <profile>
+      <id>docker</id>
+      <properties>
+        <connectorHost>192.168.1.27</connectorHost>
+        <jenkins.host.address>192.168.1.27</jenkins.host.address>
+      </properties>
+    </profile>
+    <profile>
+      <id>microk8s</id>
+      <properties>
+        <connectorHost>10.1.1.1</connectorHost>
+        <jenkins.host.address>10.1.1.1</jenkins.host.address>
+      </properties>
+    </profile>
+    <profile>
+      <id>docker-desktop</id>
+      <properties>
+        <connectorHost>127.0.0.1</connectorHost>
+        <jenkins.host.address>host.docker.internal</jenkins.host.address>
+      </properties>
+    </profile>
+  </profiles>
+
+</project>

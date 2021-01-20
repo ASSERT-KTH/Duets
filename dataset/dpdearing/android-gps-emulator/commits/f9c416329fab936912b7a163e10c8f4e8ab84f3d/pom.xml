@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <groupId>com.dpdearing.sandbox</groupId>
+  <artifactId>android-gps-emulator</artifactId>
+  <packaging>war</packaging>
+  <version>0.4-SNAPSHOT</version>
+
+  <name>Android GPS Emulator</name>
+  
+  <repositories>
+    <repository>
+      <id>project.local</id>
+      <url>file://${basedir}/./repo</url>
+    </repository>
+  </repositories>
+
+  <properties>
+    <!-- GWT configuration -->
+    <gwt.version>2.8.0</gwt.version>
+    <!-- Jetty configuration -->
+    <jetty.version>9.2.14.v20151106</jetty.version>
+
+    <!-- Compiler configuration -->
+    <!-- Setting maven.compiler.source to something different to 1.8
+         needs that you configure the sourceLevel in gwt-maven-plugin since
+         GWT compiler 2.8 requires 1.8 (see gwt-maven-plugin block below) -->
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+    <gwt.module>com.dpdearing.sandbox.gpsemulator.GpsEmulator</gwt.module>
+    <gwt.module.name>gpsemulator</gwt.module.name>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- ensure all GWT dependencies use the same version (unless overridden) -->
+      <dependency>
+        <groupId>com.google.gwt</groupId>
+        <artifactId>gwt</artifactId>
+        <version>${gwt.version}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <!-- JTA Java Telnet dependency -->
+    <dependency>
+      <groupId>de.mud</groupId>
+      <artifactId>jta</artifactId>
+      <version>2.6</version>
+    </dependency>
+    
+    <!-- GWT dependencies -->
+    <dependency>
+      <groupId>com.google.gwt</groupId>
+      <artifactId>gwt-servlet</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.gwt</groupId>
+      <artifactId>gwt-user</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.gwt</groupId>
+      <artifactId>gwt-dev</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.gwt</groupId>
+      <artifactId>gwt-codeserver</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- GWT Maps API V3 -->
+    <dependency>
+      <groupId>com.github.branflake2267</groupId>
+      <artifactId>gwt-maps-api</artifactId>
+      <version>3.10.0-alpha-7</version>
+    </dependency>
+
+    <!-- Jetty dependencies -->
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-webapp</artifactId>
+      <version>${jetty.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+  
+  <build>
+    <outputDirectory>${project.build.directory}/${project.build.finalName}/WEB-INF/classes</outputDirectory>
+
+    <plugins>
+      <!-- GWT Maven Plugin-->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>gwt-maven-plugin</artifactId>
+        <version>${gwt.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>
+              <goal>generateAsync</goal>
+            </goals>
+          </execution>
+          <execution>
+            <!-- Run tests through gwt:test, this allows reusing the plugin configuration for GWTTestCases -->
+            <id>gwt-tests</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <!-- Plugin configuration. There are many available options,
+               see gwt-maven-plugin documentation at codehaus.org -->
+          <modules>
+            <module>com.dpdearing.sandbox.gpsemulator</module>
+          </modules>
+          <!-- GWT compiler 2.8 requires 1.8, hence define sourceLevel here if you use
+               a different source language for java compilation -->
+          <sourceLevel>1.8</sourceLevel>
+          <!-- URL that should be opened by DevMode (gwt:run). -->
+          <runTarget>${gwt.module.name}/index.html</runTarget>
+          <copyWebapp>true</copyWebapp>
+          <!-- Ask GWT to create the Story of Your Compile (SOYC) (gwt:compile) -->
+          <compileReport>true</compileReport>
+          <!-- Run tests using HtmlUnit -->
+          <mode>htmlunit</mode>
+          <!-- Tests patterns -->
+          <includes>**/Test*.java,**/*Test.java,**/*TestCase.java</includes>
+        </configuration>
+      </plugin>
+
+      <!-- Skip normal test execution, we use gwt:test instead -->
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.17</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+
+      <!-- Generate a war file with the deployment web.xml -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>2.0.2</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>Main</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+      
+      <!-- From http://uguptablog.blogspot.com/2012/09/embedded-jetty-executable-war-with.html -->
+      <!-- Ant Task to copy Main.class to the root of the war -->
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>main-class-placement</id>
+            <phase>prepare-package</phase>
+            <configuration>
+              <tasks>
+                <copy todir="${project.build.directory}/${project.artifactId}-${project.version}/">
+                  <fileset dir="${project.build.outputDirectory}">
+                    <include name="Main.class" />
+                  </fileset>
+                </copy>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+            
+      <!-- From http://uguptablog.blogspot.com/2012/09/embedded-jetty-executable-war-with.html -->
+      <!-- Extract Jetty classes to the root of the war -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.3</version>
+        <executions>
+          <execution>
+            <id>jetty-classpath</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeGroupIds>org.eclipse.jetty,javax.servlet,org.mortbay.jasper</includeGroupIds>
+              <outputDirectory>
+                ${project.build.directory}/${project.artifactId}-${project.version}
+              </outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+
+</project>

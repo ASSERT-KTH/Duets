@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+ <!-- General information -->
+
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+      <groupId>com.fasterxml</groupId>
+      <artifactId>oss-parent</artifactId>
+      <version>38</version>
+  </parent>
+  <groupId>com.fasterxml.uuid</groupId>
+  <artifactId>java-uuid-generator</artifactId>
+  <packaging>bundle</packaging>
+  <name>Java UUID Generator</name>
+  <version>4.0.1</version>
+  <description>
+Java UUID Generator (JUG) is a Java library for generating
+Universally Unique IDentifiers, UUIDs (see http://en.wikipedia.org/wiki/UUID).
+It can be used either as a component in a bigger application, or as a standalone command line tool.
+JUG generates UUIDs according to the IETF UUID draft specification.
+JUG supports all 3 official UUID generation methods.
+</description>
+  <url>https://github.com/cowtowncoder/java-uuid-generator</url>
+  <scm>
+    <connection>scm:git:git://github.com/cowtowncoder/java-uuid-generator.git</connection>
+    <url>https://github.com/cowtowncoder/java-uuid-generator</url>
+    <developerConnection>scm:git:git@github.com:cowtowncoder/java-uuid-generator.git</developerConnection>
+    <tag>java-uuid-generator-4.0.1</tag>
+  </scm>
+  <developers>
+    <developer>
+      <id>cowtowncoder</id>
+      <name>Tatu Saloranta</name>
+      <email>tatu.saloranta@iki.fi</email>
+    </developer>
+  </developers>
+  <issueManagement>
+    <url>http://github.com/cowtowncoder/java-uuid-generator/issues</url>
+  </issueManagement>
+
+  <prerequisites>
+    <maven>2.2.1</maven>
+  </prerequisites>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <slf4j.version>1.7.29</slf4j.version>
+  </properties>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <organization>
+    <name>FasterXML.com</name>
+    <url>http://fasterxml.com</url>
+  </organization>
+
+ <!-- Dependency information -->
+ 
+  <dependencies>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>${slf4j.version}</version>
+        <scope>runtime</scope>
+        <optional>true</optional>
+    </dependency>
+    <!-- For testing, JUnit is needed -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${version.junit}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+ <!-- Also: must specify non-standard source level -->
+  <build>
+    <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${version.plugin.compiler}</version>
+          <configuration>
+            <source>1.6</source>
+            <target>1.6</target>
+          </configuration>
+        </plugin>
+        <plugin><!-- plug-in to attach source bundle in repo -->
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>${version.plugin.source}</version>
+           <executions>
+            <execution>
+              <id>attach-sources</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+
+        <!-- javadocs? yes please -->
+       <plugin>
+         <groupId>org.apache.maven.plugins</groupId>
+         <artifactId>maven-javadoc-plugin</artifactId>
+         <version>${version.plugin.javadoc}</version>
+         <executions>
+             <execution>
+                  <id>attach-javadocs</id>
+                  <phase>verify</phase>
+                  <goals>
+                      <goal>jar</goal>
+                  </goals>
+             </execution>
+         </executions>
+       </plugin>
+
+       <!-- Plus, let's make jars OSGi bundles as well  -->
+        <plugin>
+          <groupId>org.apache.felix</groupId>
+          <artifactId>maven-bundle-plugin</artifactId>
+          <extensions>true</extensions>
+          <configuration>
+            <instructions>
+              <Bundle-Name>${project.name}</Bundle-Name>
+              <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+              <Bundle-Description>${project.description}</Bundle-Description>
+              <Bundle-Vendor>FasterXML.com</Bundle-Vendor>
+              <Export-Package>
+                com.fasterxml.uuid;version="${project.version}",
+                com.fasterxml.uuid.ext;version="${project.version}",
+                com.fasterxml.uuid.impl;version="${project.version}"
+              </Export-Package>
+              <Import-Package>
+                com.fasterxml.uuid;version="[${project.version},${project.version}]",
+                com.fasterxml.uuid.ext;version="[${project.version},${project.version}]",
+                com.fasterxml.uuid.impl;version="[${project.version},${project.version}]",
+                org.slf4j;version="[${slf4j.version},2)"
+              </Import-Package>
+              <Private-Package />
+            </instructions>
+          </configuration>
+       </plugin>
+
+        <!-- for maven release, need yet another plug-in -->
+        <!-- And Sonatype also mandates GPG... -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <configuration>
+            <mavenExecutorId>forked-path</mavenExecutorId>
+          </configuration>
+        </plugin>
+     <!--  22-Mar-2019, tatu: Add rudimentary JDK9+ module info. To build with JDK 8
+             will have to use `moduleInfoFile` which is not optimal but anything else
+             requires JDK 9+.
+        -->
+      <plugin>
+        <groupId>org.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-module-infos</id>
+            <phase>package</phase>
+            <goals>
+              <goal>add-module-info</goal>
+            </goals>
+            <configuration>
+              <overwriteExistingFiles>true</overwriteExistingFiles>
+              <module>
+                <moduleInfoFile>src/moditect/module-info.java</moduleInfoFile>
+              </module>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${version.plugin.gpg}</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+  </profiles>
+
+  <!-- NOTE: repositories from parent POM -->
+
+</project>

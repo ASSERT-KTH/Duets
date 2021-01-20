@@ -1,0 +1,230 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.puppetlabs.puppetdb</groupId>
+	<artifactId>com.puppetlabs.puppetdb.javaclient</artifactId>
+	<version>0.1.7-SNAPSHOT</version>
+	<packaging>bundle</packaging>
+	<name>Java Client for the PuppetDB API</name>
+
+	<prerequisites>
+		<maven>3.1.1</maven>
+	</prerequisites>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+		<!-- You will need to override this and appoint a puppetdb instance that 
+			can be used for the tests -->
+		<puppetdb.hostname>home.tada.se</puppetdb.hostname>
+		<puppetdb.port>9081</puppetdb.port>
+
+		<!-- Must contain a certs and a private_keys directory with PEM files for 
+			the given puppetdb host -->
+		<ssldir>${user.home}/ssl</ssldir>
+	</properties>
+
+	<distributionManagement>
+		<repository>
+			<id>puppetlabs</id>
+			<name>Puppet Labs Release Repository</name>
+			<url>https://geppetto-nexus.puppetlabs.com/content/repositories/releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>puppetlabs</id>
+			<name>Puppet Labs Snapshot Repository</name>
+			<url>https://geppetto-nexus.puppetlabs.com/content/repositories/snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<archive>
+						<manifestFile>META-INF/MANIFEST.MF</manifestFile>
+						<addMavenDescriptor>false</addMavenDescriptor>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<version>2.9</version>
+				<configuration>
+					<skip>false</skip>
+					<additionalBuildcommands>
+						<buildcommand>org.eclipse.pde.ManifestBuilder</buildcommand>
+						<buildcommand>org.eclipse.pde.SchemaBuilder</buildcommand>
+					</additionalBuildcommands>
+					<additionalProjectnatures>
+						<projectnature>org.eclipse.pde.PluginNature</projectnature>
+					</additionalProjectnatures>
+					<classpathContainers>
+						<classpathContainer>org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7</classpathContainer>
+						<classpathContainer>org.eclipse.pde.core.requiredPlugins</classpathContainer>
+					</classpathContainers>
+					<additionalConfig>
+						<file>
+							<name>build.properties</name>
+							<content><![CDATA[source.. = src/main/java/
+output.. = target/classes/
+bin.includes = META-INF/,\
+               .
+
+src.excludes = src/test/java/,\
+               src/test/resources/
+]]>
+							</content>
+						</file>
+					</additionalConfig>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>1.9</version>
+				<executions>
+					<execution>
+						<id>set-osgi-version</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>parse-version</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.3</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<archive>
+						<manifestEntries>
+							<Bundle-ManifestVersion>2</Bundle-ManifestVersion>
+							<Bundle-Name>Source for the ${project.name}</Bundle-Name>
+							<Bundle-SymbolicName>${project.artifactId}.source</Bundle-SymbolicName>
+							<Bundle-Vendor>${project.organization.name}</Bundle-Vendor>
+							<Bundle-Version>${parsedVersion.osgiVersion}</Bundle-Version>
+							<Eclipse-SourceBundle>${project.artifactId};version="${parsedVersion.osgiVersion}";roots:="."</Eclipse-SourceBundle>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<version>2.5.0</version>
+				<configuration>
+					<manifestLocation>META-INF</manifestLocation>
+					<instructions>
+						<Import-Package>com.google.inject.*;version="[1.3.0,1.4.0)",*</Import-Package>
+						<Bundle-RequiredExecutionEnvironment>JavaSE-1.7</Bundle-RequiredExecutionEnvironment>
+					</instructions>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.17</version>
+				<configuration>
+					<systemPropertyVariables>
+						<propertyName>propertyValue</propertyName>
+						<puppetdb.hostname>${puppetdb.hostname}</puppetdb.hostname>
+						<puppetdb.port>${puppetdb.port}</puppetdb.port>
+						<ssldir>${ssldir}</ssldir>
+					</systemPropertyVariables>
+					<excludes>
+						<exclude>**/APILiveTest.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5</version>
+			</plugin>
+		</plugins>
+	</build>
+
+	<scm>
+		<connection>scm:git:git://github.com/puppetlabs/puppetdb-javaclient.git</connection>
+		<url>https://github.com/puppetlabs/puppetdb-javaclient</url>
+		<developerConnection>scm:git:git@github.com:puppetlabs/puppetdb-javaclient.git</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
+
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/puppetlabs/puppetdb-javaclient/issues</url>
+	</issueManagement>
+
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.1.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore</artifactId>
+			<version>4.1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpmime</artifactId>
+			<version>4.1.3</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+			<version>3.0</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	<organization>
+		<name>Puppet Labs, Inc.</name>
+		<url>http://www.puppetlabs.com</url>
+	</organization>
+</project>

@@ -1,0 +1,192 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>plugin</artifactId>
+        <version>2.9</version>
+    </parent>
+
+    <artifactId>azure-credentials</artifactId>
+    <version>1.6.1</version>
+    <packaging>hpi</packaging>
+    <name>Azure Credentials</name>
+    <description>Manage Azure credentials using Jenkins Credentials API</description>
+    <url>https://wiki.jenkins-ci.org/display/JENKINS/Azure+Credentials+plugin</url>
+
+    <developers>
+        <developer>
+            <id>azure_devops</id>
+            <name>Azure DevOps Team</name>
+            <email>azurejenkins@microsoft.com</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:ssh://git@github.com/jenkinsci/azure-credentials-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/azure-credentials-plugin.git</developerConnection>
+        <url>https://github.com/jenkinsci/azure-credentials-plugin</url>
+        <tag>azure-credentials-1.6.1</tag>
+    </scm>
+
+    <properties>
+        <jenkins.version>1.625.3</jenkins.version>
+        <java.level>7</java.level>
+        <jenkins-test-harness.version>2.13</jenkins-test-harness.version>
+
+        <azuresdk.version>1.19.0</azuresdk.version>
+        <azure-commons.version>0.2.10</azure-commons.version>
+        <azure-keyvault.version>1.0.0</azure-keyvault.version>
+    </properties>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://opensource.org/licenses/MIT</url>
+        </license>
+    </licenses>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>azure-commons-core</artifactId>
+            <version>${azure-commons.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>credentials</artifactId>
+            <version>2.1.14</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>plain-credentials</artifactId>
+            <version>1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure</artifactId>
+            <version>${azuresdk.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.xml.bind</groupId>
+                    <artifactId>jaxb-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-keyvault</artifactId>
+            <version>${azure-keyvault.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>19.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>credentials-binding</artifactId>
+            <version>1.11</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>structs</artifactId>
+            <version>1.5</version>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>${project.basedir}</directory>
+                <includes>
+                    <include>ThirdPartyNotices.txt</include>
+                    <include>LICENSE</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.20.1</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.jenkins-ci.tools</groupId>
+                <artifactId>maven-hpi-plugin</artifactId>
+                <configuration>
+                    <!--
+                    Mask all the Azure SDK related classes so that it will not affected by the SDK change in the
+                    depended plugins, such as azure-commons.
+                    -->
+                    <maskClasses>
+                        com.google.common.
+                        com.microsoft.jenkins.azurecommons.core.
+
+                        com.microsoft.azure.AzureAsyncOperation
+                        com.microsoft.azure.AzureClient
+                        com.microsoft.azure.AzureEnvironment
+                        com.microsoft.azure.AzureResponseBuilder
+                        com.microsoft.azure.AzureServiceClient
+                        com.microsoft.azure.AzureServiceFuture
+                        com.microsoft.azure.CloudError
+                        com.microsoft.azure.CloudException
+                        com.microsoft.azure.ListOperationCallback
+                        com.microsoft.azure.Page
+                        com.microsoft.azure.PagedList
+                        com.microsoft.azure.PollingState
+                        com.microsoft.azure.Resource
+                        com.microsoft.azure.SubResource
+                        com.microsoft.aad.
+                        com.microsoft.applicationinsights.
+                        com.microsoft.azure.credentials.
+                        com.microsoft.azure.keyvault.
+                        com.microsoft.azure.management.
+                        com.microsoft.azure.serializer.
+                        com.microsoft.azure.storage.
+                        com.microsoft.rest.
+                    </maskClasses>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.17</version>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <configLocation>checkstyle.xml</configLocation>
+                    <encoding>UTF-8</encoding>
+                    <consoleOutput>true</consoleOutput>
+                    <resourceIncludes>src/main/resources/**</resourceIncludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

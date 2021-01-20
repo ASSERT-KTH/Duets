@@ -1,0 +1,175 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.asascience</groupId>
+  <artifactId>NetCDF-Java-UGRID</artifactId>
+  <version>0.1</version>
+  <packaging>jar</packaging>
+
+  <name>NetCDF-Java-UGRID</name>
+  <url>http://maven.apache.org</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <netcdf-java.version>4.3.16</netcdf-java.version>
+  </properties>
+  
+  <repositories>
+      <repository>
+          <id>unidata-releases</id>
+          <url>https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases</url>
+      </repository>
+  </repositories>
+
+  <dependencyManagement>
+	<dependencies>
+      <dependency>
+        <groupId>edu.ucar</groupId>
+        <artifactId>thredds-parent</artifactId>
+        <version>${netcdf-java.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>colt</groupId>
+      <artifactId>colt</artifactId>
+      <version>1.2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>edu.ucar</groupId>
+      <artifactId>opendap</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>edu.ucar</groupId>
+      <artifactId>netcdf</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+  </dependencies>
+  
+    <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>1.7.1</version>
+        <executions>
+          <execution>
+            <id>with-dependencies</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <shadedClassifierName>all</shadedClassifierName>
+              <artifactSet>
+                <includes>
+                  <include>colt:colt</include>
+                </includes>
+              </artifactSet>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!--
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <inherited>false</inherited>
+            <phase>install</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <copy file="${project.build.directory}/${project.build.finalName}.jar" tofile="PATH_TO_THREDDS_CODE/lib/external/ugrid-${project.version}.jar" overwrite="true" />
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      -->
+    </plugins>
+  </build>
+  <profiles>
+      <profile>
+          <id>toolsUI</id>
+          <dependencies>
+            <dependency>
+              <groupId>edu.ucar</groupId>
+              <artifactId>ui</artifactId>
+              <version>${netcdf-java.version}</version>
+            </dependency>
+          </dependencies>
+          <build>
+            <plugins>
+              <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>1.7.1</version>
+                <executions>
+                  <execution>
+                    <id>toolsUI</id>
+                    <phase>package</phase>
+                    <goals>
+                      <goal>shade</goal>
+                    </goals>
+                    <configuration>
+                      <shadedArtifactAttached>true</shadedArtifactAttached>
+                      <shadedClassifierName>toolsUI</shadedClassifierName>
+                      <artifactSet>
+                        <excludes>
+                          <exclude>commons-logging:commons-logging</exclude>
+                          <exclude>edu.wisc:visad</exclude>
+                        </excludes>
+                      </artifactSet>
+                      <filters>
+                        <filter>
+                          <artifact>*:*</artifact>
+                          <excludes>
+                            <exclude>log4j.xml</exclude>
+                          </excludes>
+                        </filter>
+                      </filters>
+                      <transformers>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                        <mainClass>ucar.nc2.ui.ToolsUI</mainClass>
+                      </transformer>
+                      <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                        <resource>META-INF/spring.handlers</resource>
+                      </transformer>
+                      <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                        <resource>META-INF/spring.schemas</resource>
+                      </transformer>
+                      <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                      </transformers>
+                    </configuration>
+                  </execution>
+                </executions>
+              </plugin>
+            </plugins>
+          </build>
+      </profile>
+  </profiles>
+ 
+</project>

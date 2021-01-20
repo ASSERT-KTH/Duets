@@ -1,0 +1,280 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.cyberark.conjur.api</groupId>
+  <artifactId>conjur-api</artifactId>
+  <!-- Only bump version number,
+  SNAPSHOT is automatically removed during release deployments -->
+  <version>3.0.2-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>Conjur</name>
+  <description>Programmatic Java access to the Conjur API</description>
+  <url>https://github.com/cyberark/conjur-api-java</url>
+
+  <licenses>
+    <license>
+      <name>The Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Cyberark Conjur</name>
+      <email>conj_maintainers@cyberark.com</email>
+      <organization>Cyberark Software Ltd.</organization>
+      <organizationUrl>https://conjur.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git://github.com/cyberark/conjur-api-java.git</connection>
+    <developerConnection>scm:git:ssh://github.com:cyberark/conjur-api-java.git</developerConnection>
+    <url>https://github.com/cyberark/conjur-api-java</url>
+  </scm>
+
+  <profiles>
+    <!-- Profile for activating Artifactory as our deployment goal -->
+    <profile>
+      <id>artifactory</id>
+      <distributionManagement>
+        <repository>
+          <id>conjurinc-releases</id>
+          <name>conjurinc-releases</name>
+          <url>https://conjurinc.artifactoryonline.com/conjurinc/libs-release-local</url>
+        </repository>
+        <snapshotRepository>
+          <id>conjurinc-snapshots</id>
+          <name>conjurinc-snapshots</name>
+          <url>https://conjurinc.artifactoryonline.com/conjurinc/libs-snapshot-local</url>
+        </snapshotRepository>
+      </distributionManagement>
+    </profile>
+
+    <!-- Profile for deploying and releasing to Maven Central through OSSRH -->
+    <profile>
+      <id>ossrh</id>
+      <distributionManagement>
+        <snapshotRepository>
+          <id>ossrh</id>
+          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+          <id>ossrh</id>
+          <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+      </distributionManagement>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.7</version>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>ossrh</serverId>
+              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>2.2.1</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.9.1</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- Profile for signing releases -->
+    <profile>
+      <id>sign</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.5</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <!-- This is necessary for gpg to not try to use the pinentry programs -->
+                  <gpgArguments>
+                    <arg>--pinentry-mode</arg>
+                    <arg>loopback</arg>
+                    <arg>--passphrase-file</arg>
+                    <arg>/gpg_password</arg>
+                  </gpgArguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <jaxrs.version>2.0</jaxrs.version>
+    </properties>
+    <dependencies>
+      <!--
+        JAXRS Implementation
+        You can change any of this, for example if you use Jersey 2.0 or a different implementation
+        (codehaus has one, I think).
+      -->
+      <dependency>
+        <groupId>javax.ws.rs</groupId>
+        <artifactId>javax.ws.rs-api</artifactId>
+        <version>${jaxrs.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.cxf</groupId>
+        <artifactId>cxf-rt-rs-client</artifactId>
+        <version>3.0.0-milestone1</version>
+      </dependency>
+
+      <!-- JSON support -->
+      <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>2.3.1</version>
+      </dependency>
+
+      <!-- to work with token expirations -->
+      <dependency>
+        <groupId>joda-time</groupId>
+        <artifactId>joda-time</artifactId>
+        <version>2.3</version>
+      </dependency>
+
+      <!-- for base64 -->
+      <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.7</version>
+      </dependency>
+    
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.13.1</version>
+      </dependency>
+    </dependencies>
+
+    <build>
+      <sourceDirectory>src/main/java</sourceDirectory>
+        <plugins>
+          <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>2.3.2</version>
+            <configuration>
+              <source>1.8</source>
+              <target>1.8</target>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.20</version>
+            <configuration>
+              <systemPropertyVariables>
+                <CONJUR_ACCOUNT>${env.CONJUR_ACCOUNT}</CONJUR_ACCOUNT>
+                <CONJUR_APPLIANCE_URL>${env.CONJUR_APPLIANCE_URL}</CONJUR_APPLIANCE_URL>
+                <CONJUR_AUTHN_LOGIN>${env.CONJUR_AUTHN_LOGIN}</CONJUR_AUTHN_LOGIN>
+                <CONJUR_AUTHN_API_KEY>${env.CONJUR_AUTHN_API_KEY}</CONJUR_AUTHN_API_KEY>
+              </systemPropertyVariables>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.2.0</version>
+            <configuration>
+              <show>public</show>
+              <source>8</source>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>javadoc</goal>
+                </goals>
+                <phase>package</phase>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- Plugin to create jar with dependencies -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>shade</goal>
+                </goals>
+                <configuration>
+                  <shadedClassifierName>with-dependencies</shadedClassifierName>
+                  <shadedArtifactAttached>true</shadedArtifactAttached>
+                  <transformers>
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                      <mainClass>MainTest</mainClass>
+                    </transformer>
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                      <resource>META-INF/cxf/bus-extensions.txt</resource>
+                    </transformer>
+                  </transformers>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!--  automate the changes to the Maven POM files, sanity checks,
+          the SCM operations required and the actual deployment execution.  -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-release-plugin</artifactId>
+            <version>2.5.3</version>
+            <configuration>
+              <autoVersionSubmodules>true</autoVersionSubmodules>
+              <useReleaseProfile>false</useReleaseProfile>
+              <releaseProfiles>ossrh,sign</releaseProfiles>
+              <goals>deploy</goals>
+              <tagNameFormat>v@{project.version}</tagNameFormat>
+            </configuration>
+          </plugin>
+
+        </plugins>
+    </build>
+</project>

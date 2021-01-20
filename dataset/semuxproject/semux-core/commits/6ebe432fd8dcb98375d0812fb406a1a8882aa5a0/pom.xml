@@ -1,0 +1,1174 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.semux</groupId>
+    <artifactId>semux</artifactId>
+    <version>1.2.0</version>
+    <packaging>jar</packaging>
+    <description>Semux is an experimental high-performance blockchain platform that powers decentralized application.</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <dist.phase>install</dist.phase>
+        <dist.base>${project.basedir}/dist</dist.base>
+        <dist.windowsExecutableVersion>${project.version}.0</dist.windowsExecutableVersion>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
+    <organization>
+        <name>Semux Foundation</name>
+        <url>https://www.semux.org</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/semuxproject/semux-core/issues</url>
+    </issueManagement>
+
+    <repositories>
+        <repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>central</id>
+            <name>bintray</name>
+            <url>https://jcenter.bintray.com</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>central</id>
+            <name>bintray-plugins</name>
+            <url>https://jcenter.bintray.com</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <build>
+        <plugins>
+            <!-- compile -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/src/gen/java</source>
+                                <source>${project.basedir}/src/main/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>add-test-source</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/src/test/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- build v1.0.1 swagger document -->
+            <plugin>
+                <groupId>com.github.kongchen</groupId>
+                <artifactId>swagger-maven-plugin</artifactId>
+                <version>3.1.6</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <apiSources>
+                        <apiSource>
+                            <info>
+                                <title>Semux API</title>
+                                <description>${project.description}</description>
+                                <version>1.0.1</version>
+                                <contact>
+                                    <name>${project.organization.name}</name>
+                                    <url>${project.organization.url}</url>
+                                </contact>
+                                <license>
+                                    <name>MIT License</name>
+                                    <url>https://opensource.org/licenses/mit-license.php</url>
+                                </license>
+                            </info>
+                            <securityDefinitions>
+                                <securityDefinition>
+                                    <name>basicAuth</name>
+                                    <type>basic</type>
+                                </securityDefinition>
+                            </securityDefinitions>
+                            <schemes>
+                                <scheme>http</scheme>
+                            </schemes>
+                            <locations>
+                                <location>org.semux.api.v1_0_1.SemuxApi</location>
+                            </locations>
+                            <swaggerDirectory>target/swagger-ui</swaggerDirectory>
+                        </apiSource>
+                    </apiSources>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>javax.xml.bind</groupId>
+                        <artifactId>jaxb-api</artifactId>
+                        <version>2.3.0</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <!-- swagger codegen -->
+            <plugin>
+                <groupId>io.swagger</groupId>
+                <artifactId>swagger-codegen-maven-plugin</artifactId>
+                <version>2.3.1</version>
+                <executions>
+                    <!-- v2.0.0 api interfaces `src/gen/java/org/semux/api/v2_0_0/api` & `src/gen/java/org/semux/api/v2_0_0/model` -->
+                    <execution>
+                        <id>swagger-codegen-2_0_0</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/org/semux/api/v2_0_0/swagger.json</inputSpec>
+                            <language>jaxrs-cxf</language>
+                            <configOptions>
+                                <useGenericResponse>true</useGenericResponse>
+                                <useAnnotatedBasePath>true</useAnnotatedBasePath>
+                                <useBeanValidationFeature>false</useBeanValidationFeature>
+                            </configOptions>
+
+                            <generateModels>true</generateModels>
+                            <generateModelTests>false</generateModelTests>
+                            <generateModelDocumentation>false</generateModelDocumentation>
+                            <generateApis>true</generateApis>
+                            <generateApiTests>false</generateApiTests>
+                            <generateApiDocumentation>false</generateApiDocumentation>
+                            <generateSupportingFiles>false</generateSupportingFiles>
+
+                            <addCompileSourceRoot>true</addCompileSourceRoot>
+                            <output>${project.basedir}</output>
+                            <modelPackage>org.semux.api.v2_0_0.model</modelPackage>
+                            <apiPackage>org.semux.api.v2_0_0.api</apiPackage>
+                        </configuration>
+                    </execution>
+                    <!-- v2.0.0 api client interface `src/gen/java/org/semux/api/v2_0_0/client/SemuxApi.java` -->
+                    <execution>
+                        <id>swagger-codegen-2_0_0-client</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/org/semux/api/v2_0_0/swagger.json</inputSpec>
+                            <language>jaxrs-cxf-client</language>
+                            <configOptions>
+                                <useBeanValidation>false</useBeanValidation>
+                            </configOptions>
+                            <generateModels>false</generateModels>
+                            <generateModelTests>false</generateModelTests>
+                            <generateModelDocumentation>false</generateModelDocumentation>
+                            <generateApis>true</generateApis>
+                            <generateApiTests>false</generateApiTests>
+                            <generateApiDocumentation>false</generateApiDocumentation>
+                            <generateSupportingFiles>false</generateSupportingFiles>
+
+                            <addCompileSourceRoot>true</addCompileSourceRoot>
+                            <output>${project.basedir}</output>
+                            <modelPackage>org.semux.api.v2_0_0.model</modelPackage>
+                            <apiPackage>org.semux.api.v2_0_0.client</apiPackage>
+                        </configuration>
+                    </execution>
+
+                    <!-- v2.1.0 api interfaces `src/gen/java/org/semux/api/v2_1_0/api` & `src/gen/java/org/semux/api/v2_1_0/model` -->
+                    <execution>
+                        <id>swagger-codegen-2_1_0</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/org/semux/api/v2_1_0/swagger.json</inputSpec>
+                            <language>jaxrs-cxf</language>
+                            <configOptions>
+                                <useGenericResponse>true</useGenericResponse>
+                                <useAnnotatedBasePath>true</useAnnotatedBasePath>
+                                <useBeanValidationFeature>false</useBeanValidationFeature>
+                            </configOptions>
+
+                            <generateModels>true</generateModels>
+                            <generateModelTests>false</generateModelTests>
+                            <generateModelDocumentation>false</generateModelDocumentation>
+                            <generateApis>true</generateApis>
+                            <generateApiTests>false</generateApiTests>
+                            <generateApiDocumentation>false</generateApiDocumentation>
+                            <generateSupportingFiles>false</generateSupportingFiles>
+
+                            <addCompileSourceRoot>true</addCompileSourceRoot>
+                            <output>${project.basedir}</output>
+                            <modelPackage>org.semux.api.v2_1_0.model</modelPackage>
+                            <apiPackage>org.semux.api.v2_1_0.api</apiPackage>
+                        </configuration>
+                    </execution>
+                    <!-- v2.1.0 api client interface `src/gen/java/org/semux/api/v2_1_0/client/SemuxApi.java` -->
+                    <execution>
+                        <id>swagger-codegen-2_1_0-client</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>${project.basedir}/src/main/resources/org/semux/api/v2_1_0/swagger.json</inputSpec>
+                            <language>jaxrs-cxf-client</language>
+                            <configOptions>
+                                <useBeanValidation>false</useBeanValidation>
+                            </configOptions>
+                            <generateModels>false</generateModels>
+                            <generateModelTests>false</generateModelTests>
+                            <generateModelDocumentation>false</generateModelDocumentation>
+                            <generateApis>true</generateApis>
+                            <generateApiTests>false</generateApiTests>
+                            <generateApiDocumentation>false</generateApiDocumentation>
+                            <generateSupportingFiles>false</generateSupportingFiles>
+
+                            <addCompileSourceRoot>true</addCompileSourceRoot>
+                            <output>${project.basedir}</output>
+                            <modelPackage>org.semux.api.v2_1_0.model</modelPackage>
+                            <apiPackage>org.semux.api.v2_1_0.client</apiPackage>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- build fat jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.2</version>
+                <configuration>
+                    <archive>
+                        <index>true</index>
+                        <manifestEntries>
+                            <Main-Class>org.semux.wrapper.Wrapper</Main-Class>
+                            <Implementation-Version>${git.commit.id.abbrev}</Implementation-Version>
+                            <X-Compile-Source-JDK>${maven.compiler.source}</X-Compile-Source-JDK>
+                            <X-Compile-Target-JDK>${maven.compiler.target}</X-Compile-Target-JDK>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                    <shadedClassifierName>shaded</shadedClassifierName>
+                    <artifactSet>
+                        <excludes>
+                            <exclude>junit:*</exclude>
+                            <exclude>org.powermock:*</exclude>
+                            <exclude>com.github.stefanbirkner:system-rules</exclude>
+                            <exclude>org.assertj:*</exclude>
+                            <exclude>org.awaitility:*</exclude>
+                            <exclude>org.easytesting:*</exclude>
+                            <exclude>net.bytebuddy:*</exclude>
+                            <exclude>org.hamcrest:*</exclude>
+                            <exclude>org.mockito:*</exclude>
+                        </excludes>
+                    </artifactSet>
+                    <transformers>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
+                            <resource>.SF</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                            <resource>LICENSE</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <manifestEntries>
+                                <Main-Class>org.semux.wrapper.Wrapper</Main-Class>
+                                <Implementation-Version>${git.commit.id.abbrev}</Implementation-Version>
+                                <X-Compile-Source-JDK>${maven.compiler.source}</X-Compile-Source-JDK>
+                                <X-Compile-Target-JDK>${maven.compiler.target}</X-Compile-Target-JDK>
+                            </manifestEntries>
+                        </transformer>
+                    </transformers>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>2.2.4</version>
+                <executions>
+                    <execution>
+                        <id>get-the-git-infos</id>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>validate-the-git-infos</id>
+                        <goals>
+                            <goal>validateRevision</goal>
+                        </goals>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <abbrevLength>7</abbrevLength>
+                    <verbose>true</verbose>
+                    <skipPoms>false</skipPoms>
+                </configuration>
+            </plugin>
+
+            <!-- build windows executable (currently GUI mode only) -->
+            <plugin>
+                <groupId>com.akathist.maven.plugins.launch4j</groupId>
+                <artifactId>launch4j-maven-plugin</artifactId>
+                <version>1.7.21</version>
+                <executions>
+                    <execution>
+                        <id>semux</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>launch4j</goal>
+                        </goals>
+                        <configuration>
+                            <headerType>gui</headerType>
+                            <jar>${project.build.directory}/${project.artifactId}-${project.version}-shaded.jar</jar>
+                            <outfile>${project.build.directory}/semux.exe</outfile>
+                            <downloadUrl>http://www.oracle.com/technetwork/java/javase/downloads/index.html</downloadUrl>
+                            <classPath>
+                                <mainClass>org.semux.gui.SemuxGui</mainClass>
+                                <preCp>anything</preCp>
+                            </classPath>
+                            <icon>src/main/resources/org/semux/gui/logo.ico</icon>
+                            <splash>
+                                <!-- this file must be a 24-bit BMP -->
+                                <file>misc/design/splash.bmp</file>
+                                <waitForWindow>true</waitForWindow>
+                                <timeout>600</timeout>
+                                <timeoutErr>true</timeoutErr>
+                            </splash>
+                            <jre>
+                                <minVersion>1.8.0</minVersion>
+                                <jdkPreference>preferJre</jdkPreference>
+                                <maxHeapPercent>80</maxHeapPercent>
+                            </jre>
+                            <versionInfo>
+                                <fileVersion>${dist.windowsExecutableVersion}</fileVersion>
+                                <fileDescription>${project.description}</fileDescription>
+                                <txtFileVersion>${project.version}</txtFileVersion>
+                                <copyright>MIT</copyright>
+                                <productVersion>${dist.windowsExecutableVersion}</productVersion>
+                                <txtProductVersion>${project.version}</txtProductVersion>
+                                <productName>semux</productName>
+                                <internalName>semux</internalName>
+                                <originalFilename>semux.exe</originalFilename>
+                            </versionInfo>
+                            <singleInstance>
+                                <mutexName>semux</mutexName>
+                            </singleInstance>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- prepare distribution -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>package</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <echo file="${project.build.outputDirectory}/VERSION">${git.commit.id.abbrev}</echo>
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>dist</id>
+                        <phase>${dist.phase}</phase>
+                        <configuration>
+                            <target>
+                                <!-- windows build -->
+                                <copy todir="${dist.base}/windows">
+                                    <fileset dir="${project.basedir}">
+                                        <include name="config/**" />
+                                        <include name="LICENSE*" />
+                                    </fileset>
+                                    <fileset dir="${project.basedir}/target">
+                                        <include name="semux.exe" />
+                                    </fileset>
+                                </copy>
+                                <copy file="${project.basedir}/misc/launch4j/semux.l4j.ini" tofile="${dist.base}/windows/semux.l4j.ini" />
+                                <fixcrlf srcdir="${dist.base}/windows" includes="**/*.ini" eol="dos" eof="asis" />
+                                <fixcrlf srcdir="${dist.base}/windows" includes="config/*" eol="dos" eof="asis" />
+                                <fixcrlf srcdir="${dist.base}/windows" includes="LICENSE*" eol="dos" eof="asis" />
+
+                                <!-- linux build (executable jar) -->
+                                <copy todir="${dist.base}/linux">
+                                    <fileset dir="${project.basedir}">
+                                        <include name="config/**" />
+                                        <include name="LICENSE*" />
+                                    </fileset>
+                                </copy>
+                                <copy file="${project.basedir}/src/main/resources/org/semux/gui/splash.png" todir="${dist.base}/linux/resources" />
+                                <copy file="${project.basedir}/target/semux-${project.version}-shaded.jar" tofile="${dist.base}/linux/semux.jar" />
+                                <copy file="${project.basedir}/scripts/semux-cli.sh" tofile="${dist.base}/linux/semux-cli.sh" />
+                                <copy file="${project.basedir}/scripts/semux-gui.sh" tofile="${dist.base}/linux/semux-gui.sh" />
+                                <chmod file="${dist.base}/linux/semux.jar" perm="755" />
+                                <chmod file="${dist.base}/linux/semux*.sh" perm="755" />
+                                <chmod dir="${dist.base}/linux/config" perm="700" />
+                                <chmod file="${dist.base}/linux/config/*" perm="600" />
+
+                                <!-- macos build -->
+                                <!-- use fat jar because .app bundle is not production ready -->
+                                <copy todir="${dist.base}/macos">
+                                    <fileset dir="${dist.base}/linux"></fileset>
+                                </copy>
+                                <chmod file="${dist.base}/macos/semux.jar" perm="755" />
+                                <chmod file="${dist.base}/macos/semux*.sh" perm="755" />
+                                <chmod dir="${dist.base}/macos/config" perm="700" />
+                                <chmod file="${dist.base}/macos/config/*" perm="600" />
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- clean -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${dist.base}</directory>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+
+            <!-- code coverage -->
+            <plugin>
+                <groupId>org.eluder.coveralls</groupId>
+                <artifactId>coveralls-maven-plugin</artifactId>
+                <version>4.3.0</version>
+                <configuration>
+                    <sourceDirectories>
+                        <sourceDirectory>${basedir}/src/gen/java</sourceDirectory>
+                    </sourceDirectories>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                    <format>xml</format>
+                    <maxmem>256m</maxmem>
+                    <aggregate>true</aggregate>
+                    <quiet>true</quiet>
+                    <instrumentation>
+                        <ignoreTrivial>true</ignoreTrivial>
+                    </instrumentation>
+                    <check />
+                </configuration>
+            </plugin>
+
+            <!-- license header check -->
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>3.0</version>
+                <configuration>
+                    <header>misc/license_header.txt</header>
+                    <encoding>UTF-8</encoding>
+                    <includes>
+                        <include>src/main/**/*.java</include>
+                        <include>src/test/**/*.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+
+            <!-- eclipse formatter/validator -->
+            <plugin>
+                <groupId>net.revelc.code.formatter</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <version>2.7.0</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <lineEnding>LF</lineEnding>
+                    <configFile>${project.basedir}/misc/formatter_eclipse.xml</configFile>
+                    <directories>
+                        <directory>${project.basedir}/src/main/java</directory>
+                        <directory>${project.basedir}/src/test/java</directory>
+                    </directories>
+                </configuration>
+            </plugin>
+
+            <!-- FindBugs -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>3.0.5</version>
+                <configuration>
+                    <effort>Max</effort>
+                    <!-- FIXME: lower the FindBugs threshold to Medium -->
+                    <threshold>High</threshold>
+                    <xmlOutput>true</xmlOutput>
+                    <excludeFilterFile>${project.basedir}/findbugs-exclude.xml</excludeFilterFile>
+                </configuration>
+            </plugin>
+
+            <!-- testing -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.21.0</version>
+                <configuration>
+                    <!-- do not reuse JVM instances -->
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
+                    <!-- allow flaky tests -->
+                    <rerunFailingTestsCount>2</rerunFailingTestsCount>
+                    <argLine>-Xmx1024m</argLine>
+                </configuration>
+            </plugin>
+
+            <!-- verify the dependency chain -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.0.0-M1</version>
+                <executions>
+                    <execution>
+                        <id>enforce</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <skip>false</skip>
+                            <rules>
+                                <DependencyConvergence />
+                                <digestRule implementation="uk.co.froot.maven.enforcer.DigestRule">
+                                    <!-- Create a snapshot to build the list of URNs below -->
+                                    <buildSnapshot>false</buildSnapshot>
+
+                                    <!-- List of required hashes -->
+                                    <!-- Format is URN of groupId:artifactId:version:type:classifier:scope:hash -->
+                                    <!-- classifier is "null" if not present -->
+                                    <urns>
+                                        <urn>com.akathist.maven.plugins.launch4j:launch4j-maven-plugin:1.7.21:maven-plugin:null:runtime:58402e775916bc8824e257c8d87ad6c8064663a5</urn>
+                                        <urn>com.fasterxml.jackson.core:jackson-annotations:2.9.0:jar:null:compile:07c10d545325e3a6e72e06381afe469fd40eb701</urn>
+                                        <urn>com.fasterxml.jackson.core:jackson-core:2.9.5:jar:null:compile:a22ac51016944b06fd9ffbc9541c6e7ce5eea117</urn>
+                                        <urn>com.fasterxml.jackson.core:jackson-databind:2.9.5:jar:null:compile:3490508379d065fe3fcb80042b62f630f7588606</urn>
+                                        <urn>com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.9.3:jar:null:compile:71232816d5ed7815af378f7f467c1c5995aef09e</urn>
+                                        <urn>com.fasterxml.jackson.jaxrs:jackson-jaxrs-base:2.9.5:jar:null:compile:38269f2904f15eaf08efacdb2a0b7d987fb24ee4</urn>
+                                        <urn>com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.9.5:jar:null:compile:c80c1d72c0823a31ffb1bde032ef276f3dc19aef</urn>
+                                        <urn>com.fasterxml.jackson.module:jackson-module-jaxb-annotations:2.9.5:jar:null:compile:187555dec071c79f1cf797cb0862c06bd02fafd6</urn>
+                                        <urn>com.fasterxml.woodstox:woodstox-core:5.0.3:jar:null:compile:10aa199207fda142eff01cd61c69244877d71770</urn>
+                                        <urn>com.github.ben-manes.caffeine:caffeine:2.6.2:jar:null:compile:c8fd8817f9d2b2ced82f8968e0dd943aab557de0</urn>
+                                        <urn>com.github.kongchen:swagger-maven-plugin:3.1.6:maven-plugin:null:runtime:4c733e81674312c7794a4180095c9053baf900d5</urn>
+                                        <urn>com.github.oshi:oshi-core:3.4.4:jar:null:compile:f1aa8e053d26f49b909a845745018c57fe9d7a74</urn>
+                                        <urn>com.github.stefanbirkner:system-rules:1.17.1:jar:null:test:3642fe208063ad538ec6a2fca141d13e15f2b1f2</urn>
+                                        <urn>com.github.zafarkhaja:java-semver:0.9.0:jar:null:compile:59a83ca73c72a5e25b3f0b1bb305230a11000329</urn>
+                                        <urn>com.google.guava:guava:20.0:jar:null:compile:89507701249388e1ed5ddcf8c41f4ce1be7831ef</urn>
+                                        <urn>com.google.zxing:core:3.3.2:jar:null:compile:f47e3fc99fb2755b8a354d60efa021a0b88f4180</urn>
+                                        <urn>com.mycila:license-maven-plugin:3.0:maven-plugin:null:runtime:6e6175f847574fd15c644a69b540e279ea5d173f</urn>
+                                        <urn>commons-beanutils:commons-beanutils:1.9.2:jar:null:compile:7a87d845ad3a155297e8f67d9008f4c1e5656b71</urn>
+                                        <urn>commons-cli:commons-cli:1.4:jar:null:compile:c51c00206bb913cd8612b24abd9fa98ae89719b1</urn>
+                                        <urn>commons-digester:commons-digester:1.8.1:jar:null:compile:3dec9b9c7ea9342d4dbe8c38560080d85b44a015</urn>
+                                        <urn>commons-io:commons-io:2.6:jar:null:test:815893df5f31da2ece4040fe0a12fd44b577afaf</urn>
+                                        <urn>commons-logging:commons-logging:1.2:jar:null:compile:4bfc12adfe4842bf07b657f0369c4cb522955686</urn>
+                                        <urn>commons-validator:commons-validator:1.6:jar:null:compile:e989d1e87cdd60575df0765ed5bac65c905d7908</urn>
+                                        <urn>de.erichseifert.vectorgraphics2d:VectorGraphics2D:0.11:jar:null:test:f3bf8fe05b7997e03941bf77428598137500c300</urn>
+                                        <urn>io.netty:netty-all:4.1.22.Final:jar:null:compile:c1cea5d30025e4d584d2b287d177c31aea4ae629</urn>
+                                        <urn>io.swagger:swagger-annotations:1.5.18:jar:null:compile:f386aa7dc018534e6e05c40fff292e6cd9b9d8f8</urn>
+                                        <urn>io.swagger:swagger-codegen-maven-plugin:2.3.1:maven-plugin:null:runtime:6c78aed2d61154f139f0d735c695f79d08cb9094</urn>
+                                        <urn>io.swagger:swagger-core:1.5.18:jar:null:compile:bd9a1817e850c073e4668f9740e2d0938702e175</urn>
+                                        <urn>io.swagger:swagger-jaxrs:1.5.18:jar:null:compile:25823c2e237b067364277d58f09dcf8705785092</urn>
+                                        <urn>io.swagger:swagger-models:1.5.18:jar:null:compile:ded34e77260c1a7ac4e93001c1bd946aa104c3cd</urn>
+                                        <urn>javax.activation:activation:1.1.1:jar:null:compile:485de3a253e23f645037828c07f1d7f1af40763a</urn>
+                                        <urn>javax.annotation:javax.annotation-api:1.3.1:jar:null:compile:20a2c0583598d68b0835474bbe07792d4f3b219f</urn>
+                                        <urn>javax.validation:validation-api:1.1.0.Final:jar:null:compile:8613ae82954779d518631e05daa73a6a954817d5</urn>
+                                        <urn>javax.ws.rs:javax.ws.rs-api:2.1:jar:null:compile:426a0862406536e690c7caa8bb6ed32191986fac</urn>
+                                        <urn>javax.ws.rs:jsr311-api:1.1.1:jar:null:compile:59033da2a1afd56af1ac576750a8d0b1830d59e6</urn>
+                                        <urn>javax.xml.bind:jaxb-api:2.3.0:jar:null:compile:99f802e0cb3e953ba3d6e698795c4aeb98d37c48</urn>
+                                        <urn>junit:junit:4.12:jar:null:test:2973d150c0dc1fefe998f834810d68f278ea58ec</urn>
+                                        <urn>net.bytebuddy:byte-buddy-agent:1.8.7:jar:null:test:c6bf62b5eeac2f20a2996166a13f5e16ca33982e</urn>
+                                        <urn>net.bytebuddy:byte-buddy:1.8.7:jar:null:test:aae7620ad53e31d914667862fd6865afcfb00731</urn>
+                                        <urn>net.i2p.crypto:eddsa:0.2.0:jar:null:compile:0856a92559c4daf744cb27c93cd8b7eb1f8c4780</urn>
+                                        <urn>net.java.dev.jna:jna-platform:4.5.0:jar:null:compile:00ab163522ed76eb01c8c9a750dedacb134fc8c0</urn>
+                                        <urn>net.java.dev.jna:jna:4.5.0:jar:null:compile:55b548d3195efc5280bf1c3f17b49659c54dee40</urn>
+                                        <urn>net.revelc.code.formatter:formatter-maven-plugin:2.7.0:maven-plugin:null:runtime:001126378253588ea5a042d41714432033ca17a3</urn>
+                                        <urn>org.apache.commons:commons-collections4:4.1:jar:null:compile:a4cf4688fe1c7e3a63aa636cc96d013af537768e</urn>
+                                        <urn>org.apache.commons:commons-compress:1.9:jar:null:test:cc18955ff1e36d5abd39a14bfe82b19154330a34</urn>
+                                        <urn>org.apache.commons:commons-lang3:3.7:jar:null:compile:557edd918fd41f9260963583ebf5a61a43a6b423</urn>
+                                        <urn>org.apache.cxf:cxf-core:3.2.4:jar:null:compile:fa6977ede9232e599eab2aa72fea8309dced1492</urn>
+                                        <urn>org.apache.cxf:cxf-rt-frontend-jaxrs:3.2.4:jar:null:compile:735ec36e8fa3d04e4fb7db97ed4e81c2f064f8ab</urn>
+                                        <urn>org.apache.cxf:cxf-rt-rs-client:3.2.4:jar:null:compile:98987afffc70b95669a966e9ce4bce9f294c3b0f</urn>
+                                        <urn>org.apache.cxf:cxf-rt-transports-http:3.2.4:jar:null:compile:db5639e24c78dd860c13c0807acf3454c604e11c</urn>
+                                        <urn>org.apache.logging.log4j:log4j-api:2.10.0:jar:null:compile:fec5797a55b786184a537abd39c3fa1449d752d6</urn>
+                                        <urn>org.apache.logging.log4j:log4j-core:2.10.0:jar:null:compile:c90b597163cd28ab6d9687edd53db601b6ea75a1</urn>
+                                        <urn>org.apache.logging.log4j:log4j-slf4j-impl:2.10.0:jar:null:compile:8e4e0a30736175e31c7f714d95032c1734cfbdea</urn>
+                                        <urn>org.apache.maven.plugins:maven-antrun-plugin:1.8:maven-plugin:null:runtime:0d02c0af622aa6a0c86e81c519299e888e0a32a3</urn>
+                                        <urn>org.apache.maven.plugins:maven-clean-plugin:3.0.0:maven-plugin:null:runtime:6653cb054e6b81705e383fbcced26c92802e40ae</urn>
+                                        <urn>org.apache.maven.plugins:maven-compiler-plugin:3.7.0:maven-plugin:null:runtime:a3229c9aae47047e3a177ecfd4afa10fb5512d4e</urn>
+                                        <urn>org.apache.maven.plugins:maven-deploy-plugin:2.7:maven-plugin:null:runtime:6dadfb75679ca010b41286794f737088ebfe12fd</urn>
+                                        <urn>org.apache.maven.plugins:maven-enforcer-plugin:3.0.0-M1:maven-plugin:null:runtime:02b46cf923a7f5c75ffae61cedff103e0def3560</urn>
+                                        <urn>org.apache.maven.plugins:maven-install-plugin:2.4:maven-plugin:null:runtime:9d1316166fe4c313f56276935e08df11f45267c2</urn>
+                                        <urn>org.apache.maven.plugins:maven-jar-plugin:3.0.2:maven-plugin:null:runtime:5518cc6a2ed1b1ec52419fa0e18f7e42b6279cb9</urn>
+                                        <urn>org.apache.maven.plugins:maven-shade-plugin:3.1.0:maven-plugin:null:runtime:c08cd5163a49e31f6e28d6f8bb153013a2a2de79</urn>
+                                        <urn>org.apache.maven.plugins:maven-site-plugin:3.3:maven-plugin:null:runtime:77ba1752b1ac4c4339d6f11554800960a56a4ae1</urn>
+                                        <urn>org.apache.maven.plugins:maven-surefire-plugin:2.21.0:maven-plugin:null:runtime:71738b047986cfd76aa58228b504770903395070</urn>
+                                        <urn>org.apache.ws.xmlschema:xmlschema-core:2.2.3:jar:null:compile:920a9a3132f925554ae8432d9473c8806734a8ec</urn>
+                                        <urn>org.assertj:assertj-swing-junit:3.8.0:jar:null:test:51a93135b0edac8f92cd67bceea6efa2e2dfa870</urn>
+                                        <urn>org.assertj:assertj-swing:3.8.0:jar:null:test:43e985f95237bf9c5fbfa21230f30cc5e859a4fb</urn>
+                                        <urn>org.awaitility:awaitility:3.0.0:jar:null:test:7e6b79f2b1e57eaa967b229791f31ca55aea668a</urn>
+                                        <urn>org.bitlet:weupnp:0.1.4:jar:null:compile:b99cd791ede89b7c17426e6c51a0f171dc925def</urn>
+                                        <urn>org.bouncycastle:bcprov-jdk15on:1.59:jar:null:compile:2507204241ab450456bdb8e8c0a8f986e418bd99</urn>
+                                        <urn>org.codehaus.mojo:build-helper-maven-plugin:3.0.0:maven-plugin:null:runtime:6cf0de27a842bb277106d4abc2483d839354b0b1</urn>
+                                        <urn>org.codehaus.mojo:cobertura-maven-plugin:2.7:maven-plugin:null:runtime:0d49d827220fc4282babb85fb3b9970ffdb99aff</urn>
+                                        <urn>org.codehaus.mojo:findbugs-maven-plugin:3.0.5:maven-plugin:null:runtime:b3c2f7fcf51637697fe7da4d38ad795e54682355</urn>
+                                        <urn>org.codehaus.woodstox:stax2-api:3.1.4:jar:null:compile:ac19014b1e6a7c08aad07fe114af792676b685b7</urn>
+                                        <urn>org.easytesting:fest-reflect:1.4.1:jar:null:test:2b92d5275e92a49e16c7ce6bd7e46b9080db0530</urn>
+                                        <urn>org.easytesting:fest-util:1.2.5:jar:null:test:c4a8d7305b23b8d043be12c979813b096df11f44</urn>
+                                        <urn>org.eluder.coveralls:coveralls-maven-plugin:4.3.0:maven-plugin:null:runtime:2f9f6bdef5dd1d863730a134a8f1280337440c46</urn>
+                                        <urn>org.ethereum:leveldbjni-all:1.18.3:jar:null:compile:189e46b64f39a5f4f6de2cbdf20f42061b10d961</urn>
+                                        <urn>org.hamcrest:hamcrest-core:1.3:jar:null:test:42a25dc3219429f0e5d060061f71acb49bf010a0</urn>
+                                        <urn>org.javassist:javassist:3.21.0-GA:jar:null:compile:598244f595db5c5fb713731eddbb1c91a58d959b</urn>
+                                        <urn>org.knowm.xchart:xchart:3.5.0:jar:null:test:d0ec5cff2450cf013c4289d5c7c730c245a701ba</urn>
+                                        <urn>org.mockito:mockito-core:2.8.9:jar:null:test:1afb35b2d77d40567756c379e54c18da3574a96e</urn>
+                                        <urn>org.objenesis:objenesis:2.6:jar:null:test:639033469776fd37c08358c6b92a4761feb2af4b</urn>
+                                        <urn>org.powermock:powermock-api-mockito-common:1.7.3:jar:null:test:54c112a921efad764eef571a1cf5b465d110c7df</urn>
+                                        <urn>org.powermock:powermock-api-mockito2:1.7.3:jar:null:test:0d505af2c1dcf0aa357bf66d5c206d7b6e512e42</urn>
+                                        <urn>org.powermock:powermock-api-support:1.7.3:jar:null:test:8f5b46fa56773007430bd0347af9fe72f8acb4c4</urn>
+                                        <urn>org.powermock:powermock-core:1.7.3:jar:null:test:73cd1fff8c9685be1ff2f369b561546e7549e003</urn>
+                                        <urn>org.powermock:powermock-module-junit4-common:1.7.3:jar:null:test:7287dd56b2b907a15aa2b6a0f1ddb2dd52cf388f</urn>
+                                        <urn>org.powermock:powermock-module-junit4:1.7.3:jar:null:test:f25cd17a4d7acba1a591beaecd99fad844875cc6</urn>
+                                        <urn>org.powermock:powermock-reflect:1.7.3:jar:null:test:f3d3c696a9977094c796dc8ffd174f828f3410e8</urn>
+                                        <urn>org.rauschig:jarchivelib:0.7.1:jar:null:test:47a77274cc38cfe6c04bc2afa3ece808742dc42b</urn>
+                                        <urn>org.reflections:reflections:0.9.11:jar:null:compile:23bba0ff497ec61fbca967d9b641c7681a71edb3</urn>
+                                        <urn>org.slf4j:slf4j-api:1.7.25:jar:null:compile:da76ca59f6a57ee3102f8f9bd9cee742973efa8a</urn>
+                                        <urn>org.threeten:threetenbp:1.3.6:jar:null:compile:89dcc04a7e028c3c963413a71f950703cf51f057</urn>
+                                        <urn>org.webjars:swagger-ui:3.14.2:jar:null:compile:05f83eebdceedad1e26ddde584e4c08c20811921</urn>
+                                        <urn>org.xerial.snappy:snappy-java:1.1.7.1:jar:null:compile:d5190b41f3de61e3b83d692322d58630252bc8c3</urn>
+                                        <urn>org.yaml:snakeyaml:1.18:jar:null:compile:e4a441249ade301985cb8d009d4e4a72b85bf68e</urn>
+                                        <urn>pl.project13.maven:git-commit-id-plugin:2.2.4:maven-plugin:null:runtime:43a0dc1d02821c51847d587ecc4a6943086b884c</urn>
+                                    </urns>
+                                </digestRule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>uk.co.froot.maven.enforcer</groupId>
+                        <artifactId>digest-enforcer-rules</artifactId>
+                        <version>0.0.1</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+
+        <pluginManagement>
+            <plugins>
+                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven
+                    build itself. -->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.apache.maven.plugins</groupId>
+                                        <artifactId>maven-antrun-plugin</artifactId>
+                                        <versionRange>[1.8,)</versionRange>
+                                        <goals>
+                                            <goal>run</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore></ignore>
+                                    </action>
+                                </pluginExecution>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>io.swagger</groupId>
+                                        <artifactId>swagger-codegen-maven-plugin</artifactId>
+                                        <versionRange>[2.3.1,)</versionRange>
+                                        <goals>
+                                            <goal>generate</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <execute>
+                                            <runOnIncremental>false</runOnIncremental>
+                                        </execute >
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <dependencies>
+        <!-- Swagger & JAX-RS API -->
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <version>2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>1.5.18</version>
+        </dependency>
+        <dependency>
+            <groupId>io.swagger</groupId>
+            <artifactId>swagger-jaxrs</artifactId>
+            <version>1.5.18</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-lang3</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-annotations</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>swagger-ui</artifactId>
+            <version>3.14.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-rs-client</artifactId>
+            <version>3.2.4</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.annotation</groupId>
+                    <artifactId>javax.annotation-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Java 9 Deprecated Packages Required by JAX-RS -->
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>activation</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.1</version>
+        </dependency>
+
+        <!-- Logging framework -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.10.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.10.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>2.10.0</version>
+            <exclusions>
+                <!-- NOTE: log4j requires a newer version of slfj which is still in beta -->
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Bouncy Castle -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.59</version>
+        </dependency>
+
+        <!-- LevelDB -->
+        <dependency>
+            <groupId>org.ethereum</groupId>
+            <artifactId>leveldbjni-all</artifactId>
+            <version>1.18.3</version>
+        </dependency>
+
+        <!-- Netty network framework -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.22.Final</version>
+        </dependency>
+
+        <!-- Snappy Java -->
+        <dependency>
+            <groupId>org.xerial.snappy</groupId>
+            <artifactId>snappy-java</artifactId>
+            <version>1.1.7.1</version>
+        </dependency>
+
+        <!-- Oshi Core -->
+        <dependency>
+            <groupId>com.github.oshi</groupId>
+            <artifactId>oshi-core</artifactId>
+            <version>3.4.4</version>
+        </dependency>
+
+        <!-- Apache commons -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+            <version>1.6</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-collections</groupId>
+                    <artifactId>commons-collections</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-cli</groupId>
+            <artifactId>commons-cli</artifactId>
+            <version>1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- JSON -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.9.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.9.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.jaxrs</groupId>
+            <artifactId>jackson-jaxrs-json-provider</artifactId>
+            <version>2.9.5</version>
+        </dependency>
+
+        <!-- ED25519 -->
+        <dependency>
+            <groupId>net.i2p.crypto</groupId>
+            <artifactId>eddsa</artifactId>
+            <version>0.2.0</version>
+        </dependency>
+
+        <!-- zxing QR -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.3.2</version>
+        </dependency>
+
+        <!-- weupnp -->
+        <dependency>
+            <groupId>org.bitlet</groupId>
+            <artifactId>weupnp</artifactId>
+            <version>0.1.4</version>
+        </dependency>
+
+        <!-- semantic version -->
+        <dependency>
+            <groupId>com.github.zafarkhaja</groupId>
+            <artifactId>java-semver</artifactId>
+            <version>0.9.0</version>
+        </dependency>
+
+        <!-- Caffeine Caching Library -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>2.6.2</version>
+        </dependency>
+
+        <!-- Testing Libraries -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+            <version>1.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <version>1.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.8.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-swing</artifactId>
+            <version>3.8.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-swing-junit</artifactId>
+            <version>3.8.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>1.7.3</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.objenesis</groupId>
+                    <artifactId>objenesis</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <version>1.7.3</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.bytebuddy</groupId>
+                    <artifactId>byte-buddy</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.bytebuddy</groupId>
+                    <artifactId>byte-buddy-agent</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.objenesis</groupId>
+                    <artifactId>objenesis</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.github.stefanbirkner</groupId>
+            <artifactId>system-rules</artifactId>
+            <version>1.17.1</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit-dep</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>3.0.0</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.objenesis</groupId>
+                    <artifactId>objenesis</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- newer versions to support java 9 -->
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>1.8.7</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy-agent</artifactId>
+            <version>1.8.7</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.objenesis</groupId>
+            <artifactId>objenesis</artifactId>
+            <version>2.6</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.rauschig</groupId>
+            <artifactId>jarchivelib</artifactId>
+            <version>0.7.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.knowm.xchart</groupId>
+            <artifactId>xchart</artifactId>
+            <version>3.5.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>2.20.1</version>
+                        <configuration>
+                            <groups>org.semux.windows.WindowsIntegrationTest</groups>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>integration-test</id>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>verify</id>
+                                <goals>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

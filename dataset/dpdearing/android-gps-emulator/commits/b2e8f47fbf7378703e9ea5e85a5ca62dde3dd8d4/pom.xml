@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <groupId>com.dpdearing.sandbox</groupId>
+  <artifactId>android-gps-emulator</artifactId>
+  <packaging>war</packaging>
+  <version>0.1.0</version>
+
+  <name>Android GPS Emulator</name>
+  
+  <repositories>
+    <repository>
+      <id>project.local</id>
+      <url>file://${basedir}/./repo</url>
+    </repository>
+  </repositories>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- Compiler configuration -->
+    <maven.compiler.source>1.5</maven.compiler.source>
+    <maven.compiler.target>1.5</maven.compiler.target>
+    <!-- Jetty configuration -->
+    <jettyVersion>7.3.1.v20110307</jettyVersion>
+    <!-- GWT configuration -->
+    <gwt.version>2.0.4</gwt.version>
+    <!-- renamed module to 'gps-emulator' -->
+    <gwt.module.name>gpsemulator</gwt.module.name>
+    <gwt.module>com.dpdearing.sandbox.gpsemulator.GpsEmulator</gwt.module>
+  </properties>
+  
+  <dependencies>
+    <!-- JTA Java Telnet dependency -->
+    <dependency>
+      <groupId>de.mud</groupId>
+      <artifactId>jta</artifactId>
+      <version>2.6</version>
+    </dependency>
+    
+    <!-- GWT Google Maps API -->
+    <dependency>
+      <groupId>com.google.gwt.google-apis</groupId>
+      <artifactId>gwt-maps</artifactId>
+      <version>1.1.0</version>
+      <scope>system</scope>
+      <systemPath>${basedir}/lib/gwt-maps-1.1.0.jar</systemPath>
+    </dependency>
+
+    <!--  GWT dependencies -->
+    <dependency>
+      <groupId>com.google.gwt</groupId>
+      <artifactId>gwt-servlet</artifactId>
+      <version>${gwt.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.gwt</groupId>
+      <artifactId>gwt-user</artifactId>
+      <version>${gwt.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    
+    <!-- Jetty dependencies -->    
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-webapp</artifactId>
+      <version>${jettyVersion}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+  
+  <build>
+    <outputDirectory>war/WEB-INF/classes</outputDirectory>
+    
+    <pluginManagement>
+      <plugins>
+        <!-- Eclipse plugin version management -->
+        <!-- This is to specify the version because the SNAPSHOT is unhappy -->
+        <plugin>
+          <artifactId>maven-eclipse-plugin</artifactId>
+          <version>2.7</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    
+    <plugins>
+      <!-- GWT integration -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>gwt-maven-plugin</artifactId>
+        <version>1.2</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>
+              <goal>generateAsync</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <servicePattern>**/*Service.java</servicePattern>
+          <runTarget>${gwt.module.name}/index.html</runTarget>
+        </configuration>
+      </plugin>
+      
+      <!-- Jetty -->
+      <plugin>
+        <groupId>org.mortbay.jetty</groupId>
+        <artifactId>maven-jetty-plugin</artifactId>
+        <version>6.1.26</version>
+      </plugin>
+      
+      <!-- Generate a war file with the deployment web.xml -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>2.0.2</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>Main</mainClass>
+            </manifest>
+          </archive>
+          <warSourceDirectory>war</warSourceDirectory>
+        </configuration>
+      </plugin>
+      
+      <!-- From http://uguptablog.blogspot.com/2012/09/embedded-jetty-executable-war-with.html -->
+      <!-- Ant Task to copy Main.class to the root of the war -->
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>main-class-placement</id>
+            <phase>prepare-package</phase>
+            <configuration>
+              <tasks>
+                <copy todir="${project.build.directory}/${project.artifactId}-${project.version}/">
+                  <fileset dir="${project.build.outputDirectory}">
+                    <include name="Main.class" />
+                  </fileset>
+                </copy>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+            
+      <!-- From http://uguptablog.blogspot.com/2012/09/embedded-jetty-executable-war-with.html -->
+      <!-- Extract Jetty classes to the root of the war -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.3</version>
+        <executions>
+          <execution>
+            <id>jetty-classpath</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeGroupIds>org.eclipse.jetty,javax.servlet</includeGroupIds>
+              <excludeArtifactIds>jsp-api,jstl</excludeArtifactIds>
+              <outputDirectory>
+                ${project.build.directory}/${project.artifactId}-${project.version}
+              </outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+   
+      <!-- Clean the compiled war subdirectories -->
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>2.2</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>war/${gwt.module.name}</directory>
+            </fileset>
+            <fileset>
+              <directory>war/WEB-INF/lib</directory>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+      
+      <!-- Set encoding to UTF-8 -->
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.3</version>
+        <configuration>
+          <encoding>${project.build.sourceEncoding}</encoding>
+        </configuration>
+      </plugin>
+      
+      <!-- Compiler -->
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.0.2</version>
+        <configuration>
+          <showDeprecation>true</showDeprecation>
+          <showWarnings>true</showWarnings>
+          <source>${maven.compiler.source}</source>
+          <target>${maven.compiler.target}</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

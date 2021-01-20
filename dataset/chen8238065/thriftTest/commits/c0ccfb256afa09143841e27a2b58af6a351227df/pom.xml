@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <!--<parent>-->
+        <!--<groupId>com.chapa</groupId>-->
+        <!--<artifactId>demo</artifactId>-->
+        <!--<version>1.0-SNAPSHOT</version>-->
+    <!--</parent>-->
+
+    <groupId>com.chapa</groupId>
+    <artifactId>templates.thrift-demo</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <name>templates.thrift-demo-console</name>
+    <description>A maven project to study templates.thrift.</description>
+    <url>http://blog.csdn.net/chen8238065/article/details/50846104</url>
+    <properties>
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <compiler-plugin.version>2.3.2</compiler-plugin.version>
+        <templates.thrift.version>0.9.1</templates.thrift.version>
+    </properties>
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/chen8238065/thriftTest/issues</url>
+    </issueManagement>
+    <ciManagement>
+        <system>Travis-CI</system>
+        <url>https://travis-ci.org/chen8238065/thriftTest</url>
+    </ciManagement>
+    <scm>
+        <connection>scm:git:https://github.com/chen8238065/thriftTest.git</connection>
+        <developerConnection>scm:git:https://github.com/chen8238065/thriftTest.git</developerConnection>
+        <url>https://github.com/chen8238065/thriftTest</url>
+        <tag>HEAD</tag>
+    </scm>
+    <developers>
+        <developer>
+            <id>chapa</id>
+            <name>chapa</name>
+            <email>cpp8238065@163.com</email>
+            <organization>58Anjuke</organization>
+            <organizationUrl>http://blog.csdn.net/chen8238065/article/details/50846104</organizationUrl>
+            <roles>
+                <role>Java Developer</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.templates.thrift</groupId>
+            <artifactId>libthrift</artifactId>
+            <version>${templates.thrift.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.5.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <type>jar</type>
+            <version>4.1.6.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <type>jar</type>
+            <version>4.1.6.RELEASE</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <type>jar</type>
+            <version>4.1.6.RELEASE</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <type>jar</type>
+            <version>4.1.6.RELEASE</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>Linux</id>
+            <activation>
+                <os>
+                    <family>Linux</family>
+                </os>
+            </activation>
+            <build>
+                <finalName>ROOT</finalName>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>compile-templates.thrift</id>
+                                <phase>generate-sources</phase>
+                                <configuration>
+                                    <tasks>
+                                        <!--<mkdir dir="src/main/java/com/chapa/demo/templates.thrift/auto"/>-->
+                                        <path id="templates.thrift.path">
+                                            <fileset dir="${project.basedir}/src/main/resources">
+                                                <include name="**/*.templates.thrift"/>
+                                            </fileset>
+                                        </path>
+                                        <pathconvert pathsep=" " property="templates.thrift.files"
+                                                     refid="templates.thrift.path"/>
+                                        <exec executable="/usr/bin/templates.thrift">
+                                            <arg value="-r --gen"/>
+                                            <arg value="java"/>
+                                            <arg value="-out"/>
+                                            <arg value="src/main/java"/>
+                                            <arg line="${templates.thrift.files}"/>
+                                        </exec>
+                                    </tasks>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>wins</id>
+            <activation>
+                <os>
+                    <family>Windows</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.templates.thrift.tools</groupId>
+                        <artifactId>maven-templates.thrift-plugin</artifactId>
+                        <version>0.1.11</version>
+                        <configuration>
+                            <thriftExecutable>./templates.thrift-0.10.0.exe</thriftExecutable>
+                            <generator>java</generator>
+                            <outputDirectory>src/main/java/templates.thrift/demo</outputDirectory>
+                            <thriftSourceRoot>${project.basedir}/src/main/resources</thriftSourceRoot>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>templates.thrift-sources</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>compile</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>templates.thrift-test-sources</id>
+                                <phase>generate-test-sources</phase>
+                                <goals>
+                                    <goal>testCompile</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <!-- properties in ~/.m2/setting.xml-->
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <configuration>
+                    <verbose>true</verbose>
+                    <filesets>
+                        <fileset>
+                            <directory>${project.basedir}/src/main/java/com/anjuke/demo/templates.thrift/auto</directory>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+
+</project>

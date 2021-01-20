@@ -1,0 +1,184 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>tapestry-security</artifactId>
+	<name>Tapestry Security</name>
+	<description>Tynamo Security package for Tapestry 5 based on Shiro Security</description>
+	<packaging>jar</packaging>
+	<version>0.5.2-SNAPSHOT</version>
+
+	<parent>
+		<groupId>org.tynamo</groupId>
+		<artifactId>tynamo-parent</artifactId>
+		<version>0.0.12</version>
+	</parent>
+
+	<!-- Developers section inherited from the parent pom -->
+	<contributors>
+		<contributor>
+			<name>Valentin Yerastov</name>
+			<email>xibyte (-at-) gmail.com</email>
+			<roles>
+				<role>Original author of tapestry-jsecurity</role>
+			</roles>
+		</contributor>
+	</contributors>
+
+
+	<dependencies>
+		<!-- slightly annoyingly, we need to use the jetty originated servlet-api because the jars are signed -->
+		<dependency>
+			<groupId>org.eclipse.jetty.orbit</groupId>
+			<artifactId>javax.servlet</artifactId>
+			<version>3.0.0.v201112011016</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.shiro</groupId>
+			<artifactId>shiro-web</artifactId>
+			<version>1.2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.shiro</groupId>
+			<artifactId>shiro-cas</artifactId>
+			<version>1.2.2</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.tapestry</groupId>
+			<artifactId>tapestry-core</artifactId>
+			<version>${tapestry-release-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.tapestry</groupId>
+			<artifactId>tapestry-ioc</artifactId>
+			<version>${tapestry-release-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.tynamo</groupId>
+			<artifactId>tynamo-common</artifactId>
+			<version>0.0.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.tynamo</groupId>
+			<artifactId>tapestry-exceptionpage</artifactId>
+			<version>0.1.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.tynamo</groupId>
+			<artifactId>tynamo-test</artifactId>
+			<version>0.0.1</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>net.sourceforge.htmlunit</groupId>
+			<artifactId>htmlunit</artifactId>
+			<version>2.10</version>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+	<scm>
+		<connection>scm:svn:http://svn.codehaus.org/tynamo/branches/tapestry-security-0.5.x</connection>
+		<developerConnection>scm:svn:https://svn.codehaus.org/tynamo/branches/tapestry-security-0.5.x</developerConnection>
+		<url>http://svn.tynamo.codehaus.org/tynamo/branches/tapestry-security-0.5.x</url>
+	</scm>
+
+	<distributionManagement>
+		<site>
+			<id>tynamo-site</id>
+			<!-- Note the url. Only static files deployed in /constant/ can be decorated by Unity -->
+			<url>dav:https://dav.codehaus.org/tynamo/constant/sites/tapestry-security</url>
+		</site>
+	</distributionManagement>
+
+	<!-- Needed as long as we depend on Tapestry snapshot
+	<repositories>
+		<repository>
+			<id>apache-ci-snapshots</id>
+			<url>http://repository.apache.org/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</repository>
+	</repositories>
+	-->
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>src/main/filtered-resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<suiteXmlFiles>
+						<suiteXmlFile>src/test/conf/testng.xml</suiteXmlFile>
+					</suiteXmlFiles>
+					<argLine>-Xmx500m</argLine>
+					<redirectTestOutputToFile>false</redirectTestOutputToFile>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifestEntries>
+							<Tapestry-Module-Classes>org.tynamo.security.services.SecurityModule
+							</Tapestry-Module-Classes>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<!-- run the test app in the port 8180 with "mvn jetty:run" -->
+			<plugin>
+				<groupId>org.mortbay.jetty</groupId>
+				<artifactId>jetty-maven-plugin</artifactId>
+				<version>7.6.0.RC1</version>
+				<configuration>
+					<contextPath>/</contextPath>
+					<useTestClasspath>true</useTestClasspath>
+					<webAppSourceDirectory>${basedir}/src/test/webapp</webAppSourceDirectory>
+					<systemProperties>
+						<systemProperty>
+							<name>jetty.port</name>
+							<value>8180</value>
+						</systemProperty>
+						<systemProperty>
+							<name>tapestry.compress-whitespace</name>
+							<value>false</value>
+						</systemProperty>
+						<systemProperty>
+							<name>tapestry.production-mode</name>
+							<value>false</value>
+						</systemProperty>
+					</systemProperties>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+
+</project>

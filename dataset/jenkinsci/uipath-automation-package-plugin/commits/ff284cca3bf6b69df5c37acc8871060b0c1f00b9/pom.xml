@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>plugin</artifactId>
+        <version>3.4</version>
+        <relativePath />
+    </parent>
+    <artifactId>uipath-automation-package</artifactId>
+    <version>1.0</version>
+    <packaging>hpi</packaging>
+    <properties>
+        <jenkins.version>2.60.3</jenkins.version>
+        <java.level>8</java.level>
+    </properties>
+    <name>UiPath Plugin</name>
+    <description>
+        This plugin allows you to build and deploy UiPath automation processes.
+    </description>
+    <url>https://wiki.jenkins.io/display/JENKINS/UiPath+Plugin</url>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>read-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <file>src/main/resources/config.properties</file>
+                            </files>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>ImportModule</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}" />
+                                <get dest="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}" src="https://www.myget.org/F/uipath-dev/api/v2/package/UiPath.Extensions/${UiPath.Extensions.Version}" />
+                                <unzip src="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}/${UiPath.Extensions.Version}" dest="${project.build.directory}/classes/${UiPath.Extensions.Name}/${UiPath.Extensions.Version}" />
+                                <mkdir dir="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}" />
+                                <get dest="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}" src="https://www.myget.org/F/uipath-dev/api/v2/package/UiPath.PowerShell/${UiPath.PowerShell.Version}" />
+                                <unzip src="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}/${UiPath.PowerShell.Version}" dest="${project.build.directory}/classes/${UiPath.PowerShell.Name}/${UiPath.PowerShell.Version}" />
+                            </target>
+                            <failOnError>true</failOnError>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <goals>deploy</goals>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <!-- The default licence for Jenkins OSS Plugins is MIT.-->
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+        </license>
+    </licenses>
+    <scm>
+        <connection>scm:git:ssh://git@github.com/jenkinsci/uipath-automation-package-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/uipath-automation-package-plugin.git</developerConnection>
+        <url>https://github.com/jenkinsci/uipath-automation-package-plugin</url>
+      <tag>uipath-automation-package-1.0</tag>
+  </scm>
+    <!-- List of dependencies of the project. -->
+    <dependencies>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>credentials</artifactId>
+            <version>2.1.10</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.tuupertunut</groupId>
+            <artifactId>powershell-lib-java</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20180813</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>2.24.5</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <repositories>
+        <repository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </pluginRepository>
+    </pluginRepositories>
+    <!--
+      The developers show up as current maintainers in the Jenkins wiki.
+      https://wiki.jenkins.io/display/JENKINS/UiPath+Plugin
+      The id should be the jenkinsci.org username and not your GitHub username.
+    -->
+    <developers>
+        <developer>
+            <id>rajeevuipath</id>
+            <name>Rajeev Ranjan</name>
+            <url>https://github.com/rajeevuipath</url>
+            <email>rajeev.ranjan@uipath.com</email>
+            <roles>
+                <role>maintainer</role>
+            </roles>
+        </developer>
+    </developers>
+</project>

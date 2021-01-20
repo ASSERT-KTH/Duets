@@ -1,0 +1,192 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>pl.webtest</groupId>
+    <artifactId>web-test</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <!-- default encoding -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Maven plugins version -->
+        <maven-resources-plugin.version>3.0.2</maven-resources-plugin.version>
+        <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>2.21.0</maven-surefire-plugin.version>
+        <maven-javadoc-plugin.version>3.0.0</maven-javadoc-plugin.version>
+
+        <!-- Libraries version -->
+        <commons-io.version>2.6</commons-io.version>
+        <commons-lang3.version>3.7</commons-lang3.version>
+        <testng.version>6.14.2</testng.version>
+        <!-- Deprecated. Use: http://allure.qatools.ru/ -->
+        <reportng.version>1.1.4</reportng.version>
+        <hamcrest.version>1.3</hamcrest.version>
+        <selenium.version>3.11.0</selenium.version>
+        <slf4j.version>1.7.25</slf4j.version>
+
+        <!-- Default suite files if not being specified from mvn command line -->
+        <webtest.testng>all</webtest.testng>
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons-io.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${testng.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <version>${hamcrest.version}</version>
+        </dependency>
+
+        <!-- Better TestNG reporting -->
+        <dependency>
+            <groupId>org.uncommons</groupId>
+            <artifactId>reportng</artifactId>
+            <version>${reportng.version}</version>
+            <exclusions>
+                <!-- Usually in our project a newer TestNG version is used, so that ReportNG dependency should be excluded. -->
+                <exclusion>
+                    <groupId>org.testng</groupId>
+                    <artifactId>testng</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- ReportNG, as of 1.1.4 needs a dependency on com.google.inject:guice:3.0 to generate html reports -->
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>3.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>${selenium.version}</version>
+        </dependency>
+
+        <!-- SLF4J Log4J Binding adds slf4j -> log4j bridge -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <!-- SLF4J API The Simple Logging Facade for Java or (SLF4J) serves as
+            a simple facade or abstraction for various logging frameworks, e.g. java.util.logging,
+            log4j and logback, allowing the end-user to plug in the desired logging framework
+            at deployment time. -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>
+            </testResource>
+        </testResources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resources-plugin.version}</version>
+                <configuration>
+                    <!-- specify UTF-8, ISO-8859-1 or any other file encoding -->
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <!-- Set webdrivers location for selenium -->
+                        <!-- https://github.com/mozilla/geckodriver/releases -->
+                        <webdriver.gecko.driver>drivers/geckodriver.exe</webdriver.gecko.driver>
+                        <!-- https://sites.google.com/a/chromium.org/chromedriver/downloads -->
+                        <webdriver.chrome.driver>drivers/chromedriver.exe</webdriver.chrome.driver>
+                        <!-- https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver -->
+                        <!-- webdriver.ie.driver>drivers/IEDriverServer.exe</webdriver.ie.driver -->
+                        <!-- https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/ -->
+                        <webdriver.edge.driver>drivers/MicrosoftWebDriver.exe</webdriver.edge.driver>
+                        <!--webdriver.safari.driver></webdriver.safari.driver-->
+                    </systemPropertyVariables>
+                    <!-- testng xml suite file to be used for test execution -->
+                    <suiteXmlFiles>
+                        <suiteXmlFile>${project.build.testOutputDirectory}/${webtest.testng}.testng.xml</suiteXmlFile>
+                    </suiteXmlFiles>
+                    <properties>
+                        <!-- Setting ReportNG listeners -->
+                        <!-- ReportNG uses two reporters pluggable into TestNG. JUnitXMLReporter generates XML summarize of running tests.
+                             It’s used for tools (like CI server). HTMLReporter creates human readable HTML report.
+                             Default TestNG listeners should be disabled. -->
+                        <property>
+                            <name>usedefaultlisteners</name>
+                            <value>false</value>
+                        </property>
+                        <property>
+                            <name>listener</name>
+                            <value>org.uncommons.reportng.HTMLReporter, org.uncommons.reportng.JUnitXMLReporter</value>
+                        </property>
+                    </properties>
+                    <!-- Specify which file naming formats should be considered as tests
+                        for TestNG -->
+                    <includes>
+                        <include>**/Test*.java</include>
+                        <include>**/*Tests*.java</include>
+                        <include>**/*Tests.java</include>
+                        <include>**/*Test.java</include>
+                        <include>**/*TestCase.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+            <!-- The Javadoc Plugin uses the Javadoc tool to generate javadocs for
+                the specified project -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin.version}</version>
+                <configuration>
+                    <quiet>true</quiet>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

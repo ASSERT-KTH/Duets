@@ -1,0 +1,503 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+   <modelVersion>4.0.0</modelVersion>
+
+   <!-- ********************************************** -->
+   <!-- ****************** BASE POM ****************** -->
+   <!-- ********************************************** -->
+
+   <parent>
+      <groupId>com.bernardomg.maven</groupId>
+      <artifactId>base-pom</artifactId>
+      <version>1.2.2</version>
+   </parent>
+
+   <!-- ********************************************** -->
+   <!-- **************** PROJECT INFO **************** -->
+   <!-- ********************************************** -->
+
+   <groupId>com.bernardomg.tabletop</groupId>
+   <artifactId>dice</artifactId>
+   <version>2.0.0-SNAPSHOT</version>
+   <packaging>jar</packaging>
+
+   <name>Dice Notation Tools for Java</name>
+   <description>Utilities for representing and handling dice and dice notation.</description>
+   <url>https://github.com/bernardo-mg/dice-notation-java</url>
+   <inceptionYear>2014</inceptionYear>
+
+   <licenses>
+      <license>
+         <name>Apache v2 License</name>
+         <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+         <distribution>repo</distribution>
+      </license>
+   </licenses>
+
+   <!-- ********************************************** -->
+   <!-- ********* INFRASTRUCTURE AND SERVICES ******** -->
+   <!-- ********************************************** -->
+
+   <scm>
+      <connection>scm:git:https://github.com/bernardo-mg/dice-notation-java.git</connection>
+      <developerConnection>scm:git:https://github.com/bernardo-mg/dice-notation-java.git</developerConnection>
+      <tag>head</tag>
+      <url>https://github.com/bernardo-mg/dice-notation-java</url>
+   </scm>
+
+   <issueManagement>
+      <system>GitHub Issues</system>
+      <url>https://github.com/bernardo-mg/dice-notation-java/issues</url>
+   </issueManagement>
+
+   <ciManagement>
+      <system>Travis CI</system>
+      <url>https://travis-ci.org/Bernardo-MG/dice-notation-java</url>
+      <notifiers />
+   </ciManagement>
+
+   <distributionManagement>
+      <repository>
+         <uniqueVersion>false</uniqueVersion>
+         <id>releases</id>
+         <name>Releases Repository</name>
+         <url>https://api.bintray.com/maven/bernardo-mg/tabletop-toolkits/dice</url>
+      </repository>
+      <snapshotRepository>
+         <uniqueVersion>false</uniqueVersion>
+         <id>snapshots</id>
+         <name>Snapshots Repository</name>
+         <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+      </snapshotRepository>
+   </distributionManagement>
+
+   <!-- ********************************************** -->
+   <!-- ****************** PROFILES ****************** -->
+   <!-- ********************************************** -->
+
+   <profiles>
+      <profile>
+         <!-- Profile for the Eclipse Maven plugin -->
+         <!-- Sets the POM so this plugin does not give the usual unregistered 
+            goals errors -->
+         <!-- It will be activated automatically on Eclipse if this has the 
+            m2e plugin, by detecting the version property -->
+         <id>eclipse-maven</id>
+         <activation>
+            <property>
+               <name>m2e.version</name>
+            </property>
+         </activation>
+         <build>
+            <pluginManagement>
+               <plugins>
+                  <plugin>
+                     <!-- m2e lifecycle mapping -->
+                     <!-- This is used to configure the Maven plugin for 
+                        Eclipse. -->
+                     <!-- Among other things, it allows registering goals, 
+                        which Eclipse would otherwise reject. -->
+                     <!-- It has no real effect on Maven. -->
+                     <groupId>org.eclipse.m2e</groupId>
+                     <artifactId>lifecycle-mapping</artifactId>
+                     <version>${plugin.lifecycle.version}</version>
+                     <configuration>
+                        <lifecycleMappingMetadata>
+                           <pluginExecutions>
+                              <pluginExecution>
+                                 <!-- Build helper plugin configuration -->
+                                 <pluginExecutionFilter>
+                                    <groupId>org.codehaus.mojo</groupId>
+                                    <artifactId>build-helper-maven-plugin</artifactId>
+                                    <versionRange>[1.0,)</versionRange>
+                                    <goals>
+                                       <goal>add-source</goal>
+                                       <goal>add-test-source</goal>
+                                       <goal>add-resource</goal>
+                                       <goal>add-test-resource</goal>
+                                       <goal>maven-version</goal>
+                                       <goal>parse-version</goal>
+                                       <goal>timestamp-property</goal>
+                                    </goals>
+                                 </pluginExecutionFilter>
+                                 <action>
+                                    <execute>
+                                       <runOnConfiguration>true</runOnConfiguration>
+                                       <runOnIncremental>true</runOnIncremental>
+                                    </execute>
+                                 </action>
+                              </pluginExecution>
+                           </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                        <downloadSources>true</downloadSources>
+                        <downloadJavadocs>true</downloadJavadocs>
+                     </configuration>
+                  </plugin>
+               </plugins>
+            </pluginManagement>
+         </build>
+      </profile>
+      <profile>
+         <!-- Release site deployment profile -->
+         <!-- Sets the site repository to point to the releases repo -->
+         <id>deployment-release</id>
+         <activation>
+            <!-- Active by default so the repository appears in the reports -->
+            <activeByDefault>true</activeByDefault>
+         </activation>
+         <distributionManagement>
+            <site>
+               <id>site</id>
+               <name>Project Documentation Site</name>
+               <!-- The URL should be set externally -->
+               <url>${site.release.url}</url>
+            </site>
+         </distributionManagement>
+      </profile>
+      <profile>
+         <!-- Development site deployment profile -->
+         <!-- Sets the site repository to point to the development repo -->
+         <id>deployment-development</id>
+         <distributionManagement>
+            <site>
+               <id>site-development</id>
+               <name>Project Development Documentation Site</name>
+               <!-- The URL should be set externally -->
+               <url>${site.develop.url}</url>
+            </site>
+         </distributionManagement>
+      </profile>
+      <profile>
+         <!-- Deployment profile -->
+         <!-- Sets ups the environment for deployment -->
+         <id>deployment</id>
+         <properties>
+            <!-- Tests are skipped -->
+            <maven.test.skip>true</maven.test.skip>
+         </properties>
+      </profile>
+   </profiles>
+
+   <!-- ********************************************** -->
+   <!-- *********** ORGANIZATION AND MEMBERS ********* -->
+   <!-- ********************************************** -->
+
+   <organization>
+      <name>Bernardo Martínez Garrido</name>
+      <url>https://github.com/bernardo-mg</url>
+   </organization>
+
+   <developers>
+      <developer>
+         <id>bmg</id>
+         <name>Bernardo Martínez Garrido</name>
+         <email>programming@bernardomg.com</email>
+         <url>https://github.com/bernardo-mg</url>
+         <organization>Bernardo Martínez Garrido</organization>
+         <organizationUrl>https://github.com/bernardo-mg</organizationUrl>
+         <roles>
+            <role>Developer</role>
+         </roles>
+         <timezone>+1</timezone>
+         <properties />
+      </developer>
+   </developers>
+
+   <!-- ********************************************** -->
+   <!-- **************** PROPERTIES ****************** -->
+   <!-- ********************************************** -->
+
+   <properties>
+      <!-- ============================================== -->
+      <!-- ================ JAVA VERSION ================ -->
+      <!-- ============================================== -->
+      <java.version>1.8</java.version>
+      <!-- ============================================== -->
+      <!-- =============== MANIFEST DATA ================ -->
+      <!-- ============================================== -->
+      <manifest.name>com/bernardomg/tabletop/dice</manifest.name>
+      <!-- ============================================== -->
+      <!-- =========== DEPENDENCIES VERSIONS ============ -->
+      <!-- ============================================== -->
+      <antlr.version>4.7.2</antlr.version>
+      <guava.version>27.0.1-jre</guava.version>
+      <junit.jupiter.version>5.3.2</junit.jupiter.version>
+      <junit.platform.version>1.3.2</junit.platform.version>
+      <mockito.version>2.22.0</mockito.version>
+      <log4j.version>2.11.1</log4j.version>
+      <!-- ============================================== -->
+      <!-- ============== PLUGINS VERSIONS ============== -->
+      <!-- ============================================== -->
+      <plugin.antlr.version>4.7.1</plugin.antlr.version>
+      <plugin.antlr.test.version>1.9</plugin.antlr.test.version>
+      <plugin.buildhelp.version>3.0.0</plugin.buildhelp.version>
+      <plugin.changes.version>2.12</plugin.changes.version>
+      <!-- ============================================== -->
+      <!-- ================= MAVEN SITE ================= -->
+      <!-- ============================================== -->
+      <site.skin.version>1.3.1</site.skin.version>
+      <bintrayURL>https://bintray.com/bernardo-mg/tabletop-toolkits/dice/view</bintrayURL>
+      <mavenURL>http://mvnrepository.com/artifact/com.bernardomg.tabletop/dice</mavenURL>
+   </properties>
+
+   <!-- ********************************************** -->
+   <!-- *************** DEPENDENCIES ***************** -->
+   <!-- ********************************************** -->
+
+   <dependencies>
+      <dependency>
+         <!-- Antlr -->
+         <groupId>org.antlr</groupId>
+         <artifactId>antlr4</artifactId>
+         <version>${antlr.version}</version>
+      </dependency>
+      <dependency>
+         <!-- Guava -->
+         <groupId>com.google.guava</groupId>
+         <artifactId>guava</artifactId>
+         <version>${guava.version}</version>
+      </dependency>
+      <!-- ============================================== -->
+      <!-- ================== LOGGERS =================== -->
+      <!-- ============================================== -->
+      <dependency>
+         <!-- Log4j core -->
+         <groupId>org.apache.logging.log4j</groupId>
+         <artifactId>log4j-core</artifactId>
+         <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+         <!-- Log4j SLF4J Bridge -->
+         <groupId>org.apache.logging.log4j</groupId>
+         <artifactId>log4j-slf4j-impl</artifactId>
+         <version>${log4j.version}</version>
+      </dependency>
+      <!-- ============================================== -->
+      <!-- ======= TEST ENVIRONMENT DEPENDENCIES ======== -->
+      <!-- ============================================== -->
+      <dependency>
+         <!-- JUnit Jupiter Engine -->
+         <groupId>org.junit.jupiter</groupId>
+         <artifactId>junit-jupiter-engine</artifactId>
+         <version>${junit.jupiter.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <!-- JUnit Jupiter Platform -->
+         <groupId>org.junit.platform</groupId>
+         <artifactId>junit-platform-runner</artifactId>
+         <version>${junit.platform.version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <!-- Mockito -->
+         <groupId>org.mockito</groupId>
+         <artifactId>mockito-core</artifactId>
+         <version>${mockito.version}</version>
+         <scope>test</scope>
+      </dependency>
+   </dependencies>
+
+   <!-- ********************************************** -->
+   <!-- ******************* BUILD ******************** -->
+   <!-- ********************************************** -->
+
+   <build>
+      <defaultGoal>clean package install</defaultGoal>
+      <pluginManagement>
+         <plugins>
+            <plugin>
+               <!-- ANTRL4 -->
+               <!-- Builds a parser from the grammar -->
+               <groupId>org.antlr</groupId>
+               <artifactId>antlr4-maven-plugin</artifactId>
+               <version>${plugin.antlr.version}</version>
+            </plugin>
+            <plugin>
+               <!-- ANTRL4 Tests -->
+               <!-- Tests the grammar -->
+               <groupId>com.khubla.antlr</groupId>
+               <artifactId>antlr4test-maven-plugin</artifactId>
+               <version>${plugin.antlr.test.version}</version>
+            </plugin>
+            <plugin>
+               <!-- Build helper -->
+               <!-- Adds the generated files to the Maven classpath -->
+               <groupId>org.codehaus.mojo</groupId>
+               <artifactId>build-helper-maven-plugin</artifactId>
+               <version>${plugin.buildhelp.version}</version>
+            </plugin>
+         </plugins>
+      </pluginManagement>
+      <plugins>
+         <plugin>
+            <!-- Changes -->
+            <!-- Takes care of the changes log -->
+            <!-- It is set to also validate the changes log file -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-changes-plugin</artifactId>
+            <executions>
+               <!-- Changes plugin is bound to the pre-site phase -->
+               <execution>
+                  <id>check-changes</id>
+                  <phase>pre-site</phase>
+                  <goals>
+                     <goal>changes-check</goal>
+                  </goals>
+               </execution>
+               <execution>
+                  <id>validate-changes</id>
+                  <phase>pre-site</phase>
+                  <goals>
+                     <goal>changes-validate</goal>
+                  </goals>
+                  <configuration>
+                     <failOnError>true</failOnError>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <!-- Site -->
+            <!-- Generates the Maven Site -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-site-plugin</artifactId>
+            <dependencies>
+               <dependency>
+                  <!-- Docs Maven Skin -->
+                  <groupId>com.bernardomg.maven.skins</groupId>
+                  <artifactId>docs-maven-skin</artifactId>
+                  <version>${site.skin.version}</version>
+               </dependency>
+            </dependencies>
+         </plugin>
+         <plugin>
+            <!-- ANTRL4 -->
+            <!-- Builds a parser from the grammar -->
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-maven-plugin</artifactId>
+            <configuration>
+               <treatWarningsAsErrors>true</treatWarningsAsErrors>
+            </configuration>
+            <executions>
+               <!-- Parse grammar is bound to the generate sources phase -->
+               <execution>
+                  <id>antlr</id>
+                  <goals>
+                     <goal>antlr4</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <!-- ANTRL4 Tests -->
+            <!-- Tests the grammar -->
+            <groupId>com.khubla.antlr</groupId>
+            <artifactId>antlr4test-maven-plugin</artifactId>
+            <configuration>
+               <verbose>true</verbose>
+               <showTree>true</showTree>
+               <entryPoint>notation</entryPoint>
+               <grammarName>DiceNotation</grammarName>
+               <lexerName>DiceNotationLexer</lexerName>
+               <packageName>com.bernardomg.tabletop.dice.generated</packageName>
+               <exampleFiles>src/test/resources/examples</exampleFiles>
+            </configuration>
+            <executions>
+               <execution>
+                  <goals>
+                     <goal>test</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <!-- Build helper -->
+            <!-- Adds the generated files to the Maven classpath -->
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <executions>
+               <execution>
+                  <id>add-source</id>
+                  <goals>
+                     <goal>add-source</goal>
+                  </goals>
+                  <configuration>
+                     <sources>
+                        <!-- ANTLR4 grammar -->
+                        <source>${project.basedir}/src/main/antlr4</source>
+                        <!-- ANTLR4 generated code -->
+                        <source>${project.build.directory}/generated-sources/antlr4</source>
+                     </sources>
+                  </configuration>
+               </execution>
+            </executions>
+         </plugin>
+      </plugins>
+   </build>
+
+   <!-- ********************************************** -->
+   <!-- ****************** REPORTS ******************* -->
+   <!-- ********************************************** -->
+
+   <reporting>
+      <plugins>
+         <plugin>
+            <!-- FindBugs -->
+            <!-- Checks for patterns which are prone to errors -->
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>findbugs-maven-plugin</artifactId>
+            <configuration>
+               <!-- Exclusion patterns -->
+               <excludeFilterFile>${project.basedir}/src/config/findbugs/findbugs-exclude.xml</excludeFilterFile>
+            </configuration>
+         </plugin>
+         <plugin>
+            <!-- Checkstyle -->
+            <!-- Checks that the source files comply with style standards -->
+            <!-- It is using a customized rules file -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <configuration>
+               <!-- The customized rules file -->
+               <configLocation>${project.basedir}/src/config/checkstyle/checkstyle-rules.xml</configLocation>
+               <!-- Excludes generated code -->
+               <excludes>**/generated/**/*</excludes>
+            </configuration>
+         </plugin>
+         <plugin>
+            <!-- Javadoc -->
+            <!-- Generates the javadocs -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+               <links>
+                  <link>http://www.antlr.org/api/Java/</link>
+               </links>
+               <!-- Excludes generated code -->
+               <excludePackageNames>*.generated.*</excludePackageNames>
+            </configuration>
+         </plugin>
+         <plugin>
+            <!-- PMD -->
+            <!-- Checks that the code complies with a series of code quality 
+               rules -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-pmd-plugin</artifactId>
+            <configuration>
+               <rulesets>
+                  <!-- The customized rules file -->
+                  <ruleset>${project.basedir}/src/config/pmd/pmd-rules.xml</ruleset>
+               </rulesets>
+               <excludes>
+                  <!-- Excludes generated code -->
+                  <exclude>**/generated/**/*</exclude>
+               </excludes>
+            </configuration>
+         </plugin>
+      </plugins>
+   </reporting>
+
+</project>

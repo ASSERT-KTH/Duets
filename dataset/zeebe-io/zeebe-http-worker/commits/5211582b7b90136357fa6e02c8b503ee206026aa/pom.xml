@@ -1,0 +1,232 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <name>Zeebe HTTP Worker</name>
+    <groupId>io.zeebe</groupId>
+    <artifactId>zeebe-http-worker</artifactId>
+    <version>0.24.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <parent>
+        <groupId>org.camunda</groupId>
+        <artifactId>camunda-release-parent</artifactId>
+        <version>3.7</version>
+        <!-- do not remove empty tag - http://jira.codehaus.org/browse/MNG-4687 -->
+        <relativePath />
+    </parent>
+
+    <properties>
+        <version.zeebe>0.24.3</version.zeebe>
+        <version.zeebe.spring>0.24.0</version.zeebe.spring>
+        <version.spring.boot>2.3.4.RELEASE</version.spring.boot>
+
+        <!-- release parent settings -->
+        <version.java>11</version.java>
+        <java.version>${version.java}</java.version>
+
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+
+        <plugin.version.javadoc>3.1.1</plugin.version.javadoc>
+        <!-- disable jdk8 javadoc checks on release build -->
+        <additionalparam>-Xdoclint:none</additionalparam>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.zeebe</groupId>
+                <artifactId>zeebe-bom</artifactId>
+                <version>${version.zeebe}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${version.spring.boot}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.zeebe.spring</groupId>
+            <artifactId>spring-zeebe-starter</artifactId>
+            <version>${version.zeebe.spring}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.vintage</groupId>
+                    <artifactId>junit-vintage-engine</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <!--
+            <version>2.9.9</version>
+             -->
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.spullara.mustache.java</groupId>
+            <artifactId>compiler</artifactId>
+            <version>0.9.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.zeebe</groupId>
+            <artifactId>zeebe-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.zeebe</groupId>
+            <artifactId>zeebe-test-container</artifactId>
+            <scope>test</scope>
+            <version>1.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>2.27.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>3.5.11</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <source>${version.java}</source>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>2.5.2</version>
+                <configuration>
+                    <to>
+                        <image>docker.io/camunda/zeebe-http-worker</image>
+                    </to>
+                    <container>
+                        <ports>
+                            <port>8080</port>
+                        </ports>
+                    </container>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <properties>
+                <plugin.version.gpg>1.6</plugin.version.gpg>
+                <gpg.passphrase>${env.GPG_PASS}</gpg.passphrase>
+                <resume>false</resume>
+                <tag>${env.RELEASE_VERSION}</tag>
+                <releaseVersion>${env.RELEASE_VERSION}</releaseVersion>
+                <developmentVersion>${env.DEVELOPMENT_VERSION}</developmentVersion>
+                <arguments>-DskipTests</arguments>
+            </properties>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-gpg-plugin</artifactId>
+                            <configuration>
+                                <gpgArguments>
+                                    <arg>--pinentry-mode</arg>
+                                    <arg>loopback</arg>
+                                </gpgArguments>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+    </profiles>
+
+    <repositories>
+        <repository>
+            <id>zeebe</id>
+            <name>Zeebe Repository</name>
+            <url>https://app.camunda.com/nexus/content/repositories/zeebe-io/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+        <repository>
+            <id>zeebe-snapshots</id>
+            <name>Zeebe Snapshot Repository</name>
+            <url>https://app.camunda.com/nexus/content/repositories/zeebe-io-snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <scm>
+        <url>https://github.com/zeebe-io/zeebe-http-worker</url>
+        <connection>scm:git:git@github.com:zeebe-io/zeebe-http-worker.git</connection>
+        <developerConnection>scm:git:git@github.com:zeebe-io/zeebe-http-worker.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+</project>

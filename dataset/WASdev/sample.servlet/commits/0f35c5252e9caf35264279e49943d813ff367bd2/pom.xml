@@ -1,0 +1,149 @@
+<?xml version='1.0' encoding='utf-8'?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<parent>
+        <groupId>net.wasdev.wlp.maven.parent</groupId>
+        <artifactId>liberty-maven-app-parent</artifactId>
+        <version>2.0</version>
+	</parent>
+
+	<groupId>liberty.maven</groupId>
+	<artifactId>sample.servlet</artifactId>
+	<version>1</version>
+	<packaging>war</packaging>
+	
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>https://raw.github.com/WASdev/tool.accelerate.core/master/LICENSE</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:git:git@github.com:WASdev/tool.accelerate.core.git</connection>
+		<developerConnection>scm:git@github.com:WASdev/tool.accelerate.core.git</developerConnection>
+		<url>git@github.com:WASdev/tool.accelerate.core.git</url>
+	</scm>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+
+
+		
+		<testServerHttpPort>9080</testServerHttpPort>
+		<testServerHttpsPort>9443</testServerHttpsPort>
+		<warContext>servlet</warContext>
+		<packaging.type>usr</packaging.type>
+	</properties>
+
+
+	<profiles>
+		<profile>
+			<id>runnable</id>
+			<properties>
+				<packaging.type>runnable</packaging.type>
+			</properties>
+		</profile>
+	</profiles>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-rs-client</artifactId>
+			<version>3.1.11</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish</groupId>
+			<artifactId>javax.json</artifactId>
+			<version>1.0.4</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<scope>provided</scope>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.1.0</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<failOnMissingWebXml>false</failOnMissingWebXml>
+					<packagingExcludes>pom.xml</packagingExcludes>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<groupId>net.wasdev.wlp.maven.plugins</groupId>
+				<artifactId>liberty-maven-plugin</artifactId>
+				<version>2.6.3</version>
+				<extensions>true</extensions>
+				<configuration>
+					<assemblyArtifact>
+						<groupId>com.ibm.websphere.appserver.runtime</groupId>
+						<artifactId>wlp-webProfile7</artifactId>
+						<version>17.0.0.2</version>
+						<type>zip</type>
+					</assemblyArtifact>
+					<configFile>src/main/liberty/config/server.xml</configFile>
+					<include>${packaging.type}</include>
+					<bootstrapProperties>
+					    <appContext>${warContext}</appContext>
+						<default.http.port>${testServerHttpPort}</default.http.port>
+						<default.https.port>${testServerHttpsPort}</default.https.port>
+						<appLocation>${project.artifactId}.war</appLocation>
+					</bootstrapProperties>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>2.18.1</version>
+				<executions>
+					<execution>
+						<phase>integration-test</phase>
+						<id>integration-test</id>
+						<goals>
+							<goal>integration-test</goal>
+						</goals>
+						<configuration>
+							<systemPropertyVariables>
+								<liberty.test.port>${testServerHttpPort}</liberty.test.port>
+								<war.context>${warContext}</war.context>
+							</systemPropertyVariables>
+						</configuration>
+					</execution>
+					<execution>
+						<id>verify-results</id>
+						<goals>
+							<goal>verify</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<summaryFile>${project.build.directory}/test-reports/it/failsafe-summary.xml</summaryFile>
+					<reportsDirectory>${project.build.directory}/test-reports/it</reportsDirectory>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

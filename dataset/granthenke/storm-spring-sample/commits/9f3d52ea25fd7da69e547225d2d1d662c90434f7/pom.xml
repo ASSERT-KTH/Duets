@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>storm</groupId>
+    <artifactId>storm-spring-sample</artifactId>
+    <version>1.0</version>
+
+    <properties>
+        <storm-spring.version>0.1-SNAPSHOT</storm-spring.version>
+        <storm.version>0.8.1</storm.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>storm</groupId>
+            <artifactId>storm-spring</artifactId>
+            <version>${storm-spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>storm</groupId>
+            <artifactId>storm</artifactId>
+            <version>${storm.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!-- Define a resource location for spring xml configurations -->
+        <resources>
+            <resource>
+                <directory>${basedir}/src/main/resources/spring</directory>
+            </resource>
+        </resources>
+        <plugins>
+            <!-- Define a run configuration to simplify running through maven. Use mvn exec:java to execute -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.1</version>
+                <configuration>
+                    <mainClass>storm.contrib.spring.topology.LocalTopologySubmitter</mainClass>
+                    <arguments>
+                        <argument>classpath:/spring-context.xml</argument>
+                        <argument>exclamationTopologySubmission</argument>
+                        <argument>10000</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+            <!--
+               bind the maven-assembly-plugin to the package phase
+               this will create a jar file without the storm dependencies
+               suitable for deployment to a cluster.
+                -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <finalName>${project.artifactId}</finalName>
+                    <appendAssemblyId>true</appendAssemblyId>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>storm.contrib.spring.topology.TopologySubmitter</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

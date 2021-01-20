@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>fr.pilato.spring</groupId>
+    <artifactId>spring-elasticsearch</artifactId>
+    <packaging>jar</packaging>
+    <name>spring-elasticsearch</name>
+    <version>7.0-SNAPSHOT</version>
+    <url>https://github.com/dadoonet/spring-elasticsearch</url>
+    <description>Spring factories for Elasticsearch</description>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.compiler.version>1.8</java.compiler.version>
+
+        <spring.version>5.1.7.RELEASE</spring.version>
+        <elasticsearch.version>7.1.0</elasticsearch.version>
+        <elasticsearch.rest.version>7.1.1</elasticsearch.rest.version>
+        <beyonder.version>7.0</beyonder.version>
+        <slf4j.version>1.7.26</slf4j.version>
+        <log4j.version>2.11.2</log4j.version>
+        <commons.io.version>2.6</commons.io.version>
+        <jackson.version>2.9.9</jackson.version>
+        <junit.version>5.4.2</junit.version>
+
+        <skipTests>false</skipTests>
+        <skip.unit.tests>${skipTests}</skip.unit.tests>
+        <skip.integration.tests>${skipTests}</skip.integration.tests>
+        <tests.cluster.credentials>elastic:changeme</tests.cluster.credentials>
+
+        <!-- For integration tests using Docker or external cluster -->
+        <integ.elasticsearch.image>docker.elastic.co/elasticsearch/elasticsearch</integ.elasticsearch.image>
+        <integ.elasticsearch.version>${elasticsearch.version}</integ.elasticsearch.version>
+        <tests.cluster.rest.port>9200</tests.cluster.rest.port>
+        <tests.cluster.transport.port>9300</tests.cluster.transport.port>
+    </properties>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>sonatype-nexus-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>sonatype-nexus-staging</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <developers>
+        <developer>
+            <id>dadoonet</id>
+            <name>David Pilato</name>
+            <email>david@pilato.fr</email>
+            <url>http://david.pilato.fr/</url>
+            <timezone>+1</timezone>
+        </developer>
+        <developer>
+            <id>nhuray</id>
+            <name>Nicolas Huray</name>
+            <url>https://github.com/nhuray/</url>
+            <timezone>+1</timezone>
+        </developer>
+        <developer>
+            <id>nlabrot</id>
+            <name>Nicolas Labrot</name>
+            <url>https://github.com/nithril‎/</url>
+            <timezone>Europe/Paris</timezone>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>scm:git:git@github.com:dadoonet/spring-elasticsearch.git</url>
+        <connection>scm:git:git@github.com:dadoonet/spring-elasticsearch.git</connection>
+        <developerConnection>scm:git:git@github.com:dadoonet/spring-elasticsearch.git</developerConnection>
+      <tag>HEAD</tag>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/dadoonet/spring-elasticsearch/issues/</url>
+    </issueManagement>
+
+    <repositories>
+        <!-- This repository is used to test with x-pack -->
+        <repository>
+            <id>elastic-download-service</id>
+            <name>Elastic Download Service</name>
+            <url>https://artifacts.elastic.co/maven/</url>
+            <releases><enabled>true</enabled></releases>
+            <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+
+        <repository>
+            <id>elastic-snapshots</id>
+            <name>Elastic Snapshots</name>
+            <url>http://snapshots.elastic.co/maven/</url>
+            <releases><enabled>false</enabled></releases>
+            <snapshots><enabled>true</enabled></snapshots>
+        </repository>
+
+        <repository>
+            <id>oss-snapshots</id>
+            <name>Sonatype OSS Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <releases><enabled>false</enabled></releases>
+            <snapshots><enabled>true</enabled></snapshots>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+            <version>1.3</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+
+        <!-- Logging dependencies -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
+        <!-- LOG4J2 implementation is optional -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-1.2-api</artifactId>
+            <version>${log4j.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${log4j.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-high-level-client</artifactId>
+            <version>${elasticsearch.rest.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>fr.pilato.elasticsearch</groupId>
+            <artifactId>elasticsearch-beyonder</artifactId>
+            <version>${beyonder.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons.io.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${spring.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib</artifactId>
+            <version>3.2.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-help-plugin</artifactId>
+                <version>3.2.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.1.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>${java.compiler.version}</source>
+                    <target>${java.compiler.version}</target>
+                    <encoding>UTF-8</encoding>
+                    <optimize>true</optimize>
+                    <showDeprecation>true</showDeprecation>
+                    <showWarnings>true</showWarnings>
+                    <compilerArgument>-Xlint:all,-serial,-path,-rawtypes,-unchecked</compilerArgument>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.1.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.0.0-M2</version>
+                <configuration>
+                    <rules>
+                        <requireJavaVersion>
+                            <version>${java.compiler.version}</version>
+                        </requireJavaVersion>
+                    </rules>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.8</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>sonatype-nexus-staging</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.2</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-scm-plugin</artifactId>
+                <version>1.11.2</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-changes-plugin</artifactId>
+                <version>2.12.1</version>
+                <configuration>
+                    <smtpHost>auth.smtp.1and1.fr</smtpHost>
+                    <smtpPort implementation="java.lang.Integer">465</smtpPort>
+                    <sslMode>true</sslMode>
+                    <fromDeveloperId>dadoonet</fromDeveloperId>
+                    <toAddresses>
+                        <toAddress implementation="java.lang.String">discuss+community-plugins@elastic.co</toAddress>
+                    </toAddresses>
+                    <issueManagementSystems>
+                        <issueManagementSystem>GitHub</issueManagementSystem>
+                    </issueManagementSystems>
+                    <issueTypes>
+                        <add>new,doc</add>
+                        <fix>bug</fix>
+                        <update>update</update>
+                        <remove>remove</remove>
+                    </issueTypes>
+                    <onlyCurrentVersion>true</onlyCurrentVersion>
+                    <urlDownload>
+                        https://repo1.maven.org/maven2/fr/pilato/spring/spring-elasticsearch/${project.version}/
+                    </urlDownload>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <pushChanges>false</pushChanges>
+                </configuration>
+            </plugin>
+            <!-- For IT using Docker -->
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.30.0</version>
+                <configuration>
+                    <images>
+                        <image>
+                            <alias>spring-elasticsearch</alias>
+                            <name>dadoonet/spring-elasticsearch:${project.version}</name>
+                            <build>
+                                <from>${integ.elasticsearch.image}:${integ.elasticsearch.version}</from>
+                                <env>
+                                    <discovery.type>single-node</discovery.type>
+                                    <cluster.name>elasticsearch</cluster.name>
+                                </env>
+                            </build>
+                            <run>
+                                <ports>
+                                    <port>tests.cluster.rest.port:9200</port>
+                                    <port>tests.cluster.transport.port:9300</port>
+                                </ports>
+                                <wait>
+                                    <http>
+                                        <url>http://localhost:${tests.cluster.rest.port}/</url>
+                                        <status>200..499</status>
+                                    </http>
+                                    <time>60000</time>
+                                </wait>
+                            </run>
+                        </image>
+                    </images>
+                    <skip>${skip.integration.tests}</skip>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>start-elasticsearch</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>build</goal>
+                            <goal>stop</goal>
+                            <goal>start</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>stop-elasticsearch</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M3</version>
+                <configuration>
+                    <!-- Skips unit tests if the value of skip.unit.tests property is true -->
+                    <skipTests>${skip.unit.tests}</skipTests>
+                    <!-- Excludes integration tests when unit tests are run -->
+                    <excludes>
+                        <exclude>**/it/**/*Test.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.0.0-M3</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.junit.platform</groupId>
+                        <artifactId>junit-platform-surefire-provider</artifactId>
+                        <version>1.3.2</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <!--
+                        Invokes both the integration-test and the verify goals of the
+                        Failsafe Maven plugin
+                    -->
+                    <execution>
+                        <id>integration-tests</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                        <configuration>
+                            <!--
+                                Skips integration tests if the value of skip.integration.tests
+                                property is true
+                            -->
+                            <skipTests>${skip.integration.tests}</skipTests>
+                            <!-- Excludes integration tests when unit tests are run -->
+                            <includes>
+                                <include>**/it/**/*Test.java</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>
+            </testResource>
+        </testResources>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>

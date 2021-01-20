@@ -1,0 +1,270 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>dev.openshift.tapestry</groupId>
+	<artifactId>tapestry5-angular-openshift</artifactId>
+	<packaging>war</packaging>
+	<version>1.4.0.1</version>
+	<name>tapestry5 angular demo in Tapestry 5</name>
+	
+	<properties>
+		<tapestry-release-version>5.4.0</tapestry-release-version>
+		<hibernate-framework-version>3.6.10.Final</hibernate-framework-version>
+		<slf4j-version>1.7.2</slf4j-version>
+		<servlet-api-release-version>2.5</servlet-api-release-version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+
+	
+	<dependencies>
+		<!-- TAPESTRY LIBS -->
+		<dependency>
+			<groupId>org.apache.tapestry</groupId>
+			<artifactId>tapestry-core</artifactId>
+			<version>${tapestry-release-version}</version>
+		</dependency>
+
+        <!--  HIBERNATE  -->
+        <dependency>
+            <groupId>org.apache.tapestry</groupId>
+            <artifactId>tapestry-hibernate</artifactId>
+            <version>${tapestry-release-version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.tapestry</groupId>
+            <artifactId>tapestry-hibernate-core</artifactId>
+            <version>${tapestry-release-version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>2.2.8</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-entitymanager</artifactId>
+            <version>3.6.8.Final</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.hibernate.javax.persistence</groupId>
+                    <artifactId>hibernate-jpa-2.0-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+
+        <!-- Testing with JUnit not the default testng -->
+		<dependency>
+			<groupId>org.apache.tapestry</groupId>
+			<artifactId>tapestry-test</artifactId>
+			<version>${tapestry-release-version}</version>
+			<scope>test</scope>
+			<optional>true</optional>
+			<exclusions>
+				<exclusion>
+					<groupId>org.testng</groupId>
+					<artifactId>testng</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.10</version>
+			<optional>true</optional>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.0.3</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>${servlet-api-release-version}</version>
+		</dependency>
+
+		<dependency>
+           <groupId>org.tynamo</groupId>
+           <artifactId>tapestry-security</artifactId>
+           <version>0.6.2</version>
+       </dependency>
+
+        <dependency>
+            <groupId>org.tynamo</groupId>
+            <artifactId>tapestry-resteasy</artifactId>
+            <version>0.4.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-jackson-provider</artifactId>
+            <version>3.0.7.Final</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>jsr311-api</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+
+	</dependencies>
+	
+   <profiles>
+
+      <profile>
+         <!-- The default profile skips all tests, though you can tune it 
+            to run just unit tests based on a custom pattern -->
+         <!-- Seperate profiles are provided for running all tests, including 
+            Arquillian tests that execute in the specified container -->
+         <id>default</id>
+         <activation>
+            <activeByDefault>true</activeByDefault>
+         </activation>
+         <build>
+            <plugins>
+               <plugin>
+                  <artifactId>maven-surefire-plugin</artifactId>
+                  <version>2.4.3</version>
+                  <configuration>
+                     <skip>false</skip>
+                  </configuration>
+               </plugin>
+
+                <plugin>
+                    <groupId>org.eclipse.jetty</groupId>
+                    <artifactId>jetty-maven-plugin</artifactId>
+                    <version>9.1.5.v20140505</version>
+                    <configuration>
+                        <reload>automatic</reload>
+                        <scanIntervalSeconds>4</scanIntervalSeconds>
+                        <stopPort>9999</stopPort>
+                        <stopKey>key</stopKey>
+                        <systemProperties>
+                            <systemProperty>
+                                <name>tapestry.execution-mode</name>
+                                <value>DevelopmentMode</value>
+                            </systemProperty>
+                        </systemProperties>
+                    </configuration>
+                </plugin>
+            </plugins>
+         </build>
+      </profile>
+
+
+
+	  <profile>
+         <!-- When built in OpenShift the 'openshift' profile will be used when invoking mvn. -->
+         <!-- Use this profile for any OpenShift specific customization your app will need. -->
+         <!-- By default that is to put the resulting archive into the 'deployments' folder. -->
+         <!-- http://maven.apache.org/guides/mini/guide-building-for-different-environments.html -->
+         <id>openshift</id>
+
+          <dependencies>
+              <!-- Logging libs -->
+              <dependency>
+                  <groupId>org.slf4j</groupId>
+                  <artifactId>slf4j-api</artifactId>
+                  <version>${slf4j-version}</version>
+              </dependency>
+
+              <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+                <version>${slf4j-version}</version>
+              </dependency>
+          </dependencies>
+
+         <build>
+             <plugins>
+             <plugin>
+                 <groupId>org.apache.maven.plugins</groupId>
+                 <artifactId>maven-war-plugin</artifactId>
+                 <version>2.1.1</version>
+                 <configuration>
+                     <archive>
+                         <manifestEntries>
+                             <Release-Version>${project.version}</Release-Version>
+                             <Implementation-Title>${project.artifactId}</Implementation-Title>
+                             <Implementation-Vendor>francois facon</Implementation-Vendor>
+                         </manifestEntries>
+                     </archive>
+                 </configuration>
+             </plugin>
+             <!-- The JBoss AS plugin deploys your war to a local JBoss AS container -->
+             <!-- To use, run: mvn package jboss-as:deploy -->
+             <plugin>
+                 <groupId>org.jboss.as.plugins</groupId>
+                 <artifactId>jboss-as-maven-plugin</artifactId>
+                 <version>7.1.0.Final</version>
+             </plugin>
+
+             <plugin>
+                  <artifactId>maven-war-plugin</artifactId>
+                  <version>2.1.1</version>
+                  <configuration>
+                     <outputDirectory>deployments</outputDirectory>
+                     <warName>ROOT</warName>
+                  </configuration>
+               </plugin>
+            </plugins>
+         </build>
+      </profile>
+
+   </profiles>
+   
+   <repositories>
+       <repository>
+           <id>apache-snapshots</id>
+           <url>http://repository.apache.org/snapshots</url>
+       </repository>
+
+       <repository>
+           <id>apache-staging</id>
+           <url>https://repository.apache.org/content/repositories/staging</url>
+       </repository>
+
+       <repository>
+           <id>apache-releases</id>
+           <url>https://repository.apache.org/content/repositories/releases/</url>
+       </repository>
+
+       <repository>
+           <id>JBoss repository</id>
+           <url>http://repository.jboss.org/nexus/content/groups/public/</url>
+       </repository>
+
+       <repository>
+           <id>codehaus.snapshots</id>
+           <url>http://snapshots.repository.codehaus.org</url>
+       </repository>
+
+       <repository>
+           <id>codehaus.release</id>
+           <url>https://nexus.codehaus.org/content/repositories/releases/</url>
+       </repository>
+
+       <repository>
+           <id>MavenCentral</id>
+           <name>Maven repository</name>
+           <url>http://repo1.maven.org/maven2</url>
+           <releases>
+               <enabled>true</enabled>
+           </releases>
+           <snapshots>
+               <enabled>false</enabled>
+           </snapshots>
+       </repository>
+	</repositories>
+   
+</project>

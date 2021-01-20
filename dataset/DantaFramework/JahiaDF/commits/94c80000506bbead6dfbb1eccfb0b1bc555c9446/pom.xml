@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+- Danta Jahia Bundle
+-
+- Copyright (C) 2017 Tikal Technologies, Inc. All rights reserved.
+-
+- Licensed under GNU Affero General Public License, Version v3.0 (the "License");
+- you may not use this file except in compliance with the License.
+- You may obtain a copy of the License at
+-
+-      https://www.gnu.org/licenses/agpl-3.0.txt
+-
+- Unless required by applicable law or agreed to in writing, software
+- distributed under the License is distributed on an "AS IS" BASIS,
+- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied;
+- without even the implied warranty of MERCHANTABILITY.
+- See the License for more details.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>jahia-modules</artifactId>
+        <groupId>org.jahia.modules</groupId>
+        <version>7.2.0.0-SNAPSHOT</version>
+    </parent>
+
+    <groupId>Danta</groupId>
+    <artifactId>JahiaDF</artifactId>
+    <name>Danta JahiaDF</name>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>bundle</packaging>
+
+    <description>This is the custom module (Danta - JahiaDF) for running on a Digital Experience Manager server.</description>
+
+    <scm>
+        <connection>scm:git:git@github.com:danta/JahiaDF.git</connection>
+        <developerConnection>scm:git:git@github.com:danta/JahiaDF.git</developerConnection>
+    </scm>
+    <properties>
+        <!-- Nexus properties -->
+        <nexus.snapshots.url>http://repo.tikaltechnologies.io/repository/danta-snapshots/</nexus.snapshots.url>
+        <nexus.releases.url>http://repo.tikaltechnologies.io/repository/danta-releases/</nexus.releases.url>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>jahia-public</id>
+            <name>Jahia Public Repository</name>
+            <url>https://devtools.jahia.com/nexus/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+
+        <repository>
+            <id>danta-nexus</id>
+            <name>Danta Repository</name>
+            <url>http://repo.tikaltechnologies.io/repository/danta-group/</url>
+        </repository>
+    </repositories>
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.1</version>
+                    <configuration>
+                        <source>1.8</source>
+                        <target>1.8</target>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>maven-bundle-plugin</artifactId>
+                    <version>3.2.0</version>
+                    <extensions>true</extensions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.felix</groupId>
+                    <artifactId>maven-scr-plugin</artifactId>
+                    <version>1.17.0</version>
+                    <configuration>
+                        <scanClasses>true</scanClasses>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>generate-scr-scrdescriptor</id>
+                            <goals>
+                                <goal>scr</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.20</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Jahia-Module-Type>system</Jahia-Module-Type>
+                        <Export-Package>
+                            danta.jahia.contextprocessors.*,
+                            danta.jahia.services,
+                            danta.jahia
+                        </Export-Package>
+                        <Import-Package>
+                            danta.core.util,
+                            danta.core.execution,
+                            danta.core.templating,
+                            javax.servlet.http,
+                            net.minidev.json;version=2.3.0,
+                            org.slf4j; version="[1.6, 2)"; resolution:=optional,
+                            *,${jahia.plugin.projectPackageImport}
+                        </Import-Package>
+                        <Embed-Dependency>
+                            commons-lang3,jsoup,guava
+                        </Embed-Dependency>
+                        <Bundle-Activator>danta.jahia.DantaJahiaActivator</Bundle-Activator>
+                    </instructions>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+    <profiles>
+        <!-- This profile deploys a JAR to nexus snapshots repository -->
+        <profile>
+            <id>deploy-nexus</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <version>2.8.2</version>
+                        <executions>
+                            <execution>
+                                <id>deploy-nexus</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>deploy-file</goal>
+                                </goals>
+                                <configuration>
+                                    <repositoryId>danta-snapshots</repositoryId>
+                                    <packaging>jar</packaging>
+                                    <generatePom>true</generatePom>
+                                    <url>${nexus.snapshots.url}</url>
+                                    <artifactId>${project.artifactId}</artifactId>
+                                    <groupId>${project.groupId}</groupId>
+                                    <version>${project.version}</version>
+                                    <file>target/${project.artifactId}-${project.version}.jar</file>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <!-- This profile deploys a JAR to nexus releases repository -->
+        <profile>
+            <id>deploy-nexus-release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <version>2.8.2</version>
+                        <executions>
+                            <execution>
+                                <id>deploy-nexus</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>deploy-file</goal>
+                                </goals>
+                                <configuration>
+                                    <repositoryId>danta-releases</repositoryId>
+                                    <packaging>jar</packaging>
+                                    <generatePom>true</generatePom>
+                                    <url>${nexus.releases.url}</url>
+                                    <artifactId>${project.artifactId}</artifactId>
+                                    <groupId>${project.groupId}</groupId>
+                                    <version>${project.version}</version>
+                                    <file>target/${project.artifactId}-${project.version}.jar</file>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+    <dependencies>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet.jsp</groupId>
+            <artifactId>javax.servlet.jsp-api</artifactId>
+            <version>2.2.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>Danta</groupId>
+            <artifactId>API</artifactId>
+            <version>1.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>Danta</groupId>
+            <artifactId>Core</artifactId>
+            <version>1.0.1-SNAPSHOT</version>
+        </dependency>
+        <!-- HANDLEBARS BEGIN -->
+        <dependency>
+            <groupId>com.github.jknack</groupId>
+            <artifactId>handlebars</artifactId>
+            <version>4.0.6</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jknack</groupId>
+            <artifactId>handlebars-guava-cache</artifactId>
+            <version>4.0.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>4.5.3</version>
+        </dependency>
+        <!-- HANDLEBARS BEGIN -->
+        <!-- MISC BEGIN -->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.8.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.minidev</groupId>
+            <artifactId>json-smart</artifactId>
+            <version>2.3</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.juffrou</groupId>
+            <artifactId>juffrou-reflect</artifactId>
+            <version>2.1.5</version>
+        </dependency>
+        <!-- MISC END -->
+        <!-- Apache Commons -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+        <!-- Apache Commons END -->
+        <!-- Collections BEGIN -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>15.0</version>
+        </dependency>
+        <!-- Collections END -->
+        <!-- FELIX -->
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr.annotations</artifactId>
+            <version>1.9.6</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+            <version>4.3.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- OSGi -->
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.webconsole</artifactId>
+            <version>4.2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <version>6.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.http.api</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.http.base</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.http.bundle</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.http.jetty</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.bundlerepository</artifactId>
+            <version>1.6.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.configadmin</artifactId>
+            <version>1.2.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+            <version>1.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.scr</artifactId>
+            <version>1.8.2</version>
+        </dependency>
+        <!-- /OSGi -->
+        <!-- Javascript -->
+        <dependency>
+            <groupId>org.eclipse.birt.runtime.3_7_1</groupId>
+            <artifactId>org.mozilla.javascript</artifactId>
+            <version>[1.6,2)</version>
+        </dependency>
+    </dependencies>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>danta-snapshots</id>
+            <url>${nexus.snapshots.url}</url>
+        </snapshotRepository>
+        <repository>
+            <id>danta-releases</id>
+            <url>${nexus.releases.url}</url>
+        </repository>
+    </distributionManagement>
+</project>

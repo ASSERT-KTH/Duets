@@ -1,0 +1,284 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>pl.letcode</groupId>
+  <artifactId>massivetanks</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>war</packaging>
+
+  <name>massivetanks</name>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <!-- Dependency Injection -->
+    <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+      <version>3.0</version>
+    </dependency>
+    <!-- Atmosphere -->
+    <dependency>
+      <groupId>org.atmosphere</groupId>
+      <artifactId>atmosphere-runtime</artifactId>
+      <version>2.0.5</version>
+    </dependency>
+    <!-- Google Guava -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>15.0</version>
+    </dependency>
+    <!-- Jackson 2.x -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>2.3.0</version>
+    </dependency>
+    <!-- Dyn4j -->
+    <dependency>
+      <groupId>org.dyn4j</groupId>
+      <artifactId>dyn4j</artifactId>
+      <version>3.1.5</version>
+    </dependency>
+    <!-- Logging -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.5</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <version>0.9.30</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>0.9.30</version>
+    </dependency>
+    <!-- Additional API -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.5</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>jsp-api</artifactId>
+      <version>2.0</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+  <profiles>
+    <profile>
+      <id>development</id>
+      <activation>
+        <property>
+          <name>development</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <!-- or whatever version you use -->
+              <source>1.6</source>
+              <target>1.6</target>
+              <encoding>UTF-8</encoding>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.tomcat.maven</groupId>
+            <artifactId>tomcat7-maven-plugin</artifactId>
+            <version>2.1</version>
+            <configuration>
+              <path>/</path>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>production</id>
+      <activation>
+        <property>
+          <name>production</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <!-- or whatever version you use -->
+              <source>1.6</source>
+              <target>1.6</target>
+              <encoding>UTF-8</encoding>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.tomcat.maven</groupId>
+            <artifactId>tomcat7-maven-plugin</artifactId>
+            <version>2.1</version>
+            <configuration>
+              <path>/</path>
+            </configuration>
+          </plugin>
+          <plugin>
+            <!-- Minification plugin -->
+            <groupId>com.samaxes.maven</groupId>
+            <artifactId>minify-maven-plugin</artifactId>
+            <version>1.7.2</version>
+            <executions>
+              <execution>
+                <id>css-minify</id>
+                <configuration>
+                  <charset>UTF-8</charset>
+                  <!-- CSS minification -->
+                  <cssSourceDir>client/assets/css</cssSourceDir>
+                  <cssSourceIncludes>
+                    <cssSourceInclude>**/*.css</cssSourceInclude>
+                  </cssSourceIncludes>
+                  <cssTargetDir>client/dist/css</cssTargetDir>
+                  <cssFinalFile>styles.css</cssFinalFile>
+                </configuration>
+                <goals>
+                  <goal>minify</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>js-app-minify</id>
+                <configuration>
+                  <charset>UTF-8</charset>
+                  <!-- Js app scripts minification -->
+                  <jsSourceDir>client</jsSourceDir>
+                  <jsSourceIncludes>
+                    <jsSourceInclude>app/**/*.js</jsSourceInclude>
+                  </jsSourceIncludes>
+                  <jsTargetDir>client/dist/js</jsTargetDir>
+                  <jsFinalFile>scripts.js</jsFinalFile>
+                </configuration>
+                <goals>
+                  <goal>minify</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>js-plugins-minify</id>
+                <configuration>
+                  <charset>UTF-8</charset>
+                  <!-- Js vendor minification -->
+                  <jsSourceDir>client</jsSourceDir>
+                  <jsSourceIncludes>
+                    <jsSourceInclude>vendor/**/*.js</jsSourceInclude>
+                  </jsSourceIncludes>
+                  <jsTargetDir>client/dist/js</jsTargetDir>
+                  <jsFinalFile>plugins.js</jsFinalFile>
+                </configuration>
+                <goals>
+                  <goal>minify</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <!-- Required for replacer to work with war files -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-war-plugin</artifactId>
+            <version>2.0.1</version>
+            <!-- Exclusion -->
+            <configuration>
+              <!-- Do not break this one! -->
+              <warSourceExcludes>client/app/**,client/vendor/**, client/assets/css/**</warSourceExcludes>
+            </configuration>
+            <executions>
+              <execution>
+                <id>prepare-war</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>exploded</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <!-- CSS and JS reference replacer -->
+            <groupId>com.google.code.maven-replacer-plugin</groupId>
+            <artifactId>replacer</artifactId>
+            <version>1.5.1</version>
+            <executions>
+              <execution>
+                <!-- Referenced files paths update -->
+                <id>update-referenced-files-paths</id>
+                <phase>prepare-package</phase>
+                <configuration>
+                  <includes>
+                    <include>target/${project.build.finalName}/index.jsp</include>
+                    <include>target/${project.build.finalName}/client/index.html</include>
+                  </includes>
+                  <regexFlags>
+                    <regexFlag>MULTILINE</regexFlag>
+                    <regexFlag>DOTALL</regexFlag>
+                  </regexFlags>
+                  <replacements>
+                    <replacement>
+                      <!-- Token is a regexp and should NOT be adjusted by autoformatting in any way -->
+                      <token>&lt;!-- css:start.*css:end --&gt;</token>
+                      <value>&lt;link rel="stylesheet" type="text/css" href="client/dist/css/styles.min.css"/&gt;</value>
+                    </replacement>
+                    <replacement>
+                      <!-- Token is a regexp and should NOT be adjusted by autoformatting in any way -->
+                      <token>&lt;!-- scripts:app:start.*scripts:app:end --&gt;</token>
+                      <value>&lt;script type="text/javascript" src="client/dist/js/scripts.min.js" &gt;&lt;/script&gt;</value>
+                    </replacement>
+                    <replacement>
+                      <!-- Token is a regexp and should NOT be adjusted by autoformatting in any way -->
+                      <token>&lt;!-- scripts:plugins:start.*scripts:plugins:end --&gt;</token>
+                      <value>&lt;script type="text/javascript" src="client/dist/js/plugins.min.js" &gt;&lt;/script&gt;</value>
+                    </replacement>
+                  </replacements>
+                </configuration>
+                <goals>
+                  <goal>replace</goal>
+                </goals>
+              </execution>
+              <execution>
+                <!-- Font paths file update -->
+                <id>update-font-paths</id>
+                <phase>prepare-package</phase>
+                <configuration>
+                  <includes>
+                    <!-- Font path normalization -->
+                    <include>target/${project.build.finalName}/client/dist/css/styles.min.css</include>
+                    <include>target/${project.build.finalName}/client/dist/css/styles.css</include>
+                  </includes>
+                  <replacements>
+                    <replacement>
+                      <token>\.\./fonts/</token>
+                      <value>\.\./\.\./assets/fonts/</value>
+                    </replacement>
+                  </replacements>
+                </configuration>
+                <goals>
+                  <goal>replace</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

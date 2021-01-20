@@ -1,0 +1,181 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.real</groupId>
+	<artifactId>cassandra-queue-spring</artifactId>
+	<version>0.3.6-SNAPSHOT</version>
+	<name>Cassandra Queue Spring</name>
+	<description>Integration of Cassandra Queue and Spring Integration</description>
+
+    <properties>
+       <username>${env.USER}</username>
+       <spring.version>3.0.5.RELEASE</spring.version> 
+       <spring-integration.version>2.0.0.RELEASE</spring-integration.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <snapshots />
+            <id>maps-internal-repo</id>
+            <name>MAPS Internal Repository</name>
+            <url>http://build01.dev.real.com:9999/repository</url>
+        </repository>
+
+        <repository>
+            <snapshots />
+            <id>maps-snapshot-repository</id>
+            <name>MAPS Internal Snapshot Repository</name>
+            <url>http://build01.dev.real.com/repository/snapshots/</url>
+        </repository>
+    </repositories>    
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>maps-snapshot-repository</id>
+			<name>MAPS Snapshot Repository</name>
+			<url>scp://maven@build01.dev.real.com/data/snapshots</url>
+			<uniqueVersion>false</uniqueVersion>
+		</snapshotRepository>
+		<repository>
+			<id>maps-internal-repo</id>
+			<name>MAPS Internal Repository</name>
+			<url>scp://maven@build01.dev.real.com/home/maven/realrepo</url>
+		</repository>
+		<site>
+			<id>website</id>
+			<url>scp://maven@platform.real.com/var/www/html/mavencaps/cassandra-queue</url>
+		</site>
+	</distributionManagement>
+
+    <scm>
+        <connection>scm:cvs:pserver:anon@cvs.dev.prognet.com:/home/np:shared/maps/cassandra-queue-spring</connection>
+        <developerConnection>scm:cvs:pserver:username@cvs.dev.prognet.com:/home/np:shared/maps/cassandra-queue-spring</developerConnection>
+        <url>https://cvs.dev.prognet.com/np/index.cgi/shared/maps/cassandra-queue-spring</url>
+  </scm>
+
+	<build>
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ssh</artifactId>
+				<version>1.0-beta-6</version>
+			</extension>
+        </extensions>
+		<plugins>
+            <!-- make sure install goal gets run -->
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <preparationGoals>install</preparationGoals>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <arguments>-DskipTests</arguments>
+                </configuration>
+            </plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+
+            <!-- create source jars just prior to repo install-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>-Xmx1024m</argLine>
+                    <!--<argLine>-Xmx1024m -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8050</argLine>-->
+                    <!-- skip our integration tests -->
+                    <excludes>
+                        <exclude>**/integration/**</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>            
+		</plugins>
+	</build>
+
+	<developers>
+		<developer>
+			<id>bburruss</id>
+			<name>B. Todd Burruss</name>
+			<email>bburruss@real.com</email>
+			<organization>RealNetworks</organization>
+			<roles>
+				<role>Principal Engineer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>aebaugh</id>
+			<name>Andrew Ebaugh</name>
+			<email>aebaugh@real.com</email>
+			<organization>RealNetworks</organization>
+			<roles>
+				<role>Lead SDE</role>
+			</roles>
+		</developer>
+	</developers>
+
+	<dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.6.0</version>
+            <scope>compile</scope>
+        </dependency>
+        
+		<dependency>
+			<groupId>org.springframework.integration</groupId>
+			<artifactId>spring-integration-core</artifactId>
+			<version>${spring-integration.version}</version>
+		</dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>${spring.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.6</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.real</groupId>
+			<artifactId>cassandra-queue</artifactId>
+			<version>0.3.5</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>1.4</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+	</dependencies>
+
+</project>

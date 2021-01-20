@@ -1,0 +1,744 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.ibasco.glcdemu</groupId>
+    <artifactId>glcd-emulator</artifactId>
+    <packaging>jar</packaging>
+    <version>0.1.0-alpha-SNAPSHOT</version>
+    <inceptionYear>2018</inceptionYear>
+    <name>GLCD Emulator</name>
+    <organization>
+        <name>Rafael Ibasco</name>
+        <url>https://github.com/ribasco</url>
+    </organization>
+
+    <description>A cross-platform Graphics LCD emulator designed for embedded devices and single board computers
+    </description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+    </properties>
+
+    <!-- License Information -->
+    <licenses>
+        <license>
+            <name>GNU General Lesser Public License (LGPL) version 3.0</name>
+            <url>http://www.gnu.org/licenses/lgpl.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <!--
+    -  More info about <bundler> inclusions/exclusions: https://github.com/javafx-maven-plugin/javafx-maven-plugin/issues/293#issuecomment-303016297
+    -->
+    <profiles>
+        <!-- BUILD PROFILE: Linux - x86_64/amd64 -->
+        <profile>
+            <id>build-linux-amd64</id>
+            <activation>
+                <os>
+                    <name>linux</name>
+                    <family>unix</family>
+                    <arch>amd64</arch>
+                </os>
+            </activation>
+            <properties>
+                <current-os>linux</current-os>
+                <current-arch>amd64</current-arch>
+            </properties>
+
+            <build>
+                <plugins>
+                    <!-- Resources Plugin : Copy and Filter Linux Resources -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <!-- Copy and filter resources to it's target directory -->
+                            <execution>
+                                <id>process-resources</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${project.basedir}</outputDirectory>
+                                    <encoding>UTF-8</encoding>
+                                    <resources>
+                                        <!-- Linux package resources (Common resources) -->
+                                        <resource>
+                                            <directory>${project.basedir}/docs/templates/setup/linux</directory>
+                                            <filtering>true</filtering>
+                                            <targetPath>${project.basedir}/src/main/deploy/package/linux</targetPath>
+                                            <includes>
+                                                <include>*.desktop</include>
+                                                <include>*.png</include>
+                                            </includes>
+                                        </resource>
+                                        <!-- Linux package resources (deb) -->
+                                        <resource>
+                                            <directory>${project.basedir}/docs/templates/setup/linux/deb</directory>
+                                            <filtering>true</filtering>
+                                            <targetPath>${project.basedir}/src/main/deploy/package/linux</targetPath>
+                                            <includes>
+                                                <include>control</include>
+                                                <include>copyright</include>
+                                                <include>postinst</include>
+                                                <include>postrm</include>
+                                                <include>preinst</include>
+                                                <include>prerm</include>
+                                            </includes>
+                                        </resource>
+                                        <!-- Linux package resources (rpm) -->
+                                        <resource>
+                                            <directory>${project.basedir}/docs/templates/setup/linux/rpm</directory>
+                                            <filtering>true</filtering>
+                                            <targetPath>${project.basedir}/src/main/deploy/package/linux</targetPath>
+                                            <includes>
+                                                <include>*.spec</include>
+                                            </includes>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- JavaFX Plugin -->
+                    <plugin>
+                        <groupId>com.zenjava</groupId>
+                        <artifactId>javafx-maven-plugin</artifactId>
+                        <configuration>
+                            <bundler>deb</bundler>
+                            <bundleArguments>
+                                <icon>${project.basedir}/src/main/deploy/package/linux/${project.name}.png</icon>
+                                <applicationCategory>Development</applicationCategory>
+                                <runtime>null</runtime>
+                                <licenseType>GPL v3</licenseType>
+                                <email>ribasco@gmail.com</email>
+                                <systemWide>false</systemWide>
+                                <linux.bundleName>${project.artifactId}</linux.bundleName>
+                            </bundleArguments>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- BUILD PROFILE: Windows - x86_64/amd64 -->
+        <profile>
+            <id>build-windows-amd64</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                    <arch>amd64</arch>
+                </os>
+            </activation>
+            <properties>
+                <current-os>windows</current-os>
+                <current-arch>amd64</current-arch>
+            </properties>
+            <build>
+                <plugins>
+                    <!-- Resources Plugin Copy-and Filter Windows resources -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <!-- Copy and filter resources to it's target directory -->
+                            <execution>
+                                <id>process-resources</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${project.basedir}</outputDirectory>
+                                    <encoding>UTF-8</encoding>
+                                    <resources>
+                                        <!-- Windows package resources -->
+                                        <resource>
+                                            <directory>${project.basedir}/docs/templates/setup/windows</directory>
+                                            <filtering>true</filtering>
+                                            <targetPath>${project.basedir}/src/main/deploy/package/windows</targetPath>
+                                            <includes>
+                                                <include>GLCD Emulator.iss</include>
+                                            </includes>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- JavaFX Plugin -->
+                    <plugin>
+                        <groupId>com.zenjava</groupId>
+                        <artifactId>javafx-maven-plugin</artifactId>
+                        <configuration>
+                            <bundler>exe</bundler>
+                            <bundleArguments>
+                                <icon>${project.basedir}/src/main/deploy/package/windows/${project.name}.ico</icon>
+                                <systemWide>true</systemWide>
+                                <installdirChooser>true</installdirChooser>
+                                <win.menuGroup>GLCD Emulator</win.menuGroup>
+                                <runtime/>
+                            </bundleArguments>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- BUILD PROFILE: Mac OSX - x86_64/amd64 -->
+        <!-- See comments here: https://bugs.openjdk.java.net/browse/JDK-8188763 -->
+        <profile>
+            <id>build-mac-amd64</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <arch>x86_64</arch>
+                    <name>mac os x</name>
+                </os>
+            </activation>
+            <properties>
+                <current-os>macosx</current-os>
+                <current-arch>amd64</current-arch>
+            </properties>
+            <build>
+                <plugins>
+                    <!-- Resources Plugin Copy-and Filter MacOSX resources -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <!-- Copy and filter resources to it's target directory -->
+                            <execution>
+                                <id>process-resources</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${project.basedir}</outputDirectory>
+                                    <encoding>UTF-8</encoding>
+                                    <resources>
+                                        <resource>
+                                            <directory>${project.basedir}/docs/templates/setup/macosx</directory>
+                                            <filtering>true</filtering>
+                                            <targetPath>${project.basedir}/src/main/deploy/package/macosx</targetPath>
+                                            <includes>
+                                                <include>*.*</include>
+                                            </includes>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- JavaFX Plugin -->
+                    <plugin>
+                        <groupId>com.zenjava</groupId>
+                        <artifactId>javafx-maven-plugin</artifactId>
+                        <configuration>
+                            <bundler>pkg</bundler>
+                            <bundleArguments>
+                                <icon>${project.basedir}/src/main/deploy/package/macosx/${project.artifactId}.icns</icon>
+                                <systemWide>false</systemWide>
+                            </bundleArguments>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.css</include>
+                    <include>**/*.fxml</include>
+                    <include>**/*.png</include>
+                    <include>**/*.xbm</include>
+                    <include>*.properties</include>
+                    <include>**/*.txt</include>
+                    <include>**/*.xml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>${project.basedir}/docs/scripts/</directory>
+                <filtering>true</filtering>
+                <targetPath>${project.build.directory}/scripts</targetPath>
+                <includes>
+                    <include>run-emulator.cmd</include>
+                    <include>run-emulator.sh</include>
+                </includes>
+            </resource>
+        </resources>
+
+        <pluginManagement>
+            <plugins>
+                <!-- Resources Plugin : Update README properties -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.1.0</version>
+                    <executions>
+                        <!-- Copy and filter resources to it's target directory -->
+                        <execution>
+                            <id>process-resources</id>
+                            <phase>process-resources</phase>
+                            <goals>
+                                <goal>copy-resources</goal>
+                            </goals>
+                            <configuration>
+                                <outputDirectory>${project.basedir}</outputDirectory>
+                                <encoding>UTF-8</encoding>
+                                <resources>
+                                    <!-- Project level resources -->
+                                    <resource>
+                                        <directory>${project.basedir}/docs/templates</directory>
+                                        <filtering>true</filtering>
+                                        <targetPath>${project.basedir}</targetPath>
+                                        <includes>
+                                            <include>README.md</include>
+                                        </includes>
+                                    </resource>
+                                </resources>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <!-- Surefire Plugin -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.22.0</version>
+                    <configuration>
+                        <includes>
+                            <include>**/*Test.java</include>
+                        </includes>
+                    </configuration>
+                </plugin>
+                <!-- JAR Plugin -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+                <!-- JavaFX Plugin -->
+                <plugin>
+                    <groupId>com.zenjava</groupId>
+                    <artifactId>javafx-maven-plugin</artifactId>
+                    <version>8.8.3</version>
+                    <configuration>
+                        <vendor>Rafael Ibasco</vendor>
+                        <mainClass>com.ibasco.glcdemu.Bootstrap</mainClass>
+                        <appName>${project.name}</appName>
+                        <description>${project.description}</description>
+                        <verbose>true</verbose>
+                        <needShortcut>true</needShortcut>
+                        <needMenu>true</needMenu>
+                        <title>GLCD Emulator</title>
+                        <failOnError>true</failOnError>
+                        <jfxMainAppJarName>${project.artifactId}-${project.version}.jar</jfxMainAppJarName>
+                        <skipJNLP>true</skipJNLP>
+                        <libFolderName>lib</libFolderName>
+                        <nativeReleaseVersion>${project.version}-${current-arch}</nativeReleaseVersion>
+                        <skipNativeVersionNumberSanitizing>true</skipNativeVersionNumberSanitizing>
+                        <additionalAppResources>docs/additional</additionalAppResources>
+                        <nativeOutputDir>${project.build.directory}/jfx/native</nativeOutputDir>
+                        <bundleArguments>
+                            <copyright>GLCD Emulator Copyright (C) 2018 Rafael Luis Ibasco</copyright>
+                            <licenseFile>license.txt</licenseFile>
+                        </bundleArguments>
+                        <manifestAttributes>
+                            <Url>https://github.com/ribasco/glcd-emulator</Url>
+                            <Specification-Title>${project.name}</Specification-Title>
+                            <Specification-Version>${project.version}</Specification-Version>
+                            <Specification-Vendor>${project.organization.name}</Specification-Vendor>
+                            <Implementation-Title>${project.name}</Implementation-Title>
+                            <Implementation-Version>${project.version}</Implementation-Version>
+                            <Implementation-Vendor-Id>${project.groupId}</Implementation-Vendor-Id>
+                            <Implementation-Vendor>${project.organization.name</Implementation-Vendor>
+                        </manifestAttributes>
+                    </configuration>
+                </plugin>
+                <!-- Assembly Plugin -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+                <!-- Versions Plugin -->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>versions-maven-plugin</artifactId>
+                    <version>2.7</version>
+                </plugin>
+                <!-- License Plugin -->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>1.16</version>
+                    <executions>
+                        <execution>
+                            <id>append-license-file-headers</id>
+                            <goals>
+                                <goal>update-file-header</goal>
+                            </goals>
+                            <phase>process-sources</phase>
+                            <configuration>
+                                <licenseName>gpl_v3</licenseName>
+                                <descriptionTemplate>${basedir}/docs/license/template.ftl
+                                </descriptionTemplate>
+                                <copyrightOwners>Rafael Luis Ibasco</copyrightOwners>
+                                <canUpdateCopyright>true</canUpdateCopyright>
+                                <canUpdateDescription>true</canUpdateDescription>
+                                <canUpdateLicense>true</canUpdateLicense>
+                                <addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
+                                <processStartTag>========================START=================================
+                                </processStartTag>
+                                <processEndTag>=========================END==================================
+                                </processEndTag>
+                                <excludes>
+                                    <exclude>/docs/**</exclude>
+                                </excludes>
+                                <includes>
+                                    <include>**/*.java</include>
+                                </includes>
+                                <roots>
+                                    <root>src/main/java</root>
+                                    <root>src/tests/java</root>
+                                </roots>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
+        <plugins>
+            <!-- JavaFX Plugin (IMPORTANT: this needs to run before Assembly) -->
+            <plugin>
+                <groupId>com.zenjava</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>build-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build-jar</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>build-native</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build-native</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Assembly Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>build-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <descriptors>
+                        <descriptor>docs/scripts/assembly.xml</descriptor>
+                    </descriptors>
+                    <finalName>${project.artifactId}-${project.version}-${current-arch}</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+            <!-- Versions Plugin -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+            </plugin>
+            <!-- License Plugin -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>update-project-license</id>
+                        <goals>
+                            <goal>update-project-license</goal>
+                        </goals>
+                        <phase>process-sources</phase>
+                        <configuration>
+                            <licenseName>gpl_v3</licenseName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>append-license-file-headers</id>
+                        <goals>
+                            <goal>update-file-header</goal>
+                        </goals>
+                        <phase>process-sources</phase>
+                        <configuration>
+                            <descriptionTemplate>${project.basedir}/docs/license/template.ftl</descriptionTemplate>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.ibasco.ucgdisplay</groupId>
+                <artifactId>ucgd-drivers-glcd</artifactId>
+                <version>(1.2.0,)</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.powermock/powermock-module-junit4 -->
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-module-junit4</artifactId>
+                <version>2.0.0-beta.5</version>
+                <scope>test</scope>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.powermock/powermock-api-mockito2 -->
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-api-mockito2</artifactId>
+                <version>2.0.0-beta.5</version>
+                <scope>test</scope>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.mockito/mockito-core -->
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>2.22.0</version>
+                <scope>test</scope>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.junit.vintage/junit-vintage-engine -->
+            <dependency>
+                <groupId>org.junit.vintage</groupId>
+                <artifactId>junit-vintage-engine</artifactId>
+                <version>5.3.1</version>
+                <scope>test</scope>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.junit.platform/junit-platform-runner -->
+            <dependency>
+                <groupId>org.junit.platform</groupId>
+                <artifactId>junit-platform-runner</artifactId>
+                <version>1.3.1</version>
+                <scope>test</scope>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.junit.platform/junit-platform-launcher -->
+            <dependency>
+                <groupId>org.junit.platform</groupId>
+                <artifactId>junit-platform-launcher</artifactId>
+                <version>1.3.1</version>
+                <scope>test</scope>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-engine</artifactId>
+                <version>5.3.1</version>
+                <scope>test</scope>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
+                <version>5.3.1</version>
+                <scope>test</scope>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.controlsfx/controlsfx -->
+            <dependency>
+                <groupId>org.controlsfx</groupId>
+                <artifactId>controlsfx</artifactId>
+                <version>8.40.14</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-math3 -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-math3</artifactId>
+                <version>3.6.1</version>
+            </dependency>
+            <dependency>
+                <groupId>io.github.classgraph</groupId>
+                <artifactId>classgraph</artifactId>
+                <version>4.1.6</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fazecast</groupId>
+                <artifactId>jSerialComm</artifactId>
+                <version>[2.0.0,3.0.0)</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>1.7.25</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/eu.hansolo/Medusa -->
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>2.8.5</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>1.9.3</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>2.6</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.7</version>
+            </dependency>
+            <dependency>
+                <groupId>de.jensd</groupId>
+                <artifactId>fontawesomefx</artifactId>
+                <version>8.9</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>1.2.3</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/org.hildan.fxgson/fx-gson -->
+            <dependency>
+                <groupId>org.hildan.fxgson</groupId>
+                <artifactId>fx-gson</artifactId>
+                <version>3.1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.jfoenix</groupId>
+                <artifactId>jfoenix</artifactId>
+                <version>8.0.7</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-runner</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.classgraph</groupId>
+            <artifactId>classgraph</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.jfoenix</groupId>
+            <artifactId>jfoenix</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.controlsfx</groupId>
+            <artifactId>controlsfx</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fazecast</groupId>
+            <artifactId>jSerialComm</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.ibasco.ucgdisplay</groupId>
+            <artifactId>ucgd-drivers-glcd</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hildan.fxgson</groupId>
+            <artifactId>fx-gson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.jensd</groupId>
+            <artifactId>fontawesomefx</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+        </dependency>
+    </dependencies>
+</project>

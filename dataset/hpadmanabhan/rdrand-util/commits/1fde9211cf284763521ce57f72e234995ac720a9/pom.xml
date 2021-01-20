@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2013 Hemant Padmanabhan
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+  
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>net.lizalab.util</groupId>
+  <artifactId>lizalab-rdrand-util</artifactId>
+  <version>1.2.0.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>RdRand Java Utility</name>
+  <description>Provides java.util.Random extension wrapping Intel's Digital Random Number Generator (DRNG) known as Intel Secure Key, a name for its RDRAND instruction via its free library librdrand using JNI.</description>
+
+  <url>https://github.com/hpadmanabhan/rdrand-util</url>
+  
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>manual</distribution>
+    </license>
+  </licenses>
+  
+  <developers>
+    <developer>
+      <name>Hemant Padmanabhan</name>
+      <email>padmanabhanhemant at gmail dot com</email>
+    </developer>
+  </developers>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <distributionManagement>
+    <repository>
+      <id>${rel-repo-id}</id>
+      <name>${rel-repo-name}</name>
+      <url>${rel-repo-url}</url>
+    </repository>
+    <snapshotRepository>
+      <id>${snap-repo-id}</id>
+      <name>${snap-repo-name}</name>
+      <url>${snap-repo-url}</url>
+      <uniqueVersion>false</uniqueVersion>
+      <layout>default</layout>
+    </snapshotRepository>
+    <site>
+      <id>${site-id}</id>
+      <name>${site-name}</name>
+      <url>${site-url}/${project.groupId}/${project.artifactId}/${project.version}</url>
+    </site>
+  </distributionManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.2</version> 
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.7.2</version>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.17</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-math3</artifactId>
+      <version>3.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.uncommons.maths</groupId>
+      <artifactId>uncommons-maths</artifactId>
+      <version>1.2.2</version>
+      <exclusions>
+        <exclusion>
+          <groupId>jfree</groupId>
+          <artifactId>jfreechart</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>jfree</groupId>
+          <artifactId>jcommon</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-webdav-jackrabbit</artifactId>
+        <version>2.2</version>
+      </extension>
+    </extensions>
+    <resources>
+      <!-- Exclude the rdrand source and log4j properties from generated library archive. -->
+      <resource>
+        <directory>src/main/resources</directory>
+        <excludes>
+          <exclude>*.tar.gz</exclude>
+          <exclude>log4j.properties</exclude>
+        </excludes>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.5.1</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9.1</version>
+        <configuration>
+          <show>private</show>
+          <nohelp>true</nohelp>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <executions>
+          <!-- Build the Intel rdrand library and place artifacts where the JNI utility build requires them. -->
+          <execution>
+            <id>build-librdrand</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>scripts/build-rdrand.sh</executable>
+            </configuration>
+          </execution>
+          <!-- Build the JNI utility implementation. -->
+          <execution>
+            <id>build-native</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>make</executable>
+              <workingDirectory>src/main/c</workingDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>3.2</version>
+      </plugin>
+      <!-- For executing Git-flow based actions including releases. -->
+      <plugin>
+      	<groupId>external.atlassian.jgitflow</groupId>
+      	<artifactId>jgitflow-maven-plugin</artifactId>
+      	<version>1.0-m4.3</version>
+      	<configuration>
+      		<flowInitContext>
+      			<masterBranchName>master</masterBranchName>
+      			<developBranchName>develop</developBranchName>
+      			<featureBranchPrefix>feature-</featureBranchPrefix>
+      			<releaseBranchPrefix>release-</releaseBranchPrefix>
+      			<hotfixBranchPrefix>hotfix-</hotfixBranchPrefix>
+      		</flowInitContext>
+      		<enableSshAgent>true</enableSshAgent>
+      		<!-- Default to pushing features for remote backups. -->
+      		<pushFeatures>true</pushFeatures>
+      		<!-- Deploy releases to repos specified in distributionManagement. -->
+      		<noDeploy>false</noDeploy>
+      	</configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.7</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9.1</version>
+        <configuration>
+          <show>protected</show>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
+  
+  <scm>
+  	<url>https://github.com/hpadmanabhan/rdrand-util</url>
+  	<connection>scm:git:https://github.com/hpadmanabhan/rdrand-util.git</connection>
+  	<developerConnection>scm:git:ssh://git@github.com:hpadmanabhan/rdrand-util.git</developerConnection>
+  </scm>
+</project>

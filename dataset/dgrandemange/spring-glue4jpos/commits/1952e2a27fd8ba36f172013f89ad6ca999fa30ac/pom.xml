@@ -1,0 +1,269 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.jpos.jposext</groupId>
+	<artifactId>springglue</artifactId>
+	<version>1.0.3-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>springglue</name>
+	<url>http://maven.apache.org</url>
+
+	<scm>
+		<developerConnection>scm:git:ssh://git@github.com/dgrandemange/spring-glue4jpos.git</developerConnection>
+		<connection>scm:git:ssh://git@github.com/dgrandemange/spring-glue4jpos.git</connection>
+		<url>scm:git:ssh://git@github.com/dgrandemange/spring-glue4jpos.git</url>
+	</scm>
+
+	<distributionManagement>
+		<!--
+			To deploy as a snapshot:
+			> mvn -DaltDeploymentRepository=snapshot-repo::default::file:../dgrandemange-mvn-repo/snapshots deploy
+			
+			To deploy as a release :
+			> mvn -DaltDeploymentRepository=repo::default::file:../dgrandemange-mvn-repo/releases deploy		  
+		-->	
+		<repository>
+			<id>repo</id>
+			<url>https://github.com/dgrandemange/dgrandemange-mvn-repo/raw/master/releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>snapshot-repo</id>
+			<url>https://github.com/dgrandemange/dgrandemange-mvn-repo/raw/master/snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<runtime.dir>${project.basedir}/runtime</runtime.dir>
+		<demo.dir>${project.basedir}/src/demo</demo.dir>
+
+		<jpos.version>1.8.6</jpos.version>
+		<spring-context.version>3.1.2.RELEASE</spring-context.version>
+	</properties>
+
+	<repositories>
+		<repository>
+			<id>jpos</id>
+			<name>jPOS Maven Repository</name>
+			<url>http://jpos.org/maven</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.jpos</groupId>
+			<artifactId>jpos</artifactId>
+			<version>${jpos.version}</version>
+		</dependency>
+
+		<!-- Test -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${spring-context.version}</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.0-beta-9</version>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>demo</id>
+
+			<build>
+				<!-- Default goal -->
+				<defaultGoal>package</defaultGoal>
+
+				<pluginManagement>
+					<plugins>
+						<plugin>
+							<groupId>org.eclipse.m2e</groupId>
+							<artifactId>lifecycle-mapping</artifactId>
+							<version>1.0.0</version>
+							<configuration>
+								<lifecycleMappingMetadata>
+									<pluginExecutions>
+										<pluginExecution>
+											<pluginExecutionFilter>
+												<groupId>org.apache.maven.plugins</groupId>
+												<artifactId>maven-dependency-plugin</artifactId>
+												<versionRange>[1.0.0,)</versionRange>
+												<goals>
+													<goal>copy-dependencies</goal>
+												</goals>
+											</pluginExecutionFilter>
+											<action>
+												<ignore />
+											</action>
+										</pluginExecution>
+									</pluginExecutions>
+								</lifecycleMappingMetadata>
+							</configuration>
+						</plugin>
+					</plugins>
+				</pluginManagement>
+
+				<plugins>
+
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>build-helper-maven-plugin</artifactId>
+						<version>1.7</version>
+						<executions>
+							<execution>
+								<phase>generate-sources</phase>
+								<goals>
+									<goal>add-source</goal>
+								</goals>
+								<configuration>
+									<sources>
+										<source>${demo.dir}/java</source>
+									</sources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!-- Tell JAR plugin to create MANIFEST w/ our classpath and MainClass -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jar-plugin</artifactId>
+						<version>2.3.2</version>
+						<configuration>
+							<archive>
+								<manifest>
+									<addClasspath>true</addClasspath>
+									<mainClass>org.jpos.q2.Q2</mainClass>
+									<useUniqueVersions>true</useUniqueVersions>
+									<classpathPrefix>lib/</classpathPrefix>
+								</manifest>
+							</archive>
+						</configuration>
+					</plugin>
+
+					<!-- Add the runtime/lib directory to the clean lifecycle -->
+					<plugin>
+						<artifactId>maven-clean-plugin</artifactId>
+						<version>2.4.1</version>
+						<executions>
+							<execution>
+								<id>delete-runtime-lib</id>
+								<phase>clean</phase>
+								<goals>
+									<goal>clean</goal>
+								</goals>
+								<configuration>
+									<filesets>
+										<fileset>
+											<directory>${runtime.dir}</directory>
+											<includes>
+												<include>lib/</include>
+											</includes>
+											<followSymlinks>false</followSymlinks>
+										</fileset>
+									</filesets>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!-- Copy the dependencies to runtime directory -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<version>2.2</version>
+						<executions>
+							<!-- We first copy the Q2 artifact -->
+							<execution>
+								<id>copy-artifact</id>
+								<phase>package</phase>
+								<goals>
+									<goal>copy</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${runtime.dir}</outputDirectory>
+									<stripVersion>true</stripVersion>
+									<!--suppress MavenModelInspection -->
+									<artifactItems>
+										<artifactItem>
+											<groupId>${project.groupId}</groupId>
+											<artifactId>${project.artifactId}</artifactId>
+											<version>${project.version}</version>
+											<type>${project.packaging}</type>
+											<destFileName>q2.jar</destFileName>
+										</artifactItem>
+									</artifactItems>
+								</configuration>
+							</execution>
+							<!-- We then copy the dependencies to runtime/lib -->
+							<execution>
+								<id>copy-dependencies</id>
+								<phase>package</phase>
+								<goals>
+									<goal>copy-dependencies</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${runtime.dir}/lib</outputDirectory>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<plugin>
+						<artifactId>maven-resources-plugin</artifactId>
+						<version>2.5</version>
+						<executions>
+							<execution>
+								<id>copy-resources</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${runtime.dir}</outputDirectory>
+									<resources>
+										<resource>
+											<directory>${demo.dir}/resources</directory>
+											<filtering>true</filtering>
+										</resource>
+									</resources>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<version>2.1</version>
+						<configuration>
+							<source>1.5</source>
+							<target>1.5</target>
+						</configuration>
+					</plugin>
+
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+
+</project>

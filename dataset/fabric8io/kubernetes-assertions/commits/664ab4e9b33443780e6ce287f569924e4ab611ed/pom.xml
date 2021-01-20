@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.fabric8</groupId>
+    <artifactId>kubernetes-assertions</artifactId>
+    <version>4.0.0</version>
+    <packaging>jar</packaging>
+    <name>Fabric8 Kubernetes :: Assertions</name>
+    <description>This library provides a bunch of helpful assertj assertions for working with the kubernetes-api.</description>
+
+    <url>http://github.com/fabric8io/kubernetes-assertions</url>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <comments>A business-friendly OSS license</comments>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>geeks</id>
+            <name>Fabric8 Development Team</name>
+            <email>fabric8@googlegroups.com</email>
+            <organization>fabric8</organization>
+            <organizationUrl>http://fabric8.io/</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/fabric8io/kubernetes-assertions.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/fabric8io/kubernetes-assertions.git</developerConnection>
+        <tag>HEAD</tag>
+        <url>git://github.com/fabric8io/kubernetes-assertions.git</url>
+    </scm>
+
+    <repositories>
+        <repository>
+            <id>maven-central-plugin-snapshots</id>
+            <name>Maven Central Plugin Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Sonatype Nexus Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>sonatype-nexus-staging</id>
+            <name>Nexus Release Repository</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-api</artifactId>
+            <version>${fabric8-utils.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-client</artifactId>
+            <version>${kubernetes-client.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>openshift-client</artifactId>
+            <version>${kubernetes-client.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>fabric8-utils</artifactId>
+            <version>${fabric8-utils.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.fusesource.jansi</groupId>
+            <artifactId>jansi</artifactId>
+            <version>${jansi.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.core.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j-log4j12.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit-jupiter-api.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-assertions-generator-maven-plugin</artifactId>
+                <version>2.0.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.assertj</groupId>
+                        <artifactId>assertj-core</artifactId>
+                        <version>${assertj.core.version}</version>
+                    </dependency>
+
+                    <dependency>
+                        <groupId>io.fabric8.assertj</groupId>
+                        <artifactId>assertj-assertions-generator</artifactId>
+                        <version>2.0.1.2</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <packages>
+                        <param>io.fabric8.kubernetes.api.model</param>
+                        <param>io.fabric8.openshift.api.model</param>
+                    </packages>
+
+                    <!-- whether generated assertions classes can be inherited with consistent assertion chaining -->
+                    <hierarchical>true</hierarchical>
+                    <!-- where to generate assertions entry point classes -->
+                    <entryPointClassPackage>io.fabric8.kubernetes.assertions.internal</entryPointClassPackage>
+
+                    <!-- excludes with regex classes from generation -->
+                    <excludes>
+                        <param>.*Doneable.*</param>
+                        <param>.*Editable.*</param>
+                        <param>.*Builder</param>
+                        <param>.*Fluent</param>
+                        <param>.*FluentImpl</param>
+                    </excludes>
+                    <!-- base directory where to generate assertions -->
+                    <targetDir>${basedir}/target/generated-sources</targetDir>
+                    <!-- select which assertions entry point classes to generate -->
+                    <generateAssertions>true</generateAssertions>
+                    <generateBddAssertions>false</generateBddAssertions>
+                    <generateSoftAssertions>false</generateSoftAssertions>
+                    <generateJUnitSoftAssertions>false</generateJUnitSoftAssertions>
+
+                    <templates>
+                        <templatesDirectory>${basedir}/src/main/assertj-templates</templatesDirectory>
+
+                        <objectAssertion>navigation_template.txt</objectAssertion>
+                        <iterableAssertion>has_elements_assertion_template_for_iterable.txt</iterableAssertion>
+                        <hierarchicalAssertionAbstractClass>custom_abstract_assertion_class_template.txt</hierarchicalAssertionAbstractClass>
+                    </templates>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>generate-tests</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate-assertions</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${basedir}/target/generated-sources</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.20.1</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.junit.jupiter</groupId>
+                        <artifactId>junit-jupiter-api</artifactId>
+                        <version>RELEASE</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <properties>
+        <assertj.core.version>3.15.0</assertj.core.version>
+        <junit-jupiter-api.version>5.6.0</junit-jupiter-api.version>
+        <slf4j-log4j12.version>1.7.25</slf4j-log4j12.version>
+        <jansi.version>1.11</jansi.version>
+        <fabric8-utils.version>3.0.8</fabric8-utils.version>
+        <kubernetes-client.version>4.8.0</kubernetes-client.version>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <configuration>
+                            <passphrase>${env.GPG_PASSPHRASE}</passphrase>
+                            <useAgent>true</useAgent>
+                        </configuration>
+
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>enforce-no-snapshots-maven-v3</id>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <requireReleaseDeps>
+                                            <message>No Snapshots Allowed!</message>
+                                        </requireReleaseDeps>
+                                        <requireMavenVersion>
+                                            <version>3.0</version>
+                                            <message>Maven minimum required version is 3.0!</message>
+                                        </requireMavenVersion>
+                                    </rules>
+                                    <fail>true</fail>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <!-- take that ... -->
+                                    <additionalparam>-Xdoclint:none</additionalparam>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

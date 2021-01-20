@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>plugin</artifactId>
+        <version>1.602</version>
+    </parent>
+
+    <groupId>com.versionone</groupId>
+    <artifactId>versionone-jenkins-notifier</artifactId>
+    <version>11.1.0</version>
+    <packaging>hpi</packaging>
+
+    <name>VersionOne Notifier for Jenkins</name>
+    <description>Link agile workitems to tangible, working software in the form of builds. This enables teams to measure
+        progress in terms of working software and to identify problems sooner. This publisher creates a record of
+        Jenkins builds in VersionOne, so the development teams can quickly view builds associated with a story or
+        defect. This visibility is useful when identifying what build to use for verification or when generating release
+        notes.
+    </description>
+    <url>https://github.com/versionone/VersionOne.Integration.Jenkins</url>
+    <organization>
+        <name>Version One, Inc.</name>
+        <url>http://www.versionone.com/</url>
+    </organization>
+    <licenses>
+        <license>
+            <name>Modified BSD (3-clause) License</name>
+            <url>https://raw.github.com/versionone/VersionOne.Integration.Jenkins/master/LICENSE.md</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/versionone/VersionOne.Integration.Jenkins/issues</url>
+    </issueManagement>
+    <scm>
+        <url>https://github.com/versionone/VersionOne.Integration.Jenkins</url>
+        <connection>scm:git:git@github.com:versionone/VersionOne.Integration.Jenkins.git</connection>
+        <developerConnection>scm:git:git@github.com:versionone/VersionOne.Integration.Jenkins.git</developerConnection>
+    </scm>
+    <developers>
+        <developer>
+            <name>Terry Densmore</name>
+            <email>terry.densmore@versionone.com</email>
+        </developer>
+    </developers>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <github.global.server>github</github.global.server>
+        <VERSION_NUMBER>${project.version}</VERSION_NUMBER>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>repo.jenkins-ci.org</id>
+            <url>http://repo.jenkins-ci.org/public/</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>repo.jenkins-ci.org</id>
+            <url>http://repo.jenkins-ci.org/public/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <build>
+        <plugins>
+            
+
+            <!-- Write out maven properties so they can be used by Jenkins -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>write-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <outputFile>
+                                ${project.build.directory}/maven.properties
+                            </outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <!-- (Comment #1) Overriding the transitive dependency coming from com.versionone:VersionOne.SDK.Java.ObjectModel -->
+        <dependency>
+            <groupId>com.versionone</groupId>
+            <artifactId>VersionOne.SDK.Java.APIClient</artifactId>
+            <version>15.3.0</version>
+            <exclusions>
+                <!-- (Comment #2) exclude because Jenkins injected tests are failing otherwise -->
+                <exclusion>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>subversion</artifactId>
+            <version>2.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jvnet.hudson.plugins</groupId>
+            <artifactId>perforce</artifactId>
+            <version>1.1.14</version>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>git</artifactId>
+            <version>1.4.0</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>cvs</artifactId>
+            <version>2.0</version>
+            <scope>compile</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>19.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jmock</groupId>
+            <artifactId>jmock-junit4</artifactId>
+            <version>2.6.0</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.hamcrest</groupId>
+                    <artifactId>hamcrest-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hamcrest</groupId>
+                    <artifactId>hamcrest-library</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hamcrest</groupId>
+                    <artifactId>hamcrest-unit-test</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.jmock</groupId>
+            <artifactId>jmock-legacy</artifactId>
+            <version>2.6.0</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.hamcrest</groupId>
+                    <artifactId>hamcrest-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hamcrest</groupId>
+                    <artifactId>hamcrest-library</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.hamcrest</groupId>
+                    <artifactId>hamcrest-unit-test</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+
+
+
+</project>

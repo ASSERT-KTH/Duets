@@ -1,0 +1,202 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.montsuqi.monsiaj</groupId>
+    <artifactId>monsiaj</artifactId>
+    <packaging>jar</packaging>
+    <version>2.0.3</version>
+    <name>monsiaj</name>
+    <url>https://github.com/montsuqi/monsiaj</url>
+    <description>montsuqi panda client for java</description>
+    <organization>
+        <name>montsuqi.org</name>
+    </organization>
+
+    <properties>
+        <!--     
+        <monsia.version>${version}</monsia.version>-->
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>central</id>
+            <name>Maven Plugin Repository</name>
+            <url>http://central.maven.org/maven2</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <updatePolicy>never</updatePolicy>
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <build>
+        <plugins>            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>                            
+                            <addClasspath>true</addClasspath>
+                            <mainClass>org.montsuqi.monsiaj.client.Launcher</mainClass>
+                        </manifest>
+                        <manifestEntries>
+                            <permissions>all-permissions</permissions>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <!-- make bin package -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <finalName>monsiaj-${project.version}</finalName>
+                    <descriptors>
+                        <descriptor>src/assembly/jar-with-dependencies.xml</descriptor>
+                        <descriptor>src/assembly/bin.xml</descriptor>
+                        <descriptor>src/assembly/src.xml</descriptor>
+                    </descriptors>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries> 
+                            <mainClass>org.montsuqi.monsiaj.client.Launcher</mainClass>
+                        </manifest>
+                        <manifestEntries>
+                            <permissions>all-permissions</permissions>
+                        </manifestEntries>                        
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-bin-zip</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-jarsigner-plugin</artifactId>
+                            <version>1.4</version>
+                            <executions>
+                                <execution>
+                                    <id>sign</id>
+                                    <goals>
+                                        <goal>sign</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                            <configuration>
+                                <archiveDirectory>${project.build.directory}</archiveDirectory>
+                                <excludeClassifiers>
+                                    <excludeClassifier>bin</excludeClassifier>
+                                    <excludeClassifier>src</excludeClassifier>
+                                </excludeClassifiers>                               
+                                <arguments>
+                                   <argument>-tsa</argument>
+                                   <argument>http://timestamp.globalsign.com/scripts/timstamp.dll</argument>
+                                </arguments>      
+                                <keystore>${project.basedir}/keystore</keystore>
+                                <alias>alias</alias>
+                                <storepass>storepass</storepass>
+                                <keypass>keypass</keypass>
+                            </configuration>
+                        </plugin>
+            -->  
+
+            <!-- rename distribution archive  -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <id>rename-dist-archives</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                                <echo>rename-dist-archives</echo>
+                                <move file="${project.build.directory}/monsiaj-${project.version}-bin.zip" tofile="${project.build.directory}/monsiaj-bin-${project.version}.zip" />
+                                <move file="${project.build.directory}/monsiaj-${project.version}-src.zip" tofile="${project.build.directory}/monsiaj-src-${project.version}.zip" />
+                            </tasks>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>3.8.1</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.eclipse.jetty.websocket/websocket-client -->
+        <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>websocket-client</artifactId>
+            <version>9.4.6.v20170531</version>
+        </dependency>        
+        <!-- https://mvnrepository.com/artifact/org.json/json -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20170516</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/net.sf.squirrel-sql.thirdparty-non-maven/nimrodlf -->
+        <dependency>
+            <groupId>net.sf.squirrel-sql.thirdparty-non-maven</groupId>
+            <artifactId>nimrodlf</artifactId>
+            <version>1.1</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/net.sf.squirrel-sql.thirdparty-non-maven/ilf-gpl -->
+        <dependency>
+            <groupId>net.sf.squirrel-sql.thirdparty-non-maven</groupId>
+            <artifactId>ilf-gpl</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.8.1</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.8.1</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox -->
+        <dependency>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>2.0.7</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+    </dependencies>    
+</project>

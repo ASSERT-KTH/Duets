@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd ">
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>assertj-core</artifactId>
+  <version>3.11.2-SNAPSHOT</version>
+  <packaging>bundle</packaging>
+  <name>AssertJ fluent assertions</name>
+  <description>Rich and fluent assertions for testing for Java</description>
+  <inceptionYear>2014</inceptionYear>
+  <parent>
+    <groupId>org.assertj</groupId>
+    <artifactId>assertj-parent-pom</artifactId>
+    <version>2.2.1</version>
+    <relativePath />
+  </parent>
+  <mailingLists>
+    <mailingList>
+      <name>AssertJ Group</name>
+      <post>http://groups.google.com/group/assertj</post>
+      <subscribe>http://groups.google.com/group/assertj</subscribe>
+      <unsubscribe>http://groups.google.com/group/assertj</unsubscribe>
+    </mailingList>
+  </mailingLists>
+  <scm>
+    <developerConnection>scm:git:git@github.com:joel-costigliola/assertj-core.git</developerConnection>
+    <connection>scm:git:git@github.com:joel-costigliola/assertj-core.git</connection>
+    <url>git@github.com:joel-costigliola/assertj-core</url>
+    <tag>HEAD</tag>
+  </scm>
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/joel-costigliola/assertj-core/issues</url>
+  </issueManagement>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>5.3.1</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <!-- include junit-platform-runner to run JUnit 5 tests with JUnit 4,
+      can be removed after upgrading to maven-surefire-plugin v2.22.0, see SUREFIRE-1330 -->
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-runner</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- required to run JUnit4 tests in eclipse without to explicitly select JUnit 4 runner ... -->
+    <dependency>
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.opentest4j</groupId>
+      <artifactId>opentest4j</artifactId>
+      <version>1.1.1</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-core</artifactId>
+      <version>1.3</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy</artifactId>
+      <version>1.9.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+    </dependency>
+    <!-- NEEDED! Unlike File, a Path is not linked to the JRE's filesystem. In order to accurately test assertions, we need
+      a decent JSR 203 implementation which lets us test our assertions. Right now, this is memoryfilesystem (https://github.com/marschall/memoryfilesystem).
+      Another choice would be jimfs from Google (https://github.com/google/jimfs), but its support for reading/writing file attributes
+      is not as complete as that of memoryfilesystem's. -->
+    <dependency>
+      <groupId>com.github.marschall</groupId>
+      <artifactId>memoryfilesystem</artifactId>
+      <version>1.2.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>25.0-jre</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+          <encoding>${project.build.sourceEncoding}</encoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Automatic-Module-Name>org.assertj.core</Automatic-Module-Name>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      <!-- to get jacoco report we need to set argLine in surefire, without this snippet the jacoco argLine is lost -->
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>${argLine}</argLine>
+        </configuration>
+        <version>2.22.0</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.1.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createDependencyReducedPom>true</createDependencyReducedPom>
+              <relocations>
+                <relocation>
+                  <pattern>net.bytebuddy</pattern>
+                  <shadedPattern>org.assertj.core.internal.bytebuddy</shadedPattern>
+                </relocation>
+              </relocations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Unpack the shaded jar so that the maven-bundle-plugin can analyze the packages to import and to export -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack-shade</id>
+            <phase>package</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>${project.artifactId}</artifactId>
+                  <version>${project.version}</version>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${project.build.directory}/classes</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>3.4.0</version>
+        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <id>bundle-after-unpack-shaded</id>
+            <phase>package</phase>
+            <goals>
+              <goal>bundle</goal>
+            </goals>
+            <configuration>
+              <instructions>
+                <Export-Package>org.assertj.core.*</Export-Package>
+                <!--
+                  Don't import what assertj-core exports but import everything else.
+                  Also need to explicitly import packages that are dynamically loaded using
+                  Class.forName() (org.junit, org.opentest4j and org.testng are needed
+                  by the assumptions engine).
+                -->
+                <Import-Package>
+                  !org.assertj.core.*,
+                  org.junit;resolution:="optional",
+                  org.opentest4j;resolution:="optional",
+                  org.testng;resolution:="optional",
+                  *
+                </Import-Package>
+                <Bundle-RequiredExecutionEnvironment>JavaSE-1.8</Bundle-RequiredExecutionEnvironment>
+                <_removeheaders>Bnd-LastModified</_removeheaders>
+              </instructions>
+              <niceManifest>true</niceManifest>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- generate jacoco report -->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <!-- exclude hamcrest as its classes are compiled in target/classes for an unknown reason related to hamcrest dependency being optional -->
+            <exclude>**/*hamcrest*/**</exclude>
+          </excludes>
+        </configuration>
+        <!-- jacoco is executed in the prepare-package phase instead of the verify phase, it can not determine code coverage
+          of the unpacked shaded classes -->
+        <executions>
+          <execution>
+            <id>jacoco-report</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>default-check</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <rule implementation="org.jacoco.maven.RuleConfiguration">
+                  <element>BUNDLE</element>
+                  <limits>
+                    <limit implementation="org.jacoco.report.check.Limit">
+                      <counter>CLASS</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.98</minimum>
+                    </limit>
+                  </limits>
+                </rule>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <!-- (1) CSS file location -->
+          <stylesheetfile>src/main/javadoc/assertj-javadoc.css</stylesheetfile>
+          <!-- (2) Highlight Javascript file -->
+          <top><![CDATA[
+            <script src="http://cdn.jsdelivr.net/highlight.js/8.6/highlight.min.js"></script>
+          ]]></top>
+          <!-- init Highlight -->
+          <additionalOptions>--allow-script-in-comments</additionalOptions>
+          <footer><![CDATA[
+            <script type="text/javascript">
+              hljs.initHighlightingOnLoad();
+            </script>
+          ]]></footer>
+        </configuration>
+      </plugin>
+    </plugins>
+    <pluginManagement>
+      <plugins>
+        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>com.mycila</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <versionRange>[2.6,)</versionRange>
+                    <goals>
+                      <goal>format</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+  <profiles>
+    <profile>
+      <id>java9+</id>
+      <activation>
+        <jdk>[9,)</jdk>
+      </activation>
+      <properties>
+        <!-- allow tests to access private fields/methods of java.base classes via reflection -->
+        <argLine>--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.util=ALL-UNNAMED
+          --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.math=ALL-UNNAMED</argLine>
+      </properties>
+    </profile>
+    <profile>
+      <id>java11+</id>
+      <activation>
+        <jdk>[11,)</jdk>
+      </activation>
+      <properties>
+        <!-- jacoco does not work with java 11 yet, see https://github.com/jacoco/jacoco/issues/663 -->
+        <jacoco.skip>true</jacoco.skip>
+        <sonar.skip>true</sonar.skip>
+      </properties>
+    </profile>
+  </profiles>
+</project>

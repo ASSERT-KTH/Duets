@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.thobe</groupId>
+  <artifactId>java-tooling</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>org.thobe</groupId>
+      <artifactId>subprocess-testing</artifactId>
+      <version>1.0-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.10</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-core</artifactId>
+      <version>1.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>1.9.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.objenesis</groupId>
+      <artifactId>objenesis</artifactId>
+      <version>1.0</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <!-- Here are the dragons, get rid of them ASAP! -->
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <phase>process-classes</phase>
+            <configuration>
+              <target>
+
+		<property name="headers.dir" location="target/headers"/>
+		<mkdir dir="${headers.dir}"/>
+		<property name="native.out" location="target/native"/>
+		<mkdir dir="${native.out}"/>
+		<property name="lib.out" location="target/classes"/>
+		<mkdir dir="${lib.out}"/>
+
+		<javah outputFile="${headers.dir}/tooling.h"
+		       classpath="target/classes">
+		  <class name="org.thobe.java.tooling.ToolingInterface"/>
+		  <class name="org.thobe.java.tooling.CallFrame"/>
+		</javah>
+
+		<exec executable="make" dir="src/main/native"
+		      failonerror="true">
+		  <arg value="JAVA_HOME=${java.home}"/>
+		  <arg value="HEADERS=${headers.dir}"/>
+		  <arg value="TARGET=${native.out}"/>
+		  <arg value="OUT=${lib.out}"/>
+		</exec>
+
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

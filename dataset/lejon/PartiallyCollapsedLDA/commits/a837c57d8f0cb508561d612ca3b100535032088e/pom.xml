@@ -1,0 +1,239 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>cc.mallet</groupId>
+	<artifactId>PCPLDA</artifactId>
+
+	<!-- v1.1.9: First public release -->
+	<!-- v2.0.0: Major API re-design for better subclassing -->
+	<!-- v2.1.1: Fixed small bug when trying to print top words when have none. Added simple support for gracefully aborting the sampler -->
+	<!-- v2.1.2: Target class is now a proper MALLET label in a "traget Alphabet". Phi is settable. -->
+	<!-- v2.2.2: Added API method for setting Phi "safely", which ensures that Alphabets match -->
+	<!-- v2.3.2: Added API method sampling Z with Phi fixed -->
+	<!-- v3.0.0: Added API and implementation for setting priors on topics for specific words -->
+	<!-- v3.1.0: Added API method for extracting the document topic means (z_bar) -->
+	<!-- v3.1.1: More robust implementation of setPhi and getZbar -->
+	<!-- v3.1.2: Get stop list and keep_numbers from config file -->
+	<!-- v3.1.3: Support for saving document topic means -->
+	<!-- v3.1.4: Cleaner implementation of getBooleanProperty -->
+	<!-- v3.1.5: Added SimpleTokenizerLarge with a (settable) larger buffer -->
+	<!-- v3.1.6: Fixed bug in config. Doing trim on null property -->
+	<!-- v3.1.7: Added ability to save and export Phi means from model -->
+	<!-- v3.1.8: Added XValidationCreator -->
+	<!-- v3.1.9: Fixed bug in XValidationCreator which used an all zero phi	to sample testset -->
+	<!-- v3.2.0: Saving Phi means is now default true, memory requirements went	up with one extra Phi -->
+	<!-- v3.2.1: Fork Join Pool should not be static -->
+	<!-- v3.2.2: XValidationCreator fix -->
+	<!-- v3.2.3: SimpleTokenizerLarge must override deepClone. -->
+	<!-- v3.3.3: Major rework of distributed prototype -->
+	<!-- v3.4.3: Added doInitialLogging method so we can do some logging BEFORE the run starts (facilitates tracing if crash) -->
+	<!-- v3.4.4: Changed from non-daemon threads to daemon threads -->
+	<!-- v3.4.5: Changed BACK from daemon threads to non-daemon threads. This should be looked at later -->
+	<!-- v3.5.0: Added classifier based on Symmetric Kullback Leibler divergence. -->
+	<!-- v3.5.1: Improved Symmetric Kullback Leibler classifier better defaults, save fold data. -->
+	<!-- v3.5.2: In KL-Classifier, use theta estimate instead of doc-topic means that can contain 0's. -->
+	<!-- v3.5.3: In KL-Classifier select on commandline to run multi- or single corpus version. Ensure consistent priors. -->
+	<!-- v3.5.4: Added ParallelLDATrainTest -->
+	<!-- v3.5.5: Fixed bug in theta estimate cacl. -->
+	<!-- v3.5.6: Back to using zBar in KLClassifier, since this gives the best prediction accuracy. Don't know why yet. -->
+	<!-- v4.0.0: Added implementation of LightPCLDA! A Metropolis Hastings version of LDA which easily handles MANY topics -->
+	<!-- v4.0.1: Updated implementation after derivation update -->
+	<!-- v4.1.0: Extracted and pushed down implementation of type priors to reduce mem and improve cache in std versions -->
+	<!-- v4.1.1: Updated variable selection -->
+	<!-- v4.1.2: Small corrections in types/VSDirichlet.java  -->
+	<!-- v4.1.3: Fixed OBOE introduced in v2.0.0  -->
+    <!-- v4.2.0: Added (collapsed) Light AD-LDA   -->
+	<!-- v4.2.1: Fixed OBOE introduced in v2.0.0 in LightCollapsed. Improved test suite  -->
+	<!-- v4.2.2: Fixed common seed  -->
+	<!-- v4.3.0: First Collapsed Light version with thread local (AD-LDA) behaviour -->
+	<!-- v4.4.0: Word, instead of Phi, proposal version of Light PCLDA -->
+	<!-- v4.4.1: Improved config by moving SubConfig to PCLDA from DOLDA -->
+	<!-- v4.4.2: Fixed bugs in Light PC-LDA and Light LDA -->
+	<!-- v4.4.3: Added implementation if getCorpusSize to ADLDA -->
+	<!-- v4.5.0: Added support for TF-IDF pruning of vocabulary -->
+	<!-- v4.5.1: Some cleanups and more unit tests on Utils. Added smoke test for LightPCLDAtypeTopicProposal -->
+	<!-- v4.6.1: Added possibility to configure the "nr_top_words" (default=20) to print and "max_doc_buf_size" (default 10000) to adjust the size of the max document size. -->
+	<!-- v4.6.2: Fix max_doc_size bug, used wrong default value. -->
+	<!-- v4.6.3: Fixed bug in light collapsed acceptance calc -->
+	<!-- v4.6.4: Fixed potential bug parallel updates of batchLocalTopicTypeUpdates -->
+	<!-- v4.6.5: Possible fix for tokenizer bug -->
+	<!-- v4.6.6: Added config options to produce more stats, doc lengths and term frequencies -->
+	<!-- v4.7.0: Bumped POM with new Version. This version contains API Changes. Removed getTopWords from LDASampler API. These are now residing in LDAUtils. -->
+	<!-- v4.7.1: Corrected probability calculations when displaying relevance words -->
+	<!-- v4.7.2: Added option to output theta estimate -->
+	<!-- v4.7.3: Word Salience and KR1 word re-weighting working. (it is printed but no no option to save it yet)-->
+	<!-- v4.7.4: Minor fixes, saves TopWords and RelevanceWords as CSV rather than text file-->
+	<!-- v5.0.0: Added Polya Urn based Dirichlet sampling-->
+	<!-- v5.0.1: Use normal approximation when not drawing using alias table -->
+	<!-- v5.1.0: Added functionality for loading instances directly from a directory rather than from a file -->
+	<!-- v5.1.1: Bugfix for crash on getTypeTopicCounts from ADLDA model -->
+	<!-- v5.2.1: Test set + held out LL calc + Topic Model Diagnostics -->
+	<!-- v5.2.2: Small refactoring -->
+	<!-- v6.0.0: Hyper parameter optimization support added -->
+	<!-- v6.0.1: Fixed bug which caused PolyaUrn not to set the correct Phi when called from sampleZGivenPhi. -->
+	<!-- v6.0.2: Added some convenience facilities for loading instances from string data -->
+	<version>6.0.2</version>
+
+	<name>Partially Collapsed Parallel LDA</name>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<scm>
+		<connection>scm:git:file:///home/eralljn/workspace/PCLDA</connection>
+	</scm>
+
+	<dependencies>
+		<dependency>
+    		<groupId>it.unimi.dsi</groupId>
+    		<artifactId>fastutil</artifactId>
+    		<version>7.2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>18.0</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-cli</groupId>
+			<artifactId>commons-cli</artifactId>
+			<version>1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-math3</artifactId>
+			<version>3.3</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>1.9</version>
+		</dependency>
+		<dependency>
+			<groupId>cc.mallet</groupId>
+			<artifactId>mallet</artifactId>
+			<version>2.0.7</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-pool2</artifactId>
+			<version>2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.typesafe.akka</groupId>
+			<artifactId>akka-actor_2.11</artifactId>
+			<version>2.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.typesafe.akka</groupId>
+			<artifactId>akka-remote_2.11</artifactId>
+			<version>2.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.typesafe.akka</groupId>
+			<artifactId>akka-contrib_2.11</artifactId>
+			<version>2.4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.scala-lang</groupId>
+			<artifactId>scala-library</artifactId>
+			<version>2.11.5</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<sourceDirectory>src/main/java</sourceDirectory>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<forkCount>3</forkCount>
+					<reuseForks>true</reuseForks>
+					<argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>buildnumber-maven-plugin</artifactId>
+				<version>1.2</version>
+				<executions>
+					<execution>
+						<phase>validate</phase>
+						<goals>
+							<goal>create</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<doCheck>false</doCheck>
+					<doUpdate>false</doUpdate>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
+						<manifestEntries>
+							<Implementation-Build>${buildNumber}</Implementation-Build>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>1.6</version>
+				<configuration>
+					<createDependencyReducedPom>true</createDependencyReducedPom>
+					<filters>
+						<filter>
+							<artifact>*:*</artifact>
+							<excludes>
+								<exclude>META-INF/*.SF</exclude>
+								<exclude>META-INF/*.DSA</exclude>
+								<exclude>META-INF/*.RSA</exclude>
+							</excludes>
+						</filter>
+					</filters>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>cc.mallet.topics.tui.ParallelLDA</mainClass>
+								</transformer>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+									<resource>reference.conf</resource>
+								</transformer>
+							</transformers>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

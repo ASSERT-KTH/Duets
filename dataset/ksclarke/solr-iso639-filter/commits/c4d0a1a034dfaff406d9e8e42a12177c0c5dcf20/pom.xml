@@ -1,0 +1,557 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!--
+    Maven 3.x will warn about using variables in the version, but version shouldn't really _have_ to be static (should it?)
+    Cf. http://jira.codehaus.org/browse/MNG-4715
+  -->
+  <version>${solr.version}-SNAPSHOT</version>
+  <artifactId>solr-iso639-filter</artifactId>
+  <name>Solr ISO-639 Filter</name>
+  <description>Solr filter that converts ISO-639-1 and ISO-639-2 codes into text</description>
+  <url>http://projects.freelibrary.info/solr-iso639-filter</url>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:git:git@github.com:ksclarke/solr-iso639-filter.git</connection>
+    <developerConnection>scm:git:git@github.com:ksclarke/solr-iso639-filter.git</developerConnection>
+    <url>git@github.com:ksclarke/solr-iso639-filter.git</url>
+  </scm>
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/ksclarke/solr-iso639-filter/issues</url>
+  </issueManagement>
+
+  <developers>
+    <!-- Developers are actively contributing code and will field questions -->
+    <developer>
+      <email>ksclarke@gmail.com</email>
+      <name>Kevin S. Clarke</name>
+      <url>http://kevinclarke.info</url>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>America/New_York</timezone>
+    </developer>
+  </developers>
+
+  <!-- Contributors have made contributions, but shouldn't be bugged with bug reports, etc. -->
+  <contributors>
+    <contributor>
+      <email>ruestn@gmail.com</email>
+      <name>Nick Ruest</name>
+      <url>https://github.com/ruebot</url>
+      <roles>
+        <role>tester</role>
+      </roles>
+      <timezone>America/Toronto</timezone>
+    </contributor>
+  </contributors>
+
+  <properties>
+    <!-- Default (most recent) version of Solr the project has been built with -->
+    <solr.version>4.10.4</solr.version>
+    <solr.scope>4.x-2</solr.scope>
+  </properties>
+
+  <dependencies>
+    <!-- dependencies below are needed for testing -->
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-test-framework</artifactId>
+      <version>${solr.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>xom</groupId>
+      <artifactId>xom</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- Non-test dependencies (lucene-test-framework must be before solr-core) -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.solr</groupId>
+      <artifactId>solr-core</artifactId>
+      <version>${solr.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/solr-${solr.scope}/java</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Checks project's code for conformance to coding standards -->
+      <plugin>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <systemPropertyVariables>
+            <solr.scope>${solr.scope}</solr.scope>
+          </systemPropertyVariables>
+        </configuration>
+        <dependencies>
+          <!-- If we put this in test scope in dependencies section above, it still leaks out to projects using solr-iso639-filter -->
+          <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+            <scope>runtime</scope>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <!-- Plugin to generate JavaDocs -->
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+      </plugin>
+      <!-- Plugin to run Sonar analysis -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>sonar-maven-plugin</artifactId>
+      </plugin>
+      <!-- Plugin to enforce some rules about the project -->
+      <plugin>
+        <artifactId>maven-enforcer-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+      </plugin>
+      <!-- Plugin to generate the project's website -->
+      <plugin>
+        <groupId>br.com.ingenieux</groupId>
+        <artifactId>jbake-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <!-- Below is pretty verbose way to check solr.version(s), but Maven doesn't give us a startsWith() check for command 
+      line properties, so... -->
+    <profile>
+      <id>solr-3.6.1</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>3.6.1</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>3.x</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>3.6.1</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-3.6.2</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>3.6.2</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>3.x</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>3.6.2</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.0.0</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.0.0</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-1</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.0.0</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.1.0</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.1.0</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-1</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.1.0</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.2.0</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.2.0</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-1</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.2.0</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.2.1</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.2.1</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-1</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.2.1</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.3.0</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.3.0</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-2</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.3.0</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.3.1</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.3.1</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-2</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.3.1</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.4.0</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.4.0</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-2</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.4.0</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.5.0</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.5.0</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-2</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.5.0</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.5.1</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.5.1</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-2</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.5.1</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.6.0</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.6.0</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-2</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.6.0</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.6.1</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.6.1</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-2</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.6.1</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.7.0</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.7.0</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-2</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.7.0</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.7.1</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.7.1</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-2</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.7.1</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.7.2</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.7.2</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-2</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.7.2</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.8.0</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.8.0</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-2</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.8.0</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.8.1</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.8.1</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-2</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.8.1</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.9.0</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.9.0</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-2</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.9.0</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.9.1</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.9.1</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-2</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.9.1</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.10.0</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.10.0</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-2</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.10.0</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.10.1</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.10.1</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-2</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.10.1</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.10.2</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.10.2</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-2</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.10.2</solr.version>
+      </properties>
+    </profile>
+    <profile>
+      <id>solr-4.10.3</id>
+      <activation>
+        <property>
+          <name>solr.version</name>
+          <value>4.10.3</value>
+        </property>
+      </activation>
+      <properties>
+        <solr.scope>4.x-2</solr.scope>
+        <!-- Redundant, but `mvn release:prepare` needs this -->
+        <solr.version>4.10.3</solr.version>
+      </properties>
+    </profile>
+    <!-- a build profile just used on Travis runs to run the integration tests -->
+    <profile>
+      <id>travis</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <systemPropertyVariables>
+                <solr.scope>${solr.scope}</solr.scope>
+              </systemPropertyVariables>
+              <includes>
+                <include>**/*IntegrationTest.java</include>
+              </includes>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>integration-test</goal>
+                  <goal>verify</goal>
+                </goals>
+              </execution>
+            </executions>
+            <dependencies>
+              <!-- If we put this in test scope in dependencies section above, it still leaks out to projects using solr-iso639-filter -->
+              <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+                <scope>runtime</scope>
+              </dependency>
+            </dependencies>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <!-- Enables pushing project documentation up to an S3 bucket -->
+  <distributionManagement>
+    <site>
+      <id>s3.site</id>
+      <url>s3://projects.freelibrary.info/solr-iso639-filter</url>
+    </site>
+  </distributionManagement>
+
+  <!-- Pulls in standard FreeLibrary Project configuration options -->
+  <parent>
+    <artifactId>freelib-parent</artifactId>
+    <groupId>info.freelibrary</groupId>
+    <version>0.0.9</version>
+  </parent>
+
+</project>

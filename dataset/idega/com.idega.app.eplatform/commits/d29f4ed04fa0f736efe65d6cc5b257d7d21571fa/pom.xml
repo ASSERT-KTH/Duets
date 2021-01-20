@@ -1,0 +1,99 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.idega.app.eplatform</groupId>
+  <artifactId>eplatform</artifactId>
+  <version>4.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>eplatform</name>
+  
+  <build>
+  
+    <defaultGoal>compile</defaultGoal>
+    
+    <plugins>
+      
+      <plugin>
+        <artifactId>maven-scm-plugin</artifactId>
+        <configuration>
+          <skipCheckoutIfExists>true</skipCheckoutIfExists>
+        </configuration>
+        <executions>
+        
+          <execution>
+            <id>fetch-feature</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>checkout</goal>
+            </goals>
+            <configuration>
+              <connectionUrl>scm:svn:http://svn.codehaus.org/m2eclipse/trunk/org.maven.ide.eclipse.feature</connectionUrl>
+              <checkoutDirectory>${features.directory}/org.maven.ide.eclipse.feature</checkoutDirectory>
+            </configuration>
+          </execution>     
+          
+          <execution>
+            <id>fetch-plugin</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>checkout</goal>
+            </goals>
+            <configuration>
+              <connectionUrl>scm:svn:http://svn.codehaus.org/m2eclipse/trunk/org.maven.ide.eclipse</connectionUrl>
+              <checkoutDirectory>${plugins.directory}/org.maven.ide.eclipse</checkoutDirectory>
+            </configuration>
+          </execution>   
+          
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>build</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+
+                <!-- build the feature using default build life cycle -->
+                <copy file="${basedir}/src/test/resources/pom.xml" todir="${features.directory}/org.maven.ide.eclipse.feature" />
+                <exec executable="mvn.bat" failonerror="true" >
+                  <arg line="-f ${features.directory}/org.maven.ide.eclipse.feature/pom.xml package" />
+                </exec>
+
+                <!-- build the feature using custom build life cycle -->
+                <copy file="${basedir}/src/test/resources/custom-pom.xml" todir="${features.directory}/org.maven.ide.eclipse.feature" />
+                <exec executable="mvn.bat" failonerror="true" >
+                  <arg line="-f ${features.directory}/org.maven.ide.eclipse.feature/custom-pom.xml package" />
+                </exec>
+                
+                <!-- Build the feature thru directory invocation pde:pde goal -->
+                <exec executable="mvn.bat" dir="${features.directory}/org.maven.ide.eclipse.feature" failonerror="true" >
+                  <arg line="pde:clean pde:pde" />
+                </exec>
+
+                <!-- just want to demo that this plugin can build eclipse plugin as well -->
+                <copy file="${basedir}/src/test/resources/pom.xml" todir="${plugins.directory}/org.maven.ide.eclipse" />
+                <exec executable="mvn.bat" failonerror="true" >
+                  <arg line="-f ${plugins.directory}/org.maven.ide.eclipse/pom.xml package" />
+                </exec>
+                
+              </tasks>
+            </configuration>
+          </execution>    
+        </executions>
+      </plugin>
+      
+    </plugins>
+  </build>
+  
+  <properties>
+    <features.directory>${project.build.directory}/checkout/features</features.directory>
+    <plugins.directory>${project.build.directory}/checkout/plugins</plugins.directory>
+  </properties>
+</project>
+

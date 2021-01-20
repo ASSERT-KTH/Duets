@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>9</version>
+  </parent>
+
+  <groupId>com.samskivert</groupId>
+  <artifactId>pythagoras</artifactId>
+  <packaging>jar</packaging>
+  <version>1.5-SNAPSHOT</version>
+
+  <name>pythagoras</name>
+  <description>A portable geometry library.</description>
+
+  <url>http://github.com/samskivert/pythagoras/</url>
+  <issueManagement>
+    <url>http://github.com/samskivert/pythagoras/issues</url>
+  </issueManagement>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>samskivert</id>
+      <name>Michael Bayne</name>
+      <email>mdb@samskivert.com</email>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git://github.com/samskivert/pythagoras.git</connection>
+    <developerConnection>scm:git:git@github.com:samskivert/pythagoras.git</developerConnection>
+    <url>http://github.com/samskivert/pythagoras/</url>
+  </scm>
+
+  <prerequisites>
+    <maven>3.3.0</maven>
+  </prerequisites>
+
+  <properties>
+    <source.level>1.7</source.level>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.8.1</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <!-- we include the source files in our main jar for use by GWT -->
+    <resources>
+      <resource>
+        <directory>${project.build.sourceDirectory}</directory>
+        <excludes>
+          <exclude>pythagoras/util/Platform.java</exclude>
+        </excludes>
+      </resource>
+      <resource>
+        <directory>${basedir}/src/gwt/java</directory>
+        <includes>
+          <include>**/*.java</include>
+        </includes>
+      </resource>
+    </resources>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.3</version>
+        <configuration>
+          <source>${source.level}</source>
+          <target>${source.level}</target>
+          <fork>true</fork>
+          <showDeprecation>true</showDeprecation>
+          <showWarnings>true</showWarnings>
+          <compilerArgs>
+            <arg>-Xlint</arg>
+            <arg>-Xlint:-serial</arg>
+            <arg>-Xlint:-path</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.7</version>
+        <configuration>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.10.3</version>
+        <configuration>
+          <quiet>true</quiet>
+          <show>public</show>
+          <additionalparam>-Xdoclint:all -Xdoclint:-missing</additionalparam>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.6.6</version>
+        <extensions>true</extensions>
+        <inherited>false</inherited>
+        <configuration>
+          <serverId>ossrh-releases</serverId>
+          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+          <stagingProfileId>aaa740f9c5c260</stagingProfileId>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>release-sign-artifacts</id>
+      <activation>
+        <property><name>performRelease</name><value>true</value></property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <keyname>mdb@samskivert.com</keyname>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

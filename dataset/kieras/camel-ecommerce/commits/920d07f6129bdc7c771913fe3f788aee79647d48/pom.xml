@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>arkhi.camel</groupId>
+  <artifactId>ecommerce</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+
+  <name>Camel E-Commerce</name>
+  <description>
+  	An e-commerce demo application that delivers your order quickly and reliably.
+	Developed by Alessandro Kieras and Adriano Tavares.
+  </description>
+  <inceptionYear>2012</inceptionYear>
+  
+  <packaging>war</packaging>
+
+  <properties>
+		<camel.version>2.9.2</camel.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-web</artifactId>
+      <version>${camel.version}</version>
+      <type>war</type>
+      <scope>runtime</scope>
+    </dependency>    
+    
+    <!-- Dependencies for using ActiveMQ -->
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-camel</artifactId>
+      <version>5.5.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-jms_1.1_spec</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.xbean</groupId>
+      <artifactId>xbean-spring</artifactId>
+      <version>3.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-jms</artifactId>
+      <version>${camel.version}</version>
+    </dependency>  
+  
+    <!-- Dependencies for stream processing in Camel
+         http://camel.apache.org/stream.html -->
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-stream</artifactId>
+      <version>${camel.version}</version>
+    </dependency>
+
+    <!-- for testing -->
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-test</artifactId>
+      <version>${camel.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- logging -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.6.1</version> 
+    </dependency>   
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.6.1</version> 
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId> 
+      <artifactId>log4j</artifactId> 
+      <version>1.2.16</version> 
+    </dependency>
+
+    <dependency>
+    	<groupId>org.apache.camel</groupId>
+    	<artifactId>camel-jaxb</artifactId>
+    	<version>${camel.version}</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.camel</groupId>
+    	<artifactId>camel-freemarker</artifactId>
+    	<version>${camel.version}</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.camel</groupId>
+    	<artifactId>camel-ftp</artifactId>
+    	<version>${camel.version}</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.camel</groupId>
+    	<artifactId>camel-jpa</artifactId>
+    	<version>${camel.version}</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.openjpa</groupId>
+    	<artifactId>openjpa-persistence-jdbc</artifactId>
+    	<version>2.2.0</version>
+    </dependency>
+    <dependency>
+    	<groupId>hsqldb</groupId>
+    	<artifactId>hsqldb</artifactId>
+    	<version>1.8.0.10</version>
+    </dependency>
+<dependency>
+   <groupId>com.h2database</groupId>
+   <artifactId>h2</artifactId>
+   <version>1.2.138</version>
+   <scope>runtime</scope>
+  </dependency>
+  </dependencies>
+
+  <build>
+    <defaultGoal>install</defaultGoal>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.camel</groupId>
+        <artifactId>camel-maven-plugin</artifactId>
+        <version>${camel.version}</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.mortbay.jetty</groupId>
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>7.5.4.v20111024</version>
+
+        <configuration>
+          <webAppConfig>
+            <contextPath>/</contextPath>
+          </webAppConfig>
+
+          <systemProperties>
+            <!-- enable easy JMX connection to JConsole -->
+            <systemProperty>
+              <name>com.sun.management.jmxremote</name>
+              <value/>
+            </systemProperty>
+          </systemProperties>
+          <scanIntervalSeconds>10</scanIntervalSeconds>
+        </configuration>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>openjpa-maven-plugin</artifactId>
+        <version>1.2</version>
+        <configuration>
+          <includes>arkhi/camel/ecommerce/domain/**/*.class</includes>
+          <addDefaultConstructor>true</addDefaultConstructor>
+          <enforcePropertyRestrictions>true</enforcePropertyRestrictions>
+        </configuration>
+        <executions>
+          <execution>
+            <id>enhancer</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>enhance</goal>
+            </goals>
+          </execution>
+        </executions>
+
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.openjpa</groupId>
+            <artifactId>openjpa</artifactId>
+            <version>2.0.1</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      
+    </plugins>
+    <pluginManagement>
+    	<plugins>
+    		<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+    		<plugin>
+    			<groupId>org.eclipse.m2e</groupId>
+    			<artifactId>lifecycle-mapping</artifactId>
+    			<version>1.0.0</version>
+    			<configuration>
+    				<lifecycleMappingMetadata>
+    					<pluginExecutions>
+    						<pluginExecution>
+    							<pluginExecutionFilter>
+    								<groupId>org.codehaus.mojo</groupId>
+    								<artifactId>
+    									openjpa-maven-plugin
+    								</artifactId>
+    								<versionRange>[1.2,)</versionRange>
+    								<goals>
+    									<goal>enhance</goal>
+    								</goals>
+    							</pluginExecutionFilter>
+    							<action>
+    								<ignore></ignore>
+    							</action>
+    						</pluginExecution>
+    					</pluginExecutions>
+    				</lifecycleMappingMetadata>
+    			</configuration>
+    		</plugin>
+    	</plugins>
+    </pluginManagement>
+  </build>
+
+</project>

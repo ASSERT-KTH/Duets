@@ -1,0 +1,184 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.github.games647</groupId>
+    <!--This have to be in lowercase because it's used by plugin.yml-->
+    <artifactId>lagmonitor</artifactId>
+    <packaging>jar</packaging>
+
+    <name>LagMonitor</name>
+    <version>1.17.1-SNAPSHOT</version>
+
+    <url>https://dev.bukkit.org/bukkit-plugins/LagMonitor/</url>
+    <description>
+        Monitors your Minecraft server for Lags
+    </description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
+    <build>
+        <defaultGoal>install</defaultGoal>
+        <!--Just use the project name to replace an old version of the plugin if the user does only copy-paste-->
+        <finalName>${project.name}</finalName>
+
+        <plugins>
+            <!-- Add libraries to the plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.1</version>
+                <configuration>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                    <relocations>
+                        <relocation>
+                            <pattern>oshi</pattern>
+                            <shadedPattern>lagmonitor.oshi</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>oshi.demo</pattern>
+                            <shadedPattern>lagmonitor.oshi.demo</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.slf4j</pattern>
+                            <shadedPattern>lagmonitor.slf4j</shadedPattern>
+                        </relocation>
+                    </relocations>
+                    <artifactSet>
+                        <excludes>
+                            <!-- Exclude native drivers by default for user security reasons -->
+                            <exclude>net.java.dev.jna:jna</exclude>
+<!--                            Already included in demo-->
+                            <exclude>com.github.oshi:oshi-core</exclude>
+                        </excludes>
+                    </artifactSet>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--Expose git variables for version names-->
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>4.0.0</version>
+                <configuration>
+                    <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>get-the-git-infos</id>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <!--Replace variables-->
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
+
+    <repositories>
+        <!--Bukkit-Server-API -->
+        <repository>
+            <id>spigot-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+        </repository>
+
+        <!--Paper repository-->
+        <repository>
+            <id>paper-repo</id>
+            <url>https://repo.destroystokyo.com/repository/maven-public/</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <!--Server API for Paper Timings API-->
+        <dependency>
+            <groupId>com.destroystokyo.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.15.1-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!--Server API for Spigot-->
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>1.15.1-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Native data API -->
+        <dependency>
+            <groupId>com.github.oshi</groupId>
+            <!--  demo includes the normal version too          -->
+            <artifactId>oshi-demo</artifactId>
+            <version>4.3.0</version>
+            <!-- Excludes the libraries below, because we only need the DetectVm class which has no dependencies on
+            the libraries below-->
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!--MySQL driver that is included in Spigot-->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.44</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!--Netty work library of Minecraft - This is added to read the amount of bytes which are sent or received-->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.25.Final</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!--Unit testing in Java-->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!--Mocking library-->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>2.27.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

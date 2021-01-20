@@ -1,0 +1,139 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>stsjorbsmod</groupId>
+    <artifactId>JorbsMod</artifactId>
+    <name>Jorbs's Wanderer Trilogy</name>
+    <version>1.2.0</version>
+    <description>The Wanderer, Cull, and Explorers. Inspired by Jorbs and co-developed by the community.</description>
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <SlayTheSpire.version>01-27-2020</SlayTheSpire.version>
+        <ModTheSpire.version>3.15.0</ModTheSpire.version>
+
+        <!--
+            You need to set a STEAMAPPS_PATH environment variable to enable Maven to find the dependencies.
+            See README.md (the "How to build from source" section) for details.
+        -->
+        <steamappsPath>${env.STEAMAPPS_PATH}</steamappsPath>
+
+        <!--
+            If you're using a Steam install of Slay the Spire, you shouldn't need to modify these.
+            If you're using a non-steam-based install, override these during mvn build using -D parameters.
+        -->
+        <SlayTheSpire.mod_folder>${steamappsPath}/common/SlayTheSpire/mods</SlayTheSpire.mod_folder>
+        <SlayTheSpire.jar>${steamappsPath}/common/SlayTheSpire/desktop-1.0.jar</SlayTheSpire.jar>
+        <ModTheSpire.jar>${steamappsPath}/workshop/content/646570/1605060445/ModTheSpire.jar</ModTheSpire.jar>
+        <BaseMod.jar>${steamappsPath}/workshop/content/646570/1605833019/BaseMod.jar</BaseMod.jar>
+        <StSLib.jar>${steamappsPath}/workshop/content/646570/1609158507/StSLib.jar</StSLib.jar>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>mac_path_overrides</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <SlayTheSpire.mod_folder>${steamappsPath}/common/SlayTheSpire/SlayTheSpire.app/Contents/Resources/mods</SlayTheSpire.mod_folder>
+                <SlayTheSpire.jar>${steamappsPath}/common/SlayTheSpire/SlayTheSpire.app/Contents/Resources/desktop-1.0.jar</SlayTheSpire.jar>
+            </properties>
+        </profile>
+    </profiles>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.megacrit.cardcrawl</groupId>
+            <artifactId>slaythespire</artifactId>
+            <version>${SlayTheSpire.version}</version>
+            <scope>system</scope>
+            <systemPath>${SlayTheSpire.jar}</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.evacipated.cardcrawl</groupId>
+            <artifactId>modthespire</artifactId>
+            <version>${ModTheSpire.version}</version>
+            <scope>system</scope>
+            <systemPath>${ModTheSpire.jar}</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>basemod</groupId>
+            <artifactId>basemod</artifactId>
+            <version>5.0.0</version>
+            <scope>system</scope>
+            <systemPath>${BaseMod.jar}</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.evacipated.cardcrawl.mod</groupId>
+            <artifactId>StSLib</artifactId>
+            <version>1.3.2</version>
+            <scope>system</scope>
+            <systemPath>${StSLib.jar}</systemPath>
+        </dependency>
+    </dependencies>
+
+    <!-- This is how your code is packaged into the jar file-->
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/*.psd</exclude>
+                        <exclude>**/*.kra</exclude>
+                        <exclude>**/images/cards/originals/**/*.png</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <configuration>
+                            <target>
+                                <!-- This moves your mod into a common folder where all mods you make can go. -->
+                                <copy file="target/${project.artifactId}.jar" tofile="${SlayTheSpire.mod_folder}/${project.artifactId}.jar"/>
+                                <!-- This is where the steam workshop uploader looks for it -->
+                                <copy file="target/${project.artifactId}.jar" tofile="steam_workshop/content/${project.artifactId}.jar"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>ModTheSpire.json</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>ModTheSpire.json</include>
+                </includes>
+            </resource>
+        </resources>
+    </build>
+</project>

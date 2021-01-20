@@ -1,0 +1,159 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
+
+  <groupId>com.xiaomi.infra.galaxy</groupId>
+  <artifactId>galaxy-fds-migration-tool</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <description>Galaxy FDS Migration Tool</description>
+  <name>Galaxy FDS Migration Tool</name>
+  <packaging>jar</packaging>
+
+  <scm>
+    <url>https://github.com/XiaoMi/galaxy-fds-migration-tool.git</url>
+  </scm>
+
+  <licenses>
+    <license>
+      <name>The Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Shaohui Liu</name>
+      <email>liushaohui@xiaomi.com</email>
+      <organization>XiaoMi</organization>
+      <organizationUrl>http://www.mi.com</organizationUrl>
+    </developer>
+  </developers>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.xiaomi.infra.galaxy</groupId>
+      <artifactId>galaxy-fds-sdk-java</artifactId>
+      <version>1.10-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
+      <version>2.6.3</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.sun.jersey</groupId>
+          <artifactId>jersey-common</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.sun.jersey</groupId>
+          <artifactId>jersey-json</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.sun.jersey</groupId>
+          <artifactId>jersey-server</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.sun.jersey</groupId>
+          <artifactId>jersey-core</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk</artifactId>
+      <version>1.9.10</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.mrunit</groupId>
+      <artifactId>mrunit</artifactId>
+      <version>1.0.0</version>
+      <type>jar</type>
+      <classifier>hadoop2</classifier>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass></mainClass>
+            </manifest>
+          </archive>
+          <descriptorRefs>
+            <descriptorRef>
+              jar-with-dependencies
+            </descriptorRef>
+          </descriptorRefs>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>appassembler-maven-plugin</artifactId>
+        <version>1.1.1</version>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>assemble</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <configurationDirectory>conf</configurationDirectory>
+          <configurationSourceDirectory>conf</configurationSourceDirectory>
+          <copyConfigurationDirectory>true</copyConfigurationDirectory>
+          <includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
+
+          <repositoryLayout>flat</repositoryLayout>
+          <repositoryName>lib</repositoryName>
+
+          <assembleDirectory>${project.build.directory}/${project.artifactId}-${project.version}</assembleDirectory>
+
+          <binFileExtensions>
+            <unix>.sh</unix>
+          </binFileExtensions>
+          <platforms>
+            <platform>unix</platform>
+          </platforms>
+          <extraJvmArguments>-Djava.security.krb5.conf=$BASEDIR/conf/krb5.conf</extraJvmArguments>
+
+          <programs>
+            <program>
+              <mainClass>com.xiaomi.galaxy.fds.migration.Migration</mainClass>
+              <name>migration</name>
+            </program>
+          </programs>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

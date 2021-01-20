@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>confluence.chat</groupId>
+    <artifactId>confluence.chat</artifactId>
+    <packaging>atlassian-plugin</packaging>
+    <name>Chat for Confluence</name>
+    <description>A simple built-in chat for confluence</description>
+    <version>2.2.0</version>
+    <organization>
+        <name>Oliver Straesser</name>
+        <url>https://github.com/muchino/confluence.chat</url>
+    </organization>
+    <properties>
+        <atlassian.plugin.key>${project.artifactId}</atlassian.plugin.key>
+        <confluence.version>4.3</confluence.version>
+        <confluence.data.version>4.3</confluence.data.version>
+        <amps.version>5.0.13</amps.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>com.atlassian.usercompatibility</groupId>
+            <artifactId>usercompatibility-confluence</artifactId>
+            <version>2.1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.atlassian.sal</groupId>
+            <artifactId>sal-api</artifactId>
+            <version>2.6.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.atlassian.confluence</groupId>
+            <artifactId>confluence</artifactId>
+            <version>${confluence.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.atlassian.maven.plugins</groupId>
+                <artifactId>atlassian-pdk</artifactId>
+                <version>2.3.1</version>
+            </plugin>
+            <plugin>
+                <groupId>com.atlassian.maven.plugins</groupId>
+                <artifactId>maven-confluence-plugin</artifactId>
+                <version>${amps.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <productVersion>${confluence.version}</productVersion>
+                    <productDataVersion>${confluence.data.version}</productDataVersion>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.0</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.3</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <tasks>
+                                <property name="src.dir" value="${project.build.sourceDirectory}"/>
+                                <property name="package.dir" value="confluence/chat"/>
+                                <property name="package.name" value="confluence.chat"/>
+                                <property name="buildtime" value="${maven.build.timestamp}"/>
+                                <echo file="${src.dir}/${package.dir}/Version.java" message="package ${package.name};${line.separator}"/>
+                                <echo file="${src.dir}/${package.dir}/Version.java" append="true" message="public final class Version {${line.separator}"/>
+                                <echo file="${src.dir}/${package.dir}/Version.java" append="true" message=" public static String VERSION=&quot;${project.version}&quot;;${line.separator}"/>
+                                <echo file="${src.dir}/${package.dir}/Version.java" append="true" message="}${line.separator}"/>
+                                <echo message="BUILD ${buildtime}"/>
+                            </tasks>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.ant</groupId>
+                        <artifactId>ant-nodeps</artifactId>
+                        <version>1.7.0</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.4.3</version>
+                <configuration>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.atlassian.lesscss</groupId>
+                <artifactId>lesscss-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>compile-less</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <suffix>.css</suffix>
+                            <sourceDirectory>${project.basedir}/src/main/resources</sourceDirectory>
+                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <fork>true</fork>
+                    <meminitial>128m</meminitial>
+                    <maxmem>512m</maxmem>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <repositories>
+        <repository>
+            <id>maven-central</id>
+            <name>Maven Central</name>
+            <url>http://central.maven.org/maven2/</url>
+        </repository>
+        <repository>
+            <id>mvn-public</id>
+            <name>MVNRepository</name>
+            <url>http://mvnrepository.com</url>
+        </repository>
+        <repository>
+            <!--for javax.activation:activation.jar:1.0.2-->
+            <id>jboss-deprecated</id>
+            <name>JBoss Deprecated</name>
+            <url>http://repository.jboss.org/nexus/content/repositories/deprecated</url>
+        </repository>
+        <repository>
+            <id>central</id>
+            <url>https://m2proxy.atlassian.com/repository/public</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>maven-central</id>
+            <name>Maven Central</name>
+            <url>http://central.maven.org/maven2/</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>mvn-public</id>
+            <name>MVNRepository</name>
+            <url>http://mvnrepository.com</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>central</id>
+            <url>https://m2proxy.atlassian.com/repository/public</url>
+        </pluginRepository>
+    </pluginRepositories>
+</project>

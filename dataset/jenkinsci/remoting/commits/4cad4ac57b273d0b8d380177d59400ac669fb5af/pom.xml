@@ -1,0 +1,550 @@
+<!--
+The MIT License
+
+Copyright (c) 2004-2009, Sun Microsystems, Inc., Kohsuke Kawaguchi, Daniel Dyer, Stephen Connolly
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.jenkins-ci</groupId>
+    <artifactId>jenkins</artifactId>
+    <version>1.56</version>
+    <relativePath />
+  </parent>
+
+  <groupId>org.jenkins-ci.main</groupId>
+  <artifactId>remoting</artifactId>
+  <version>${revision}${changelist}</version>
+
+  <name>Jenkins remoting layer</name>
+  <description>
+    Contains the bootstrap code to bridge separate JVMs into a single semi-shared space.
+    Reusable outside Jenkins.
+  </description>
+  <licenses>
+    <license>
+      <name>The MIT license</name>
+      <url>https://opensource.org/licenses/MIT</url>
+      <distribution>repo</distribution>
+    </license>
+    <license>
+      <name>Apache License 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:git:git://github.com/jenkinsci/remoting.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/jenkinsci/remoting.git</developerConnection>
+    <url>https://github.com/jenkinsci/remoting</url>
+    <tag>${scmTag}</tag>
+  </scm>
+
+  <properties>
+    <revision>4.4</revision>
+    <changelist>-SNAPSHOT</changelist>
+    <java.level>8</java.level>
+    <build.type>private</build.type>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <spotbugs.effort>Max</spotbugs.effort>
+    <spotbugs.excludeFilterFile>${basedir}/src/spotbugs/excludeFilter.xml</spotbugs.excludeFilterFile>
+    <spotbugs.threshold>Low</spotbugs.threshold>
+    <!-- TODO: Required to override by a version with certchain support (MJARSIGNER-53) on @oleg-nenashev's machine. Remove once it's in upstream -->
+    <maven-jarsigner-plugin.version>1.4</maven-jarsigner-plugin.version>
+  </properties>
+
+  <repositories>
+    <repository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>repo.jenkins-ci.org</id>
+      <url>https://repo.jenkins-ci.org/public/</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.codehaus.mojo</groupId>
+      <artifactId>animal-sniffer-annotations</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.tyrus.bundles</groupId>
+      <artifactId>tyrus-standalone-client-jdk</artifactId>
+      <version>1.12</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <version>1.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.ant</groupId>
+      <artifactId>ant</artifactId>
+      <version>1.8.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>18.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>asm</groupId>
+      <artifactId>asm-all</artifactId>
+      <version>2.2.3</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>args4j</groupId>
+      <artifactId>args4j</artifactId>
+      <version>2.33</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci</groupId>
+      <artifactId>test-annotations</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.10.19</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci</groupId>
+      <artifactId>constant-pool-scanner</artifactId>
+      <version>1.2</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>com.github.spotbugs</groupId>
+      <artifactId>spotbugs-annotations</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk15on</artifactId>
+      <version>1.54</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcpkix-jdk15on</artifactId>
+      <version>1.54</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.kohsuke</groupId>
+      <artifactId>access-modifier-annotation</artifactId>
+      <version>1.12</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.websocket</groupId>
+      <artifactId>javax.websocket-api</artifactId>
+      <version>1.1</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <resources>
+      <resource>
+        <directory>${basedir}/src/filter/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+      <resource>
+        <directory>${basedir}/src/main/resources</directory>
+      </resource>
+      <resource>
+        <directory>${basedir}</directory>
+        <includes>
+          <include>NOTICE</include>
+        </includes>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <!-- version specified in grandparent pom -->
+        <configuration>
+          <!--rulesets>
+            <ruleset>ruleset.xml</ruleset>
+          </rulesets-->
+          <targetJdk>1.${java.level}</targetJdk>
+        </configuration>
+      </plugin>
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>3.2.1</version>
+          <executions>
+              <execution>
+                  <phase>package</phase>
+                  <goals>
+                      <goal>shade</goal>
+                  </goals>
+                  <configuration>
+                      <createDependencyReducedPom>false</createDependencyReducedPom>
+                      <relocations>
+                          <relocation>
+                              <pattern>javax.websocket</pattern>
+                              <shadedPattern>io.jenkins.remoting.shaded.javax.websocket</shadedPattern>
+                          </relocation>
+                          <relocation>
+                              <pattern>org.glassfish.tyrus</pattern>
+                              <shadedPattern>io.jenkins.remoting.shaded.org.glassfish.tyrus</shadedPattern>
+                          </relocation>
+                          <relocation>
+                              <pattern>org.kohsuke.args4j</pattern>
+                              <shadedPattern>io.jenkins.remoting.shaded.org.kohsuke.args4j</shadedPattern>
+                          </relocation>
+                          <relocation>
+                              <pattern>org.jenkinsci.constant_pool_scanner</pattern>
+                              <shadedPattern>io.jenkins.remoting.shaded.org.jenkinsci.constant_pool_scanner</shadedPattern>
+                          </relocation>
+                      </relocations>
+                      <transformers>
+                          <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                              <mainClass>hudson.remoting.Launcher</mainClass>
+                              <manifestEntries>
+                                  <Version>${project.version}</Version>
+                                  <!-- attributes related to Java Web Start -->
+                                  <!-- see http://docs.oracle.com/javase/8/docs/technotes/guides/jweb/security/manifest.html -->
+                                  <Permissions>all-permissions</Permissions>
+                                  <Codebase>*</Codebase>
+                                  <Application-Name>Jenkins Remoting Agent</Application-Name>
+                                  <Trusted-Library>true</Trusted-Library>
+                              </manifestEntries>
+                          </transformer>
+                          <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                      </transformers>
+                  </configuration>
+              </execution>
+          </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>executable-tests</id>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+            <configuration>
+              <archive>
+                <manifest>
+                  <addClasspath>true</addClasspath>
+                  <mainClass>org.jenkinsci.remoting.engine.HandlerLoopbackLoadStress</mainClass>
+                </manifest>
+              </archive>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jarsigner-plugin</artifactId>
+        <version>${maven-jarsigner-plugin.version}</version>
+        <configuration>
+          <!--
+            during the development, debug profile will cause
+            the jars to be signed by a self-certified dummy public key.
+
+            For release, you should define the real values in ~/.m2/settings.xml
+          -->
+          <alias>${hudson.sign.alias}</alias>
+          <storepass>${hudson.sign.storepass}</storepass>
+          <keystore>${hudson.sign.keystore}</keystore>
+          <storetype>${hudson.sign.storetype}</storetype>
+          <providerClass>${hudson.sign.providerClass}</providerClass>
+          <providerArg>${hudson.sign.providerArg}</providerArg>
+          <tsa>${hudson.sign.tsa}</tsa>
+          <!--
+            This option is required for JENKINS-37567, not required on any release machine.
+            In order to take effect, a version with MJARSIGNER-53 should be used.
+            See the "maven-jarsigner-plugin.version" parameter.
+          -->
+          <certchain>${hudson.sign.certchain}</certchain>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>sign</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>resgen</id>
+            <phase>process-test-classes</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.jenkins-ci</groupId>
+                  <artifactId>remoting-test-client</artifactId>
+                  <version>1.0</version>
+                  <outputDirectory>target/test-classes</outputDirectory>
+                  <destFileName>remoting-test-client.jar</destFileName>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.jenkins-ci</groupId>
+                  <artifactId>remoting-test-client</artifactId>
+                  <version>1.0</version>
+                  <classifier>tests</classifier>
+                  <outputDirectory>target/test-classes</outputDirectory>
+                  <destFileName>remoting-test-client-tests.jar</destFileName>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.6</version>
+        <configuration>
+          <descriptors>
+            <descriptor>src/assembly/agent-load-test.xml</descriptor>
+          </descriptors>
+          <attach>false</attach>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id> <!-- this is used for inheritance merges -->
+            <phase>package</phase> <!-- bind to the packaging phase -->
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <pushChanges>false</pushChanges>
+          <localCheckout>true</localCheckout>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>timestamp-property</id>
+            <goals>
+              <goal>timestamp-property</goal>
+            </goals>
+            <configuration>
+              <name>now</name>
+              <pattern>MM/dd/yyyy HH:mm z</pattern>
+              <locale>en_US</locale>
+            </configuration>
+          </execution>
+          <execution>
+            <id>user.name</id>
+            <goals>
+              <goal>regex-property</goal>
+            </goals>
+            <configuration>
+              <name>user.name.escaped</name>
+              <value>${user.name}</value>
+              <regex>([$\\])</regex>
+              <replacement>\\$1</replacement>
+              <failIfNoMatch>false</failIfNoMatch>
+            </configuration>
+          </execution>
+          <execution>
+            <id>version-property</id>
+            <goals>
+              <goal>regex-property</goal>
+            </goals>
+            <configuration>
+              <name>build.version</name>
+              <value>${project.version}</value>
+              <regex>-SNAPSHOT</regex>
+              <replacement>-SNAPSHOT (${build.type}-${now}-${user.name.escaped})</replacement>
+              <failIfNoMatch>false</failIfNoMatch>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.0.0-M1</version>
+        <configuration>
+          <trimStackTrace>false</trimStackTrace> <!-- SUREFIRE-1226 workaround -->
+          <rerunFailingTestsCount>4</rerunFailingTestsCount>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>all-tests</id>
+      <activation>
+        <property>
+          <name>!test</name>
+        </property>
+      </activation>
+      <properties>
+        <maven.test.redirectTestOutputToFile>true</maven.test.redirectTestOutputToFile>
+      </properties>
+    </profile>
+    <profile>
+      <id>debug</id>
+      <activation>
+        <property>
+          <name>!hudson.sign.alias</name>
+        </property>
+      </activation>
+      <properties>
+        <hudson.sign.alias>jenkins</hudson.sign.alias>
+        <hudson.sign.keystore>${basedir}/src/test/keystore/dummy.keystore</hudson.sign.keystore>
+        <hudson.sign.storepass>jenkins</hudson.sign.storepass>
+      </properties>
+    </profile>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <gpgArguments>
+                    <arg>--pinentry-mode</arg>
+                    <arg>loopback</arg>
+                  </gpgArguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-jarsigner-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>add-tsa</id>
+                <!-- Phase and goal are the default ones -->
+                <!-- TODO: Does it cause conflict with signing parameters in the build? Seems "no". Should also use ${hudson.sign.tsa} -->
+                <configuration>
+                    <arguments>
+                        <argument>-tsa</argument>
+                        <argument>http://timestamp.comodoca.com/rfc3161</argument>
+                    </arguments>
+                </configuration>
+              </execution>
+              <execution>
+                <id>verify-signature</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>verify</goal>
+                </goals>
+                <configuration>
+                  <processMainArtifact>true</processMainArtifact>
+                  <processAttachedArtifacts>false</processAttachedArtifacts>
+                  <certs>true</certs>
+                  <errorWhenNotSigned>true</errorWhenNotSigned>
+                  <arguments>-strict</arguments> <!--otherwise certificate chains will be ignored-->
+                  <alias>${hudson.sign.alias}</alias>
+                  <storepass>${hudson.sign.storepass}</storepass>
+                  <keystore>${hudson.sign.keystore}</keystore>
+                  <storetype>${hudson.sign.storetype}</storetype>
+                  <providerClass>${hudson.sign.providerClass}</providerClass>
+                  <providerArg>${hudson.sign.providerArg}</providerArg>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>jacoco</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.7.9</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>report</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

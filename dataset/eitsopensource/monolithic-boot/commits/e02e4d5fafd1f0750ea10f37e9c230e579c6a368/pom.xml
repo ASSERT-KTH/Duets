@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.0.4.RELEASE</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	
+	<groupId>br.com.eits</groupId>
+	<artifactId>monolithic-boot</artifactId>
+	<version>0.2.0</version>
+	<packaging>jar</packaging>
+
+	<properties>
+		<!-- General -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<start-class>br.com.eits.boot.Application</start-class>
+		<java.version>10</java.version>
+
+		<!-- Others -->
+		<eits-java-common.version>5.0.0</eits-java-common.version>
+		<dwr.version>3.0.2-RELEASE</dwr.version>
+		<apache.common.io.version>2.1</apache.common.io.version>
+		<apache.common.fileupload.version>1.3.1</apache.common.fileupload.version>
+
+		<!-- boot overrides -->
+		<hibernate.version>5.3.4.Final</hibernate.version>
+		
+		<!-- Web -->
+		<node.version>v10.8.0</node.version>
+		<yarn.version>v1.9.2</yarn.version>
+		<node.path>${user.home}/.node</node.path>
+		<typescript.path>src/main/ts</typescript.path>
+	</properties>
+	
+	<!-- Repositories -->
+	<repositories>
+		<repository>
+			<id>eits-repository-release</id>
+			<url>http://maven.eits.com.br/content/repositories/releases</url>
+		</repository>
+		<repository>
+			<id>eits-repository-snapshot</id>
+			<url>http://maven.eits.com.br/content/repositories/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		
+		<repository>
+			<id>spring-snapshots</id>
+			<url>https://repo.spring.io/snapshot</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>spring-milestones</id>
+			<url>https://repo.spring.io/milestone</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+	
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-snapshots</id>
+			<url>https://repo.spring.io/snapshot</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</pluginRepository>
+		<pluginRepository>
+			<id>spring-milestones</id>
+			<url>https://repo.spring.io/milestone</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</pluginRepository>
+		<pluginRepository>
+			<id>eits-repository-release</id>
+				<url>http://maven.eits.com.br/content/repositories/releases</url>
+			</pluginRepository>
+			<pluginRepository>
+			<id>eits-repository-snapshot</id>
+			<url>http://maven.eits.com.br/content/repositories/snapshots</url>
+			<snapshots>
+			<enabled>true</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
+	
+	<!-- Build -->
+	<build>
+		<resources>
+			<resource>
+				<filtering>true</filtering>
+				<directory>src/main/resources</directory>
+			</resource>
+		</resources>
+		<testResources>
+			<testResource>
+				<filtering>true</filtering>
+				<directory>src/test/resources</directory>
+			</testResource>
+		</testResources>
+		
+		<plugins>
+ 			<plugin>
+        		<groupId>org.apache.maven.plugins</groupId>
+        		<artifactId>maven-resources-plugin</artifactId>
+        		<configuration>
+          			<nonFilteredFileExtensions>
+            			<nonFilteredFileExtension>ico</nonFilteredFileExtension>
+            			<nonFilteredFileExtension>pdf</nonFilteredFileExtension>
+            			<nonFilteredFileExtension>jasper</nonFilteredFileExtension>
+            			<nonFilteredFileExtension>woff2</nonFilteredFileExtension>
+            			<nonFilteredFileExtension>woff</nonFilteredFileExtension>
+            			<nonFilteredFileExtension>ttf</nonFilteredFileExtension>
+            			<nonFilteredFileExtension>eot</nonFilteredFileExtension>
+						<nonFilteredFileExtension>png</nonFilteredFileExtension>
+						<nonFilteredFileExtension>jpg</nonFilteredFileExtension>
+          			</nonFilteredFileExtensions>
+        		</configuration>
+      		</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+        			<executable>true</executable>
+    			</configuration>
+			</plugin>
+			
+			<!-- Unit Tests -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>**/*IntegrationTest*.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+			<!-- Integration Tests -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<configuration>
+					<!--
+					<parallel>methods</parallel> 
+					<threadCount>10</threadCount> 
+					-->
+					<includes>
+						<include>**/*IntegrationTests.java</include>
+					</includes>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>br.com.eits.codegen</groupId>
+				<artifactId>ts-codegen-maven-plugin</artifactId>
+				<version>2.1.2</version>
+				<executions>
+					<execution>
+						<id>generate angular bindings</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>generate-ts</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+        	
+        	<!-- Angular build -->
+        	<plugin>
+				<groupId>com.github.eirslett</groupId>
+				<artifactId>frontend-maven-plugin</artifactId>
+				<version>1.6</version>
+				<configuration>
+					<nodeVersion>${node.version}</nodeVersion>
+					<yarnVersion>${yarn.version}</yarnVersion>
+					<workingDirectory>${typescript.path}</workingDirectory>
+					<installDirectory>${node.path}</installDirectory>
+				</configuration>
+				<executions>
+					<execution>
+						<id>install node and npm</id>
+						<phase>initialize</phase>
+						<goals>
+							<goal>install-node-and-yarn</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>yarn install</id>
+						<phase>initialize</phase>
+						<goals>
+							<goal>yarn</goal>
+						</goals>
+						<configuration>
+							<arguments>install --mutex network</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>yarn run mavenbuild</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>yarn</goal>
+						</goals>
+						<configuration>
+							<arguments>run maven-build</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											com.github.eirslett
+										</groupId>
+										<artifactId>
+											frontend-maven-plugin
+										</artifactId>
+										<goals>
+											<goal>install-node-and-npm</goal>
+											<goal>npm</goal>
+										</goals>
+										<versionRange>[1.3,)</versionRange>
+									</pluginExecutionFilter>
+									<action>
+										<ignore/>
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>br.com.eits.codegen</groupId>
+										<artifactId>ts-codegen-maven-plugin</artifactId>
+										<goals>
+											<goal>generate-ts</goal>
+										</goals>
+										<versionRange>[1.1,)</versionRange>
+									</pluginExecutionFilter>
+									<action>
+										<execute>
+											<runOnIncremental>false</runOnIncremental>
+										</execute>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		
+	</build>
+	
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>sonar-maven-plugin</artifactId>
+				<version>${sonar.plugin.version}</version>
+			</plugin>
+		</plugins>
+	</reporting>
+
+	<!-- Dependencies -->	
+	<dependencies>
+		<dependency>
+			<groupId>br.com.eits</groupId>
+			<artifactId>eits-java-common</artifactId>
+			<version>${eits-java-common.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>br.com.eits</groupId>
+			<artifactId>spring-data-query-exporter</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+	
+        <!-- Spring Boot -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- Spring Framework -->
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- Reactive Programming -->
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-core</artifactId>
+		</dependency>
+		
+		<!-- Thymeleaf -->
+		<dependency>
+            <groupId>org.thymeleaf.extras</groupId>
+            <artifactId>thymeleaf-extras-springsecurity4</artifactId>
+        </dependency>
+		
+		<!-- Hibernate -->
+		<dependency>
+		    <groupId>org.hibernate</groupId>
+		    <artifactId>hibernate-envers</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-java8</artifactId>
+		</dependency>
+
+		<!-- jaxb -->
+
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>${javax-jaxb.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-core</artifactId>
+			<version>${javax-jaxb.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<version>${javax-jaxb.version}</version>
+		</dependency>
+
+		<!-- DataSource -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+  			<artifactId>postgresql</artifactId>
+  		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+  		
+		<!-- Apache Commons -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>${apache.common.io.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+			<version>${apache.common.fileupload.version}</version>
+		</dependency>
+		
+  		<!-- DWR -->
+		<dependency>
+    		<groupId>org.directwebremoting</groupId>
+    		<artifactId>dwr</artifactId>
+    		<version>${dwr.version}</version>
+  		</dependency>
+  		
+  		<!-- Lombok -->
+		<dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+		<!-- login -->
+
+		<dependency>
+			<groupId>org.webjars</groupId>
+			<artifactId>webjars-locator</artifactId>
+			<version>0.34</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.webjars.npm</groupId>
+			<artifactId>material-design-lite</artifactId>
+			<version>1.3.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.webjars.npm</groupId>
+			<artifactId>jquery</artifactId>
+			<version>2.2.4</version>
+		</dependency>
+	</dependencies>
+	
+</project>

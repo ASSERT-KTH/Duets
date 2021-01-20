@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>net.aimeizi</groupId>
+    <artifactId>spring-boot-docker-example</artifactId>
+    <version>1.0</version>
+    <packaging>jar</packaging>
+
+    <name>spring-boot-docker-example</name>
+    <description>Demo project for Spring Boot</description>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.5.4.RELEASE</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
+        <!-- 阿里云镜像仓库地址 -->
+        <!--<docker.repostory>registry.cn-hangzhou.aliyuncs.com</docker.repostory>-->
+        <!-- 对应阿里云hub中的namespace，必须一致 -->
+        <!--<docker.registry.name>ameizi</docker.registry.name>-->
+        <!-- 本地私服仓库地址 -->
+        <docker.repostory>registry.ameizi.me</docker.repostory>
+        <!-- 本地私服仓库项目名称 -->
+        <docker.registry.name>library</docker.registry.name>
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.16</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-undertow</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-remote-shell</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.4.13</version>
+                <executions>
+                    <execution>
+                        <id>build-image</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>tag-image</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>tag</goal>
+                        </goals>
+                        <configuration>
+                            <image>${docker.registry.name}/${project.artifactId}:${project.version}</image>
+                            <newName>${docker.repostory}/${docker.registry.name}/${project.artifactId}:${project.version}</newName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>push-image</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>push</goal>
+                        </goals>
+                        <configuration>
+                            <imageName>${docker.repostory}/${docker.registry.name}/${project.artifactId}:${project.version}</imageName>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <serverId>registry.ameizi.me</serverId>
+                    <registryUrl>${docker.repostory}</registryUrl>
+                    <pushImage>true</pushImage>
+                    <!-- 本地构建时的镜像名称 -->
+                    <!--<imageName>${docker.registry.name}/${project.artifactId}</imageName>-->
+                    <!-- 推送到私服时的镜像名 -->
+                    <imageName>${docker.repostory}/${docker.registry.name}/${project.artifactId}:${project.version}</imageName>
+                    <imageTags>
+                        <imageTag>latest</imageTag>
+                        <imageTag>${project.version}</imageTag>
+                    </imageTags>
+                    <dockerDirectory>src/main/docker</dockerDirectory>
+                    <resources>
+                        <resource>
+                            <targetPath>/</targetPath>
+                            <directory>${project.build.directory}</directory>
+                            <include>${project.build.finalName}.jar</include>
+                        </resource>
+                    </resources>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.21.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <verbose>true</verbose>
+                    <!-- 远程docker服务机器IP和监听端口 -->
+                    <dockerHost>http://registry.ameizi.me:2376</dockerHost>
+                    <images>
+                        <image>
+                            <alias>app</alias>
+                            <name>${docker.registry.name}/${project.artifactId}:${project.version}</name>
+                            <build>
+                                <from>openjdk:latest</from>
+                                <tags>
+                                    <tag>${project.version}</tag>
+                                </tags>
+                                <ports>
+                                    <port>8080</port>
+                                </ports>
+                                <entryPoint>
+                                    <exec>
+                                        <args>java</args>
+                                        <args>-Djava.security.egd=file:/dev/./urandom</args>
+                                        <args>-jar</args>
+                                        <args>/maven/${project.artifactId}-${project.version}.jar</args>
+                                    </exec>
+                                </entryPoint>
+                                <!--
+                                <cmd>
+                                    java -jar /maven/${project.artifactId}-${project.version}.jar
+                                </cmd>
+                                -->
+                                <assembly>
+                                    <descriptorRef>artifact</descriptorRef>
+                                </assembly>
+                            </build>
+                            <run>
+                                <namingStrategy>alias</namingStrategy>
+                                <env>
+                                    <CATALINA_OPTS>-Xmx128m</CATALINA_OPTS>
+                                </env>
+                                <ports>
+                                    <port>8080:8080</port>
+                                </ports>
+                                <links>
+                                    <link>db</link>
+                                </links>
+                                <dependsOn>
+                                    <container>db</container>
+                                </dependsOn>
+                            </run>
+                        </image>
+
+                        <image>
+                            <alias>db</alias>
+                            <name>mariadb:latest</name>
+                            <run>
+                                <namingStrategy>alias</namingStrategy>
+                                <env>
+                                    <MYSQL_ROOT_PASSWORD>root</MYSQL_ROOT_PASSWORD>
+                                </env>
+                                <ports>
+                                    <port>3306:3306</port>
+                                </ports>
+                                <volumes>
+                                    <bind>
+                                        <volume>/var/mysql/data:/var/lib/mysql</volume>
+                                    </bind>
+                                </volumes>
+                            </run>
+                        </image>
+                    </images>
+                    <pushRegistry>${docker.repostory}</pushRegistry>
+                    <authConfig>
+                        <!-- 镜像仓库用户名密码 -->
+                        <username>admin</username>
+                        <password>admin</password>
+                    </authConfig>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

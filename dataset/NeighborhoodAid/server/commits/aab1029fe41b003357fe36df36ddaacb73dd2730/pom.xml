@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>de.wirvsvirus.neighborhoodaid</groupId>
+    <artifactId>Server</artifactId>
+    <version>1.0.2-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <!--    Main    -->
+        <main.class>de.wirvsvirus.neighborhoodaid.VertxLauncher</main.class>
+        <main.verticle>de.wirvsvirus.neighborhoodaid.StarterVerticle</main.verticle>
+        <!--    Environment    -->
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <project.build.sourceEncoding>
+            UTF-8
+        </project.build.sourceEncoding>
+        <!--    Dependency versions    -->
+        <sentry.version>1.7.30</sentry.version>
+        <vertx.version>3.8.5</vertx.version>
+        <apache.commons.lang.version>3.9</apache.commons.lang.version>
+        <microstream.version>02.02.01-MS-GA</microstream.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>microstream-releases</id>
+            <url>https://repo.microstream.one/repository/maven-public/</url>
+        </repository>
+    </repositories>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-dependencies</artifactId>
+                <version>${vertx.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- https://mvnrepository.com/artifact/io.sentry/sentry-logback -->
+        <dependency>
+            <groupId>io.sentry</groupId>
+            <artifactId>sentry-logback</artifactId>
+            <version>${sentry.version}</version>
+        </dependency>
+        <!--    Vert.x    -->
+        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-core -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-core</artifactId>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-web -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-web</artifactId>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/io.vertx/vertx-auth-oauth2 -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-auth-oauth2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-config</artifactId>
+        </dependency>
+        <!--    Persistence    -->
+        <dependency>
+            <groupId>one.microstream</groupId>
+            <artifactId>storage.embedded</artifactId>
+            <version>${microstream.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>one.microstream</groupId>
+            <artifactId>storage.embedded.configuration</artifactId>
+            <version>${microstream.version}</version>
+        </dependency>
+        <!--    Utils    -->
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${apache.commons.lang.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>13.0</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                    <transformers>
+                        <transformer
+                                implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                        <transformer
+                                implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <manifestEntries>
+                                <Main-Class>${main.class}</Main-Class>
+                            </manifestEntries>
+                        </transformer>
+                    </transformers>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>io.reactiverse</groupId>
+                <artifactId>vertx-maven-plugin</artifactId>
+                <version>1.0.22</version>
+                <executions>
+                    <execution>
+                        <id>vmp-init-package</id>
+                        <goals>
+                            <goal>initialize</goal>
+                            <goal>package</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <skip>false</skip>
+                    <redeploy>false</redeploy>
+                    <classifier>fat</classifier>
+                    <attach>true</attach>
+                    <workDirectory>${project.build.directory}</workDirectory>
+                    <verticle>${main.verticle}</verticle>
+                    <webRoot>${project.build.outputDirectory}/META-INF/resources/webjars</webRoot>
+                    <stripWebJarVersion>false</stripWebJarVersion>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub NeighborhoodAid Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/NeighborhoodAid/Server</url>
+        </repository>
+    </distributionManagement>
+
+</project>

@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>net.nickac.lithium</groupId>
+    <artifactId>Lithium-SpigotBridge</artifactId>
+    <version>1.3</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- the language level -->
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.testSource>1.8</maven.compiler.testSource>
+        <maven.compiler.testTarget>1.8</maven.compiler.testTarget>
+
+    </properties>
+
+
+    <profiles>
+        <profile>
+            <id>obfuscate</id>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.wvengen</groupId>
+                        <artifactId>proguard-maven-plugin</artifactId>
+                        <version>2.0.14</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>proguard</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <proguardVersion>5.2</proguardVersion>
+                            <options>
+                                <option>-allowaccessmodification</option>
+                                <!--<option>-dontshrink</option>-->
+                                <option>-repackageclasses</option>
+                                <option>-dontoptimize</option>
+                                <option>-dontnote</option>
+                                <option>-keepattributes Signature</option>
+                                <option>-keep interface net.nickac.lithium.backend.** {*;}</option>
+                                <option>-keep class net.nickac.lithium.frontend.LithiumPlugin {
+                                    public
+                                    *; }
+                                </option>
+                                <option>-keepnames class net.nickac.lithium.frontend.LithiumPlugin {
+                                    public *; }
+                                </option>
+                                <option>-keep enum net.nickac.lithium.backend.** {*;}</option>
+                                <option>-keepclassmembernames class
+                                    net.nickac.lithium.frontend.LithiumPlugin {
+                                    !private *;
+                                    }
+                                </option>
+                                -keep class mypackage.MyCallbackClass {
+                                void myCallbackMethod(java.lang.String);
+                                }
+                                <option>-keep class net.nickac.lithium.frontend.players.LithiumPlayerManager {
+                                    public boolean isUsingLithium(org.bukkit.entity.Player);
+                                    public net.nickac.lithium.frontend.players.LithiumPlayer getPlayer(org.bukki.entity.Player);
+                                    }</option>
+                                <option>
+                                    -keep class net.nickac.lithium.frontend.players.LithiumPlayer {
+                                    public void refreshControl(java.util.UUID);
+                                    public java.util.UUID getUniqueId();
+                                    public void openContainer(net.nickac.lithium.backend.controls.LContainerViewable);
+                                    public void closeInterface();
+                                    }
+                                </option>
+                                <option>-keep class net.nickac.lithium.backend.** { *; }
+                                </option>
+                            </options>
+                            <libs>
+                                <lib>${java.home}/lib/rt.jar</lib>
+                            </libs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+
+    <build>
+        <finalName>Lithium-Spigot-${version}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.4.3</version>
+                <executions>
+                    <!-- Run shade goal on package phase -->
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+            <!-- download source code in Eclipse, best practice -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-eclipse-plugin</artifactId>
+                <version>2.9</version>
+                <configuration>
+                    <downloadSources>true</downloadSources>
+                    <downloadJavadocs>false</downloadJavadocs>
+                </configuration>
+            </plugin>
+
+            <!-- Set a compiler level -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.source}</target>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+
+    <repositories>
+        <repository>
+            <id>spigot-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+        </repository>
+    </repositories>
+    <dependencies>
+        <!--Spigot API-->
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>1.12.2-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.7</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.18</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/io.netty/netty-all -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.17.Final</version>
+            <scope>provided</scope>
+        </dependency>
+
+
+        <dependency>
+            <groupId>net.nickac.lithium</groupId>
+            <artifactId>Backend</artifactId>
+            <version>1.3</version>
+            <scope>compile</scope>
+        </dependency>
+
+    </dependencies>
+
+
+</project>

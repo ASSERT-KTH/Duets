@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.nouhoun.springboot.jwt.integration</groupId>
+	<artifactId>springboot-jwt</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>springboot-jwt</name>
+	<description>Demo project for Spring Boot</description>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.0.4.RELEASE</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>1.8</java.version>
+		
+	    <base>frolvlad/alpine-oraclejdk8:slim</base>
+	    <tomcat.port>9081</tomcat.port>
+	    <tomcat.ip>127.0.0.1</tomcat.ip>
+	    <file>readme</file>
+	    
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-jwt</artifactId>
+			<version>1.0.7.RELEASE</version>
+		</dependency>
+        <!-- https://mvnrepository.com/artifact/org.springframework.security.oauth/spring-security-oauth2 -->
+        <dependency>
+            <groupId>org.springframework.security.oauth</groupId>
+            <artifactId>spring-security-oauth2</artifactId>
+            <version>2.1.0.RELEASE</version>
+        </dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.9.7</version>
+		</dependency>
+
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <executable>true</executable>
+					<addResources>true</addResources>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+			</plugin>
+			
+	         <plugin>
+		        <groupId>io.fabric8</groupId>
+		        <artifactId>docker-maven-plugin</artifactId>
+		        <extensions>true</extensions>
+		        
+ 		        <configuration>
+		          <images>
+			            <image>
+			              <name>springboot-jwt</name>
+			              <alias>springboot-jwt</alias>
+			              <build>
+			                <filter>@</filter>
+			                <dockerFileDir>${project.basedir}/src/main/docker</dockerFileDir>
+			                <assembly>
+			                  <descriptorRef>artifact</descriptorRef>
+			                </assembly>
+			              </build>
+			              <run>
+			              	<namingStrategy>alias</namingStrategy>
+			                <ports> 
+			                  <port>${tomcat.port}:8080</port>
+			                </ports>
+					         <wait> 
+					           <http>
+					              <url>http://${tomcat.ip}:${tomcat.port}/health</url>
+					           </http>
+					           <time>90000</time>
+					         </wait>
+			              </run>
+			            </image>
+		          </images>
+		        </configuration>	
+		        	
+		      </plugin>
+		</plugins>
+	</build>
+
+</project>

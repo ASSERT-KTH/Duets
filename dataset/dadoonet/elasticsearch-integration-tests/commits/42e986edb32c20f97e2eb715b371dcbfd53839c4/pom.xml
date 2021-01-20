@@ -1,0 +1,185 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>fr.pilato.talk</groupId>
+    <artifactId>elasticsearch-integration-tests</artifactId>
+    <version>0.1-SNAPSHOT</version>
+
+    <properties>
+        <elasticsearch.version>7.1.1</elasticsearch.version>
+        <log4j.version>2.10.0</log4j.version>
+        <jansi.version>1.16</jansi.version>
+
+        <!-- Build properties -->
+        <java.compiler.version>1.8</java.compiler.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- Test properties -->
+        <skipTests>false</skipTests>
+        <skipIntegTests>${skipTests}</skipIntegTests>
+        <skipUnitTests>${skipTests}</skipUnitTests>
+        <tests.seed></tests.seed>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-client</artifactId>
+            <version>${elasticsearch.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-high-level-client</artifactId>
+            <version>${elasticsearch.version}</version>
+        </dependency>
+
+        <!-- Logging dependencies -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-1.2-api</artifactId>
+            <version>${log4j.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${log4j.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-jcl</artifactId>
+            <version>${log4j.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-jul</artifactId>
+            <version>${log4j.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.fusesource.jansi</groupId>
+            <artifactId>jansi</artifactId>
+            <version>${jansi.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>
+            </testResource>
+        </testResources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <source>${java.compiler.version}</source>
+                    <target>${java.compiler.version}</target>
+                    <encoding>UTF-8</encoding>
+                    <optimize>true</optimize>
+                    <showDeprecation>true</showDeprecation>
+                    <showWarnings>true</showWarnings>
+                    <compilerArgument>-Xlint:all,-serial,-path,-rawtypes,-unchecked</compilerArgument>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>com.carrotsearch.randomizedtesting</groupId>
+                <artifactId>junit4-maven-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <heartbeat>10</heartbeat>
+                    <jvmOutputAction>pipe,ignore</jvmOutputAction>
+                    <ifNoTests>warn</ifNoTests>
+                    <listeners>
+                        <report-text showThrowable="true" showStackTraces="true" showOutput="always"
+                                     showStatusOk="false" showStatusError="true" showStatusFailure="true"
+                                     showStatusIgnored="true" showSuiteSummary="false" />
+                    </listeners>
+                    <seed>${tests.seed}</seed>
+                    <systemProperties combine.children="append">
+                        <arg.common>arg.common</arg.common>
+                        <tests.timeoutSuite>60000</tests.timeoutSuite>
+                        <tests.locale>random</tests.locale>
+                        <tests.timezone>random</tests.timezone>
+                        <java.util.logging.manager>org.apache.logging.log4j.jul.LogManager</java.util.logging.manager>
+                        <java.awt.headless>true</java.awt.headless>
+                    </systemProperties>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>unit-tests</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>junit4</goal>
+                        </goals>
+                        <inherited>true</inherited>
+                        <configuration>
+                            <skipTests>${skipUnitTests}</skipTests>
+                            <includes>
+                                <include>**/*Test.class</include>
+                            </includes>
+                            <excludes>
+                                <exclude>**/*$*</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>integration-tests</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>junit4</goal>
+                        </goals>
+                        <inherited>true</inherited>
+                        <configuration>
+                            <skipTests>${skipIntegTests}</skipTests>
+                            <includes>
+                                <include>**/*IT.class</include>
+                            </includes>
+                            <excludes>
+                                <exclude>**/*$*</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Disable surefire so we can use randomize testing framework -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.20.1</version>
+                <executions>
+                    <execution>
+                        <id>default-test</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+        </plugins>
+    </build>
+
+</project>

@@ -1,0 +1,170 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>eu.transkribus</groupId>
+	<artifactId>TranskribusClient</artifactId>
+	<version>0.3.3</version>
+	<packaging>jar</packaging>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- Transkribus components' version numbers -->
+		<core.version>0.12.2</core.version>
+		<jersey.version>2.7</jersey.version>
+		<!-- the server uses 2.25.1. TODO switch -->
+<!-- 		<jersey.version>2.25.1</jersey.version> -->
+	</properties>
+	<repositories>
+		<!-- dea artifactory: -->		
+		<repository>
+			<id>dea-artifactory</id>
+			<name>dea-artifactory-releases</name>
+			<url>http://dbis-halvar.uibk.ac.at/artifactory/libs-release/</url>
+		</repository>
+		<repository>
+			<id>swt-repo</id>
+			<url>https://swt-repo.googlecode.com/svn/repo/</url>
+		</repository>		
+	</repositories>
+	<distributionManagement>
+	    <repository>
+	        <id>dbis-halvar-artifactory</id>
+	        <name>dbis-halvar-releases</name>
+	        <url>http://dbis-halvar.uibk.ac.at/artifactory/libs-release-local</url>
+	    </repository>
+	    <site>
+			<id>website</id>
+			<name>transkribus.eu</name>
+			<url>scp://read01.uibk.ac.at/var/www/html/TranskribusClient</url>
+		</site>
+	</distributionManagement>
+	<dependencies>
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.glassfish.tyrus</groupId> -->
+<!-- 			<artifactId>tyrus-client</artifactId> -->
+<!-- 			<version>1.10</version> -->
+<!-- 		</dependency> -->
+			    
+		<dependency>
+			<groupId>eu.transkribus</groupId>
+			<artifactId>TranskribusCore</artifactId>
+			<version>${core.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.2.7</version>
+		</dependency>
+
+		<!-- new jersey 2.x stuff -->
+		<dependency>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-client</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-moxy</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-multipart</artifactId>
+			<version>${jersey.version}</version>
+<!-- 			<exclusions> -->
+<!-- 				<exclusion> -->
+<!-- 			    	<groupId>org.jvnet.mimepull</groupId> -->
+<!-- 					<artifactId>mimepull</artifactId> -->
+<!--         		</exclusion> -->
+<!-- 			</exclusions> -->
+		</dependency>
+		
+		<!-- 
+		Exclude mimepull from jersey-media-multipart dependency and force mimepull version 1.9.
+		This fixes an issue with special characters in filenames (multipart/formdata). 
+		see https://github.com/jersey/jersey/issues/3457 
+		
+		This is not necessary to be done on the client.
+		-->
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.jvnet.mimepull</groupId> -->
+<!-- 		    <artifactId>mimepull</artifactId> -->
+<!-- 		    <version>1.9</version> -->
+<!-- 		</dependency> -->
+		
+		
+		<!-- For IProgressMonitor  -->
+		<!-- Should already get included via TranskribusCore -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.eclipse.equinox</groupId> -->
+<!-- 			<artifactId>org.eclipse.equinox.common</artifactId> -->
+<!-- 			<version>3.6.0.v20110523</version> -->
+<!-- 		</dependency>		 -->
+		
+		<!-- only used for client update. Use jersey-moxy instead? -->
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20140107</version>
+		</dependency>
+
+		<!-- For the websocket client: -->
+		<dependency>
+		    <groupId>org.glassfish.tyrus.bundles</groupId>
+		    <artifactId>tyrus-standalone-client</artifactId>
+		    <version>1.10</version>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.3</version>
+				<configuration>
+					<additionalparam>-Xdoclint:none</additionalparam>
+					<show>private</show>
+					<nohelp>true</nohelp>
+				</configuration>
+			</plugin>	
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>3.5.1</version>
+					<dependencies>
+						<dependency><!-- add support for ssh/scp -->
+							<groupId>org.apache.maven.wagon</groupId>
+							<artifactId>wagon-ssh</artifactId>
+							<version>1.0</version>
+						</dependency>
+					</dependencies>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.3</version>
+				<configuration>
+					<stylesheetfile>${basedir}/src/main/javadoc/stylesheet.css</stylesheetfile>
+					<show>public</show>
+					<additionalparam>-Xdoclint:none</additionalparam>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
+</project>

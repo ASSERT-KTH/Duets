@@ -1,0 +1,274 @@
+<!--
+  Copyright 2017, 2018 IBM Corp. All Rights Reserved.
+  
+  Licensed under the Apache License, Version 2.0 (the "License"); you may not
+  use this file except in compliance with the License. You may obtain a copy
+  of the License at
+  
+  http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+  License for the specific language governing permissions and limitations
+  under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+   <groupId>com.ibm.etcd</groupId>
+   <artifactId>etcd-java</artifactId>
+   <version>0.0.18-SNAPSHOT</version>
+   <packaging>jar</packaging>
+
+   <name>etcd-java</name>
+   <description>etcd3 java client and utilities</description>
+   <url>https://github.com/IBM/etcd-java</url>
+
+   <licenses>
+      <license>
+         <name>The Apache License, Version 2.0</name>
+         <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      </license>
+   </licenses>
+
+   <developers>
+      <developer>
+         <id>njhill</id>
+         <name>Nick Hill</name>
+         <email>nickhill@us.ibm.com</email>
+         <organization>IBM</organization>
+      </developer>
+   </developers>
+
+   <scm>
+      <connection>scm:git:git@github.com:IBM/etcd-java.git</connection>
+      <developerConnection>scm:git:git@github.com:IBM/etcd-java.git</developerConnection>
+      <url>https://github.com/IBM/etcd-java</url>
+   </scm>
+
+   <distributionManagement>
+      <snapshotRepository>
+         <id>ossrh</id>
+         <url>https://oss.sonatype.org/content/repositories/snapshots</url> 
+      </snapshotRepository>
+   </distributionManagement>
+
+   <properties>
+      <grpc-version>1.33.1</grpc-version>
+      <netty-version>4.1.51.Final</netty-version>
+      <netty-tcnative-version>2.0.31.Final</netty-tcnative-version>
+      <protobuf-version>3.14.0</protobuf-version>
+      <gson-version>2.8.6</gson-version>
+      <slf4j-version>1.7.30</slf4j-version>
+      <junit-version>4.13.1</junit-version>
+      <guava-version>30.0-jre</guava-version>
+      <annotations-version>9.0.40</annotations-version>
+
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+   </properties>
+
+   <dependencies>
+       <dependency>
+         <groupId>io.netty</groupId>
+         <artifactId>netty-transport-native-epoll</artifactId>
+         <version>${netty-version}</version>
+         <!-- epoll only applicable to linux, won't be used otherwise -->
+         <classifier>linux-x86_64</classifier>
+      </dependency>
+      <dependency>
+         <groupId>io.netty</groupId>
+         <artifactId>netty-tcnative-boringssl-static</artifactId>
+         <version>${netty-tcnative-version}</version>
+         <scope>runtime</scope>
+      </dependency>
+
+      <dependency>
+         <groupId>io.grpc</groupId>
+         <artifactId>grpc-netty</artifactId>
+         <version>${grpc-version}</version>
+         <scope>compile</scope>
+      </dependency>
+      <dependency>
+         <groupId>io.grpc</groupId>
+         <artifactId>grpc-protobuf</artifactId>
+         <version>${grpc-version}</version>
+         <scope>compile</scope>
+      </dependency>
+      <dependency>
+         <groupId>io.grpc</groupId>
+         <artifactId>grpc-stub</artifactId>
+         <version>${grpc-version}</version>
+         <scope>compile</scope>
+      </dependency>
+
+      <!-- used only for etcd cluster configuration files -->
+      <dependency>
+         <groupId>com.google.code.gson</groupId>
+         <artifactId>gson</artifactId>
+         <version>${gson-version}</version>
+         <scope>compile</scope>
+      </dependency>
+
+      <dependency>
+         <groupId>com.google.guava</groupId>
+         <artifactId>guava</artifactId>
+         <version>${guava-version}</version>
+         <scope>compile</scope>
+      </dependency>
+
+      <dependency>
+         <groupId>org.slf4j</groupId>
+         <artifactId>slf4j-api</artifactId>
+         <version>${slf4j-version}</version>
+         <scope>compile</scope>
+      </dependency>
+
+      <!-- This is required for compiling on java11+, to provide
+           the @Generated annotation used in the protoc-generated
+           gRPC stubs. "provided" scope is sufficient since this
+           annotation only has source retention. -->
+      <dependency>
+         <groupId>org.apache.tomcat</groupId>
+         <artifactId>tomcat-annotations-api</artifactId>
+         <version>${annotations-version}</version>
+         <scope>provided</scope>
+      </dependency>
+
+      <dependency>
+         <groupId>junit</groupId>
+         <artifactId>junit</artifactId>
+         <version>${junit-version}</version>
+         <scope>test</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.slf4j</groupId>
+         <artifactId>slf4j-simple</artifactId>
+         <version>${slf4j-version}</version>
+         <scope>test</scope>
+      </dependency>
+   </dependencies>
+
+   <build>
+      <extensions>
+         <extension>
+            <groupId>kr.motd.maven</groupId>
+            <artifactId>os-maven-plugin</artifactId>
+            <version>1.6.2</version>
+         </extension>
+      </extensions>
+      <plugins>
+         <plugin>
+            <groupId>org.xolstice.maven.plugins</groupId>
+            <artifactId>protobuf-maven-plugin</artifactId>
+            <version>0.6.1</version>
+            <configuration>
+               <protocArtifact>com.google.protobuf:protoc:${protobuf-version}:exe:${os.detected.classifier}</protocArtifact>
+               <pluginId>grpc-java</pluginId>
+               <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc-version}:exe:${os.detected.classifier}</pluginArtifact>
+            </configuration>
+            <executions>
+               <execution>
+                  <goals>
+                     <goal>compile</goal>
+                     <goal>compile-custom</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.8.1</version>
+            <configuration>
+               <source>1.8</source>
+               <target>1.8</target>
+            </configuration>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.22.1</version>
+            <configuration>
+               <includes>
+                  <include>**/*TestSuite.java</include>
+               </includes>
+            </configuration>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.1.1</version>
+            <configuration>
+               <source>8</source>
+               <quiet>true</quiet>
+               <nonavbar>true</nonavbar>
+               <notree>true</notree>
+               <nocomment>true</nocomment>
+               <nohelp>true</nohelp>
+               <doclint>none</doclint>
+            </configuration>
+            <executions>
+               <execution>
+                  <id>attach-javadocs</id>
+                  <goals>
+                     <goal>jar</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         
+         <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.8</version>
+            <extensions>true</extensions>
+            <configuration>
+                <serverId>ossrh</serverId>
+                <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                <!-- for now, don't auto-release -->
+                <autoReleaseAfterClose>false</autoReleaseAfterClose>
+            </configuration>
+        </plugin>
+      </plugins>
+   </build>
+
+   <profiles>
+      <profile>
+         <id>release-artifacts</id>
+         <activation>
+            <activeByDefault>false</activeByDefault>
+         </activation>
+         <build>
+            <plugins>
+               <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-source-plugin</artifactId>
+                  <version>3.2.0</version>
+                  <executions>
+                     <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                           <goal>jar-no-fork</goal>
+                        </goals>
+                     </execution>
+                  </executions>
+               </plugin>
+               <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-gpg-plugin</artifactId>
+                  <version>1.6</version>
+                  <executions>
+                     <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                           <goal>sign</goal>
+                        </goals>
+                     </execution>
+                  </executions>
+               </plugin>
+            </plugins>
+         </build>
+      </profile>
+   </profiles>
+</project>

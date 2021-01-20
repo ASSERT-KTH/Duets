@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright 2016-2020 Talsma ICT
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Artifact identification -->
+    <groupId>nl.talsmasoftware</groupId>
+    <artifactId>umldoclet</artifactId>
+    <version>2.0.11-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <!-- Project information -->
+    <name>UML doclet</name>
+    <description>Doclet for the JavaDoc tool that generates UML diagrams from the code.</description>
+    <url>https://github.com/talsma-ict/umldoclet</url>
+    <inceptionYear>2016</inceptionYear>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>Talsma ICT</name>
+        <url>https://github.com/talsma-ict/</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <id>sjoerd</id>
+            <name>Sjoerd Talsma</name>
+            <email>sjoerd@talsma-ict.nl</email>
+            <url>https://github.com/sjoerdtalsma</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/talsma-ict/umldoclet.git</url>
+        <connection>scm:git:git://github.com/talsma-ict/umldoclet.git</connection>
+        <developerConnection>scm:git:https://github.com/talsma-ict/umldoclet.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- Plant UML apache-licensed sources: https://sourceforge.net/projects/plantuml/files/ -->
+        <plantuml-asl.directory>${project.basedir}/src/plantuml-asl</plantuml-asl.directory>
+
+        <!-- test -->
+        <junit.version>5.6.2</junit.version>
+        <hamcrest.version>2.2</hamcrest.version>
+        <mockito.version>3.4.4</mockito.version>
+        <slf4j.version>1.7.30</slf4j.version>
+        <logback.version>1.2.3</logback.version>
+        <maven-invoker.version>3.0.1</maven-invoker.version>
+
+        <!--
+            This compiler plugin version fails in testComple on jdk >= jdk9-ea167:
+            https://issues.apache.org/jira/browse/MCOMPILER-294
+         -->
+        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
+        <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
+        <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
+        <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+        <maven-scm-plugin.version>1.11.2</maven-scm-plugin.version>
+        <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+        <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
+        <license-maven-plugin.version>3.0</license-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
+        <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
+    </properties>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+            <resource>
+                <directory>${project.basedir}</directory>
+                <includes>
+                    <include>LICENSE</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>${plantuml-asl.directory}/src</directory>
+                <includes>
+                    <include>net/sourceforge/plantuml/**/*.png</include>
+                    <include>net/sourceforge/plantuml/openiconic/data/**/*.txt</include>
+                    <include>net/sourceforge/plantuml/openiconic/data/**/*.svg</include>
+                    <include>net/sourceforge/plantuml/math/**/*.js</include>
+                    <include>sprites/archimate/**/*.png</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>${plantuml-asl.directory}</directory>
+                <includes>
+                    <include>stdlib/**/*.repx</include>
+                    <include>skin/**/*.skin</include>
+                </includes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>${license-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>compile</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <header>${project.basedir}/.mvn/license/header.txt</header>
+                    <properties>
+                        <owner>${project.organization.name}</owner>
+                    </properties>
+                    <mapping>
+                        <java>SLASHSTAR_STYLE</java>
+                    </mapping>
+                    <excludes>
+                        <exclude>.gitignore</exclude>
+                        <exclude>.codebeatignore</exclude>
+                        <exclude>.codacy.yml</exclude>
+                        <exclude>.travis/**</exclude>
+                        <exclude>.travis.yml</exclude>
+                        <exclude>.mvn/**</exclude>
+                        <exclude>mvnw*</exclude>
+                        <exclude>lib/**</exclude>
+                        <exclude>**/.idea/**</exclude>
+                        <exclude>LICENSE</exclude>
+                        <exclude>**/*.md</exclude>
+                        <exclude>**/*.puml</exclude>
+                        <exclude>**/*.svg</exclude>
+                        <exclude>src/main/resources/**</exclude>
+                        <exclude>src/test/resources/**</exclude>
+                        <exclude>src/plantuml-asl/**</exclude>
+                    </excludes>
+                    <strictCheck>true</strictCheck>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.mycila</groupId>
+                        <artifactId>license-maven-plugin-git</artifactId>
+                        <version>${license-maven-plugin.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>default-compile</id>
+                        <phase>none</phase>
+                    </execution>
+                    <execution>
+                        <id>compile-plantuml-sources</id>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <phase>compile</phase>
+                        <configuration>
+                            <jdkToolchain>
+                                <version>1.8</version>
+                            </jdkToolchain>
+                            <source>1.8</source>
+                            <target>1.8</target>
+                            <compileSourceRoots>
+                                <compileSourceRoot>${plantuml-asl.directory}/src</compileSourceRoot>
+                            </compileSourceRoots>
+                            <showDeprecation>false</showDeprecation>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>compile-umldoclet</id>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <phase>compile</phase>
+                        <configuration>
+                            <jdkToolchain>
+                                <version>9</version>
+                            </jdkToolchain>
+                            <release>9</release>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>default-testCompile</id>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                        <phase>test-compile</phase>
+                        <configuration>
+                            <jdkToolchain>
+                                <version>9</version>
+                            </jdkToolchain>
+                            <release>9</release>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration> <!-- defaults for compile and testCompile -->
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <showDeprecation>true</showDeprecation>
+                    <source>9</source>
+                    <target>9</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${maven-failsafe-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-jacoco-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludes>
+                        <exclude>gen/**/*</exclude>
+                        <exclude>h/**/*</exclude>
+                        <exclude>net/sourceforge/plantuml/**/*</exclude>
+                        <exclude>smetana/**/*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.eluder.coveralls</groupId>
+                <artifactId>coveralls-maven-plugin</artifactId>
+                <version>${coveralls-maven-plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>javax.xml.bind</groupId>
+                        <artifactId>jaxb-api</artifactId>
+                        <version>2.3.1</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${maven-source-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <doclet>nl.talsmasoftware.umldoclet.UMLDoclet</doclet>
+                            <docletArtifact>
+                                <groupId>nl.talsmasoftware</groupId>
+                                <artifactId>umldoclet</artifactId>
+                                <version>${project.version}</version>
+                            </docletArtifact>
+                            <jdkToolchain>
+                                <version>9</version>
+                            </jdkToolchain>
+                            <sourcepath>${project.build.sourceDirectory}:${plantuml-asl.directory}/src</sourcepath>
+                            <excludePackageNames>gen.*:h:net.sourceforge.*:smetana.*</excludePackageNames>
+                            <additionalOptions>
+                                <additionalOption>-createPumlFiles</additionalOption>
+                                <additionalOption>-failOnCyclicPackageDependencies true</additionalOption>
+                            </additionalOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>${maven-release-plugin.version}</version>
+                <configuration>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <tagNameFormat>@{project.version}</tagNameFormat>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>${nexus-staging-maven-plugin.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-scm-plugin</artifactId>
+                <version>${maven-scm-plugin.version}</version>
+                <configuration>
+                    <tag>${project.version}</tag>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency> <!-- Required to compile 'net.sourceforge.plantuml.ant.*' -->
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant</artifactId>
+            <version>1.10.8</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+            <version>${hamcrest.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-invoker</artifactId>
+            <version>${maven-invoker.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${maven-gpg-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                                <configuration>
+                                    <gpgArguments>
+                                        <gpgArgument>--batch</gpgArgument>
+                                    </gpgArguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

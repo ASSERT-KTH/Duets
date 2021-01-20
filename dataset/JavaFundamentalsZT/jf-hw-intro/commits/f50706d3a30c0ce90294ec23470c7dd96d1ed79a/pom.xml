@@ -1,0 +1,175 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>ee.ut</groupId>
+  <artifactId>jf2014-hwX</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>jf2014-hwX</name>
+  <url>https://github.com/zeroturnaround/jf-skeleton</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.6</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>jf-skeleton</finalName>
+    <plugins>
+      <!-- Be sure to have a correct Main class specified here -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>ee.ut.jf2014.Main</mainClass>
+            </manifest>
+          </archive>
+          <finalName>jf2014-executable</finalName>
+        </configuration>
+      </plugin>
+      <!-- This plugin will package all dependencies to the final runtime -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.0</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Set Java language level to 8 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.4.1</version>
+        <configuration>
+          <descriptors>
+            <descriptor>build-zip.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make a zip</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>get mail username and password</id>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <phase>deploy</phase>
+            <configuration>
+              <target>
+                <input
+                  message="Enter your e-mail address (e.g. yourhandle@gmail.com): "
+                  addproperty="email-address" />
+                <input message="Enter your e-mail account password: "
+                  addproperty="email-password">
+                  <handler classname="org.apache.tools.ant.input.SecureInputHandler" />
+                </input>
+                <input message="Homework topic: " addproperty="homework-topic" />
+              </target>
+              <exportAntProperties>true</exportAntProperties>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant</artifactId>
+            <version>1.8.4</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>ch.fortysix</groupId>
+        <artifactId>maven-postman-plugin</artifactId>
+        <version>0.1.6</version>
+        <executions>
+          <execution>
+            <id>send a mail via gmail</id>
+            <phase>deploy</phase>
+            <goals>
+              <goal>send-mail</goal>
+            </goals>
+            <inherited>false</inherited>
+            <configuration>
+              <from>${email-address}</from>
+              <subject>JF homework - ${homework-topic}</subject>
+              <failonerror>true</failonerror>
+              <!--mailhost>mailhost.ut.ee</mailhost -->
+              <mailhost>smtp.gmail.com</mailhost>
+              <mailport>465</mailport>
+              <mailssl>true</mailssl>
+              <mailAltConfig>true</mailAltConfig><!-- "mailAltConfig" needs to be "true" for GMail -->
+              <mailuser>${email-address}</mailuser>
+              <mailpassword>${email-password}</mailpassword>
+              <htmlMessage>&lt;p>See attachment.&lt;p></htmlMessage>
+              <receivers>
+                <receiver>jf@zeroturnaround.com</receiver>
+              </receivers>
+              <fileSets>
+                <fileSet>
+                  <directory>${basedir}/target</directory>
+                  <includes>
+                    <include>*.zip</include>
+                  </includes>
+                </fileSet>
+              </fileSets>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <configuration>
+              <skip>true</skip>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+</project>

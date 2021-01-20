@@ -1,0 +1,219 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>de.jaschastarke</groupId>
+    <artifactId>MineVive</artifactId>
+    <name>MineVive</name>
+    <version>0.5</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!--<bukkit.version>1.7.9-R0.2</bukkit.version>-->
+        <spigot.version>1.7.10-R0.1-SNAPSHOT</spigot.version>
+        <minecraft.version>1.7.10</minecraft.version>
+        <protocollib.version>3.7-SNAPSHOT</protocollib.version>
+        <vault.version>1.4</vault.version>
+        <plib.version>1.7.0</plib.version>
+    </properties>
+
+    <scm>
+        <connection>scm:git:git://github.com/possi/MineVive.git</connection>
+        <developerConnection>scm:git:git@github.com:possi/MineVive.git</developerConnection>
+        <url>https://github.com/possi/MineVive/tree/plib</url>
+    </scm>
+    <distributionManagement>
+        <repository>
+            <id>de-jas-repo</id>
+            <url>scp://repo@ja-s.de/var/customers/webs/repo/mvn</url>
+        </repository>
+    </distributionManagement>
+    <ciManagement>
+        <system>jenkins</system>
+        <url>http://ci.ja-s.de:8080/</url>
+    </ciManagement>
+    <issueManagement>
+        <system>Github</system>
+        <url>https://github.com/possi/MineVive/issues</url>
+    </issueManagement>
+
+    <repositories>
+        <!-- Possible public Maven Repository, containing LimitedCreative builds and other dependencies without own rep.
+             like AuthMe, etc.
+             Supports http only -->
+        <repository>
+            <id>de-jas-rep</id>
+            <url>http://repo.ja-s.de/mvn</url>
+        </repository>
+
+        <!-- (Craft-)Bukkit repository -->
+        <repository>
+            <id>spigot-repo</id>
+            <url>http://repo.bukkit.org/content/groups/public</url>
+        </repository>
+        <repository>
+            <id>dmulloy2-repo</id>
+            <url>http://repo.dmulloy2.net/content/groups/public/</url>
+        </repository>
+        <repository>
+            <id>vault-repo</id>
+            <url>http://nexus.theyeticave.net/content/repositories/pub_releases</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>de.jaschastarke</groupId>
+            <artifactId>plib</artifactId>
+            <version>${plib.version}</version>
+        </dependency>
+        <!--<dependency>
+            <!- - http://dl.bukkit.org/ - ->
+            <groupId>org.bukkit</groupId>
+            <artifactId>bukkit</artifactId>
+            <version>${bukkit.version}</version>
+        </dependency>-->
+        <dependency>
+            <!-- https://www.spigotmc.org/wiki/spigot-maven/#maven-repository -->
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>${spigot.version}</version>
+        </dependency>
+        <dependency>
+            <!-- http://dl.bukkit.org/ -->
+            <groupId>com.comphenix.protocol</groupId>
+            <artifactId>ProtocolLib</artifactId>
+            <version>${protocollib.version}</version>
+        </dependency>
+        <dependency>
+            <!-- http://repo.bukkit.org/ -->
+            <!--<groupId>org.bukkit</groupId>
+            <artifactId>minecraft-server</artifactId>
+            <version>${minecraft.version}</version>
+        </dependency>
+        <dependency>-->
+            <groupId>net.milkbowl.vault</groupId>
+            <artifactId>VaultAPI</artifactId>
+            <version>${vault.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
+        <finalName>${project.artifactId}</finalName>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+
+                    <annotationProcessors>
+                        <!-- Needed to fetch DocComments from Source -->
+                        <annotationProcessor>de.jaschastarke.maven.AnnotationProcessor</annotationProcessor>
+                    </annotationProcessors>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>de.jaschastarke</groupId>
+                <artifactId>plib</artifactId>
+                <version>${plib.version}</version>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>pluginyaml</goal>
+                        </goals>
+                        <configuration>
+                            <!-- plugin.yml -->
+                            <mainClass>de.jaschastarke.minecraft.vive.MineVive</mainClass>
+                            <dependencies>
+                                <param>ProtocolLib</param>
+                            </dependencies>
+                            <softdepend>
+                                <param>Vault</param>
+                            </softdepend>
+                            <custom>
+                                <dev-url>https://github.com/possi/MineVive/</dev-url>
+                            </custom>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <artifactSet>
+                                <includes>
+                                    <include>de.jaschastarke:plib</include>
+                                </includes>
+                            </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>de.jaschastarke:plib</artifact>
+                                    <excludes>
+                                        <exclude>de/jaschastarke/maven/**</exclude>
+                                        <exclude>de/jaschastarke/bukkit/maven/**</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+        <pluginManagement>
+            <plugins>
+                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+                <plugin>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>de.jaschastarke</groupId>
+                                        <artifactId>plib</artifactId>
+                                        <versionRange>
+                                            [0.1-SNAPSHOT,)
+                                        </versionRange>
+                                        <goals>
+                                            <goal>pluginyaml</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore></ignore>
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <extensions>
+            <!-- Enabling the use of SCP -->
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-ssh</artifactId>
+                <version>2.1</version>
+            </extension>
+        </extensions>
+    </build>
+</project>

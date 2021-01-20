@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
+
+
+  <groupId>de.barop.gwt</groupId>
+  <artifactId>gwt-pushstate</artifactId>
+  <packaging>jar</packaging>
+  <version>1.1.0-SNAPSHOT</version>
+  <name>GWT pushState</name>
+  <description>gwt-pushstate implements easy to use HTML5 pushState support for GWT.</description>
+  <url>https://github.com/jbarop/gwt-pushstate</url>
+
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+
+  <developers>
+    <developer>
+      <id>jbarop</id>
+      <name>Johannes Barop</name>
+      <email>jb@barop.de</email>
+      <url>http://www.barop.de</url>
+    </developer>
+  </developers>
+
+
+  <scm>
+    <connection>scm:git:git@github.com:jbarop/gwt-pushstate.git</connection>
+    <developerConnection>scm:git:git@github.com:jbarop/gwt-pushstate.git</developerConnection>
+    <url>git@github.com:jbarop/gwt-pushstate.git</url>
+    <tag>HEAD</tag>
+  </scm>
+
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.6</maven.compiler.source>
+    <maven.compiler.target>1.6</maven.compiler.target>
+    <gwt.version>2.6.0</gwt.version>
+  </properties>
+
+
+  <dependencies>
+    <dependency>
+      <groupId>com.google.gwt</groupId>
+      <artifactId>gwt-user</artifactId>
+      <version>${gwt.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.gwt</groupId>
+      <artifactId>gwt-dev</artifactId>
+      <version>${gwt.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.10</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.timepedia.exporter</groupId>
+      <artifactId>gwtexporter</artifactId>
+      <version>2.4.0</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>com.sun</groupId>
+          <artifactId>tools</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+  </dependencies>
+
+
+  <build>
+
+
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <versionRange>[1.0.0,)</versionRange>
+                    <goals>
+                      <goal>enforce</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+
+    <plugins>
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${basedir}/www-test</directory>
+            </fileset>
+            <fileset>
+              <directory>${basedir}/gwt-unitCache</directory>
+            </fileset>
+            <fileset>
+              <directory>${basedir}/war</directory>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>add-resource</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>add-resource</goal>
+            </goals>
+            <configuration>
+              <resources>
+                <resource>
+                  <directory>${basedir}/src/main/java</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.6</version>
+        <configuration>
+          <argLine>-Xmx512m</argLine>
+          <additionalClasspathElements>
+            <additionalClasspathElement>${project.build.sourceDirectory}</additionalClasspathElement>
+            <additionalClasspathElement>${project.build.testSourceDirectory}</additionalClasspathElement>
+          </additionalClasspathElements>
+          <useManifestOnlyJar>false</useManifestOnlyJar>
+          <forkMode>always</forkMode>
+          <systemProperties>
+            <property>
+              <name>gwt.args</name>
+              <value>-out ${basedir}/war</value>
+            </property>
+          </systemProperties>
+        </configuration>
+      </plugin>
+    </plugins>
+
+
+  </build>
+
+
+  <profiles>
+    <profile>
+      <id>examples</id>
+      <dependencies>
+        <dependency>
+          <groupId>com.google.gwt.inject</groupId>
+          <artifactId>gin</artifactId>
+          <version>1.5.0</version>
+          <exclusions>
+            <exclusion>
+              <groupId>com.google.gwt</groupId>
+              <artifactId>gwt-servlet</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>com.gwtplatform</groupId>
+          <artifactId>gwtp-all</artifactId>
+          <version>0.7</version>
+        </dependency>
+        <dependency>
+          <groupId>org.tuckey</groupId>
+          <artifactId>urlrewritefilter</artifactId>
+          <version>4.0.4</version>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>1.7</version>
+            <executions>
+              <execution>
+                <id>add-source-example</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>add-source</goal>
+                </goals>
+                <configuration>
+                  <sources>
+                    <source>${basedir}/src/examples/java</source>
+                  </sources>
+                </configuration>
+              </execution>
+              <execution>
+                <id>add-resource-example-resources</id>
+                <phase>generate-resources</phase>
+                <goals>
+                  <goal>add-resource</goal>
+                </goals>
+                <configuration>
+                  <resources>
+                    <resource>
+                      <directory>${basedir}/src/examples/resources</directory>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+              <execution>
+                <id>add-source-generated-apt</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>add-source</goal>
+                </goals>
+                <configuration>
+                  <sources>
+                    <source>${project.build.directory}/generated-sources/annotations</source>
+                  </sources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>gwt-maven-plugin</artifactId>
+            <version>${gwt.version}</version>
+            <executions>
+              <execution>
+                <id>compile-gwt</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>compile</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <logLevel>INFO</logLevel>
+              <inplace>false</inplace>
+              <style>DETAILED</style>
+              <optimizationLevel>0</optimizationLevel>
+              <draftCompile>true</draftCompile>
+              <enableAssertions>true</enableAssertions>
+              <disableCastChecking>false</disableCastChecking>
+              <disableClassMetadata>false</disableClassMetadata>
+              <enableClosureCompiler>false</enableClosureCompiler>
+              <fragmentCount>-1</fragmentCount>
+              <disableRunAsync>true</disableRunAsync>
+              <compileReport>false</compileReport>
+              <soycDetailed>false</soycDetailed>
+              <localWorkers>2</localWorkers>
+              <extraJvmArgs>-Xms512m -Xmx1g -XX:MaxPermSize=256m</extraJvmArgs>
+              <copyWebapp>true</copyWebapp>
+              <runTarget>Gwtphplacesample.html</runTarget>
+              <debugSuspend>false</debugSuspend>
+              <warSourceDirectory>${basedir}/src/examples/webapp</warSourceDirectory>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-war-plugin</artifactId>
+            <version>2.3</version>
+            <executions>
+              <execution>
+                <id>copy-webapp</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>exploded</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <warSourceDirectory>${basedir}/src/examples/webapp</warSourceDirectory>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.mortbay.jetty</groupId>
+            <artifactId>jetty-maven-plugin</artifactId>
+            <version>7.2.2.v20101205</version>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+
+</project>

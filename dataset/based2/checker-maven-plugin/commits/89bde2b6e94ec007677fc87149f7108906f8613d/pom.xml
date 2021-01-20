@@ -1,0 +1,282 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.github.based2</groupId>
+  <artifactId>checker-maven-plugin</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>maven-securityChecker-plugin</name>
+  
+   <!-- 
+  mvn install
+  mvn dependency:tree
+  mvn versions:display-dependency-updates
+  
+[INFO] org.github.based2:checker-maven-plugin:jar:0.0.1-SNAPSHOT
+[INFO] +- org.apache.maven:maven-core:jar:3.0.4:compile
+[INFO] |  +- org.apache.maven:maven-model:jar:3.0.4:compile
+[INFO] |  +- org.apache.maven:maven-settings:jar:3.0.4:compile
+[INFO] |  +- org.apache.maven:maven-settings-builder:jar:3.0.4:compile
+[INFO] |  +- org.apache.maven:maven-repository-metadata:jar:3.0.4:compile
+[INFO] |  +- org.apache.maven:maven-artifact:jar:3.0.4:compile
+[INFO] |  +- org.apache.maven:maven-model-builder:jar:3.0.4:compile
+[INFO] |  +- org.apache.maven:maven-aether-provider:jar:3.0.4:compile
+[INFO] |  +- org.sonatype.aether:aether-impl:jar:1.13.1:compile
+[INFO] |  +- org.sonatype.aether:aether-api:jar:1.13.1:compile
+[INFO] |  +- org.sonatype.aether:aether-util:jar:1.13.1:compile
+[INFO] |  +- org.sonatype.sisu:sisu-inject-plexus:jar:2.3.0:compile
+[INFO] |  |  \- org.sonatype.sisu:sisu-inject-bean:jar:2.3.0:compile
+[INFO] |  |     \- org.sonatype.sisu:sisu-guice:jar:no_aop:3.1.0:compile
+[INFO] |  |        \- org.sonatype.sisu:sisu-guava:jar:0.9.9:compile
+[INFO] |  +- org.codehaus.plexus:plexus-interpolation:jar:1.14:compile
+[INFO] |  +- org.codehaus.plexus:plexus-utils:jar:2.0.6:compile
+[INFO] |  +- org.codehaus.plexus:plexus-classworlds:jar:2.4:compile
+[INFO] |  +- org.codehaus.plexus:plexus-component-annotations:jar:1.5.5:compile
+[INFO] |  \- org.sonatype.plexus:plexus-sec-dispatcher:jar:1.3:compile
+[INFO] |     \- org.sonatype.plexus:plexus-cipher:jar:1.4:compile
+[INFO] +- org.apache.maven:maven-plugin-api:jar:3.0.4:compile
+[INFO] +- org.apache.maven:maven-project:jar:3.0-alpha-2:compile
+[INFO] |  +- org.apache.maven:maven-compat:jar:3.0-alpha-2:compile
+[INFO] |  +- org.codehaus.plexus:plexus-container-default:jar:1.0-beta-3.0.5:compile
+[INFO] |  |  +- org.apache.xbean:xbean-reflect:jar:3.4:compile
+[INFO] |  |  |  +- log4j:log4j:jar:1.2.12:compile
+[INFO] |  |  |  \- commons-logging:commons-logging-api:jar:1.1:compile
+[INFO] |  |  \- com.google.code.google-collections:google-collect:jar:snapshot-20080530:compile
+[INFO] |  +- org.codehaus.woodstox:wstx-asl:jar:3.2.6:compile
+[INFO] |  |  \- stax:stax-api:jar:1.0.1:compile
+[INFO] |  +- org.sonatype.spice:model-builder:jar:1.3:compile
+[INFO] |  \- org.apache.maven:maven-project-builder:jar:3.0-alpha-2:compile
+[INFO] +- com.fasterxml.jackson.core:jackson-databind:jar:2.0.1:compile
+[INFO] |  +- com.fasterxml.jackson.core:jackson-annotations:jar:2.0.1:compile
+[INFO] |  \- com.fasterxml.jackson.core:jackson-core:jar:2.0.1:compile
+[INFO] +- org.sonatype.aether:aether-connector-wagon:jar:1.13.1:compile
+[INFO] |  \- org.sonatype.aether:aether-spi:jar:1.13.1:compile
+[INFO] +- org.sonatype.aether:aether-connector-file:jar:1.13.1:compile
+[INFO] +- org.apache.maven.wagon:wagon-provider-api:jar:2.2:compile
+[INFO] +- junit:junit:jar:4.10:test (scope not updated to compile)
+[INFO] +- org.mockito:mockito-core:jar:1.8.5:test
+[INFO] |  \- org.objenesis:objenesis:jar:1.0:test
+[INFO] \- org.hamcrest:hamcrest-core:jar:1.3.RC2:test
+
+  
+   -->
+  
+  <inceptionYear>2012</inceptionYear>
+  <description>POC version - Analyzes the maven project dependencies and final which are concerned by security (CVE) and EOL issues.</description>
+  <url>http://www.github.com/based2/maven-securityChecker-plugin</url>
+  
+   <developers>
+    <developer>
+      <name>Basile Chandesris</name>
+      <id>bac</id>
+      <email>based@free.fr</email>
+      <organization></organization>
+       <timezone>+1</timezone>
+    </developer>
+   </developers>
+   
+   <build>
+        <finalName>securityChecker</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.5.1</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                    <optimize>true</optimize>
+                </configuration>
+            </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>3.2</version>
+          <configuration>
+            <reportPlugins>
+              <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.8.1</version>
+              </plugin>
+              <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jxr-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                  <aggregate>true</aggregate>
+                </configuration>
+              </plugin>
+             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>2.12</version>
+              </plugin>
+              <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <version>2.5.1</version>
+                <configuration>
+                  <formats>
+                    <format>xml</format>
+                    <format>html</format>
+                  </formats>
+                </configuration>
+              </plugin>
+              <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.6</version><!-- 2.9.1 -->
+              </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
+                    <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+                </configuration>
+            </plugin>
+            </reportPlugins>
+          </configuration>
+        </plugin>
+        <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>findbugs-maven-plugin</artifactId>
+            <version>2.3.2</version>
+        </plugin>
+        <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <linkXref>true</linkXref>
+          <sourceEncoding>${project.build.sourceEncoding}</sourceEncoding>
+          <minimumTokens>100</minimumTokens>
+          <targetJdk>1.6</targetJdk>
+        </configuration>
+      </plugin>
+        </plugins>
+    </build>
+    
+    <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.4</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>dependencies</report>
+              <report>project-team</report>
+              <report>mailing-list</report>
+              <report>cim</report>
+              <report>issue-tracking</report>
+              <report>license</report>
+              <report>scm</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+    </plugins>
+  </reporting>
+  
+  <dependencies>
+  <dependency>
+    <groupId>org.apache.maven</groupId>
+    <artifactId>maven-core</artifactId>
+    <version>${maven.version}</version>
+</dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-plugin-api</artifactId>
+      <version>${maven.version}</version>
+    </dependency>
+    <dependency>
+    <groupId>org.apache.maven</groupId>
+    <artifactId>maven-project</artifactId>
+    <version>3.0-alpha-2</version>
+</dependency>
+ <!--   <dependency>
+        <groupId>org.twdata.maven</groupId>
+        <artifactId>mojo-executor</artifactId>
+        <version>2.0</version>
+    </dependency> -->
+     <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.0.1</version>
+    </dependency>
+    <dependency>
+		<groupId>org.sonatype.aether</groupId>
+		<artifactId>aether-connector-wagon</artifactId>
+		<version>1.13.1</version>
+	</dependency>
+	<dependency>
+		<groupId>org.sonatype.aether</groupId>
+		<artifactId>aether-connector-file</artifactId>
+		<version>1.13.1</version>
+	</dependency>
+	<dependency>
+		<groupId>org.apache.maven.wagon</groupId>
+		<artifactId>wagon-provider-api</artifactId>
+		<version>2.2</version>
+	</dependency>
+    <!--  <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>maven-shared-jar</artifactId>
+      <version>1.1</version>
+    </dependency> -->
+   <!--  <dependency>
+      <groupId>org.apache.maven.shared</groupId>
+      <artifactId>maven-dependency-tree</artifactId>
+      <version>1.2</version>
+    </dependency>  -->   
+     <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>1.9.0</version>
+                <scope>test</scope>
+        </dependency>
+        <dependency>
+		    <groupId>org.hamcrest</groupId>
+		    <artifactId>hamcrest-core</artifactId>
+		    <version>1.3.RC2</version>
+		     <scope>test</scope>
+		</dependency>
+		<dependency>
+		   <groupId>org.apache.maven.plugin-testing</groupId>
+		   <artifactId>maven-plugin-testing-harness</artifactId>
+		   <version>2.0-alpha-1</version>
+		   <scope>test</scope>
+		</dependency>
+  </dependencies>
+  
+   <repositories>
+  <repository>
+   <id>maven</id>
+   <url>http://repo2.maven.org/maven2/</url>
+  </repository>
+    <repository>
+   <id>maven UK</id>
+   <url>http://uk.maven.org/maven2/</url>
+  </repository>
+  <repository>
+        <id>mojo-executor-repository</id>
+        <name>Mojo Executor Repository for Maven</name>
+        <url>http://twdata-m2-repository.googlecode.com/svn/</url>
+    </repository>
+ </repositories>
+  
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+         <maven.version>3.0.4</maven.version>
+    </properties>
+
+</project>

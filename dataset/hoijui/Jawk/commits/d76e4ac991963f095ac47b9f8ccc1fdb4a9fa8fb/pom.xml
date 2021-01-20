@@ -1,0 +1,344 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<properties>
+		<project.build.encoding>UTF-8</project.build.encoding>
+		<project.build.sourceEncoding>${project.build.encoding}</project.build.sourceEncoding>
+		<project.build.resourceEncoding>${project.build.encoding}</project.build.resourceEncoding>
+		<project.pkgName>org.jawk</project.pkgName>
+		<project.mainClass>org.jawk.Main</project.mainClass>
+		<java.old.version>6</java.old.version>
+		<java.old.home>${env.JAVA6_HOME}</java.old.home>
+	</properties>
+
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>9</version>
+	</parent>
+
+	<groupId>org.jawk</groupId>
+	<artifactId>jawk</artifactId>
+	<version>1.03-SNAPSHOT</version>
+
+	<packaging>bundle</packaging>
+
+	<name>Jawk</name>
+	<description>Java AWK interpreter/compiler</description>
+	<url>https://github.com/hoijui/Jawk</url>
+	<inceptionYear>2006</inceptionYear>
+
+	<licenses>
+		<license>
+			<name>GPL</name>
+			<url>http://www.gnu.org/licenses/gpl.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Danny Daglas (ddaglas)</name>
+			<roles>
+				<role>project founder</role>
+			</roles>
+		</developer>
+		<developer>
+			<name>hoijui</name>
+			<email>hoijui.quaero@gmail.com</email>
+			<roles>
+				<role>maintainer</role>
+			</roles>
+		</developer>
+	</developers>
+
+	<scm>
+		<connection>scm:git:git://github.com/hoijui/Jawk</connection>
+		<developerConnection>scm:git:git@github.com:hoijui/Jawk.git</developerConnection>
+		<url>http://github.com/hoijui/Jawk</url>
+	</scm>
+
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<encoding>${project.build.sourceEncoding}</encoding>
+					<showDeprecation>true</showDeprecation>
+					<source>1.${java.old.version}</source>
+					<target>1.${java.old.version}</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<encoding>${project.build.resourceEncoding}</encoding>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<packageName>${project.pkgName}</packageName>
+							<mainClass>${project.mainClass}</mainClass>
+						</manifest>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.3</version>
+				<executions>
+					<execution>
+						<id>stand-alone</id>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<shadedClassifierName>stand-alone</shadedClassifierName>
+							<filters>
+								<filter>
+									<!--
+										Exclude files that sign a jar
+										(one or multiple of the dependencies).
+										One may not repack a signed jar without
+										this, or you will get a
+										SecurityException at program start.
+									-->
+									<artifact>*:*</artifact>
+									<excludes>
+										<exclude>META-INF/*.SF</exclude>
+										<exclude>META-INF/*.RSA</exclude>
+									</excludes>
+								</filter>
+							</filters>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.3</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>java</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<mainClass>${project.mainClass}</mainClass>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>2.4.0</version>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Export-Package>org.jawk.jrt org.jawk org.jawk.frontend org.jawk.ext</Export-Package>
+					</instructions>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>3.4</version>
+				<configuration>
+					<reportPlugins>
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-checkstyle-plugin</artifactId>
+							<version>2.15</version>
+							<configuration>
+								<sourceEncoding>${project.build.sourceEncoding}</sourceEncoding>
+								<linkXref>true</linkXref>
+								<configLocation>src/main/resources/checkstyle.xml</configLocation>
+							</configuration>
+						</plugin>
+
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-pmd-plugin</artifactId>
+							<version>3.5</version>
+							<configuration>
+								<linkXref>true</linkXref>
+								<sourceEncoding>${project.build.sourceEncoding}</sourceEncoding>
+								<minimumTokens>50</minimumTokens>
+								<targetJdk>1.5</targetJdk>
+								<aggregate>true</aggregate>
+							</configuration>
+						</plugin>
+
+						<plugin>
+							<groupId>org.codehaus.mojo</groupId>
+							<artifactId>findbugs-maven-plugin</artifactId>
+							<version>3.0.1</version>
+						</plugin>
+
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-changelog-plugin</artifactId>
+							<version>2.3</version>
+						</plugin>
+
+						<plugin>
+							<groupId>org.codehaus.mojo</groupId>
+							<artifactId>taglist-maven-plugin</artifactId>
+							<version>2.4</version>
+							<configuration>
+								<tagListOptions>
+									<tagClasses>
+										<tagClass>
+											<displayName>Should be done</displayName>
+											<tags>
+												<tag>
+													<matchString>TODO</matchString>
+													<matchType>ignoreCase</matchType>
+												</tag>
+												<tag>
+													<matchString>XXX</matchString>
+													<matchType>ignoreCase</matchType>
+												</tag>
+												<tag>
+													<matchString>HACK</matchString>
+													<matchType>ignoreCase</matchType>
+												</tag>
+											</tags>
+										</tagClass>
+
+										<tagClass>
+											<displayName>Has to be done</displayName>
+											<tags>
+												<tag>
+													<matchString>FIXME</matchString>
+													<matchType>exact</matchType>
+												</tag>
+											</tags>
+										</tagClass>
+										<tagClass>
+											<displayName>To be considered</displayName>
+											<tags>
+												<tag>
+													<matchString>NOTE</matchString>
+													<matchType>exact</matchType>
+												</tag>
+											</tags>
+										</tagClass>
+									</tagClasses>
+								</tagListOptions>
+							</configuration>
+						</plugin>
+
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-surefire-report-plugin</artifactId>
+							<version>2.18</version>
+						</plugin>
+
+						<plugin>
+							<groupId>org.codehaus.mojo</groupId>
+							<artifactId>jdepend-maven-plugin</artifactId>
+							<version>2.0</version>
+						</plugin>
+
+					</reportPlugins>
+
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-project-info-reports-plugin</artifactId>
+				<version>2.8</version>
+			</plugin>
+
+		</plugins>
+	</build>
+
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.7</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.1.2</version>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.bcel</groupId>
+			<artifactId>bcel</artifactId>
+			<version>5.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.stefanbirkner</groupId>
+			<artifactId>system-rules</artifactId>
+			<version>1.12.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<profiles>
+		<profile>
+			<id>compileWithOldJava</id>
+			<!--
+				NOTE
+				Make sure to set the environment variable JAVA${VERSION}_HOME
+				to your old JDK HOME when using this profile.
+				For example: JAVA6_HOME=.../jdk1.6.0_00
+				Also set the Maven properties:
+				* 'java.old.version' (for example: '6')
+				* 'java.old.home' (for example: '${env.JAVA6_HOME}')
+			-->
+			<properties>
+				<java.old.libs>${java.old.home}/jre/lib</java.old.libs>
+				<java.old.bootclasspath>${java.old.libs}/rt.jar${path.separator}${java.old.libs}/jce.jar</java.old.bootclasspath>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<configuration>
+							<source>1.${java.old.version}</source>
+							<target>1.${java.old.version}</target>
+							<encoding>${project.build.sourceEncoding}</encoding>
+							<showDeprecation>true</showDeprecation>
+							<compilerArgument>-Xlint:unchecked</compilerArgument>
+							<compilerArguments>
+								<bootclasspath>${java.old.bootclasspath}</bootclasspath>
+							</compilerArguments>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+</project>

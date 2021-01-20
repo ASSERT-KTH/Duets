@@ -1,0 +1,241 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+      <groupId>org.sonatype.oss</groupId>
+      <artifactId>oss-parent</artifactId>
+      <version>7</version>
+  </parent>
+
+  <groupId>com.gistlabs</groupId>
+  <artifactId>mechanize</artifactId>
+  <version>0.11.3-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>mechanize</name>
+  <description>mechanize for java: stateful HTTP/HTML client</description>
+  <url>http://gistlabs.com/software/mechanize</url>
+  <inceptionYear>2012</inceptionYear>
+  <issueManagement>
+  	<system>GitHub</system>
+  	<url>https://github.com/GistLabs/mechanize/issues</url>
+  </issueManagement>
+  <licenses>
+  	<license>
+  		<name>Mozilla Public Licence 2.0</name>
+  		<url>http://mozilla.org/MPL/2.0/</url>
+  		<distribution>repo</distribution>
+  	</license>
+  </licenses>
+  <scm>
+    <connection>scm:git:https://github.com/GistLabs/mechanize.git</connection>
+    <url>https://github.com/GistLabs/mechanize</url>
+    <developerConnection>scm:git:git@github.com:GistLabs/mechanize.git</developerConnection>
+  </scm>
+
+  <organization>
+  	<name>Gist Labs</name>
+  	<url>http://gistlabs.com/</url>
+  </organization>
+
+  <developers>
+    <developer>
+        <id>jheintz</id>
+        <name>John Heintz</name>
+        <email>john@gistlabs.com</email>
+        <organization>Gist Labs</organization>
+        <organizationUrl>http://gistlabs.com</organizationUrl>
+        <properties>
+            <picUrl>https://secure.gravatar.com/avatar/15ddd8dcfa09fcffa836c7a5b17573fa</picUrl>
+        </properties>
+    </developer>
+    <developer>
+        <id>Martin.Kersten.mk</id>
+        <name>Martin Kersten</name>
+        <email>Martin.Kersten.mk@gmail.com</email>
+    </developer>
+    </developers>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>sonatype-nexus-snapshots</id>
+      <name>Sonatype Nexus Snapshots</name>
+      <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>sonatype-nexus-staging</id>
+      <name>Nexus Release Repository</name>
+      <url>http://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <sonar.exclusions>com/gistlabs/mechanize/util/apache/**/*,com/gistlabs/mechanize/util/css_query/**/*</sonar.exclusions>
+  </properties>
+
+  <build>
+    <defaultGoal>verify</defaultGoal>
+
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+
+    <plugins>
+      <plugin>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>2.6</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+        <plugin>
+            <groupId>com.mycila.maven-license-plugin</groupId>
+            <artifactId>maven-license-plugin</artifactId>
+            <configuration>
+                <header>src/etc/header.txt</header>
+            </configuration>
+        </plugin>
+        <plugin>
+          <inherited>true</inherited>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <excludedResources>true</excludedResources>
+            <useDefaultExcludes>true</useDefaultExcludes>
+          </configuration>
+        </plugin>
+        <plugin>
+          <inherited>true</inherited>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>bundle-sources</id>
+              <phase>package</phase>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <encoding>UTF-8</encoding>
+            <show>protected</show>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>sign-artifacts</id>
+              <phase>install</phase>
+              <goals>
+                <goal>sign</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>2.0</version>
+            <executions>
+                <execution>
+                    <phase>package</phase>
+                    <goals><goal>shade</goal></goals>
+                    <configuration>
+                        <shadedArtifactId>mechanize-android</shadedArtifactId>
+                        <shadedArtifactAttached>true</shadedArtifactAttached>
+                        <shadedClassifierName>android</shadedClassifierName>
+                        <artifactSet>
+                            <includes><include>org.json:json</include></includes>
+                        </artifactSet>
+                        <relocations>
+                            <relocation>
+                                <pattern>org.json</pattern>
+                                <shadedPattern>org.shaded.json</shadedPattern>
+                            </relocation>
+                        </relocations>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+        </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+    	<groupId>org.jsoup</groupId>
+    	<artifactId>jsoup</artifactId>
+    	<version>1.7.1</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.json</groupId>
+    	<artifactId>json</artifactId>
+    	<version>20090211</version>
+    </dependency>
+    <dependency>
+      <groupId>se.fishtank</groupId>
+      <artifactId>css-selectors</artifactId>
+      <version>1.0.4</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.10</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>1.9.5</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+    	<groupId>org.apache.httpcomponents</groupId>
+    	<artifactId>httpclient</artifactId>
+    	<version>4.0.1</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.httpcomponents</groupId>
+    	<artifactId>httpmime</artifactId>
+    	<version>4.0.1</version>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+      <profile>
+          <id>latestHttpClient</id>
+          <dependencies>
+  			<dependency>
+  				<groupId>org.apache.httpcomponents</groupId>
+  				<artifactId>httpclient</artifactId>
+				<version>4.2.1</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.httpcomponents</groupId>
+				<artifactId>httpmime</artifactId>
+				<version>4.2.1</version>
+			</dependency>
+          </dependencies>
+      </profile>
+  </profiles>
+</project>

@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <version>0.9.2-incubating</version>
+  <groupId>org.apache.storm</groupId>
+  <artifactId>storm-resource-aware-scheduler</artifactId>
+  <packaging>jar</packaging>
+
+  <name>storm-resource-aware-scheduler</name>
+
+
+  <dependencies>
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>6.8.5</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.easytesting</groupId>
+      <artifactId>fest-assert-core</artifactId>
+      <version>2.0M8</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jmock</groupId>
+      <artifactId>jmock</artifactId>
+      <version>2.6.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+     <groupId>org.twitter4j</groupId>
+     <artifactId>twitter4j-stream</artifactId>
+     <version>3.0.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.storm</groupId>
+      <artifactId>storm-core</artifactId>
+      <version>${project.version}</version>
+      <!-- keep storm out of the jar-with-dependencies -->
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+            <groupId>org.apache.thrift</groupId>
+            <artifactId>libthrift</artifactId>
+            <version>0.7.0</version>
+            <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>servlet-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    <dependency>
+      <groupId>commons-collections</groupId>
+      <artifactId>commons-collections</artifactId>
+      <version>3.2.1</version>
+    </dependency>
+  </dependencies>
+  <build>
+    <sourceDirectory>src/jvm</sourceDirectory>
+    <testSourceDirectory>test/jvm</testSourceDirectory>
+    <resources>
+      <resource>
+        <directory>${basedir}/multilang</directory>
+      </resource>
+    </resources>
+
+    <plugins>
+      <!--
+        Bind the maven-assembly-plugin to the package phase
+        this will create a jar file without the storm dependencies
+        suitable for deployment to a cluster.
+       -->
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <archive>
+            <manifest>
+              <mainClass />
+            </manifest>
+          </archive>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <executable>java</executable>
+          <includeProjectDependencies>true</includeProjectDependencies>
+          <includePluginDependencies>false</includePluginDependencies>
+          <classpathScope>compile</classpathScope>
+          <mainClass>${storm.topology}</mainClass>
+        </configuration>
+      </plugin>
+      <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.2</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <keepDependenciesWithProvidedScope>true</keepDependenciesWithProvidedScope>
+                    <promoteTransitiveDependencies>false</promoteTransitiveDependencies>
+                    <createDependencyReducedPom>true</createDependencyReducedPom>
+                    <minimizeJar>false</minimizeJar>
+                    <artifactSet>
+                        <includes>
+                            <include>org.apache.thrift:*</include>
+                            <include>org.apache.storm:*</include>
+                        </includes>
+                    </artifactSet>
+
+                    <relocations>
+                        <relocation>
+                            <pattern>org.apache.thrift</pattern>
+                            <shadedPattern>org.apache.thrift7</shadedPattern>
+                        </relocation>
+                    </relocations>
+                    <transformers>
+                        <transformer implementation="org.apache.storm.maven.shade.clojure.ClojureTransformer" />
+                    </transformers>
+                    <filters>
+                        <filter>
+                            <artifact>org.apache.thrift:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/LICENSE.txt</exclude>
+                                <exclude>META-INF/NOTICE.txt</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.storm</groupId>
+                        <artifactId>maven-shade-clojure-transformer</artifactId>
+                        <version>${project.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+    </plugins>
+  </build>
+</project>

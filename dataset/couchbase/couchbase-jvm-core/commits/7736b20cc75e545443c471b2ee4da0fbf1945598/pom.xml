@@ -1,0 +1,475 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Quickstart & Common Reference:
+
+     - run all tests (unit & int): mvn test
+     - run only unit tests: mvn test -Dunit
+     - compile and build: mvn package
+     - build and install into ~/.m2: mvn install
+     - skip tests on install or package add -Dmaven.test.skip
+     - stage & close (but not release) on maven central: mvn clean deploy
+       note that -SNAPSHOT is not allowed on deploy
+
+    -->
+
+    <groupId>com.couchbase.client</groupId>
+    <artifactId>core-io</artifactId>
+    <version>1.5.2</version>
+    <packaging>jar</packaging>
+
+    <name>Couchbase JVM Core IO</name>
+    <description>The official Couchbase JVM Core IO Library</description>
+    <url>http://couchbase.com</url>
+
+    <properties>
+        <java-compat.version>1.6</java-compat.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <native.folder>${project.build.directory}/native</native.folder>
+        <native.original>libnetty-transport-native-epoll.so</native.original>
+        <native.renamed>libcom-couchbase-client-deps-netty-transport-native-epoll.so</native.renamed>
+
+        <rxjava.version>1.3.3</rxjava.version>
+        <netty.version>4.0.52.Final</netty.version>
+        <disruptor.version>3.3.7</disruptor.version>
+        <jackson.version>2.7.9.1</jackson.version>
+        <latency-utils.version>2.0.3</latency-utils.version>
+        <junit.version>4.12</junit.version>
+        <mockito.version>1.10.19</mockito.version>
+        <assertj.version>1.7.1</assertj.version>
+        <slf4j.version>1.7.7</slf4j.version>
+        <log4j.version>1.2.17</log4j.version>
+        <commons-logging.version>1.1.3</commons-logging.version>
+        <couchbasemock.version>1.5.1</couchbasemock.version>
+    </properties>
+
+    <organization>
+        <name>Couchbase, Inc.</name>
+        <url>http://couchbase.com</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>https://github.com/couchbase/couchbase-jvm-core</url>
+        <connection>
+            scm:git:git://github.com/couchbase/couchbase-jvm-core
+        </connection>
+        <developerConnection>
+            scm:git:git://github.com/couchbase/couchbase-jvm-core
+        </developerConnection>
+    </scm>
+
+    <issueManagement>
+        <system>Couchbase JIRA</system>
+        <url>http://www.couchbase.com/issues/browse/JVMCBC</url>
+    </issueManagement>
+
+    <repositories>
+        <repository>
+            <id>mock</id>
+            <url>http://snapshots.couchbase.com/maven2</url>
+        </repository>
+    </repositories>
+
+    <developers>
+        <developer>
+            <id>daschl</id>
+            <name>Michael Nitschinger</name>
+            <email>michael.nitschinger@couchbase.com</email>
+        </developer>
+        <developer>
+            <id>subalakr</id>
+            <name>Subhashni Balakrishnan</name>
+            <email>subhashni@couchbase.com</email>
+        </developer>
+        <developer>
+            <id>dnault</id>
+            <name>David Nault</name>
+            <email>david.nault@couchbase.com</email>
+        </developer>
+        <developer>
+            <id>avsej</id>
+            <name>Sergey Avseyev</name>
+            <email>sergey@couchbase.com</email>
+        </developer>
+    </developers>
+
+    <dependencies>
+        <!-- Exposed, Required Dependencies -->
+        <dependency>
+            <groupId>io.reactivex</groupId>
+            <artifactId>rxjava</artifactId>
+            <version>${rxjava.version}</version>
+        </dependency>
+
+        <!-- Shaded, Required Dependencies -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>${netty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lmax</groupId>
+            <artifactId>disruptor</artifactId>
+            <version>${disruptor.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.latencyutils</groupId>
+            <artifactId>LatencyUtils</artifactId>
+            <version>${latency-utils.version}</version>
+        </dependency>
+
+        <!-- Exposed, Optional Dependencies -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+            <optional>true</optional>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>${commons-logging.version}</version>
+            <optional>true</optional>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>${log4j.version}</version>
+            <optional>true</optional>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Compilation dependency to mark exception to enforced JDK 6 API -->
+        <dependency>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>animal-sniffer-annotations</artifactId>
+            <version>1.14</version>
+            <optional>true</optional>
+            <!-- if you are using badly written Maven plugins then blame them and add
+            <scope>provided</scope>
+            -->
+        </dependency>
+
+        <!-- Test Dependencies -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.couchbase.mock</groupId>
+            <artifactId>CouchbaseMock</artifactId>
+            <version>${couchbasemock.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.3</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <links>
+                        <link>http://reactivex.io/RxJava/javadoc/</link>
+                        <link>http://fasterxml.github.io/jackson-databind/javadoc/2.6/</link>
+                        <link>http://netty.io/4.0/api/</link>
+                    </links>
+                    <doclet>ch.raffael.doclets.pegdown.PegdownDoclet</doclet>
+                    <docletArtifact>
+                        <groupId>ch.raffael.pegdown-doclet</groupId>
+                        <artifactId>pegdown-doclet</artifactId>
+                        <version>1.3</version>
+                    </docletArtifact>
+                    <useStandardDocletOptions>true</useStandardDocletOptions>
+                </configuration>
+            </plugin>
+
+            <!-- Used for Netty Native: unpack the .so from the artifact so
+                 it is accessible for shade plugin transformer, haha -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.10</version>
+                <executions>
+                    <execution>
+                        <id>unpack</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>io.netty</groupId>
+                                    <artifactId>netty-all</artifactId>
+                                    <outputDirectory>${native.folder}</outputDirectory>
+                                    <includes>META-INF/native/libnetty-transport-native-epoll.so</includes>
+                                </artifactItem>
+                            </artifactItems>
+                            <includes>META-INF/native/libnetty-transport-native-epoll.so</includes>
+                            <outputDirectory>${native.folder}</outputDirectory>
+                            <overWriteReleases>false</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.4.1</version>
+                <configuration>
+                    <filters>
+                        <!-- Netty Native: avoid putting the original .so in the shaded jar -->
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/native/${native.original}</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                    <transformers>
+                        <!-- Netty Native: with the unpacked .so (see unpack config), rename
+                             it so it has the shaded namespace -->
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                            <file>${native.folder}/META-INF/native/${native.original}</file>
+                            <resource>META-INF/native/${native.renamed}</resource>
+                        </transformer>
+                    </transformers>
+                    <artifactSet>
+                        <excludes>
+                            <exclude>io.reactivex:rxjava</exclude>
+                            <exclude>org.slf4j:slf4j-api</exclude>
+                            <exclude>commons-logging:commons-logging</exclude>
+                            <exclude>log4j:log4j</exclude>
+                            <exclude>org.mockito:mockito-all</exclude>
+                            <exclude>org.codehaus.mojo:animal-sniffer-annotations</exclude>
+                        </excludes>
+                    </artifactSet>
+                    <relocations>
+                        <relocation>
+                            <pattern>io.netty</pattern>
+                            <shadedPattern>com.couchbase.client.deps.io.netty</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>com.fasterxml</pattern>
+                            <shadedPattern>com.couchbase.client.deps.com.fasterxml</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.LatencyUtils</pattern>
+                            <shadedPattern>com.couchbase.client.deps.org.LatencyUtils</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.HdrHistogram</pattern>
+                            <shadedPattern>com.couchbase.client.deps.org.HdrHistogram</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>com.lmax</pattern>
+                            <shadedPattern>com.couchbase.client.deps.com.lmax</shadedPattern>
+                        </relocation>
+                        <!-- This is a hack, it should actually be an exclusion pattern on io.netty
+                             but for some reason this doesn't work. This is a workaround to repair
+                             the renaming damage done by the earlier io.netty rule. -->
+                        <relocation>
+                            <pattern>com.couchbase.client.deps.com.couchbase.client</pattern>
+                            <shadedPattern>com.couchbase.client</shadedPattern>
+                        </relocation>
+                    </relocations>
+                    <createSourcesJar>true</createSourcesJar>
+                    <shadeSourcesContent>true</shadeSourcesContent>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.3</version>
+                <configuration>
+                    <source>${java-compat.version}</source>
+                    <target>${java-compat.version}</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.3</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.9.1</version>
+                <executions>
+                    <execution>
+                        <id>add-integration-test-source-as-test-sources</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <!-- add the following sources in addition to the unit tests -->
+                                <source>${test-source-directory}</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>2.2.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>animal-sniffer-maven-plugin</artifactId>
+                <version>1.14</version>
+                <configuration>
+                    <signature>
+                        <groupId>org.codehaus.mojo.signature</groupId>
+                        <artifactId>java16</artifactId>
+                        <version>1.0</version>
+                    </signature>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>ensure-java-1.6-class-library</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+        </resources>
+    </build>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <!-- by default, add also the int tests -->
+                <test-source-directory>src/integration/java</test-source-directory>
+            </properties>
+        </profile>
+        <profile>
+            <id>unit</id>
+            <activation>
+                <property>
+                    <name>unit</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <!-- just adding the unit tests again, noop. -->
+                <test-source-directory>src/test/java</test-source-directory>
+            </properties>
+        </profile>
+    </profiles>
+
+</project>

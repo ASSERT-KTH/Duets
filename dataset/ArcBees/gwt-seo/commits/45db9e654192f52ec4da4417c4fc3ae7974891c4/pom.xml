@@ -1,0 +1,243 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>9</version>
+    </parent>
+
+    <groupId>com.arcbees.seo</groupId>
+    <artifactId>gwt-seo</artifactId>
+    <version>0.2-SNAPSHOT</version>
+    <name>GWT-SEO</name>
+    <inceptionYear>2015</inceptionYear>
+    <description>SEO</description>
+    <url>http://arcbees.github.io/gwt-seo/</url>
+
+    <licenses>
+        <license>
+            <name>Apache 2</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+
+    <organization>
+        <name>Arcbees</name>
+        <url>http://arcbees.com</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <id>maxime.meriouma</id>
+            <name>Maxime Meriouma-Caron</name>
+            <email>maxime.meriouma@arcbees.com</email>
+            <organization>Arcbees</organization>
+            <organizationUrl>http://www.arcbees.com</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git@github.com:ArcBees/gwt-seo.git</connection>
+        <developerConnection>scm:git:git@github.com:ArcBees/gwt-seo.git</developerConnection>
+        <url>https://github.com/ArcBees/gwt-seo</url>
+    </scm>
+
+    <issueManagement>
+        <url>https://github.com/ArcBees/gwt-seo/issues</url>
+        <system>Github Issues</system>
+    </issueManagement>
+
+    <ciManagement>
+        <system>Team City</system>
+        <url>http://teamcity.arcbees.com/project.html?projectId=ArcBeesOpenSource_GwtSeo</url>
+    </ciManagement>
+
+    <repositories>
+        <repository>
+            <id>sonatype.snapshots</id>
+            <name>Sonatype snapshot repository</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <properties>
+        <target.jdk>1.7</target.jdk>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <gwt.version>2.7.0</gwt.version>
+
+        <!-- Testing -->
+        <jukito.version>1.4.1</jukito.version>
+        <junit.version>4.12</junit.version>
+        <mockito.version>2.0.2-beta</mockito.version>
+        <assertj-core.version>1.7.1</assertj-core.version>
+        <gwtmockito.version>1.1.5</gwtmockito.version>
+
+        <!-- Maven -->
+        <maven-checkstyle-plugin.version>2.13</maven-checkstyle-plugin.version>
+        <checkstyle.version>6.2</checkstyle.version>
+        <arcbees-checkstyle.version>1.1</arcbees-checkstyle.version>
+        <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>2.17</maven-surefire-plugin.version>
+        <maven-release-plugin.version>2.5.1</maven-release-plugin.version>
+
+        <!-- Used for releasing to sonatype as command line parameter -->
+        <gpg.passphrase>SetAsParam</gpg.passphrase>
+        <github.username>SetAsParam</github.username>
+        <github.password>SetAsParam</github.password>
+
+        <release.fast>-Dcheckstyle.skip -DskipTests -Dmaven.test.skip</release.fast>
+    </properties>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>${basedir}/src/main/java</directory>
+            </resource>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+
+                <configuration>
+                    <source>${target.jdk}</source>
+                    <target>${target.jdk}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+
+            <!-- Skip GWTTests during JUnit tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <additionalClasspathElements>
+                        <additionalClasspathElement>${project.build.sourceDirectory}</additionalClasspathElement>
+                        <additionalClasspathElement>${project.build.testSourceDirectory}</additionalClasspathElement>
+                    </additionalClasspathElements>
+                    <useManifestOnlyJar>false</useManifestOnlyJar>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*TestCase.java</include>
+                        <include>**/*GwtTest.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>${maven-release-plugin.version}</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <releaseProfiles>release</releaseProfiles>
+                    <arguments>
+                        -Psonatype-oss-release -Prelease -Dgpg.passphrase=${gpg.passphrase} ${release.fast}
+                    </arguments>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${maven-checkstyle-plugin.version}</version>
+                <configuration>
+                    <configLocation>/checkstyle.xml</configLocation>
+                    <suppressionsLocation>/suppressions.xml</suppressionsLocation>
+                    <propertyExpansion>basedir=${basedir}</propertyExpansion>
+                    <consoleOutput>true</consoleOutput>
+                    <failsOnError>true</failsOnError>
+                    <linkXRef>false</linkXRef>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                </configuration>
+
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${checkstyle.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>com.arcbees</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${arcbees-checkstyle.version}</version>
+                    </dependency>
+                </dependencies>
+
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>checkstyle</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.google.gwt</groupId>
+            <artifactId>gwt-user</artifactId>
+            <version>${gwt.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj-core.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.gwt.gwtmockito</groupId>
+            <artifactId>gwtmockito</artifactId>
+            <version>${gwtmockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-all</artifactId>
+                <version>${mockito.version}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>

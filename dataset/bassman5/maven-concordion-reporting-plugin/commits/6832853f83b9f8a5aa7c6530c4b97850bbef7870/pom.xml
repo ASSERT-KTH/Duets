@@ -1,0 +1,193 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.github.bassman5</groupId>
+    <artifactId>maven-concordion-reporting-plugin</artifactId>
+    <version>1.0.3-SNAPSHOT</version>
+    <packaging>maven-plugin</packaging>
+    <name>Concordion Site Report plugin</name>
+    <description>A maven plugin to incorporate concordion reports into a maven site report in the project reports section</description>
+    <url>http://bassman5.github.com/maven-concordion-reporting-plugin</url>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
+    <developers>
+        <developer>
+            <id>mick.dudley</id>
+            <email>mick within dudley.uk.com</email>
+            <roles>
+                <role>Project Owner</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git@github.com:bassman5/maven-concordion-reporting-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:bassman5/maven-concordion-reporting-plugin.git</developerConnection>
+        <url>https://github.com/bassman5/maven-concordion-reporting-plugin</url>
+
+    </scm>
+
+
+    <issueManagement>
+        <system>Github</system>
+        <url>https://github.com/bassman5/maven-concordion-reporting-plugin/issues</url>
+    </issueManagement>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <properties>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <project.build.outputEncoding>UTF-8</project.build.outputEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <sitePluginVersion>3.0</sitePluginVersion>
+        <concordion.version>1.4.2</concordion.version>
+        <concordion-extensions.version>1.1.0</concordion-extensions.version>
+    </properties>
+
+    <distributionManagement>
+        <site>
+            <id>site</id>
+            <name>Project Site</name>
+            <url>file://${project.build.directory}/site-output</url>
+        </site>
+    </distributionManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.maven.reporting</groupId>
+            <artifactId>maven-reporting-api</artifactId>
+            <version>2.0.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.reporting</groupId>
+            <artifactId>maven-reporting-impl</artifactId>
+            <version>2.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-utils</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+            <version>4.8.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>1.8.5</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.concordion</groupId>
+            <artifactId>concordion</artifactId>
+            <version>${concordion.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.concordion</groupId>
+            <artifactId>concordion-extensions</artifactId>
+            <version>${concordion-extensions.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+
+    <build>
+        <plugins>
+            <!-- Force Java 6 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <concordion.output.dir>target/concordion</concordion.output.dir>
+                    </systemPropertyVariables>
+                    <argLine>-Xms512m -Xmx1024m -XX:MaxPermSize=512m</argLine>
+                    <includes>
+                        <include>**/acceptanceTests/AcceptanceTests.java</include>
+                    </includes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.12</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/acceptanceTests/**.java</exclude>
+                    </excludes>
+
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>${sitePluginVersion}</version>
+                <configuration>
+                <reportPlugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-project-info-reports-plugin</artifactId>
+                        <version>2.2</version>
+                        <configuration>
+                            <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
+                            <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-report-plugin</artifactId>
+                        <version>2.12</version>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.github.bassman5</groupId>
+                        <artifactId>maven-concordion-reporting-plugin</artifactId>
+                        <version>1.0.2</version>
+                        <configuration>
+                            <concordionDir>${basedir}/target/concordion</concordionDir>
+                            <concordionIndexFile>acceptanceTests/AcceptanceTests.html</concordionIndexFile>
+                        </configuration>
+                    </plugin>
+                </reportPlugins>
+                </configuration>
+            </plugin>
+
+
+
+        </plugins>
+    </build>
+
+</project>

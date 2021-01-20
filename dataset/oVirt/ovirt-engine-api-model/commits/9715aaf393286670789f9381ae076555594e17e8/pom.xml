@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.ovirt.engine.api</groupId>
+  <artifactId>model</artifactId>
+  <version>4.1.22-SNAPSHOT</version>
+
+  <name>oVirt API Model</name>
+
+  <description>
+    Model management tools for the oVirt Engine API.
+  </description>
+
+  <url>http://www.ovirt.org</url>
+
+  <licenses>
+    <license>
+      <name>The Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Juan Hernandez</name>
+      <email>juan.hernandez@redhat.com</email>
+      <organization>oVirt</organization>
+      <organizationUrl>http://www.ovirt.org</organizationUrl>
+    </developer>
+    <developer>
+      <name>Ori Liel</name>
+      <email>oliel@redhat.com</email>
+      <organization>oVirt</organization>
+      <organizationUrl>http://www.ovirt.org</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git://gerrit.ovirt.org/ovirt-engine-api-model.git</connection>
+    <developerConnection>scm:git:git://gerrit.ovirt.org/ovirt-engine-api-model.git</developerConnection>
+    <url>git://gerrit.ovirt.org/ovirt-engine-api-model.git</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <properties>
+
+    <!-- Always use UTF-8 for source code: -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!-- The version of the metamodel used to specify the model and to generate
+         code from it: -->
+    <metamodel.version>1.1.9</metamodel.version>
+
+    <!-- The name of the product and the engine that will be used in the generated
+         documentation: -->
+    <product.name>oVirt</product.name>
+    <engine.name>oVirt Engine</engine.name>
+
+    <!-- The separator used in the identifiers of the sections of the
+         generated AsciiDoc: -->
+    <adoc.separator>/</adoc.separator>
+
+    <!-- Flag indicating if the CSS of the generated HTML documentation
+         should be linked or embedded: -->
+    <adoc.linkcss>false</adoc.linkcss>
+
+    <!-- Do not generate Javadoc, as we explicitly generate a documentation
+         artifact containing the AsciiDoc and HTML generated from the
+         model: -->
+    <maven.javadoc.skip>true</maven.javadoc.skip>
+
+  </properties>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>org.ovirt.engine.api</groupId>
+      <artifactId>metamodel-annotations</artifactId>
+      <version>${metamodel.version}</version>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+
+    <pluginManagement>
+      <plugins>
+
+        <!-- Make sure we use Java 8: -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.1</version>
+          <configuration>
+            <source>1.8</source>
+            <target>1.8</target>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>1.8</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.asciidoctor</groupId>
+          <artifactId>asciidoctor-maven-plugin</artifactId>
+          <version>1.5.3</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>1.4.0</version>
+        </plugin>
+
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+
+      <!-- Generate the AsciiDoc documentation: -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>generate-doc</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>org.ovirt.api.metamodel.tool.Main</mainClass>
+              <arguments>
+                <argument>org.ovirt.api.metamodel.tool.Tool</argument>
+                <argument>--model=${project.basedir}/src/main/java</argument>
+                <argument>--adoc-separator=${adoc.separator}</argument>
+                <argument>--adoc-attribute=product-name:${product.name}</argument>
+                <argument>--adoc-attribute=engine-name:${engine.name}</argument>
+                <argument>--adoc-separator=${adoc.separator}</argument>
+                <argument>--docs=${project.basedir}/target/generated-adoc</argument>
+                <argument>--json-description=${project.basedir}/target/generated-json/model.json</argument>
+                <argument>--xml-description=${project.basedir}/target/generated-xml/model.xml</argument>
+                <argument>--report=${project.basedir}/target/generated-csv/model.csv</argument>
+              </arguments>
+              <includePluginDependencies>true</includePluginDependencies>
+              <includeProjectDependencies>false</includeProjectDependencies>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.ovirt.engine.api</groupId>
+            <artifactId>metamodel-tool</artifactId>
+            <version>${metamodel.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+
+      <!-- Generate the HTML documentation: -->
+      <plugin>
+         <groupId>org.asciidoctor</groupId>
+         <artifactId>asciidoctor-maven-plugin</artifactId>
+         <executions>
+           <execution>
+             <id>generate-html</id>
+             <phase>compile</phase>
+             <goals>
+               <goal>process-asciidoc</goal>
+             </goals>
+             <configuration>
+               <sourceDirectory>${project.basedir}/target/generated-adoc</sourceDirectory>
+               <outputDirectory>${project.basedir}/target/generated-html</outputDirectory>
+               <backend>html5</backend>
+               <attributes>
+                 <product-name>${product.name}</product-name>
+                 <engine-name>${engine.name}</engine-name>
+                 <linkcss>${adoc.linkcss}</linkcss>
+                 <toc>right</toc>
+                 <sectnums>true</sectnums>
+                 <sectlinks>true</sectlinks>
+                 <sectanchors>true</sectanchors>
+                 <source-highlighter>highlightjs</source-highlighter>
+               </attributes>
+             </configuration>
+           </execution>
+         </executions>
+      </plugin>
+
+      <!-- Generate a .jar file containing the generared AsciiDoc
+           and HTML documentation, and attach it as the Javadoc
+           artifact: -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>generate-docjar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <property name="docjar" value="${project.basedir}/target/doc.jar" />
+                <zip destfile="${docjar}">
+                  <fileset dir="${project.basedir}/target/generated-adoc" />
+                  <fileset dir="${project.basedir}/target/generated-html" />
+                  <fileset dir="${project.basedir}/target/generated-json" />
+                  <fileset dir="${project.basedir}/target/generated-xml" />
+                </zip>
+                <attachartifact file="${docjar}" classifier="javadoc" type="jar" />
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.4</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5.2</version>
+        <configuration>
+          <tagNameFormat>@{version}</tagNameFormat>
+          <pushChanges>false</pushChanges>
+        </configuration>
+      </plugin>
+
+    </plugins>
+
+  </build>
+
+  <profiles>
+
+    <!-- This profile is used to sign the artifacts when performing
+         releases. -->
+    <profile>
+      <id>sign</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- This profile is used to generate the DocBook documentation: -->
+    <profile>
+      <id>publican</id>
+
+      <!-- Publican doesn't accept slashes inside section identifiers, so
+           we need to use a dashes instead: -->
+      <properties>
+        <adoc.separator>-</adoc.separator>
+      </properties>
+
+      <build>
+        <plugins>
+
+          <!-- Generate the DockBook file: -->
+          <plugin>
+            <groupId>org.asciidoctor</groupId>
+            <artifactId>asciidoctor-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>generate-docbook</id>
+                <phase>compile</phase>
+                <goals>
+                  <goal>process-asciidoc</goal>
+                </goals>
+                <configuration>
+                  <sourceDirectory>${project.basedir}/target/generated-adoc</sourceDirectory>
+                  <outputDirectory>${project.basedir}/target/generated-docbook</outputDirectory>
+                  <backend>docbook5</backend>
+                  <doctype>book</doctype>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- Prepare the generated DocBook so that it can be processed
+               by Publican, and then run Publican: -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>run-publican</id>
+                <phase>compile</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target>
+                    <mkdir dir="${project.basedir}/target/generated-publican" />
+                    <copy todir="${project.basedir}/target/generated-publican">
+                      <fileset dir="${project.basedir}/src/main/publican" />
+                    </copy>
+                    <xslt in="${project.basedir}/target/generated-docbook/model.xml" style="${project.basedir}/target/generated-publican/en-US/API_Guide.xsl" out="${project.basedir}/target/generated-publican/en-US/API_Guide.xml" />
+                    <exec executable="publican" dir="${project.basedir}/target/generated-publican">
+                      <arg value="build" />
+                      <arg value="--langs=en-US" />
+                      <arg value="--formats=html" />
+                      <arg value="--publish" />
+                    </exec>
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- This profile is used to generate the PDF documentation: -->
+    <profile>
+      <id>pdf</id>
+      <build>
+        <plugins>
+          <plugin>
+             <groupId>org.asciidoctor</groupId>
+             <artifactId>asciidoctor-maven-plugin</artifactId>
+             <dependencies>
+               <dependency>
+                 <groupId>org.asciidoctor</groupId>
+                 <artifactId>asciidoctorj-pdf</artifactId>
+                 <version>1.5.0-alpha.11</version>
+               </dependency>
+             </dependencies>
+             <executions>
+               <execution>
+                 <id>generate-pdf</id>
+                 <phase>compile</phase>
+                 <goals>
+                   <goal>process-asciidoc</goal>
+                 </goals>
+                 <configuration>
+                   <sourceDirectory>${project.basedir}/target/generated-adoc</sourceDirectory>
+                   <outputDirectory>${project.basedir}/target/generated-pdf</outputDirectory>
+                   <backend>pdf</backend>
+                   <attributes>
+                     <product-name>${product.name}</product-name>
+                     <engine-name>${engine.name}</engine-name>
+                     <toc />
+                     <sectnums>true</sectnums>
+                     <sectlinks>true</sectlinks>
+                     <sectanchors>true</sectanchors>
+                     <source-highlighter>rouge</source-highlighter>
+                   </attributes>
+                 </configuration>
+               </execution>
+             </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+  </profiles>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+    </repository>
+  </distributionManagement>
+
+</project>

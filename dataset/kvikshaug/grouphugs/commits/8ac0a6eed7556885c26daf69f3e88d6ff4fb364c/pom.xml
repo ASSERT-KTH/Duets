@@ -1,0 +1,232 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>gh</groupId>
+  <artifactId>grouphug</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <repositories>
+    <repository>
+      <id>kvikshaug</id>
+      <name>Kvikshaug maven repo</name>
+      <url>http://mvn.kvikshaug.no/</url>
+    </repository>
+
+    <!-- add scala-tools repo for scala stuff -->
+    <repository>
+      <id>scala-tools</id>
+      <name>Scala-Tools Repository</name>
+      <url>http://scala-tools.org/repo-releases</url>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <!-- add scala-tools repo for maven scala plugins -->
+    <pluginRepository>
+      <id>scala-tools.org</id>
+      <name>Scala-tools Maven2 Repository</name>
+      <url>http://scala-tools.org/repo-releases</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <dependencies>
+    <!-- sqlite -->
+    <dependency>
+      <groupId>org.xerial</groupId>
+      <artifactId>sqlite-jdbc</artifactId>
+      <version>3.7.2</version>
+    </dependency>
+
+    <!-- pircbot -->
+    <dependency>
+      <groupId>kvikshaug</groupId>
+      <artifactId>pircbot-patched</artifactId>
+      <version>1.5.0</version>
+    </dependency>
+    
+    <!-- tagsoup -->
+    <dependency>
+      <groupId>org.ccil.cowan.tagsoup</groupId>
+      <artifactId>tagsoup</artifactId>
+      <version>1.2</version>
+    </dependency>
+    
+    <!-- jaxen -->
+    <dependency>
+      <groupId>jaxen</groupId>
+      <artifactId>jaxen</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+
+    <!-- jchardet -->
+    <dependency>
+      <groupId>net.sourceforge.jchardet</groupId>
+      <artifactId>jchardet</artifactId>
+      <version>1.0</version>
+    </dependency>
+
+    <!-- joda time -->
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>1.6.2</version>
+    </dependency>
+
+    <!-- scala-library -->
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-library</artifactId>
+      <version>2.9.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>1.4</version>
+    </dependency>
+
+    <dependency>
+      <groupId>kvikshaug</groupId>
+      <artifactId>scatsd-client_2.9.1</artifactId>
+      <version>1.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.9</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.scalatest</groupId>
+      <artifactId>scalatest_2.9.1</artifactId>
+      <version>1.6.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>kvikshaug</groupId>
+      <artifactId>worm_2.9.1</artifactId>
+      <version>0.11.1</version>
+    </dependency>
+  </dependencies>
+
+
+  <!-- source encoding: utf-8 -->
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <build>
+    <plugins>
+      <!-- scala -->
+      <plugin>
+        <groupId>org.scala-tools</groupId>
+        <artifactId>maven-scala-plugin</artifactId>
+        <version>2.14.2</version>
+        <configuration>
+          <args>
+            <arg>-deprecation</arg>
+            <arg>-target:jvm-1.5</arg>
+            <arg>-make:transitivenocp</arg>
+            <arg>-dependencyfile</arg>
+            <arg>${project.build.directory}/.scala_dependencies</arg>
+          </args>
+        </configuration>
+        <executions>
+          <execution>
+            <id>compile</id>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <phase>compile</phase>
+          </execution>
+          <execution>
+            <id>test-compile</id>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
+            <phase>test-compile</phase>
+          </execution>
+          <execution>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- make uber-jar on package -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>1.4</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <artifactSet>
+            <!-- This is an attempt at making the uber jar a bit slimmer. If you get NoClassDefinitionFoundExceptions, try removing some of these... -->
+            <excludes>
+              <exclude>org.scalatest:scalatest</exclude>
+              <exclude>junit:junit</exclude>
+              <exclude>xerces:*</exclude>
+              <exclude>org.jdom:saxpath</exclude>
+              <exclude>xalan:xalan</exclude>
+              <exclude>dom4j:dom4j</exclude>
+              <exclude>com.ibm.icu:icu4j</exclude>
+              <exclude>xml-apis:xml-apis</exclude>
+              <exclude>xom:xom</exclude>
+            </excludes>
+          </artifactSet>
+          <filters>
+            <filter>
+              <!-- don't need source files in the jar -->
+              <artifact>*:*</artifact>
+              <excludes>
+                <exclude>**/*.java</exclude>
+              </excludes>
+            </filter>
+          </filters>
+        </configuration>
+      </plugin>
+
+      <!-- set Main-Class in manifest -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.3.1</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>
+                no.kvikshaug.gh.Grouphug
+              </mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+      
+      <!-- target java 5 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

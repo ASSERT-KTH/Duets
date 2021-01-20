@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.vertx</groupId>
+    <artifactId>vertx-ext-parent</artifactId>
+    <version>28</version>
+  </parent>
+
+  <artifactId>vertx-mqtt</artifactId>
+  <version>3.6.0-SNAPSHOT</version>
+
+  <developers>
+    <developer>
+      <name>Paolo Patierno</name>
+      <email>ppatierno@live.com</email>
+      <organization>Red Hat</organization>
+      <organizationUrl>http://www.redhat.com</organizationUrl>
+    </developer>
+  </developers>
+
+  <properties>
+    <stack.version>3.6.0-SNAPSHOT</stack.version>
+    <junit.version>4.12</junit.version>
+    <paho.version>1.1.0</paho.version>
+    <fabric8-docker-plugin.version>0.22.1</fabric8-docker-plugin.version>
+
+    <!-- Depending on profile property for testing on CI server using broker provided by Eclipse-->
+    <SERVER>iot.eclipse.org</SERVER>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-dependencies</artifactId>
+        <version>${stack.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <name>Vert.x MQTT</name>
+  <description>Vert.x MQTT reactive client and server</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-transport</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-handler</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-codec-mqtt</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-codegen</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-codetrans</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-docgen</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-lang-ruby</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-lang-js</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-lang-groovy</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-lang-kotlin</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-rx-java</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-rx-java2</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-core</artifactId>
+    </dependency>
+
+    <!-- Testing -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-unit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.paho</groupId>
+      <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
+      <version>${paho.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <licenses>
+    <license>
+      <name>The Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <!-- Copy resources after compilation phase as we generate JS in src/main/resources -->
+        <plugin>
+          <artifactId>maven-resources-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>default-resources</id>
+              <phase>process-classes</phase>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-jar</id>
+            <configuration>
+              <archive>
+                <!-- A manifest containing the OSGi metadata has been generated using the maven-bundle-plugin -->
+                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+              </archive>
+              <!-- Remove examples and docoverride -->
+              <excludes>
+                <exclude>/examples/**</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>biz.aQute.bnd</groupId>
+        <artifactId>bnd-maven-plugin</artifactId>
+        <version>3.2.0</version>
+
+        <executions>
+          <execution>
+            <id>default-bnd-process</id>
+            <goals>
+              <goal>bnd-process</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <bnd><![CDATA[
+          Import-Package: \
+            groovy.lang.*;resolution:=optional,\
+            org.codehaus.groovy.*;resolution:=optional,\
+            kotlin.*;resolution:=optional,\
+            io.vertx.groovy.*;resolution:=optional,\
+            io.vertx.lang.rxjava.*;resolution:=optional,\
+            io.vertx.lang.reactivex.*;resolution:=optional,\
+            io.vertx.lang.groovy.*;resolution:=optional,\
+            io.vertx.codegen.annotations;resolution:=optional,\
+            io.vertx.rx.java;resolution:=optional,\
+            io.vertx.rxjava.core.*;resolution:=optional,\
+            io.vertx.reactivex;resolution:=optional,\
+            io.vertx.reactivex.core.*;resolution:=optional,\
+            rx.*;resolution:=optional,\
+            io.reactivex.*;resolution:=optional,\
+            *
+          -exportcontents: !*impl, !examples, *
+          ]]></bnd>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/MqttClient*.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>run-integration-test</id>
+            <goals>
+              <goal>integration-test</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <includes>
+            <include>**/MqttClient*.java</include>
+          </includes>
+          <excludes>
+            <exclude>**/MqttServer*.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>properties-maven-plugin</artifactId>
+        <version>1.0.0</version>
+        <executions>
+          <execution>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>write-project-properties</goal>
+            </goals>
+            <configuration>
+              <outputFile>target/project.properties</outputFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+
+    <!-- Profile for testing local testing with docker -->
+    <profile>
+      <id>local_test</id>
+      <properties>
+        <SERVER>localhost</SERVER>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <version>${fabric8-docker-plugin.version}</version>
+            <configuration>
+              <dockerHost>unix:///var/run/docker.sock</dockerHost>
+              <images>
+                <image>
+                  <name>ansi/mosquitto</name>
+                  <alias>mosquitto</alias>
+                  <run>
+                    <ports>
+                      <port>1883:1883</port>
+                    </ports>
+                    <wait>
+                      <tcp>
+                        <ports>
+                          <port>1883</port>
+                        </ports>
+                      </tcp>
+                    </wait>
+                  </run>
+                </image>
+              </images>
+            </configuration>
+            <executions>
+              <execution>
+                <id>run</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>start</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>stop</id>
+                <phase>post-integration-test</phase>
+                <goals>
+                  <goal>stop</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+</project>

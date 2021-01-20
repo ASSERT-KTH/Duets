@@ -1,0 +1,271 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.redpill-linpro.alfresco</groupId>
+    <artifactId>alfresco-base</artifactId>
+    <version>1.1.1.7</version>
+  </parent>
+
+  <groupId>org.redpill-linpro.alfresco</groupId>
+  <artifactId>alfresco-cluster-probe</artifactId>
+  <version>1.1.2</version>
+
+  <properties>
+    <webapp.name>alfresco</webapp.name>
+    <alfresco.groupId>org.alfresco</alfresco.groupId>
+    <alfresco.version>4.2.4</alfresco.version>
+  </properties>
+
+  <developers>
+    <developer>
+      <id>nike</id>
+      <name>Niklas Ekman</name>
+      <email>niklas.ekman@redpill-linpro.com</email>
+      <organization>Redpill Linpro</organization>
+      <organizationUrl>http://www.redpill-linpro.com</organizationUrl>
+    </developer>
+  </developers>
+
+  <contributors>
+    <contributor />
+  </contributors>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.extensions.surf</groupId>
+      <artifactId>spring-surf</artifactId>
+      <version>1.2.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.alfresco</groupId>
+      <artifactId>alfresco-data-model</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.alfresco</groupId>
+      <artifactId>alfresco-repository</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.redpill-linpro.alfresco</groupId>
+      <artifactId>alfresco-test-repo</artifactId>
+      <version>1.0.5</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.codehaus.groovy</groupId>
+      <artifactId>groovy-all</artifactId>
+      <!-- Needs to be the same version that REST Assured depends on -->
+      <version>2.3.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>cglib</groupId>
+      <artifactId>cglib</artifactId>
+      <version>2.2</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/config</directory>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>net.alchim31.maven</groupId>
+        <artifactId>yuicompressor-maven-plugin</artifactId>
+        <version>1.5.1</version>
+        <executions>
+          <execution>
+            <id>minimize-javascript</id>
+            <goals>
+              <goal>compress</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <excludes>
+            <exclude>${project.basedir}/src/main/config/config/**/*.js</exclude>
+            <exclude>${project.build.directory}/**/*.js</exclude>
+            <exclude>**/target/**</exclude>
+            <exclude>**/*-min.js</exclude>
+            <exclude>**/*-min.css</exclude>
+            <exclude>**/WEB-INF/**</exclude>
+            <exclude>**/tiny_mce/**</exclude>
+            <exclude>**/log4javascript*.js</exclude>
+          </excludes>
+          <sourceDirectory>${project.basedir}/src/main/resources</sourceDirectory>
+          <outputDirectory>${project.build.directory}/classes</outputDirectory>
+          <force>true</force>
+          <statistics>false</statistics>
+          <jswarn>false</jswarn>
+          <encoding>UTF-8</encoding>
+          <preProcessAggregates>true</preProcessAggregates>
+          <excludeResources>true</excludeResources>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>ft</id>
+      <build>
+        <plugins>
+          <!-- Fetch and unpack Alfresco Repository / Share in the target / folder -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>unpack-alfresco</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>unpack</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${alfresco.client.war.folder}</outputDirectory>
+                  <artifactItems>
+                    <artifactItem>
+                      <groupId>${alfresco.client.war.groupId}</groupId>
+                      <artifactId>${alfresco.client.war}</artifactId>
+                      <type>war</type>
+                      <version>${alfresco.client.war.version}</version>
+                    </artifactItem>
+                  </artifactItems>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <!-- Configure tomcat context.xml included in the webapp with proper filtering -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <executions>
+              <!-- When the AMP runs locally, src/test/webapp and src/test/resources will contain -->
+              <!-- the location of the configuration files -->
+              <execution>
+                <id>copy-alfresco-test-resources</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${alfresco.client.war.folder}</outputDirectory>
+                  <resources>
+                    <resource>
+                      <directory>src/test/webapp</directory>
+                    </resource>
+                    <resource>
+                      <directory>${project.build.testOutputDirectory}</directory>
+                      <targetPath>WEB-INF/classes</targetPath>
+                      <filtering>${app.filtering.enabled}</filtering>
+                      <excludes>
+                        <exclude>**/*.class</exclude>
+                      </excludes>
+                    </resource>
+                    <resource>
+                      <directory>src/test/properties/${env}</directory>
+                      <filtering>${app.filtering.enabled}</filtering>
+                      <targetPath>WEB-INF/classes</targetPath>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+              <execution>
+                <id>copy-artifact-resource</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${alfresco.client.war.folder}</outputDirectory>
+                  <resources>
+                    <resource>
+                      <directory>target</directory>
+                      <targetPath>WEB-INF/lib</targetPath>
+                      <includes>
+                        <include>${project.build.finalName}.jar</include>
+                      </includes>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+              <execution>
+                <id>copy-tomcat-resources</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>${alfresco.client.war.folder}</outputDirectory>
+                  <resources>
+                    <resource>
+                      <directory>tomcat</directory>
+                      <filtering>${app.filtering.enabled}</filtering>
+                      <targetPath>WEB-INF</targetPath>
+                      <includes>
+                        <include>context.xml</include>
+                      </includes>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- Configures tomcat to run against the overlaid WAR + AMP -->
+          <plugin>
+            <groupId>org.apache.tomcat.maven</groupId>
+            <artifactId>tomcat7-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>run-wars</id>
+                <goals>
+                  <goal>run-war-only</goal>
+                </goals>
+                <phase>integration-test</phase>
+                <configuration>
+                  <contextFile>${alfresco.client.war.folder}/WEB-INF/context.xml</contextFile>
+                  <!-- To run a non WAR project -->
+                  <ignorePackaging>true</ignorePackaging>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <distributionManagement>
+    <repository>
+      <id>redpill-linpro-releases</id>
+      <url>http://maven.redpill-linpro.com/nexus/content/repositories/releases</url>
+    </repository>
+    <snapshotRepository>
+      <id>redpill-linpro-snapshots</id>
+      <url>http://maven.redpill-linpro.com/nexus/content/repositories/snapshots</url>
+    </snapshotRepository>
+  </distributionManagement>
+
+</project>

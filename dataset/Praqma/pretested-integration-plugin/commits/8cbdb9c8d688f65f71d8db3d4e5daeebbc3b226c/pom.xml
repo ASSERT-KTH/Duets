@@ -1,0 +1,294 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>plugin</artifactId>
+        <version>2.37</version>
+        <relativePath />
+    </parent>
+
+    <name>Pretested Integration Plugin</name>
+    <artifactId>pretested-integration</artifactId>
+    <description>Enables pretested integration as Git SCM extension.</description>
+    <url>https://wiki.jenkins.io/display/JENKINS/Pretested+Integration+Plugin</url>
+
+    <!--
+    Using the buildnumber-maven-plugin and the maven-hpi-plugin configuration below
+    the plugin will show up with at version number like:
+    major.minor.patch-SNAPSHOT-gitSHA (dev builds)
+    major.minor.patch-gitSHA (releases)
+
+    You can make a beta or alpha release by putting in beta or alpha in the pom according to
+    https://jenkins.io/blog/2013/09/23/experimental-plugins-update-center/
+    Those updates will only be visible to people who have enabled the experimental update center.
+    Example of a beta: 3.0.0-beta.1-SNAPSHOT
+    -->
+    <version>3.0.2-SNAPSHOT</version>
+    <packaging>hpi</packaging>
+
+
+    <properties>
+        <jenkins.version>2.19.4</jenkins.version>
+        <jenkins-test-harness.version>2.24</jenkins-test-harness.version>
+    </properties>
+
+
+    <developers>
+        <developer>
+            <id>praqma</id>
+            <name>Praqma Support</name>
+            <email>support@praqma.net</email>
+        </developer>
+    </developers>
+
+    <!-- Use the Jenkins CI repositories to get artifacts and deliver artifacts.
+         Released artifact will to repository.
+         Plugin repos will be resolved artifacts from also, eg. hpi plugin and parent pom file.
+    -->
+    <repositories>
+        <repository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </repository>
+        <repository>
+            <id>jgit-repository</id>
+            <url>https://repo.eclipse.org/content/groups/releases/</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+		<!-- Setting SCM to git. -->
+		<!-- Using Praqma's github repo as developer connection - this mean we must manual push tags and commits to the
+				 Jenkins CI github repo after an release. We do this to ensure no one sneaks code into our repo. -->
+    <scm>
+        <connection>scm:git:ssh://github.com/Praqma/pretested-integration-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/Praqma/pretested-integration-plugin.git</developerConnection>
+        <url>https://github.com/Praqma/pretested-integration-plugin</url>
+      <tag>HEAD</tag>
+  </scm>
+
+
+    <build>
+        <plugins>
+            <!--
+            This produces the hpi file for Jenkins plugins.
+            We reconfigure it here to add version information and a newer version
+            It would have been nice if we could signal dirty workspaces on the version
+            but buildnumber-maven-plugin does not support it. Neither does one like it:
+            https://github.com/code54/buildversion-plugin
+            -->
+            <plugin>
+                <groupId>org.jenkins-ci.tools</groupId>
+                <artifactId>maven-hpi-plugin</artifactId>
+                <configuration>
+                    <!-- Compatible since is used to warn the user that this new version of the plugin is not compatible
+                     with earlier version than the one we mention below.
+                     https://wiki.jenkins.io/display/JENKINS/Marking+a+new+plugin+version+as+incompatible+with+older+versions
+                     -->
+                    <compatibleSinceVersion>3.0.0</compatibleSinceVersion>
+                </configuration>
+            </plugin>
+
+            <!--
+                Use java 1.8. We need this for our testing environment. Java 7 was EOL last year
+                and i was starting to get some wierd errors with FindBugs plugin. Plugins also require
+                Java 7 with the version of Jenkins we're using so i decided to move to Java 7 which also soon
+                is EOL.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+
+            <!--
+            Allows integration tests to clean test environment before build fails
+            use 'mvn verify' to run integration tests to allow 'post-integration-test' phase
+            to run so it can tear down integration test environment
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.19.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--
+            Binds automatically surefire:test goal to the test phase and generates
+            .txt and .xml reports for test results.
+            Reports can later be converted to html reports by the 'maven-surefire-report-plugin'
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.19.1</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/CredentialsTest.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <!--
+            Generate coverate reports based on instrumented tests.
+            It does not get automatically executed, but invokes the execution of the
+            lifecycle phase test prior to executing itself.
+            Run cobertura:cobertura goal in the build pipeline to get coverage reports
+            in html and xml formats.
+            It is considered a Maven report and outputs to site-directory, but plugin needs
+            mention in the report section as well to include it in the site report.
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <format>xml</format>    <!-- Jenkins uses the xml format -->
+                    <check />
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit</artifactId>
+            <version>4.5.3.201708160445-r</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-aggregator</artifactId>
+            <version>2.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>credentials</artifactId>
+            <version>2.1.13</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>ssh-credentials</artifactId>
+            <version>1.13</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>git</artifactId>
+            <version>3.5.1</version>
+        </dependency>
+
+        <!-- Added because of GHI 103 -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>token-macro</artifactId>
+            <version>1.12.1</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!--
+            Added because of GHI 103. Conflicts with MultiJob. We exclude the conditional buildstep because MultiJob
+            provides a newer version we can use.
+        -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>parameterized-trigger</artifactId>
+            <version>2.35.1</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>multiple-scms</artifactId>
+            <version>0.6</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>job-dsl</artifactId>
+            <version>1.64</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>matrix-project</artifactId>
+            <version>1.11</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.9.5</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.google.code.findbugs/annotations -->
+        <!-- Temparily added this because of issue GHI 103 -->
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>annotations</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+
+        <!--
+            Added because of multijob plugin and maven job's depend on two older ant libraries.
+            We need to use the newest as plugins are not forwards compatible.
+        -->
+        <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant</artifactId>
+            <version>1.9.2</version>
+            <optional>true</optional>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <!--
+        We need to have this section because maven.jenkins-ci.org now uses a new
+        url. We rely on older Jenkins version so this needs to be overridden.
+    -->
+    <distributionManagement>
+        <repository>
+            <id>maven.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/releases</url>
+        </repository>
+    </distributionManagement>
+
+</project>

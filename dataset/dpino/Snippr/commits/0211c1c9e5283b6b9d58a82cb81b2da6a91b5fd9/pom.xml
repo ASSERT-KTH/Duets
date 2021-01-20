@@ -1,0 +1,335 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.igalia.mswl</groupId>
+    <artifactId>snippr</artifactId>
+    <packaging>war</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <name>snippr Maven Webapp</name>
+    <url>http://maven.apache.org</url>
+
+    <!-- =================================================================== -->
+    <!-- Default values for properties.These default values are expected to
+        be valid for most profiles.Specific profiles can overwrite values when necessary. -->
+    <properties>
+        <!-- Data source properties -->
+        <dataSource.user>snippr</dataSource.user>
+        <dataSource.password>snippr</dataSource.password>
+        <dataSource.jndiName>jdbc/snipprdev</dataSource.jndiName>
+        <testDataSource.user>${dataSource.user}</testDataSource.user>
+        <testDataSource.password>${dataSource.password}</testDataSource.password>
+        <org.springframework.version>3.0.5.RELEASE</org.springframework.version>
+        <spring-security.version>3.0.5.RELEASE</spring-security.version>
+    </properties>
+
+    <!-- =================================================================== -->
+    <!-- Profiles. * The build is always executed by selecting at least two
+        non-exclusive profiles. By default, such profiles are "dev" and "postgresql"
+        (meaning "use PostgreSQL assuming a development environment"). * General
+        profiles. There are two general (database-independent) profiles: "dev" and
+        "prod". The former is used for development (including testing) and the latter
+        is used for production (including testing). As shown below, two dataSources
+        (databases schemas) are used in both profiles: one for running (dataSource)
+        and another one for the Maven test fase (testDataSource). Note the Maven
+        test fase is executed both with development and production profiles. * Database-specific
+        profiles. There is a profile for each supported database. * Specific profiles
+        can be defined to better adapt to a particular environment by overwriting/adding
+        properties and/or including other chunks of valid XML. * Usage: + mvn <<goal>>
+        => Execute <<goal>> with default profiles. + mvn -Pdev,<<database>> <<goal>
+        => Execute <<goal>> with "dev" and <<database>> profiles. + mvn -Pprod,<<database>>
+        <<goal>> => Execute <<goal>> with "prod" and <<database>> profiles. + Note
+        that when using -P option all desired profiles must be specified (e.g. "-Pprod"
+        with the intention to select "prod" and the default database profile is not
+        correct; "-Pprod,<<database>>" must be used instead). * Examples: + mvn <<goal>>
+        + mvn -Ppostgresql,prod <<goal>> + mvn -Ppostgresql,dev <<goal>> -->
+
+    <profiles>
+        <!-- Development profile -->
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <!-- SnippR environment properties -->
+                <snippr.mode>dev</snippr.mode>
+                <!-- Hibernate properties -->
+                <hibernate.show_sql>true</hibernate.show_sql>
+                <hibernate.format_sql>true</hibernate.format_sql>
+                <hibernate.use_sql_comments>true</hibernate.use_sql_comments>
+                <hibernate.hbm2ddl.auto>update</hibernate.hbm2ddl.auto>
+            </properties>
+        </profile>
+
+        <!-- MySQL profile -->
+        <profile>
+            <id>mysql</id>
+            <properties>
+                <!-- JDBC driver properties -->
+                <jdbcDriver.groupId>mysql</jdbcDriver.groupId>
+                <jdbcDriver.artifactId>mysql-connector-java</jdbcDriver.artifactId>
+                <jdbcDriver.version>5.0.5</jdbcDriver.version>
+                <jdbcDriver.className>com.mysql.jdbc.Driver</jdbcDriver.className>
+                <!-- Data source properties -->
+                <dataSource.url>jdbc:mysql://localhost/snipprdev</dataSource.url>
+                <!-- Hibernate properties -->
+                <hibernate.dialect>org.hibernate.dialect.MySQLInnoDBDialect</hibernate.dialect>
+            </properties>
+        </profile>
+
+        <!-- PostgreSQL profile -->
+        <profile>
+            <id>postgresql</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <!-- JDBC driver properties -->
+                <jdbcDriver.groupId>postgresql</jdbcDriver.groupId>
+                <jdbcDriver.artifactId>postgresql</jdbcDriver.artifactId>
+                <jdbcDriver.version>8.3-603.jdbc4</jdbcDriver.version>
+                <jdbcDriver.className>org.postgresql.Driver</jdbcDriver.className>
+                <!-- Data source properties -->
+                <dataSource.url>jdbc:postgresql://localhost/snipprdev</dataSource.url>
+                <!-- Hibernate properties -->
+                <hibernate.dialect>org.hibernate.dialect.PostgreSQLDialect</hibernate.dialect>
+                <!-- <databasetable.prefix>public.</databasetable.prefix> -->
+            </properties>
+        </profile>
+
+    </profiles>
+
+    <!-- =================================================================== -->
+    <!-- Repository management -->
+    <repositories>
+        <repository>
+            <id>zkoss</id>
+            <url>http://mavensync.zkoss.org/maven2/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>central</id>
+            <url>http://repo1.maven.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+    </repositories>
+
+    <!-- =================================================================== -->
+    <!-- Dependency management -->
+    <dependencies>
+
+        <!-- JUnit -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.4</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Log4j -->
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.16</version>
+        </dependency>
+
+        <!-- ZK -->
+        <dependency>
+            <groupId>org.zkoss.zk</groupId>
+            <artifactId>zk</artifactId>
+            <version>5.0.11</version>
+        </dependency>
+        <dependency>
+            <groupId>org.zkoss.zk</groupId>
+            <artifactId>zul</artifactId>
+            <version>5.0.11</version>
+        </dependency>
+        <dependency>
+            <groupId>org.zkoss.zk</groupId>
+            <artifactId>zkplus</artifactId>
+            <version>5.0.11</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.zkoss.zk</groupId>
+            <artifactId>zkspring-core</artifactId>
+            <version>3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.zkoss.zk</groupId>
+            <artifactId>zkspring-security</artifactId>
+            <version>3.0</version>
+        </dependency>
+        <!-- Spring -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>${org.springframework.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>${org.springframework.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-orm</artifactId>
+            <version>${org.springframework.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>${org.springframework.version}</version>
+        </dependency>
+
+        <!-- Hibernate -->
+        <dependency>
+            <groupId>org.apache.geronimo.specs</groupId>
+            <artifactId>geronimo-jta_1.0.1B_spec</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.12.1.GA</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>3.6.5.Final</version>
+        </dependency>
+
+        <!-- AspectJ -->
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjtools</artifactId>
+            <version>1.5.4</version>
+        </dependency>
+
+        <!-- JDBC driver -->
+        <dependency>
+            <groupId>${jdbcDriver.groupId}</groupId>
+            <artifactId>${jdbcDriver.artifactId}</artifactId>
+            <version>${jdbcDriver.version}</version>
+        </dependency>
+
+        <!-- Spring Security -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-core</artifactId>
+            <version>${spring-security.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <version>${spring-security.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+            <version>${spring-security.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-acl</artifactId>
+            <version>${spring-security.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-taglibs</artifactId>
+            <version>${spring-security.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>snippr</finalName>
+
+        <!-- =============================================================== -->
+        <!-- Filtering -->
+        <resources>
+
+            <!-- Apply filtering to files matching the following expressions in src/main/resources. -->
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>*spring.cfg.xml</include>
+                    <include>*hibernate.cfg.xml</include>
+                    <include>jetty-env.xml</include>
+                </includes>
+            </resource>
+
+            <!-- Continue considering resources the files in src/main/resources, but
+                without applying filtering. -->
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+
+        <testResources>
+            <!-- Apply filtering to files matching the following expressions in src/test/resources. -->
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>*spring.cfg-test.xml</include>
+                    <include>*hibernate.cfg-test.xml</include>
+                </includes>
+            </testResource>
+
+            <!-- Continue considering resources the files in src/test/resources, but
+                without applying filtering. -->
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+        </testResources>
+
+        <!-- Maven plugin -->
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <verbose>true</verbose>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.mortbay.jetty</groupId>
+                <artifactId>maven-jetty-plugin</artifactId>
+                <version>6.1.18</version>
+                <configuration>
+                    <jettyEnvXml>target/classes/jetty-env.xml</jettyEnvXml>
+                    <reload>manual</reload>
+                    <stopPort>9966</stopPort>
+                    <stopKey>stop</stopKey>
+
+                    <!-- Log to the console. -->
+                    <requestLog implementation="org.mortbay.jetty.NCSARequestLog">
+                        <append>true</append>
+                    </requestLog>
+                </configuration>
+
+                <dependencies>
+                    <dependency>
+                        <groupId>${jdbcDriver.groupId}</groupId>
+                        <artifactId>${jdbcDriver.artifactId}</artifactId>
+                        <version>${jdbcDriver.version}</version>
+                    </dependency>
+                </dependencies>
+
+            </plugin>
+
+        </plugins>
+
+    </build>
+</project>

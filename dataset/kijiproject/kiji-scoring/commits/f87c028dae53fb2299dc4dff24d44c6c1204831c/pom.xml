@@ -1,0 +1,245 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.kiji.scoring</groupId>
+  <artifactId>kiji-scoring</artifactId>
+  <version>0.4.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <parent>
+    <groupId>org.kiji.pom</groupId>
+    <artifactId>root-pom</artifactId>
+    <version>1.1.1-SNAPSHOT</version>
+  </parent>
+
+  <name>kiji-scoring</name>
+  <url>http://maven.apache.org</url>
+
+  <properties>
+    <kiji-delegation.version>1.0.0</kiji-delegation.version>
+    <kiji-platforms.version>1.1.0</kiji-platforms.version>
+    <kiji-schema.version>1.1.0</kiji-schema.version>
+    <kiji-mapreduce.version>1.0.0</kiji-mapreduce.version>
+    <fake-hbase.version>0.1.0</fake-hbase.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <!--
+            Scoring depends on the oldest version of KijiSchema / KIJIMR that supports it.
+            To test whether the latest Kiji dependency SNAPSHOTs have introduced a regression:
+
+            Run the following commands in your shell
+
+            mvn versions:update-properties -N # Update the kiji-*.version properties
+                                              # in the top-level pom file; don't recurse.
+            mvn clean verify                  # Uses the new snapshot versions
+            mvn versions:revert               # Revert the pom file to before update-properties.
+                                    # Do not check in new Kiji SNAPSHOT dependencies in the pom.
+        -->
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>versions-maven-plugin</artifactId>
+        <configuration>
+          <includeProperties>kiji-schema.version,kiji-mapreduce.version</includeProperties>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.kiji.schema</groupId>
+            <artifactId>kiji-schema</artifactId>
+            <version>${kiji-schema.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>org.kiji.mapreduce</groupId>
+            <artifactId>kiji-mapreduce</artifactId>
+            <version>${kiji-mapreduce.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.avro</groupId>
+        <artifactId>avro-maven-plugin</artifactId>
+        <configuration>
+          <!-- Avro string compiled to java.lang.String instead of CharSequence -->
+          <stringType>String</stringType>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <additionalClasspathElements>
+            <additionalClasspathElement>
+              ${project.build.directory}/${project.artifactId}-${project.version}.jar
+            </additionalClasspathElement>
+            <additionalClasspathElement>
+              ${project.build.directory}/${project.artifactId}-${project.version}-tests.jar
+            </additionalClasspathElement>
+          </additionalClasspathElements>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <!-- configured with files in the src/main/assembly/ directory -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+
+
+  <dependencies>
+    <dependency>
+      <groupId>org.kiji.annotations</groupId>
+      <artifactId>annotations</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.kiji.schema</groupId>
+      <artifactId>kiji-schema</artifactId>
+      <version>${kiji-schema.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.kiji.schema</groupId>
+      <artifactId>kiji-schema</artifactId>
+      <version>${kiji-schema.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.kiji.hadoop</groupId>
+      <artifactId>hadoop-configurator</artifactId>
+      <version>1.0.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.kiji.testing</groupId>
+      <artifactId>fake-hbase</artifactId>
+      <version>${fake-hbase.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.kiji.mapreduce</groupId>
+      <artifactId>kiji-mapreduce</artifactId>
+      <version>${kiji-mapreduce.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.kiji.mapreduce</groupId>
+      <artifactId>kiji-mapreduce</artifactId>
+      <version>${kiji-mapreduce.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.kiji.avro</groupId>
+      <artifactId>kiji-avro</artifactId>
+      <version>1.1.1-cdh4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hbase</groupId>
+      <artifactId>hbase</artifactId>
+      <scope>test</scope>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
+      <version>${hadoop.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-core</artifactId>
+      <version>${hadoop.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hbase</groupId>
+      <artifactId>hbase</artifactId>
+      <version>${hbase.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-minicluster</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.mrunit</groupId>
+      <artifactId>mrunit</artifactId>
+      <classifier>hadoop2</classifier>
+      <!-- I do not know if this version number is correct-->
+      <version>0.9.0-incubating</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.4</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+  </dependencies>
+
+  <repositories>
+    <repository>
+      <id>kiji-repos</id>
+      <name>kiji-repos</name>
+      <url>https://repo.wibidata.com/artifactory/kiji</url>
+    </repository>
+    <repository>
+      <id>kiji-nightly</id>
+      <name>kiji-nightly</name>
+      <url>https://repo.wibidata.com/artifactory/kiji-nightly</url>
+    </repository>
+  </repositories>
+
+  <scm>
+    <connection>scm:git:git@github.com:kijiproject/kiji-scoring.git</connection>
+    <url>scm:git:git@github.com:kijiproject/kiji-scoring.git</url>
+    <developerConnection>scm:git:git@github.com:kijiproject/kiji-scoring.git</developerConnection>
+  </scm>
+
+</project>

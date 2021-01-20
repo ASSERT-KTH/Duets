@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- The MIT License (MIT) Copyright (c) 2013 Six Dimensions Permission is 
+	hereby granted, free of charge, to any person obtaining a copy of this software 
+	and associated documentation files (the "Software"), to deal in the Software 
+	without restriction, including without limitation the rights to use, copy, 
+	modify, merge, publish, distribute, sublicense, and/or sell copies of the 
+	Software, and to permit persons to whom the Software is furnished to do so, 
+	subject to the following conditions: The above copyright notice and this 
+	permission notice shall be included in all copies or substantial portions 
+	of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY 
+	KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF 
+	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN 
+	NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, 
+	DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, 
+	ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+	DEALINGS IN THE SOFTWARE. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.sixdimensions.wcm.cq</groupId>
+	<artifactId>sample-sling-integration-test</artifactId>
+	<version>1.0.0</version>
+	<packaging>bundle</packaging>
+
+	<name>Sample Sling Integration Test</name>
+	<description>
+        A sample integration test created for Apache Sling 
+    </description>
+
+	<scm>
+		<connection>scm:git:git@github.com:SixDimensions/Sample-Sling-Integration-Test.git</connection>
+		<url>git@github.com:SixDimensions/Sample-Sling-Integration-Test.git</url>
+	</scm>
+
+	<build>
+		<plugins>
+
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-scr-plugin</artifactId>
+				<version>1.9.0</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.slf4j</groupId>
+						<artifactId>slf4j-simple</artifactId>
+						<version>1.6.4</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<id>generate-scr-scrdescriptor</id>
+						<goals>
+							<goal>scr</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>2.3.7</version>
+				<extensions>true</extensions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-runnable-jar</id>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<phase>package</phase>
+						<configuration>
+							<outputDirectory>${project.build.directory}/sling</outputDirectory>
+							<includeArtifactIds>org.apache.sling.launchpad</includeArtifactIds>
+							<excludeTransitive>true</excludeTransitive>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+						</configuration>
+					</execution>
+					<execution>
+						<id>copy-dependencies</id>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<phase>package</phase>
+						<configuration>
+							<outputDirectory>${project.build.directory}/sling/additional-bundles</outputDirectory>
+							<includeArtifactIds>jstl</includeArtifactIds>
+							<excludeTransitive>true</excludeTransitive>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<configuration>
+							<tasks>
+								<copy
+									file="${project.build.directory}/${project.build.finalName}.jar"
+									toDir="${project.build.directory}/sling/additional-bundles"
+									verbose="true" />
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>2.12.4</version>
+				<executions>
+					<execution>
+						<id>integration-test</id>
+						<goals>
+							<goal>integration-test</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<includes>
+						<include>**/*IT.java</include>
+					</includes>
+					<systemPropertyVariables>
+						<jar.executor.work.folder>${project.build.directory}/sling</jar.executor.work.folder>
+						<jar.executor.jar.options>-p $JAREXEC_SERVER_PORT$</jar.executor.jar.options>
+						<jar.executor.vm.options>-Xmx512m</jar.executor.vm.options>
+						<jar.executor.jar.folder>${project.build.directory}/sling</jar.executor.jar.folder>
+						<jar.executor.jar.name.regexp>org.apache.sling.launchpad.*jar$</jar.executor.jar.name.regexp>
+						<additional.bundles.path>${project.build.directory}/sling/additional-bundles</additional.bundles.path>
+						<keepJarRunning>false</keepJarRunning>
+						<server.ready.timeout.seconds>60</server.ready.timeout.seconds>
+						<sling.testing.timeout.multiplier>1.0</sling.testing.timeout.multiplier>
+						<server.ready.path.1>/:script src="system/sling.js"</server.ready.path.1>
+						<start.bundles.timeout.seconds>30</start.bundles.timeout.seconds>
+						<bundle.install.timeout.seconds>20</bundle.install.timeout.seconds>
+						<!-- Define additional bundles to install by specifying the beginning 
+							of their artifact name. The bundles are installed in lexical order of these 
+							property names. All bundles must be listed as dependencies in this pom, or 
+							they won't be installed. -->
+						<sling.additional.bundle.1>sample-sling-integration-test</sling.additional.bundle.1>
+						<sling.additional.bundle.2>jstl</sling.additional.bundle.2>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.apache.maven.plugins
+										</groupId>
+										<artifactId>
+											maven-dependency-plugin
+										</artifactId>
+										<versionRange>
+											[2.1,)
+										</versionRange>
+										<goals>
+											<goal>
+												copy-dependencies
+											</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.scr.annotations</artifactId>
+			<version>1.7.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.sling</groupId>
+			<artifactId>org.apache.sling.api</artifactId>
+			<version>2.1.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.core</artifactId>
+			<version>4.1.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.compendium</artifactId>
+			<version>4.1.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.6.4</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- Testing Dependencies -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.6.4</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.sling</groupId>
+			<artifactId>org.apache.sling.commons.testing</artifactId>
+			<version>2.0.12</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.sling</groupId>
+			<artifactId>org.apache.sling.testing.tools</artifactId>
+			<version>1.0.6</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.sling</groupId>
+			<artifactId>org.apache.sling.launchpad</artifactId>
+			<version>6</version>
+			<classifier>standalone</classifier>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.geronimo.bundles</groupId>
+			<artifactId>jstl</artifactId>
+			<version>1.2_1</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

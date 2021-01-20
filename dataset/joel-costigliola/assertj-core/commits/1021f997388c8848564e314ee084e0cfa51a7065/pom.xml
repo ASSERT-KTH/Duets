@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd ">
+
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>assertj-core</artifactId>
+  <version>3.7.0-SNAPSHOT</version>
+  <packaging>bundle</packaging>
+  <name>AssertJ fluent assertions</name>
+  <description>Rich and fluent assertions for testing for Java</description>
+  <inceptionYear>2014</inceptionYear>
+  <parent>
+    <groupId>org.assertj</groupId>
+    <artifactId>assertj-parent-pom</artifactId>
+    <version>2.1.5</version>
+  </parent>
+  <mailingLists>
+    <mailingList>
+      <name>AssertJ Group</name>
+      <post>http://groups.google.com/group/assertj</post>
+      <subscribe>http://groups.google.com/group/assertj</subscribe>
+      <unsubscribe>http://groups.google.com/group/assertj</unsubscribe>
+    </mailingList>
+  </mailingLists>
+  <scm>
+    <developerConnection>scm:git:git@github.com:joel-costigliola/assertj-core.git</developerConnection>
+    <connection>scm:git:git@github.com:joel-costigliola/assertj-core.git</connection>
+    <url>git@github.com:joel-costigliola/assertj-core</url>
+    <tag>HEAD</tag>
+  </scm>
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/joel-costigliola/assertj-core/issues</url>
+  </issueManagement>
+  <properties>
+    <additionalparam>-Xdoclint:none</additionalparam>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>cglib</groupId>
+      <artifactId>cglib-nodep</artifactId>
+      <version>3.2.5</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
+      <version>5.2</version>
+      <optional>true</optional>
+    </dependency>
+    <!--
+      NEEDED! Unlike File, a Path is not linked to the JRE's filesystem.
+
+      In order to accurately test assertions, we need a decent JSR 203 implementation
+      which lets us test our assertions. Right now, this is memoryfilesystem
+      (https://github.com/marschall/memoryfilesystem).
+
+      Another choice would be jimfs from Google (https://github.com/google/jimfs),
+      but its support for reading/writing file attributes is not as complete as that
+      of memoryfilesystem's.
+    -->
+    <dependency>
+      <groupId>com.github.marschall</groupId>
+      <artifactId>memoryfilesystem</artifactId>
+      <version>0.8.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.tngtech.java</groupId>
+      <artifactId>junit-dataprovider</artifactId>
+      <version>1.12.0</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+          <encoding>${project.build.sourceEncoding}</encoding>
+        </configuration>
+      </plugin>
+      <!-- to get jacoco report we need to set argLine in surefire, without this snippet the jacoco argLine is lost -->
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>${argLine}</argLine>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.4.3</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createDependencyReducedPom>true</createDependencyReducedPom>
+              <relocations>
+                <relocation>
+                  <pattern>net.sf.cglib</pattern>
+                  <shadedPattern>org.assertj.core.internal.cglib</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.objectweb.asm</pattern>
+                  <shadedPattern>org.assertj.core.internal.asm</shadedPattern>
+                </relocation>
+              </relocations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Unpack the shaded jar so that the maven-bundle-plugin can analyze the packages to import and to export -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack-shade</id>
+            <phase>package</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>${project.artifactId}</artifactId>
+                  <version>${project.version}</version>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${project.build.directory}/classes</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>3.0.1</version>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Export-Package>org.assertj.core.*</Export-Package>
+            <Bundle-RequiredExecutionEnvironment>JavaSE-1.8</Bundle-RequiredExecutionEnvironment>
+            <_removeheaders>Bnd-LastModified</_removeheaders>
+          </instructions>
+          <niceManifest>true</niceManifest>
+        </configuration>
+      </plugin>
+      <!-- generate jacoco report -->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.7.9</version>
+        <configuration>
+        </configuration>
+        <executions>
+          <execution>
+            <id>check</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <rule implementation="org.jacoco.maven.RuleConfiguration">
+                  <element>BUNDLE</element>
+                  <limits>
+                    <limit implementation="org.jacoco.report.check.Limit">
+                      <counter>CLASS</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.99</minimum>
+                    </limit>
+                  </limits>
+                </rule>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <!-- (1) CSS file location -->
+          <stylesheetfile>src/main/javadoc/assertj-javadoc.css</stylesheetfile>
+          <!-- (2) Highlight Javascript file -->
+          <top><![CDATA[
+            <script src="http://cdn.jsdelivr.net/highlight.js/8.6/highlight.min.js"></script>
+          ]]></top>
+          <!-- init Highlight -->
+          <footer><![CDATA[
+            <script type="text/javascript">
+              hljs.initHighlightingOnLoad();
+            </script>
+          ]]></footer>
+        </configuration>
+      </plugin>
+    </plugins>
+    <pluginManagement>
+      <plugins>
+        <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>com.mycila</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <versionRange>[2.6,)</versionRange>
+                    <goals>
+                      <goal>format</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+  <profiles>
+    <profile>
+      <id>java9</id>
+      <activation>
+        <jdk>9</jdk>
+      </activation>
+      <properties>
+        <!-- allow tests to access private fields/methods of java.base classes via reflection -->
+        <argLine>--add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.base/java.math=ALL-UNNAMED</argLine>
+      </properties>
+    </profile>
+  </profiles>
+</project>

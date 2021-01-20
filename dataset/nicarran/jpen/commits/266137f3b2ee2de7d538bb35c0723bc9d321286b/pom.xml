@@ -1,0 +1,302 @@
+<?xml version="1.0"?>
+<!--
+Copyright 2008 2009 Max Berger <maxberger at users.sourceforge.net>
+
+This file is part of jpen.
+
+jpen is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License,
+or (at your option) any later version.
+
+jpen is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with jpen.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.sourceforge.jpen</groupId>
+  <artifactId>jpen</artifactId>
+  <packaging>nar</packaging>
+  <name>JPEN</name>
+  <version>2.1-SNAPSHOT</version>
+  <description>Java Pen Tablet Access Library</description>
+  <repositories>
+  </repositories>
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>com.github.maven-nar</groupId>
+          <artifactId>nar-maven-plugin</artifactId>
+          <version>3.2.3</version>
+          <extensions>true</extensions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <defaultGoal>integration-test</defaultGoal>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>properties-maven-plugin</artifactId>
+        <version>1.0-alpha-2</version>
+        <executions>
+          <execution>
+            <phase>initialize</phase>
+            <goals>
+              <goal>read-project-properties</goal>
+            </goals>
+            <configuration>
+              <files>
+                <file>module.properties</file>
+              </files>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.6</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>${module.mainClass}</mainClass>
+              <addClasspath>true</addClasspath>
+              <addExtensions/>
+              <classpathPrefix/>
+              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.0.2</version>
+        <configuration>
+          <source>${module.javacTarget}</source>
+          <target>${module.javacTarget}</target>
+          <debug>false</debug>
+          <optimize>true</optimize>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.github.maven-nar</groupId>
+        <artifactId>nar-maven-plugin</artifactId>
+        <version>3.2.3</version>
+        <extensions>true</extensions>
+        <configuration>
+          <java>
+            <include>true</include>
+          </java>
+          <javah>
+            <excludes>
+              <exclude>**/WintabAccess.class</exclude>
+            </excludes>
+          </javah>
+          <output>jpen-${module.version}</output>
+          <libraries>
+            <library>
+              <type>jni</type>
+              <narSystemPackage>jpen</narSystemPackage>
+              <linkCPP>false</linkCPP>
+            </library>
+          </libraries>
+          <c>
+            <sourceDirectory>${source.dir}</sourceDirectory>
+          </c>
+          <environmentVariables>
+            <!-- Required for test to work on Unix -->
+            <DISPLAY>${env.DISPLAY}</DISPLAY>
+          </environmentVariables>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.19</version>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.2</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <properties>
+    <source.dir>src/main/c/linux</source.dir>
+  </properties>
+  <profiles>
+    <profile>
+      <id>amd64</id>
+      <activation>
+        <os>
+          <arch>amd64</arch>
+        </os>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.github.maven-nar</groupId>
+            <artifactId>nar-maven-plugin</artifactId>
+            <version>3.2.3</version>
+            <extensions>true</extensions>
+            <configuration>
+              <output>jpen-${module.version}-${jpen.provider.xinput.nativeVersion}-x86_64</output>
+              <linker>
+                <name>g++</name>
+                <sysLibs>
+                  <sysLib>
+                    <name>Xi</name>
+                    <type>shared</type>
+                  </sysLib>
+                </sysLibs>
+              </linker>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>i386-on-amd64</id>
+      <activation>
+        <file>
+          <exists>/usr/include/gnu/stubs-32.h</exists>
+        </file>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <!--
+    Also build i386 lib under amd64
+  -->
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <phase>process-classes</phase>
+                <configuration>
+                  <tasks>
+                    <mkdir dir="target/nar/lib/i386-Linux-g++/jni/"/>
+                    <exec executable="gcc" dir="target/nar/lib/i386-Linux-g++/jni/">
+                      <arg value="-m32"/>
+                      <arg value="-fpic"/>
+                      <arg value="-shared"/>
+                      <arg value="-o"/>
+                      <arg value="libjpen-${module.version}-${jpen.provider.xinput.nativeVersion}.so"/>
+                      <arg value="-LXi"/>
+                      <arg value="../../../../../src/main/c/linux/Bus.c"/>
+                      <arg value="../../../../../src/main/c/linux/Device.c"/>
+                      <arg value="../../../../../src/main/c/linux/jpen_cFramework_TestType.c"/>
+                      <arg value="../../../../../src/main/c/linux/jpen_provider_xinput_XiBus.c"/>
+                      <arg value="../../../../../src/main/c/linux/jpen_provider_xinput_XiDevice.c"/>
+                      <arg value="../../../../../src/main/c/linux/macros.c"/>
+                      <arg value="../../../../../src/main/c/linux/TestType.c"/>
+                    </exec>
+                  </tasks>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>osx</id>
+      <activation>
+        <os>
+          <name>mac os x</name>
+        </os>
+      </activation>
+      <properties>
+        <source.dir>src/main/c/osx</source.dir>
+      </properties>
+    </profile>
+    <profile>
+      <id>win</id>
+      <activation>
+        <os>
+          <family>windows</family>
+        </os>
+      </activation>
+      <properties>
+        <source.dir>src/main/c/windows</source.dir>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.github.maven-nar</groupId>
+            <artifactId>nar-maven-plugin</artifactId>
+            <configuration>
+              <linker>
+                <name>g++</name>
+                <libs>
+                  <lib>
+                    <name>WINTAB32</name>
+                    <type>shared</type>
+                    <directory>src/main/c/windows/lib</directory>
+                  </lib>
+                </libs>
+              </linker>
+            </configuration>
+          </plugin>
+          <plugin>
+            <!--
+    For whatever reason the NAR plugin fails to link this properly under
+    Win32.
+    
+    What it should do:
+    use the -Wl,-kill-at switch as below
+    
+    What it does:
+    use a -Wl,-Bdynamic switch
+    
+    Therefore, we have to re-link using the proper command line.
+  -->
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <phase>process-classes</phase>
+                <configuration>
+                  <tasks>
+                    <exec executable="gcc" dir="target/nar/lib/x86-Windows-g++/jni/">
+                      <arg value="-shared"/>
+                      <arg value="-o"/>
+                      <arg value="jpen-${module.version}-${jpen.provider.wintab.nativeVersion}.dll"/>
+                      <arg value="../../../obj/x86-Windows-g++/jpen_provider_wintab_WintabAccess.o"/>
+                      <arg value="../../../obj/x86-Windows-g++/Access.o"/>
+                      <arg value="../../../obj/x86-Windows-g++/macros.o"/>
+                      <arg value="-L../../../../../src/main/c/windows/lib"/>
+                      <arg value="-Wl,-kill-at"/>
+                      <arg value="-lWINTAB32"/>
+                    </exec>
+                  </tasks>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

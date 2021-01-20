@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+
+    <name>JPA Spec OSGi Bundle</name>
+    <groupId>org.eclipse.persistence</groupId>
+    <artifactId>javax.persistence</artifactId>
+    <version>2.1.0-SNAPSHOT</version>
+    <packaging>eclipse-plugin</packaging>
+
+    <!-- tycho requires maven >= 3.0 -->
+    <prerequisites>
+        <maven>3.0</maven>
+    </prerequisites>
+
+    <properties>
+        <!-- TOOL Properties -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <tycho.version>0.18.0</tycho.version>
+        <release.version>2.1.0</release.version>
+        <build.qualifier>v${maven.build.timestamp}</build.qualifier>
+        <forceContextQualifier>${build.qualifier}</forceContextQualifier>
+        <!-- BUILD Properties -->
+        <eclipse.drop>juno</eclipse.drop>
+    </properties>
+
+    <organization>
+        <name>Eclipse.org - EclipseLink Project</name>
+        <url>http://www.eclipse.org/eclipselink</url>
+    </organization>
+
+    <profiles>
+        <profile>
+            <id>tycho.default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <repositories>
+                <repository>
+                    <id>Eclipse</id>
+                    <layout>p2</layout>
+                    <url>http://download.eclipse.org/releases/${eclipse.drop}</url>
+                </repository>
+             </repositories>
+        </profile>
+    </profiles>
+
+    <build>
+        <defaultGoal>verify</defaultGoal>
+        <!-- section added so tycho won't add the maven poms to the artifacts it builds -->
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.eclipse.tycho</groupId>
+                    <artifactId>tycho-packaging-plugin</artifactId>
+                    <version>${tycho.version}</version>
+                    <configuration>
+                        <archive>
+                            <addMavenDescriptor>false</addMavenDescriptor>
+                        </archive>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-compiler-plugin</artifactId>
+                <version>${tycho.version}</version>
+                <configuration>
+                    <!-- Set to force OSGi Compatability settings (defaults to "false") (Only available as of Tycho 0.16.0) -->
+                    <!-- requireJREPackageImports>true</requireJREPackageImports -->
+                    <!-- Not needed. Compiler compatibility setting gotten from "Bundle-RequiredExecutionEnvironment" in manifest -->
+                    <!-- source>1.6</source -->
+                    <!-- target>1.6</target -->
+                    <!-- compilerArgument>-nowarn</compilerArgument> <disable all warnings -->
+                    <!-- compilerArgument>-warn:[+|-]warning_tokens_separated_by_comma - Specify the set of enabled warnings </compilerArgument -->
+                    <!-- compilerArgument>-err:warning_tokens_separated_by_comma - convert exactly the listed warnings to errors  </compilerArgument -->
+                    <!-- compilerArgument>-err:+warning_tokens_separated_by_comma - convert additional warnings to errors</compilerArgument -->
+                    <!-- compilerArgument>-err:-warning_tokens_separated_by_comma - remove specific warnings from being converted to errors </compilerArgument -->
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-maven-plugin</artifactId>
+                <version>${tycho.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <resolver>p2</resolver>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>target-platform-configuration</artifactId>
+                <version>${tycho.version}</version>
+                <configuration>
+                    <resolver>p2</resolver>
+                    <environments>
+                        <environment>
+                            <os>linux</os>
+                            <ws>gtk</ws>
+                            <arch>x86_64</arch>
+                        </environment>
+                        <environment>
+                            <os>linux</os>
+                            <ws>gtk</ws>
+                            <arch>x86</arch>
+                        </environment>
+                        <environment>
+                            <os>macosx</os>
+                            <ws>carbon</ws>
+                            <arch>x86</arch>
+                        </environment>
+                        <environment>
+                            <os>macosx</os>
+                            <ws>cocoa</ws>
+                            <arch>x86</arch>
+                        </environment>
+                        <environment>
+                            <os>macosx</os>
+                            <ws>cocoa</ws>
+                            <arch>x86_64</arch>
+                        </environment>
+                        <environment>
+                            <os>win32</os>
+                            <ws>win32</ws>
+                            <arch>x86</arch>
+                        </environment>
+                        <environment>
+                            <os>win32</os>
+                            <ws>win32</ws>
+                            <arch>x86_64</arch>
+                        </environment>
+                    </environments>
+                </configuration>
+            </plugin>
+            <!-- Mostly working source bundle   generation -->
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-source-plugin</artifactId>
+                <version>${tycho.version}</version>
+                <executions>
+                    <execution>
+                        <id>plugin-source</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>plugin-source</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>${project.artifactId}.source_${release.version}.${build.qualifier}</finalName>
+                            <sourceBundle>true</sourceBundle>
+                            <sourceBundleSuffix>.source</sourceBundleSuffix>
+                            <qualifier>${build.qualifier}</qualifier>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>inject-common-into-src-bundles</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <target>
+                                <zip file="./target/${project.artifactId}.source_${release.version}.${build.qualifier}.jar" duplicate="preserve">
+                                    <zipgroupfileset dir="./target">
+                                        <include name="${project.artifactId}.source_${release.version}.${build.qualifier}-sources.jar"/>
+                                    </zipgroupfileset>
+                                    <fileset dir="./resource" includes="*.html"/>
+                                </zip>
+                                <delete file="./target/${project.artifactId}.source_${release.version}.${build.qualifier}-sources.jar"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <sourceDirectory>./src</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>./resource</directory>
+            </resource>
+        </resources>
+        <finalName>${project.artifactId}_${release.version}.${build.qualifier}</finalName>
+    </build>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>tycho-public</id>
+            <url>https://oss.sonatype.org/content/groups/public/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+</project>

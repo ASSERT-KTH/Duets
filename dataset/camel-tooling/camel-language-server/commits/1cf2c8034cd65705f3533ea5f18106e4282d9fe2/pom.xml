@@ -1,0 +1,316 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.github.camel-tooling</groupId>
+	<artifactId>camel-lsp-server</artifactId>
+	<version>1.1.0-SNAPSHOT</version>
+	
+	<name>Camel Language Server Protocol :: Server Implementation</name>
+	<description>Server Implementation of the Language Server Protocol for Apache Camel</description>
+	<url>https://github.com/camel-tooling/camel-language-server</url>
+	
+	<licenses>
+	    	<license>
+			<name>The Apache License, Version 2.0</name>
+    			<url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+	    	</license>
+	</licenses>
+
+	<scm>
+  		<connection>scm:git:https://github.com/camel-tooling/camel-language-server.git</connection>
+  		<developerConnection>scm:git:https://github.com/camel-tooling/camel-language-server.git</developerConnection>
+  		<url>https://github.com/camel-tooling/camel-language-server/tree/master</url>
+	</scm>
+
+	<developers>
+    	<developer>
+      		<name>Aurelien Pupier</name>
+      		<email>aurelien.pupier@gmail.com</email>
+      		<organization>Red Hat</organization>
+      		<organizationUrl>https://www.redhat.com</organizationUrl>
+    	</developer>
+    	<developer>
+      		<name>Lars Heinemann</name>
+      		<email>lhein.smx@gmail.com</email>
+      		<organization>Red Hat</organization>
+      		<organizationUrl>https://www.redhat.com</organizationUrl>
+    	</developer>
+  	</developers>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- compiler settings -->
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<!-- sonar properties -->
+		<sonar.code.codeCoveragePlugin>jacoco</sonar.code.codeCoveragePlugin>
+		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+		<sonar.test.inclusions>**/*Test.*,**/test/**/*,**/*IT.*</sonar.test.inclusions>
+		<!-- points to the target folder of the global parent project -->
+		<sonar.jacoco.reportPath>target/jacoco.exec</sonar.jacoco.reportPath>
+		<sonar.jacoco.itReportPath>target/jacoco-it.exec</sonar.jacoco.itReportPath>
+		<sonar.jacoco.reportPaths>${sonar.jacoco.reportPath},${sonar.jacoco.itReportPath}</sonar.jacoco.reportPaths>
+		<lsp4j.version>0.7.1</lsp4j.version>
+		<slf4j.version>1.7.25</slf4j.version>
+		<junit.version>4.12</junit.version>
+		<assertj.version>3.11.1</assertj.version>
+		<camel.version>2.24.0</camel.version>
+		<camel.tooling.common.version>0.0.3-SNAPSHOT</camel.tooling.common.version>
+		<roaster.version>2.20.1.Final</roaster.version>
+		<awaitility.version>3.1.6</awaitility.version>
+	</properties>
+
+	<distributionManagement>
+  		<snapshotRepository>
+    		<id>ossrh</id>
+    		<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+  		</snapshotRepository>
+  		<repository>
+  			<id>ossrh</id>
+  			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+  		</repository>
+	</distributionManagement>
+
+	<profiles>
+		
+		<!-- GPG -->
+		<profile>
+			<id>sign</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- build sources and javadoc -->
+		<profile>
+			<id>build-extras</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<!-- provide sources -->
+		    		<plugin>
+		      			<groupId>org.apache.maven.plugins</groupId>
+		      			<artifactId>maven-source-plugin</artifactId>
+		      			<version>3.0.1</version>
+		      			<executions>
+		        			<execution>
+		          				<id>attach-sources</id>
+		          				<goals>
+		            				<goal>jar-no-fork</goal>
+		          				</goals>
+		        			</execution>
+		      			</executions>
+		    		</plugin>
+		    		
+		    		<!-- provide javadoc -->
+		    		<plugin>
+		      			<groupId>org.apache.maven.plugins</groupId>
+		      			<artifactId>maven-javadoc-plugin</artifactId>
+		      			<version>3.0.1</version>
+		      			<executions>
+		        			<execution>
+		          				<id>attach-javadocs</id>
+		          				<goals>
+		            				<goal>jar</goal>
+		          				</goals>
+		        			</execution>
+		      			</executions>
+		    		</plugin>
+				</plugins>
+			</build>
+		</profile>		
+		
+	</profiles>
+
+	<build>
+		<plugins>
+			<!-- deployment to Central -->
+			<plugin>
+      			<groupId>org.sonatype.plugins</groupId>
+      			<artifactId>nexus-staging-maven-plugin</artifactId>
+      			<version>1.6.7</version>
+      			<extensions>true</extensions>
+      			<configuration>
+        			<serverId>ossrh</serverId>
+        			<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+        			<autoReleaseAfterClose>true</autoReleaseAfterClose>
+      			</configuration>
+    		</plugin>
+		
+			<!-- Jacoco -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.3</version>
+				<configuration>
+					<append>true</append>
+					<includes>com.github.cameltooling.*</includes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>agent-for-ut</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+						<configuration>
+							<destFile>${sonar.jacoco.reportPath}</destFile>
+						</configuration>
+					</execution>
+					<execution>
+						<id>agent-for-it</id>
+						<goals>
+							<goal>prepare-agent-integration</goal>
+						</goals>
+						<configuration>
+							<destFile>${sonar.jacoco.itReportPath}</destFile>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<!-- SureFire -->
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.22.0</version>
+				<configuration>
+					<argLine>${argLine}</argLine>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>2.1.0.RELEASE</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.8.0</version>
+					<configuration>
+						<compilerArgs>
+							<arg>-Werror</arg>
+						</compilerArgs>
+						<source>${maven.compiler.source}</source>
+						<target>${maven.compiler.target}</target>
+					</configuration>
+				</plugin>
+				<plugin>
+					<!-- make sure lib dir is removed after clean to avoid "dirty" build -->
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-clean-plugin</artifactId>
+					<version>3.1.0</version>
+					<configuration>
+						<filesets>
+							<fileset>
+								<directory>${basedir}/libs</directory>
+							</fileset>
+						</filesets>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.eclipse.lsp4j</groupId>
+			<artifactId>org.eclipse.lsp4j.jsonrpc</artifactId>
+			<version>${lsp4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.lsp4j</groupId>
+			<artifactId>org.eclipse.lsp4j</artifactId>
+			<version>${lsp4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.xtend</groupId>
+			<artifactId>org.eclipse.xtend.lib</artifactId>
+			<version>2.16.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.camel-tooling</groupId>
+			<artifactId>camel-tooling-common</artifactId>
+			<version>${camel.tooling.common.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-catalog</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-route-parser</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>${assertj.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.forge.roaster</groupId>
+			<artifactId>roaster-jdt</artifactId>
+			<version>${roaster.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.awaitility</groupId>
+			<artifactId>awaitility</artifactId>
+			<version>${awaitility.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	
+	<repositories>
+		<repository>
+			<id>oss-snapshot</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</repository>
+	</repositories>
+</project>

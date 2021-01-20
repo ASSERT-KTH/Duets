@@ -1,0 +1,603 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<powermock.version>1.6.1</powermock.version>
+		<config.properties>config.properties</config.properties>
+	</properties>
+	<groupId>codedefenders</groupId>
+	<artifactId>codedefenders</artifactId>
+	<version>1.4-SNAPSHOT</version>
+	<url>http://www.code-defenders.org/</url>
+	<inceptionYear>2016</inceptionYear>
+
+	<licenses>
+          <license>
+            <name> GNU General Public License (GPL), version 3</name>
+            <url>http://www.gnu.org/licenses/gpl-3.0.en.html</url>
+            <distribution>repo</distribution>
+          </license>
+	</licenses>
+
+	<build>
+		<filters>
+			<!-- This enables to read properties from this file and automagically 
+				put their values in other files. For example, we use that to update: context.xml -->
+			<filter>${config.properties}</filter>
+		</filters>
+
+		<plugins>
+			<!-- Fails if the ${config.properties} file does not exists -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>3.0.0-M1</version>
+				<executions>
+					<execution>
+						<id>enforce-files-exist</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<requireFilesExist>
+									<files>
+										<file>${config.properties}</file>
+									</files>
+								</requireFilesExist>
+							</rules>
+							<fail>true</fail>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Reads all the properties from ${config.properties} -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>properties-maven-plugin</artifactId>
+				<version>1.0-alpha-2</version>
+				<executions>
+					<execution>
+						<phase>validate</phase>
+						<goals>
+							<goal>read-project-properties</goal>
+						</goals>
+						<configuration>
+							<files>
+								<file>${config.properties}</file>
+							</files>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.3</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<!-- Print the properties. Maybe is enough to attach this to deploy instead -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.1</version>
+				<executions>
+					<execution>
+						<phase>validate</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<tasks>
+								<echo>Displaying properties value</echo>
+								<!-- <echo>[build.profile.id] ${build.profile.id}</echo> -->
+								<echo>[data.dir] ${data.dir}</echo>
+								<echo>[db.url]${db.url}</echo>
+								<echo>[tomcat.path] ${tomcat.path}</echo>
+								<echo>[tomcat.url] ${tomcat.url}</echo>
+								<echo>[cluster.mode] ${cluster.mode}</echo>
+								<echo>[cluster.reservation.name] ${cluster.reservation.name}</echo>
+								<echo>[parallelize] ${parallelize}</echo>
+								<echo>[forceLocalExecution] ${forceLocalExecution}</echo>
+								<echo>[block.attacker] ${block.attacker}</echo>
+							</tasks>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+					</archive>
+					<webXml>src/main/webapp/WEB-INF/web.xml</webXml>
+					<webResources>
+						<resource>
+							<directory>src/main/resources</directory>
+							<includes>
+								<include>**/*.js</include>
+								<include>**/*.css</include>
+								<include>images/*.*</include>
+								<include>papers/*.*</include>
+								<include>fonts/*.*</include>
+								<include>codemirror/**.*</include>
+								<include>codemirror/bin/*</include>
+								<include>**/*.html</include>
+								<include>**/*.jpg</include>
+								<include>**/*.png</include>
+								<include>**/*.sh</include>
+								<include>**/*.svg</include>
+							</includes>
+						</resource>
+						<!-- Enable reading props from config.file and setting all the files 
+							in META-INF -->
+						<resource>
+							<directory>src/main/webapp/META-INF</directory>
+							<filtering>true</filtering>
+							<targetPath>META-INF</targetPath>
+						</resource>
+					</webResources>
+					<packagingExcludes>**/empty.tmp</packagingExcludes>
+					<excludes>src/main/resources/db/**</excludes>
+				</configuration>
+			</plugin>
+			<!-- Deploys on tomcat reading the properties from ${configuration.properties} -->
+			<!-- FIXME Check that all the mandatory properties are there -->
+			<plugin>
+				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat7-maven-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<server>TomcatServer</server>
+					<url>${tomcat.url}</url>
+					<username>${tomcat.username}</username>
+					<password>${tomcat.password}</password>
+					<!-- FIXME So far CodeDefenders must be deployed in Tomcat's root -->
+					<path>${tomcat.path}</path>
+					<ignorePackaging>true</ignorePackaging>
+					<contextReloadable>true</contextReloadable>
+				</configuration>
+			</plugin>
+			<plugin>
+			  <groupId>com.mycila</groupId>
+			  <artifactId>license-maven-plugin</artifactId>
+			  <version>3.0</version>
+			  <configuration>
+			    <header>src/etc/header.txt</header>
+			    <useDefaultExcludes>true</useDefaultExcludes>
+			    <properties>
+                              <year>2016-2018</year>
+			    </properties>
+			    <excludes>
+                              <exclude>LICENSE.txt</exclude>
+                              <exclude>README.md</exclude>
+                              <exclude>**/.idea/**</exclude>
+                              <exclude>**/*.js</exclude>
+                              <exclude>**/*.css</exclude>
+                              <exclude>**/*.txt</exclude>
+                              <exclude>**/*.ts</exclude>
+                              <exclude>**/*.</exclude>
+                              <exclude>**/*.html</exclude>
+                              <exclude>**/*.sql</exclude>
+                              <exclude>**/*.xml</exclude>
+                              <exclude>docker/**</exclude>
+			      <exclude>config.properties</exclude>
+			      <exclude>src/test/resources/**</exclude>
+			    </excludes>
+			  </configuration>
+			</plugin>
+		</plugins>
+
+		<finalName>${project.artifactId}</finalName>
+	</build>
+
+	<profiles>
+		<!-- Solution inspired by: Taken from : https://stackoverflow.com/questions/2606572/junit-splitting-integration-test-and-unit-tests/10381662#10381662 -->
+		<profile>
+			<id>default</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<version>2.20.1</version>
+						<!-- This forces to use the proper junit runner. Old versions do not 
+							support categories -->
+						<dependencies>
+							<dependency>
+								<groupId>org.apache.maven.surefire</groupId>
+								<artifactId>surefire-junit47</artifactId>
+								<version>2.20.1</version>
+							</dependency>
+						</dependencies>
+						<configuration>
+							<includes>
+								<include>**/*.class</include>
+							</includes>
+							<excludedGroups>org.codedefenders.itests.IntegrationTest,org.codedefenders.systemtests.SystemTest</excludedGroups>
+							<!-- Exclude resources for integration tests. Note that those are 
+								actual java and class files for mutants and tests -->
+							<excludes>
+								<exclude>**/itests/**/*.*</exclude>
+								<exclude>**/systemtests/**/*.*</exclude>
+							</excludes>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<!-- Integration Tests are run locally without docker or anything else -->
+		<profile>
+			<id>IT</id>
+			<build>
+				<plugins>
+					<!-- Running integration tests require the lib folder to contains all 
+						the libs -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-enforcer-plugin</artifactId>
+						<version>3.0.0-M1</version>
+						<executions>
+							<execution>
+								<id>enforce-libs-exist</id>
+								<phase>validate</phase>
+								<goals>
+									<goal>enforce</goal>
+								</goals>
+								<configuration>
+									<rules>
+										<requireFilesExist>
+											<files>
+												<file>src/test/resources/itests/lib/hamcrest-all-1.3.jar</file>
+												<file>src/test/resources/itests/lib/junit-4.12.jar</file>
+												<file>src/test/resources/itests/lib/org.jacoco.agent-0.7.7.201606060606.jar</file>
+												<file>src/test/resources/itests/lib/org.jacoco.ant-0.7.7.201606060606.jar</file>
+												<file>src/test/resources/itests/lib/org.jacoco.core-0.7.7.201606060606.jar</file>
+												<file>src/test/resources/itests/lib/org.jacoco.report-0.7.7.201606060606.jar</file>
+												<file>src/test/resources/itests/lib/mockito-all-1.9.5.jar</file>
+											</files>
+										</requireFilesExist>
+									</rules>
+									<fail>true</fail>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<version>2.20.1</version>
+						<!-- This forces to use the proper junit runner. Old versions do not 
+							support categories -->
+						<dependencies>
+							<dependency>
+								<groupId>org.apache.maven.surefire</groupId>
+								<artifactId>surefire-junit47</artifactId>
+								<version>2.20.1</version>
+							</dependency>
+						</dependencies>
+						<configuration>
+							<!-- Do not parallelize, but just fork a new JVM each time -->
+							<forkCount>1</forkCount>
+							<reuseForks>false</reuseForks>
+							<!-- Only consider tests marked as IntegrationTest -->
+							<groups>org.codedefenders.itests.IntegrationTest</groups>
+							<!-- Do not clog the console but write to output files -->
+							<redirectTestOutputToFile>true</redirectTestOutputToFile>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<!-- System tests use Docker, Docker-Compose, Selenium and probably something 
+			else. Before test we ensure the system is rebuild and repackage as war file 
+			using config.properties@docker as config file. Not sure how this can be enforces 
+			if not encoding the value of ${config.properties} Then we use surefire (not 
+			failsafe) to execute the tests, but we bind this phase to integration-tests 
+			instead of regular unit-tests: https://stackoverflow.com/questions/1399240/how-do-i-get-my-maven-integration-tests-to-run?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa -->
+		<profile>
+			<id>ST</id>
+			<properties>
+				<!-- Read the properties from this specific file -->
+				<config.properties>config.properties@docker</config.properties>
+			</properties>
+			<build>
+				<!-- TODO Use the maven plugin to build codedefenders/frontend and tomcat:8.5 -->
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-war-plugin</artifactId>
+						<version>3.2.0</version>
+						<configuration>
+							<outputDirectory>src/test/resources/systemtests/frontend</outputDirectory>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<version>2.20.1</version>
+						<dependencies>
+							<dependency>
+								<groupId>org.apache.maven.surefire</groupId>
+								<artifactId>surefire-junit47</artifactId>
+								<version>2.20.1</version>
+							</dependency>
+						</dependencies>
+						<configuration>
+							<skipTests>true</skipTests>
+						</configuration>
+						<executions>
+							<execution>
+								<id>integration-test</id>
+								<goals>
+									<goal>test</goal>
+								</goals>
+								<phase>integration-test</phase>
+								<configuration>
+									<skipTests>false</skipTests>
+									<includes>
+										<include>**/systemtests/*.class</include>
+									</includes>
+									<excludedGroups>org.codedefenders.itests.IntegrationTest</excludedGroups>
+									<!-- Exclude resources for integration tests. Note that those are 
+										actual java and class files for mutants and tests -->
+									<excludes>
+										<exclude>**/itests/**/*.*</exclude>
+									</excludes>
+									<!-- Do not parallelize, but just fork a new JVM each time -->
+									<forkCount>1</forkCount>
+									<reuseForks>false</reuseForks>
+									<!-- Only consider tests marked as IntegrationTest -->
+									<groups>org.codedefenders.systemtests.SystemTest</groups>
+									<!-- Do not clog the console but write to output files -->
+									<redirectTestOutputToFile>true</redirectTestOutputToFile>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+	<dependencies>
+
+		<!-- Server side validation -->
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>6.0.10.Final</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.glassfish</groupId>
+			<artifactId>javax.el</artifactId>
+			<version>3.0.1-b09</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Servlet Spec -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.1.0</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.googlecode.java-diff-utils</groupId>
+			<artifactId>diffutils</artifactId>
+			<version>1.2.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+			<version>1.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.bitbucket.cowwoc</groupId>
+			<artifactId>diff-match-patch</artifactId>
+			<version>1.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>8.0.11</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-crypto</artifactId>
+			<version>3.1.0.RELEASE</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.20</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.20</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>1.9.5</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+			<version>1.3.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.javassist</groupId>
+			<artifactId>javassist</artifactId>
+			<version>3.20.0-GA</version>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
+			<version>1.4.6-rc1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.javaparser</groupId>
+			<artifactId>javaparser-core</artifactId>
+			<!-- <version>2.3.0</version> -->
+			<version>3.2.4</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.jacoco</groupId>
+			<artifactId>jacoco-maven-plugin</artifactId>
+			<version>0.7.7.201606060606</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jacoco</groupId>
+			<artifactId>org.jacoco.ant</artifactId>
+			<version>0.7.7.201606060606</version>
+		</dependency>
+		<dependency>
+			<groupId>joda-time</groupId>
+			<artifactId>joda-time</artifactId>
+			<version>2.8.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.8.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-csv</artifactId>
+			<version>1.5</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-beanutils</groupId>
+			<artifactId>commons-beanutils</artifactId>
+			<version>1.9.3</version>
+		</dependency>
+		<!-- Test. Shall we keep this around now that we use docker ? -->
+		<dependency>
+			<groupId>ch.vorburger.mariaDB4j</groupId>
+			<artifactId>mariaDB4j</artifactId>
+			<version>2.2.3</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-dbutils</groupId>
+			<artifactId>commons-dbutils</artifactId>
+			<version>1.7</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.7</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- HTML Client -->
+		<dependency>
+			<groupId>net.sourceforge.htmlunit</groupId>
+			<artifactId>htmlunit</artifactId>
+			<version>2.18</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Selenium -->
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<version>3.11.0</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.palantir.docker.compose</groupId>
+			<artifactId>docker-compose-rule-junit4</artifactId>
+			<version>0.33.0</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Docker client to make assertions on docker containers. Ideally we 
+			should use this in combination with Hamcrest -->
+		<dependency>
+			<groupId>com.spotify</groupId>
+			<artifactId>docker-client</artifactId>
+			<version>8.11.2</version>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>Palantir</id>
+			<url>https://dl.bintray.com/palantir/releases/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>Local Repository</id>
+			<url>file://${basedir}/local-repo</url>
+		</repository>
+	</repositories>
+</project>

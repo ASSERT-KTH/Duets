@@ -1,0 +1,423 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.escidoc</groupId>
+	<artifactId>browser</artifactId>
+	<version>0.4.8-SNAPSHOT</version>
+	<packaging>war</packaging>
+	<dependencies>
+		<!-- Vaadin -->
+		<dependency>
+			<groupId>com.vaadin</groupId>
+			<artifactId>vaadin</artifactId>
+			<version>6.7.8</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- commented until maven repo is found. <dependency> <groupId>com.google.gwt</groupId> 
+			<artifactId>gwt-user</artifactId> <version>2.1.0</version> <scope>provided</scope> 
+			</dependency> -->
+		<dependency>
+			<groupId>org.vaadin.addons</groupId>
+			<artifactId>pagedtable</artifactId>
+			<version>0.6.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.vaadin.addons</groupId>
+			<artifactId>messagebox</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.vaadin.addons</groupId>
+			<artifactId>pojo-container</artifactId>
+			<version>0.1.0</version>
+		</dependency>
+		<!-- eSciDoc -->
+		<dependency>
+			<groupId>org.escidoc.core</groupId>
+			<artifactId>escidoc-ijc</artifactId>
+			<version>1.4.2-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-discovery</groupId>
+			<artifactId>commons-discovery</artifactId>
+			<version>20040218.194635</version>
+		</dependency>
+		<dependency>
+			<groupId>org.escidoc.core.client.ingest</groupId>
+			<artifactId>eSciDocDepositAPI</artifactId>
+			<version>0.9.2-SNAPSHOT</version>
+		</dependency>
+		<!-- Utils -->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>10.0.1</version>
+		</dependency>
+		<!-- Logger -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.6.4</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.6.4</version>
+			<scope>runtime</scope>
+		</dependency>
+		<!-- Tests -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.10</version>
+			<scope>test</scope>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+			<version>1.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>cylon</groupId>
+			<artifactId>cylon</artifactId>
+			<version>0.10</version>
+		</dependency>
+	</dependencies>
+	<properties>
+		<project.name>eSciDoc Browser</project.name>
+		<compiler.level>1.6</compiler.level>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<jetty.port>8084</jetty.port>
+		<jetty.scan.sec>3</jetty.scan.sec>
+		<vaadin-widgets-dir>src/main/webapp/VAADIN/widgetsets </vaadin-widgets-dir>
+	</properties>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>${compiler.level}</source>
+					<target>${compiler.level}</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.4.3</version>
+				<configuration>
+					<encoding>${project.build.sourceEncoding}</encoding>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.1.2</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<version>2.8</version>
+				<configuration>
+					<downloadSources>true</downloadSources>
+					<downloadJavadocs>true</downloadJavadocs>
+					<useProjectReferences>false</useProjectReferences>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.1</version>
+				<configuration>
+					<webXml>src/main/webapp/WEB-INF/web.xml</webXml>
+					<warSourceExcludes>WEB-INF/lib/servlet-api-2.3.jar</warSourceExcludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.mortbay.jetty</groupId>
+				<artifactId>maven-jetty-plugin</artifactId>
+				<version>6.1.26</version>
+				<configuration>
+					<stopPort>9986</stopPort>
+					<stopKey>browser</stopKey>
+					<scanIntervalSeconds>${jetty.scan.sec}</scanIntervalSeconds>
+					<systemProperties>
+						<systemProperty>
+							<name>jetty.port</name>
+							<value>${jetty.port}</value>
+						</systemProperty>
+					</systemProperties>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.zeroturnaround</groupId>
+				<artifactId>jrebel-maven-plugin</artifactId>
+				<version>1.0.7</version>
+				<executions>
+					<execution>
+						<id>generate-rebel-xml</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- commented until maven repo is found. <plugin> <groupId>org.codehaus.mojo</groupId> 
+				<artifactId>gwt-maven-plugin</artifactId> <version>2.1.0</version> <configuration> 
+				<webappDirectory>${vaadin-widgets-dir}</webappDirectory> <extraJvmArgs>-Dgwt.style=PRETTY 
+				-Xmx512M -Xss1024k</extraJvmArgs> </configuration> <executions> <execution> 
+				<goals> <goal>resources</goal> <goal>compile</goal> </goals> </execution> 
+				</executions> </plugin> <plugin> <groupId>com.vaadin</groupId> <artifactId>vaadin-maven-plugin</artifactId> 
+				<version>1.0.1</version> <executions> <execution> <goals> <goal>update-widgetset</goal> 
+				</goals> </execution> </executions> </plugin> -->
+			<plugin>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>2.4.1</version>
+				<configuration>
+					<filesets>
+						<fileset>
+							<directory>${vaadin-widgets-dir}</directory>
+						</fileset>
+					</filesets>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.mycila.maven-license-plugin</groupId>
+				<artifactId>maven-license-plugin</artifactId>
+				<version>1.9.0</version>
+				<configuration>
+					<header>${basedir}/etc/header.txt</header>
+					<strictCheck>true</strictCheck>
+					<failIfMissing>false</failIfMissing>
+					<includes>
+						<include>src/**</include>
+						<include>**/test/**</include>
+					</includes>
+					<excludes>
+						<exclude>target/**</exclude>
+						<exclude>src/main/java/biz/**</exclude>
+						<exclude>src/main/resources/**</exclude>
+						<exclude>src/main/javadoc/**</exclude>
+						<exclude>src/main/webapp/**</exclude>
+						<exclude>src/main/assembly/**</exclude>
+						<exclude>src/site/**</exclude>
+						<exclude>src/test/javadoc/**</exclude>
+						<exclude>src/test/site/**</exclude>
+						<exclude>.clover/**</exclude>
+					</excludes>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.2-beta-2</version>
+				<configuration>
+					<descriptor>src/main/assembly/dep.xml</descriptor>
+				</configuration>
+			</plugin>
+			<!-- The Maven Java Formatter does not work as expected. It is deactivated 
+				until we solve this issue -->
+			<!-- <plugin> <groupId>com.googlecode.maven-java-formatter-plugin</groupId> 
+				<artifactId>maven-java-formatter-plugin</artifactId> <version>0.3.1</version> 
+				<configuration> <configFile>${project.basedir}/etc/eSciDoc_codestyle.xml</configFile> 
+				<overrideConfigCompilerVersion>true</overrideConfigCompilerVersion> </configuration> 
+				<executions> <execution> <goals> <goal>format</goal> </goals> </execution> 
+				</executions> </plugin> -->
+		</plugins>
+		<finalName>${project.artifactId}</finalName>
+		<pluginManagement>
+			<plugins>
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId> org.zeroturnaround </groupId>
+										<artifactId> jrebel-maven-plugin </artifactId>
+										<versionRange> [1.0.7,) </versionRange>
+										<goals>
+											<goal>generate</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+								<!-- The Maven Java Formatter does not work as expected. It is deactivated 
+									until we solve this issue -->
+								<!-- <pluginExecution> <pluginExecutionFilter> <groupId> com.googlecode.maven-java-formatter-plugin 
+									</groupId> <artifactId> maven-java-formatter-plugin </artifactId> <versionRange>[0.3.1,)</versionRange> 
+									<goals> <goal>format</goal> </goals> </pluginExecutionFilter> <action> <ignore></ignore> 
+									</action> </pluginExecution> -->
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+	<name>${project.name}</name>
+	<description>${project.name} handles following eSciDoc resouces:
+    contexts, containers and items.</description>
+	<inceptionYear>2011</inceptionYear>
+	<licenses>
+		<license>
+			<name>COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
+      </name>
+			<distribution>repo</distribution>
+			<url>https://www.escidoc.org/license/ESCIDOC.LICENSE</url>
+		</license>
+	</licenses>
+	<organization>
+		<name>FIZ Karlsruhe</name>
+		<url>http://www.fiz-karlsruhe.de</url>
+	</organization>
+	<developers>
+		<developer>
+			<id>frs</id>
+			<name>Frank Schwichtenberg</name>
+			<email>frank.schwichtenberg@fiz-karlsruhe.de</email>
+			<organization>FIZ Karlsruhe</organization>
+			<organizationUrl>http://www.fiz-karlsruhe.de</organizationUrl>
+			<roles>
+				<role>front end team leader</role>
+			</roles>
+			<timezone>+2</timezone>
+		</developer>
+		<developer>
+			<id>chh</id>
+			<name>Christian Herlambang</name>
+			<email>christian.herlambang@fiz-karlsruhe.de</email>
+			<organization>FIZ Karlsruhe</organization>
+			<organizationUrl>http://www.fiz-karlsruhe.de</organizationUrl>
+			<roles>
+				<role>developer</role>
+			</roles>
+			<timezone>+2</timezone>
+		</developer>
+		<developer>
+			<id>arb</id>
+			<name>Armand Brahaj</name>
+			<email>armand.brahaj@fiz-karlsruhe.de</email>
+			<organization>FIZ Karlsruhe</organization>
+			<organizationUrl>http://www.fiz-karlsruhe.de</organizationUrl>
+			<roles>
+				<role>developer</role>
+			</roles>
+			<timezone>+2</timezone>
+		</developer>
+	</developers>
+	<issueManagement>
+		<system>jira</system>
+		<url>https://www.escidoc.org/jira/browse/GENCLIENT</url>
+	</issueManagement>
+	<ciManagement>
+		<system>Hudson</system>
+		<url>http://escidev2:8484/job/escidoc-browser</url>
+	</ciManagement>
+	<mailingLists>
+		<mailingList>
+			<name>eSciDoc Mailing List</name>
+			<subscribe>https://www.escidoc.org/mailman/listinfo/infrastructure-user
+      </subscribe>
+			<unsubscribe>https://www.escidoc.org/mailman/listinfo/infrastructure-user
+      </unsubscribe>
+			<post>infrastructure-user@escidoc.org</post>
+			<archive>https://www.escidoc.org/pipermail/infrastructure-user/
+      </archive>
+		</mailingList>
+	</mailingLists>
+	<scm>
+		<connection>scm:git://github.com/escidoc/escidoc-browser.git</connection>
+		<developerConnection>scm:git://github.com/escidoc/escidoc-browser.git</developerConnection>
+	</scm>
+	<repositories>
+		<repository>
+			<id>org.escidoc.core</id>
+			<url>https://www.escidoc.org/artifactory/repo</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>vaadin-addons</id>
+			<url>http://maven.vaadin.com/vaadin-addons</url>
+		</repository>
+		<repository>
+			<id>id-maven-repo</id>
+			<url>http://maven.indexdata.com</url>
+		</repository>
+		<!-- Cyclone Creole Parser -->
+		<repository>
+			<id>zact</id>
+			<url>http://zact.googlecode.com/svn/maven/repository</url>
+		</repository>
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>codehaus-snapshots</id>
+			<url>http://nexus.codehaus.org/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</pluginRepository>
+		<pluginRepository>
+			<id>vaadin-snapshots</id>
+			<url>http://oss.sonatype.org/content/repositories/vaadin-snapshots/
+      </url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</pluginRepository>
+	</pluginRepositories>
+	<distributionManagement>
+		<repository>
+			<id>escidoc.org</id>
+			<name>escidoc.org-releases</name>
+			<url>https://www.escidoc.org/artifactory/libs-releases-local</url>
+		</repository>
+		<snapshotRepository>
+			<id>escidoc.org</id>
+			<name>escidoc.org-snapshots</name>
+			<url>https://www.escidoc.org/artifactory/libs-snapshot-local</url>
+		</snapshotRepository>
+	</distributionManagement>
+</project>

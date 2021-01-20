@@ -1,0 +1,147 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.jakartawebs.sample</groupId>
+	<artifactId>spring-boot-app-for-weblogic</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>war</packaging>
+
+	<parent>
+		<groupId>io.spring.platform</groupId>
+		<artifactId>platform-bom</artifactId>
+		<version>Athens-BUILD-SNAPSHOT</version>
+	</parent>
+
+	<repositories>
+		<repository>
+			<id>spring-snapshots</id>
+			<name>Spring Snapshots</name>
+			<url>https://repo.spring.io/libs-snapshot</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>maven.oracle.com</id>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<url>https://maven.oracle.com</url>
+			<layout>default</layout>
+		</repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>maven.oracle.com</id>
+			<url>https://maven.oracle.com</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<properties>
+		<java.version>1.8</java.version>
+		<spring.version>4.3.1.RELEASE</spring.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-tomcat</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.querydsl</groupId>
+			<artifactId>querydsl-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-batch</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<finalName>sample-app</finalName>
+		<plugins>
+			<plugin>
+				<!-- This is the configuration for the weblogic-maven-plugin -->
+				<groupId>com.oracle.weblogic</groupId>
+				<artifactId>weblogic-maven-plugin</artifactId>
+				<version>12.2.1-1-0</version>
+				<configuration>
+					<middlewareHome>/fmwhome/wls12210</middlewareHome>
+				</configuration>
+				<executions>
+					<!-- Execute the appc goal during the package phase -->
+					<execution>
+						<id>wls-appc</id>
+						<phase>package</phase>
+						<goals>
+							<goal>appc</goal>
+						</goals>
+						<configuration>
+							<source>${project.build.directory}/${project.name}.${project.packaging}</source>
+						</configuration>
+					</execution>
+					<!-- Deploy the application to the WebLogic Server in the pre-integration-test phase -->
+					<execution>
+						<id>wls-deploy</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>deploy</goal>
+						</goals>
+						<configuration>
+							<!--The admin URL where the app is deployed. Here use the plugin's default value t3://localhost:7001 -->
+							<adminurl>t3://localhost:7001</adminurl>
+							<user>weblogic</user>
+							<password>ehrahasialah!</password>
+							<!--The location of the file or directory to be deployed -->
+							<source>${project.build.directory}/${project.build.finalName}.${project.packaging}</source>
+							<!--The target servers where the application is deployed. Here use the plugin's default value AdminServer -->
+							<targets>AdminServer</targets>
+							<verbose>true</verbose>
+							<name>${project.build.finalName}</name>
+						</configuration>
+					</execution>
+					<!-- Stop the application in the pre-integration-test phase -->
+					<execution>
+						<id>wls-stop-app</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>stop-app</goal>
+						</goals>
+						<configuration>
+							<adminurl>t3://127.0.0.1:7001</adminurl>
+							<user>weblogic</user>
+							<password>password</password>
+							<name>${project.build.finalName}</name>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

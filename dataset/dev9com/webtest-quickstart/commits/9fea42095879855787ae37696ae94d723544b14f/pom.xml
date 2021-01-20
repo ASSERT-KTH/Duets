@@ -1,0 +1,557 @@
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.dynacrongroup</groupId>
+	<artifactId>webtest-sample</artifactId>
+	<packaging>war</packaging>
+	<version>1.1-SNAPSHOT</version>
+	<name>webtest-quickstart</name>
+	<url>http://www.dynacrongroup.com/about/custom-software-development/github/</url>
+
+	<!-- These encoding properties are used to ensure that your project is expecting 
+		all files are encoded in UTF-8. This is a very good idea - there are many, 
+		many reasons to use UTF-8 everything, including security and data portability, 
+		but that's a bit outside the scope of this POM file. -->
+	<properties>
+		<default.web.driver>org.openqa.selenium.firefox.FirefoxDriver</default.web.driver>
+		<singlesaucetarget>iexplore:7</singlesaucetarget>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+		<logback.version>0.9.24</logback.version>
+
+		<!-- These properties are used to control running multiple tests in parallel. 
+			Set parallelrun to "classes" to run in parallel, or leave empty to run normally 
+			(serially). Output in parallel is batched up and then sent all at once, so 
+			it may appear to be crashed, but will run much faster. -->
+		<parallelrun>classes</parallelrun>
+		<threadcount>5</threadcount>
+	</properties>
+	<distributionManagement>
+		<repository>
+			<id>cloudbees-private-release-repository</id>
+			<name>CloudBees Repository</name>
+			<url>dav:https://repository-dynacrongroup.forge.cloudbees.com/release/</url>
+		</repository>
+	</distributionManagement>
+	<scm>
+		<connection>scm:git:git@github.com:dynacron-group/${project.artifactId}.git</connection>
+		<developerConnection>scm:git:git@github.com:dynacron-group/${project.artifactId}.git</developerConnection>
+		<url>scm:git:git@github.com:dynacron-group/${project.artifactId}.git</url>
+	</scm>
+	<repositories>
+		<repository>
+			<id>cloudbees</id>
+			<url>https://repository-dynacrongroup.forge.cloudbees.com/release/</url>
+		</repository>
+	</repositories>
+	<dependencies>
+		<dependency>
+			<!-- The core unit test framework. While JUnit is brought in by parallel-webtest, 
+				is is a best practice to explicitly list the dependencies that you are actually 
+				referencing in this project's code. -->
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<!-- This is the custom Selenium code, which manages the integration with 
+				Selenium and SauceLabs -->
+			<groupId>com.dynacrongroup</groupId>
+			<artifactId>parallel-webtest</artifactId>
+			<version>1.0.7</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>${logback.version}</version>
+		</dependency>
+	</dependencies>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<!-- Specifies the version of the Cargo plugin to use -->
+				<plugin>
+					<groupId>org.codehaus.cargo</groupId>
+					<artifactId>cargo-maven2-plugin</artifactId>
+					<version>1.1.2</version>
+				</plugin>
+
+				<!-- Use as mvn versions:display-dependency-updates -->
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>versions-maven-plugin</artifactId>
+					<version>1.2</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>2.9</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-failsafe-plugin</artifactId>
+					<version>2.9</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-site-plugin</artifactId>
+					<version>3.0-beta-3</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<!-- This is required to properly support the mvn site command; it does 
+					not have anything to do with web tests specifically -->
+				<artifactId>maven-site-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-descriptor</id>
+						<goals>
+							<goal>attach-descriptor</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<!-- This just sets the JDK to version 1.5 and also sets the source encoding 
+					to UTF-8 (as specified above) -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+					<encoding>${project.build.sourceEncoding}</encoding>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<!-- This sets the source encoding to UTF-8 (as specified above) -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<encoding>${project.build.sourceEncoding}</encoding>
+				</configuration>
+			</plugin>
+
+			<!-- This tells surefire to pick up the parallel configuration options 
+				set in properties (above). -->
+			<!-- This sets up the default run to be the full SauceLabs suite -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<parallel>${parallelrun}</parallel>
+					<threadCount>${threadcount}</threadCount>
+					<perCoreThreadCount>false</perCoreThreadCount>
+					<systemPropertyVariables>
+						<WEBDRIVER_DRIVER>${default.web.driver}</WEBDRIVER_DRIVER>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
+
+
+			<plugin>
+				<!-- This is the configuration that binds the failsafe plugin to the 
+					integration-test phase of the default Maven lifecycle. -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<configuration>
+					<parallel>${parallelrun}</parallel>
+					<threadCount>${threadcount}</threadCount>
+					<perCoreThreadCount>false</perCoreThreadCount>
+					<systemPropertyVariables>
+						<WEBDRIVER_DRIVER>${default.web.driver}</WEBDRIVER_DRIVER>
+					</systemPropertyVariables>
+				</configuration>
+				<executions>
+					<!-- This execution configures to run the suite during integration test -->
+					<execution>
+						<id>integration-tests</id>
+						<phase>integration-test</phase>
+						<goals>
+							<goal>integration-test</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+
+			<!-- This is the configuration that binds Tomcat to start and stop automatically 
+				as part of the build process. -->
+			<plugin>
+				<groupId>org.codehaus.cargo</groupId>
+				<artifactId>cargo-maven2-plugin</artifactId>
+				<configuration>
+					<!-- We want cargo:start to default to wait to be able to use the cargo:start 
+						command to run the system interactively -->
+					<wait>true</wait>
+					<container>
+						<containerId>tomcat6x</containerId>
+						<!-- Copies Tomcat from Artifactory -->
+						<zipUrlInstaller>
+							<url>http://archive.apache.org/dist/tomcat/tomcat-6/v6.0.29/bin/apache-tomcat-6.0.29.zip</url>
+							<!-- Note that by default Tomcat is placed inside your target directory. 
+								This ensures a clean build. You may want to change this value when you are 
+								doing dev to something local. -->
+							<installDir>${project.build.directory}/cargo-tomcat</installDir>
+						</zipUrlInstaller>
+						<!-- We are routing the standard output as emitted from Tomcat into 
+							this file. This keeps the Maven log clean and also makes the Tomcat log more 
+							readable. -->
+						<output>${project.build.directory}/tomcat.log</output>
+					</container>
+					<configuration>
+						<!-- This tells Cargo that we are using a unique, clean installation 
+							of Tomcat -->
+						<type>standalone</type>
+						<deployables>
+							<deployable>
+								<properties>
+									<context>webtest-quickstart</context>
+									<pingURL>http://localhost:8080/webtest-quickstart/</pingURL>
+								</properties>
+							</deployable>
+							<!-- Cargo automatically deploys the project artifact. In this case, 
+								that would be webtest-sample.war. You may also want Tomcat to deploy another 
+								WAR. The extra WAR dependency (including the version) is actually declared 
+								as a dependency above. -->
+							<!-- <deployable> <groupId>com.dynacrongroup</groupId> <artifactId>mock-security-ui</artifactId> 
+								<type>war</type> <properties> <context>mock-security-ui</context> </properties> -->
+							<!-- This ping URL tells Cargo to not consider the server booted until 
+								this URL responds with a 200 -->
+							<!-- </deployable> -->
+						</deployables>
+					</configuration>
+				</configuration>
+				<executions>
+					<execution>
+						<id>start</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>start</goal>
+						</goals>
+						<configuration>
+							<wait>false</wait>
+						</configuration>
+					</execution>
+					<execution>
+						<id>stop</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>stop</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.8</version>
+				<executions>
+					<execution>
+						<id>test-summary</id>
+						<phase>site</phase>
+						<goals>
+							<goal>test-javadoc</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>versions-maven-plugin</artifactId>
+				<version>1.2</version>
+				<reportSets>
+					<reportSet>
+						<reports>
+							<report>dependency-updates-report</report>
+							<report>plugin-updates-report</report>
+							<report>property-updates-report</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+		</plugins>
+	</reporting>
+
+	<!-- These profiles are REQUIRED for the web tests to work. Depending on 
+		the values set (hostname or agent.name) different proxy settings and default 
+		values are used by the test suite. -->
+	<profiles>
+		<profile>
+			<id>local-htmlunit</id>
+			<properties>
+				<webdriver.driver>org.openqa.selenium.htmlunit.HtmlUnitDriver</webdriver.driver>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<WEBDRIVER_DRIVER>${webdriver.driver}</WEBDRIVER_DRIVER>
+								<SINGLE_SAUCE>null</SINGLE_SAUCE>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<WEBDRIVER_DRIVER>${webdriver.driver}</WEBDRIVER_DRIVER>
+								<SINGLE_SAUCE>null</SINGLE_SAUCE>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>local-chrome</id>
+			<properties>
+				<webdriver.driver>org.openqa.selenium.chrome.ChromeDriver</webdriver.driver>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<WEBDRIVER_DRIVER>${webdriver.driver}</WEBDRIVER_DRIVER>
+								<SINGLE_SAUCE>null</SINGLE_SAUCE>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<WEBDRIVER_DRIVER>${webdriver.driver}</WEBDRIVER_DRIVER>
+								<SINGLE_SAUCE>null</SINGLE_SAUCE>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>local-ie</id>
+			<properties>
+				<webdriver.driver>org.openqa.selenium.ie.InternetExplorerDriver</webdriver.driver>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<WEBDRIVER_DRIVER>${webdriver.driver}</WEBDRIVER_DRIVER>
+								<SINGLE_SAUCE>null</SINGLE_SAUCE>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<WEBDRIVER_DRIVER>${webdriver.driver}</WEBDRIVER_DRIVER>
+								<SINGLE_SAUCE>null</SINGLE_SAUCE>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>sauce-ie7</id>
+			<properties>
+				<single.sauce>iexplore:7</single.sauce>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<WEBDRIVER_DRIVER>null</WEBDRIVER_DRIVER>
+								<SINGLE_SAUCE>${single.sauce}</SINGLE_SAUCE>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<WEBDRIVER_DRIVER>null</WEBDRIVER_DRIVER>
+								<SINGLE_SAUCE>${single.sauce}</SINGLE_SAUCE>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>sauce-alltarget</id>
+			<properties>
+				<single.sauce>null</single.sauce>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<WEBDRIVER_DRIVER>null</WEBDRIVER_DRIVER>
+								<SINGLE_SAUCE>${single.sauce}</SINGLE_SAUCE>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<WEBDRIVER_DRIVER>null</WEBDRIVER_DRIVER>
+								<SINGLE_SAUCE>${single.sauce}</SINGLE_SAUCE>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- There used to be a profile here to control SauceLabs setup & teardown 
+			on CI. This is handled via a plugin on CloudBees Jenkins. -->
+
+		<!-- this profile allows the project to automatically start and stop the 
+			sauce connect tunnel. It requires a small bat file called check_sauce.bat 
+			and an environent variable called SAUCE_CONNECT_HOME. This version uses Sauce 
+			Connect v3, a jar (as opposed to the old sauce_connect.exe). The SAUCE_CONNECT_HOME 
+			env variable should be set to the directory that contains Sauce-Connect.jar. 
+			The check_sauce.bat file should be in the same directory, and contain the 
+			following: @echo off SETLOCAL ENABLEDELAYEDEXPANSION :STARTWAIT echo waiting 
+			for start string in sauce_connect.log file; this may take a minute PING 1.1.1.1 
+			-n 1 -w 5000 >NUL for /f "tokens=*" %%a in ( 'findstr /M /C:"You may start 
+			your tests." sauce_connect.log' ) do ( set foundit=%%a ) if "!foundit!"=="" 
+			goto STARTWAIT echo Ready to test! Of course, you'll also need to have saucelabs=true 
+			in your connection.properties -->
+		<profile>
+			<id>local-tunnel</id>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<!-- this task deletes the old log file to ensure that previous log 
+									entries don't confuse the bat script in block_until_tunnel_is_ready -->
+								<id>remove_sauce_logs_using_ant</id>
+								<phase>initialize</phase>
+								<configuration>
+									<target>
+										<delete file="${env.SAUCE_CONNECT_HOME}\sauce_connect.log" />
+									</target>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+							<execution>
+								<!-- This starts the sauce connect tunnel in the background. It does 
+									not block (unlike tasks started using exec-maven-plugin). Task with id block_until_tunnel_is_ready 
+									monitors the log generated by sauce connect. -->
+								<id>start_sauce_using_ant</id>
+								<phase>initialize</phase>
+								<configuration>
+									<target>
+										<exec executable="cmd" dir="${env.SAUCE_CONNECT_HOME}"
+											spawn="true">
+											<arg value="/c" />
+											<arg value="java" />
+											<arg value="-jar" />
+											<arg value="Sauce-Connect.jar" />
+											<arg value="${env.SAUCELABS_USER}" />
+											<arg value="${env.SAUCELABS_KEY}" />
+										</exec>
+									</target>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+							<execution>
+								<!-- This starts the sauce connect tunnel in the background. It does 
+									not block (unlike tasks started using exec-maven-plugin). Task with id block_until_tunnel_is_ready 
+									monitors the log generated by sauce connect. -->
+								<id>kill_tunnel</id>
+								<phase>post-integration-test</phase>
+								<configuration>
+									<target>
+										<exec executable="cmd" dir="${env.SAUCE_CONNECT_HOME}"
+											spawn="true">
+											<arg value="/c" />
+											<arg value="wmic" />
+											<arg value="path" />
+											<arg value="win32_process" />
+											<arg value="Where" />
+											<arg value="(CommandLine Like '%Sauce-Connect.jar%')" />
+											<arg value="Call" />
+											<arg value="Terminate" />
+										</exec>
+									</target>
+								</configuration>
+								<goals>
+									<goal>run</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>1.2</version>
+						<executions>
+							<execution>
+								<!-- This is the command that blocks until sauce connect has finished 
+									starting. It waits for a specific string in the sauce_connect.log before 
+									releasing. -->
+								<id>block_until_tunnel_is_ready</id>
+								<phase>initialize</phase>
+								<configuration>
+									<executable>${env.SAUCE_CONNECT_HOME}\check_sauce.bat</executable>
+									<workingDirectory>${env.SAUCE_CONNECT_HOME}</workingDirectory>
+								</configuration>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>

@@ -1,0 +1,256 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>ca.rbon</groupId>
+    <artifactId>iostream</artifactId>
+    <version>0.2-SNAPSHOT</version>
+
+    <properties>
+        <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+    
+    <scm>
+        <connection>scm:git:git@github.com:fralalonde/iostream.git</connection>
+    </scm>
+
+    <organization>
+        <name>CA.RBON</name>
+        <url>https://rbon.ca/</url>
+    </organization>
+
+    <distributionManagement>
+        <repository>
+            <id>cs-releases</id>
+            <name>${project.organization.name} Releases Repository</name>
+            <url>${dist.mngt.repo.uri}/${project.distributionManagement.repository.id}/</url>
+        </repository>
+        <snapshotRepository>
+            <id>cs-snapshots</id>
+            <name>${project.organization.name} Snapshots Repository</name>
+            <url>${dist.mngt.repo.uri}/${project.distributionManagement.snapshotRepository.id}/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <prerequisites>
+        <maven>3.3.9</maven>
+    </prerequisites>    
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>1.16.10</version>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>4.12</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>2.7.5</version>
+            </dependency>
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>3.6.2</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+            
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.6.1</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <showDeprecation>true</showDeprecation>
+                        <compilerArgs>
+                            <!-- enable all default warnings -->
+                            <arg>-Xlint</arg>
+                            <!-- Verbose compiler messages -->
+                            <arg>-Xdiags:verbose</arg>
+                            <!-- treat warnings as errors : NOTE this is hard, javac is picky -->
+                            <!-- <arg>-Werror</arg> -->
+                            <!-- disable anachronic serialization warnings -->
+                            <arg>-Xlint:-serial</arg>
+                            <!-- disable misguided annotation warnings -->
+                            <arg>-Xlint:-processing</arg>
+                            <!-- disable warning about boostrap class path not set in conjunction with -source 1.7 -->
+                            <arg>-Xlint:-options</arg>
+                            <!-- disable pedantic try-with-resource unreferenced warnings because java forces the declaration of a var that nobody needs but itself -->
+                            <arg>-Xlint:-try</arg>
+                        </compilerArgs>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>2.17</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.puppycrawl.tools</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>7.5.1</version>
+                        </dependency>
+                    </dependencies>
+                    <configuration>
+                        <configLocation>iostream_checks.xml</configLocation>
+                        <encoding>UTF-8</encoding>
+                        <consoleOutput>true</consoleOutput>
+                        <linkXRef>false</linkXRef>
+                        <failsOnError>true</failsOnError>
+                        <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.4.1</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.maven.scm</groupId>
+                            <artifactId>maven-scm-providers-standard</artifactId>
+                            <version>1.8.1</version>
+                            <type>pom</type>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.15</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>2.7</version>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>2.3.2</version>
+                </plugin>
+                                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>3.3</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.tinyjee.dim</groupId>
+                            <artifactId>doxia-include-macro</artifactId>
+                            <version>1.1</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.apache.maven.doxia</groupId>
+                            <artifactId>doxia-module-markdown</artifactId>
+                            <version>1.4</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>2.2.1</version>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>2.9</version>
+                    <configuration>
+                        <quiet>true</quiet>
+                        <!-- relax javadoc for Java 8 -->
+                        <additionalparam>-Xdoclint:none</additionalparam>
+                    </configuration>
+                </plugin>
+                
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>cobertura-maven-plugin</artifactId>
+                    <version>2.5.2</version>
+                    <configuration>
+                        <quiet>true</quiet>
+                    </configuration>
+                </plugin>                
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>java-module</id>
+            <activation>
+                <file>
+                    <exists>src/main/java</exists>
+                </file>
+            </activation>
+
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-compiler-plugin</artifactId>
+                        </plugin>
+
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-checkstyle-plugin</artifactId>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+
+            <dependencies>
+                <dependency>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.mockito</groupId>
+                    <artifactId>mockito-core</artifactId>
+                    <scope>test</scope>
+                </dependency>
+                <dependency>
+                    <groupId>org.projectlombok</groupId>
+                    <artifactId>lombok</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+
+                <dependency>
+                    <groupId>org.assertj</groupId>
+                    <artifactId>assertj-core</artifactId>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+
+        </profile>
+    </profiles>
+
+
+</project>

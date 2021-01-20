@@ -1,0 +1,145 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.microsoft.example</groupId>
+  <artifactId>EventHubExample</artifactId>
+  <packaging>jar</packaging>
+  <version>1.0-SNAPSHOT</version>
+  <name>EventHubExample</name>
+  <url>http://maven.apache.org</url>
+  <repositories>
+    <repository>
+      <id>hdinsight-examples</id>
+      <url>http://raw.github.com/hdinsight/mvn-repo/master</url>
+    </repository>
+  </repositories>
+  <properties>
+    <!--
+    Storm 1.1.0 is for HDInsight 3.6.
+    To find the version information for earlier HDInsight cluster
+    versions, see https://azure.microsoft.com/en-us/documentation/articles/hdinsight-component-versioning/
+    -->
+    <storm.version>1.1.0</storm.version>
+    <hadoop.version>2.7.3</hadoop.version>
+    <storm.eventhub.version>1.1.0.2</storm.eventhub.version>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.storm</groupId>
+      <artifactId>storm-core</artifactId>
+      <version>${storm.version}</version>
+      <!-- keep storm out of the jar-with-dependencies -->
+      <scope>provided</scope>
+    </dependency>
+    <!-- Flux, for YAML based topologies -->
+    <dependency>
+      <groupId>org.apache.storm</groupId>
+      <artifactId>flux-core</artifactId>
+      <version>${storm.version}</version>
+    </dependency>
+    <!--For working with Event Hubs-->
+    <dependency>
+      <groupId>org.apache.storm</groupId>
+      <artifactId>storm-eventhubs</artifactId>
+      <version>${storm.eventhub.version}</version>
+    </dependency>
+    <!-- dependenccy for hdfsbolt -->
+    <dependency>
+        <groupId>org.apache.storm</groupId>
+        <artifactId>storm-hdfs</artifactId>
+        <!-- exclude these storm-hdfs dependencies since they are on the server -->
+        <exclusions>
+            <exclusion>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-client</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>org.apache.hadoop</groupId>
+                <artifactId>hadoop-hdfs</artifactId>
+            </exclusion>
+        </exclusions>
+        <version>${storm.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.hadoop</groupId>
+        <artifactId>hadoop-common</artifactId>
+        <version>${hadoop.version}</version>
+        <scope>provided</scope>
+        <exclusions>
+        <exclusion>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+        </exclusions>
+    </dependency>
+   <!-- For working with JSON -->
+   <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20140107</version>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <!-- build for Java 1.8, which is what HDInsight 3.5 and higher uses -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+      <!-- build an uber jar -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.3</version>
+        <configuration>
+          <transformers>
+            <!-- Keep us from getting a can't overwrite file error -->
+            <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"/>
+            <!-- Keep us from getting errors when trying to use WASB from the storm-hdfs bolt -->
+            <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+          </transformers>
+          <!-- Keep us from getting a bad signature error -->
+          <filters>
+        <filter>
+            <artifact>*:*</artifact>
+            <excludes>
+                <exclude>META-INF/*.SF</exclude>
+                <exclude>META-INF/*.DSA</exclude>
+                <exclude>META-INF/*.RSA</exclude>
+            </excludes>
+        </filter>
+    </filters>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+    <!-- Tell the project about the configuration files For
+         Event Hub and the Azure Storage account -->
+    <resources>
+      <resource>
+        <directory>${basedir}/resources</directory>
+        <filtering>false</filtering>
+        <!-- include the topology definitions & logging config -->
+        <includes>
+          <include>reader.yaml</include>
+          <include>readtofile.yaml</include>
+          <include>readtopowerbi.yaml</include>
+          <include>writer.yaml</include>
+          <include>log4j2.xml</include>
+        </includes>
+      </resource>
+    </resources>
+  </build>
+</project>

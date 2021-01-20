@@ -1,0 +1,211 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- Project's coordinates -->
+  <groupId>uk.ac.warwick.wsbc</groupId>
+  <artifactId>QuimP-toolbox</artifactId>
+  <version>1.11.2-SNAPSHOT</version> <!-- http://stackoverflow.com/questions/5901378/what-exactly-is-a-maven-snapshot-and-why-do-we-need-it -->
+  <packaging>pom</packaging>
+
+<!-- http://www.javacodegeeks.com/2012/10/maven-build-number-plugin-sample-usage.html -->
+  <scm>
+    <connection>scm:svn:http://none</connection>
+    <developerConnection>scm:svn:https://none</developerConnection>
+    <url>scm:svn:https://none</url>
+  </scm>
+
+  <!-- Name and licencing and other project informations -->
+  <name>QuimP-toolbox</name>
+  <description>Collection of tools related to QuimP software</description>
+  <licenses>
+      <license>
+          <name>Apache 2</name>
+          <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+          <distribution>repo</distribution>
+          <comments>Must be reviewed</comments>
+      </license>
+  </licenses>  
+  <organization>
+    <name>Warwick Systems Biology Centre</name>
+    <url>http://www2.warwick.ac.uk/fac/sci/systemsbiology</url>
+  </organization>
+  <developers>
+    <developer>
+      <id>baniuk</id>
+      <name>Piotr Baniukiewicz</name>
+      <email>p.baniukiewicz@warwick.ac.uk</email>
+      <organization>University of Warwick</organization>
+      <roles>
+        <role>developer</role>
+        <role>researcher</role>
+      </roles>
+      <timezone>London</timezone>
+    </developer>
+    <developer>
+      <id>smsgai</id>
+      <name>Till Bretschneider</name>
+      <email>T.Bretschneider@warwick.ac.uk</email>
+      <organization>University of Warwick</organization>
+      <roles>
+        <role>principal investigator</role>
+        <role>researcher</role>
+      </roles>
+      <timezone>London</timezone>
+    </developer>
+  </developers>
+
+  <modules>
+    <module>QuimP-plugin</module>
+    <module>algorithms</module>
+    <module>dic-plugin</module>
+    <module>plugins_test</module>
+  </modules>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope> <!-- https://books.sonatype.com/mvnex-book/reference/simple-project-sect-simple-core.html -->
+    </dependency>
+    <dependency>
+    	<groupId>net.imagej</groupId>
+    	<artifactId>ij</artifactId>
+    	<version>1.50d</version>
+    	<scope>provided</scope>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.logging.log4j</groupId>
+    	<artifactId>log4j-api</artifactId>
+    	<version>2.4.1</version>
+    	<scope>compile</scope>
+    </dependency>
+    <dependency>
+    	<groupId>org.apache.logging.log4j</groupId>
+    	<artifactId>log4j-core</artifactId>
+    	<version>2.4.1</version>
+    	<scope>compile</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin> <!-- https://books.sonatype.com/mvnex-book/reference/customizing-sect-creating-simple-weather.html -->
+          <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <source>1.8</source>
+              <target>1.8</target>
+            </configuration>
+        </plugin>
+
+        <plugin> 
+        <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId> <!-- https://books.sonatype.com/mvnex-book/reference/customizing-sect-custom-packaged.html -->
+          <version>2.6</version>
+          <configuration>
+            <descriptorRefs>
+              <descriptorRef>jar-with-dependencies</descriptorRef>
+            </descriptorRefs>
+            <archive>
+             <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+             </manifest>
+            <manifestEntries>
+              <Implementation-Build>${buildNumber}</Implementation-Build>
+            </manifestEntries>
+          </archive>
+          </configuration>
+          <executions>
+            <execution> <!-- https://books.sonatype.com/mvnex-book/reference/customizing-sect-custom-packaged.html -->
+              <id>simple-command</id>
+              <phase>package</phase>
+              <goals>
+                <goal>attached</goal>
+              </goals>
+            </execution>
+          </executions>  
+        </plugin>
+        
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>buildnumber-maven-plugin</artifactId>
+          <version>1.4</version>
+          <executions>
+            <execution>
+              <phase>validate</phase>
+              <goals>
+                <goal>create</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <doCheck>false</doCheck>
+            <doUpdate>false</doUpdate>
+            <format>{0,date,yyyy-MM-dd HH:mm:ss}</format>
+            <items>
+              <item>timestamp</item>
+            </items>  
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>2.1</version>
+          <configuration>
+            <archive>
+             <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+             </manifest>
+            <manifestEntries>
+              <Implementation-Build>${buildNumber}</Implementation-Build>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+
+      </plugins>
+    </pluginManagement>
+  </build>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.8.1</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>3.0.3</version>
+        <configuration>
+          <findbugsXmlOutput>true</findbugsXmlOutput>
+          <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
+          <xmlOutput>true</xmlOutput>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.17</version>
+        <configuration>
+          <configLocation>${user.dir}/resources/quimpcheckstyle.xml</configLocation>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>3.6</version>
+      </plugin>  
+    </plugins>
+  </reporting>
+
+</project>

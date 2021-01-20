@@ -1,0 +1,152 @@
+<?xml version="1.0"?>
+<!--
+  Copyright 2019 Christophe Marchand
+  
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  
+      http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <groupId>top.marchand.oxygen</groupId>
+  <artifactId>maven-project-support</artifactId>
+  <version>1.00.00-SNAPSHOT</version>
+  
+  <name>Oxygen Maven Project Support</name>
+  
+  <url>https://github.com/cmarchand/oxygen-maven-project-support</url>
+  
+  <description>A Maven view of project</description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <oxygen.sdk.version>20.1.0.3</oxygen.sdk.version>
+    <!--<javac.path>${env.JAVA_HOME}/bin/javac</javac.path>-->
+  </properties>
+
+  <build>
+    <finalName>${project.artifactId}-${project.version}</finalName>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.0</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.1.1</version>
+        <configuration>
+          <outputDirectory>${project.build.directory}/build</outputDirectory>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.1.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals><goal>single</goal></goals>
+          </execution>
+        </executions>
+        <configuration>
+          <descriptors>
+            <descriptor>src/assembly/assembly.xml</descriptor>
+          </descriptors>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <dependencies>
+    <dependency>
+      <groupId>com.oxygenxml</groupId>
+      <artifactId>oxygen-sdk</artifactId>
+      <version>${oxygen.sdk.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+  
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-release-plugin</artifactId>
+            <version>2.5.3</version>
+            <dependencies>
+              <dependency>
+                <groupId>org.apache.maven.scm</groupId>
+                <artifactId>maven-scm-provider-gitexe</artifactId>
+                <version>1.8.1</version>
+              </dependency>
+            </dependencies>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-enforcer-plugin</artifactId>
+            <version>3.0.0-M1</version>
+            <executions>
+              <execution>
+                <id>enforce-no-snapshots</id>
+                <goals>
+                  <goal>enforce</goal>
+                </goals>
+                <configuration>
+                  <rules>
+                    <requireReleaseDeps>
+                      <message>No Snapshots Allowed!</message>
+                    </requireReleaseDeps>
+                  </rules>
+                  <fail>true</fail>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+  
+  <distributionManagement>
+    <snapshotRepository>
+      <id>${snapshotRepositoryId}</id>
+      <url>${snapshotRepositoryUrl}</url>
+    </snapshotRepository>
+    <repository>
+      <id>${releaseRepositoryId}</id>
+      <url>${releaseRepositoryUrl}</url>
+    </repository>
+  </distributionManagement>
+
+  <repositories>
+    <repository>
+      <id>oxygenxml</id>
+      <name>oXygen XML SDK Maven Repository</name>
+      <url>https://oxygenxml.com/maven/</url>
+    </repository>
+  </repositories>
+  
+</project>

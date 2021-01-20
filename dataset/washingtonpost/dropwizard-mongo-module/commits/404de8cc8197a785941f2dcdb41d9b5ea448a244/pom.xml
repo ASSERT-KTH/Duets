@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <parent>
+        <groupId>com.washingtonpost</groupId>
+        <artifactId>wp-parent-pom</artifactId>
+        <version>1.2.1</version>
+    </parent>
+    
+    <groupId>com.washingtonpost.dropwizard</groupId>
+    <artifactId>dropwizard-mongo</artifactId>
+    <version>1.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <properties>
+        <jacoco.datafile.location>${project.build.directory}/jacoco/coverage.exec</jacoco.datafile.location>
+        <maven.surefire.argLine>-XX:+HeapDumpOnOutOfMemoryError -Xmx1024M -Djava.awt.headless=true</maven.surefire.argLine>
+        <maven.surefire.fork.count>1C</maven.surefire.fork.count>
+        <maven.test.runOrder>hourly</maven.test.runOrder>
+        <version.assertj>2.0.0</version.assertj>
+        <version.dropwizard.guice>0.8.1.0</version.dropwizard.guice>
+        <version.java>1.8</version.java>
+        <version.maven.checkstyle>2.15</version.maven.checkstyle>
+        <version.maven.compiler>3.3</version.maven.compiler>
+        <version.maven.jar>2.4</version.maven.jar>
+        <version.maven.jacoco.plugin>0.7.5.201505241946</version.maven.jacoco.plugin>
+        <version.junit>4.12</version.junit>
+        <version.maven.surefire.plugin>2.18.1</version.maven.surefire.plugin>
+        <version.mongo.driver>2.13.0</version.mongo.driver>
+        <version.wp.checkstyle>1.1</version.wp.checkstyle>
+    </properties>
+
+    <scm>
+        <developerConnection>scm:git:git@github.com:WPMedia/dropwizard-mongo-module.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+    
+    <dependencies>
+        <dependency>
+            <groupId>com.hubspot.dropwizard</groupId>
+            <artifactId>dropwizard-guice</artifactId>
+            <version>${version.dropwizard.guice}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
+            <version>${version.mongo.driver}</version>
+            <!-- Your DropWizard app should define the driver, or accept what comes in through a 
+            supporting library like mongojack -->
+            <scope>provided</scope>
+        </dependency>
+        
+        <!--
+            TEST SCOPED dependencies
+        -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${version.junit}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${version.assertj}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${version.maven.compiler}</version>
+                </plugin>
+            
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${version.maven.surefire.plugin}</version>
+                    <configuration>
+                        <argLine>${jacocoSurefireArgLine} ${maven.surefire.argLine}</argLine>
+                        <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                        <!-- Defines the order the tests will be run in. Supported values are "alphabetical",
+                        "reversealphabetical", "random", "hourly" (alphabetical on even hours, reverse alphabetical
+                        on odd hours) and "filesystem". -->
+                        <runOrder>${maven.test.runOrder}</runOrder>
+                        <systemPropertyVariables>
+                            <basedir>${project.basedir}</basedir>
+                            <build.directory>${project.build.directory}</build.directory>
+                        </systemPropertyVariables>
+                        <!-- Spawn 1 VM per core to run unit tests in parallel -->
+                        <forkCount>${maven.surefire.fork.count}</forkCount>
+                    </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.maven.surefire</groupId>
+                            <artifactId>surefire-junit4</artifactId>
+                            <version>${version.maven.surefire.plugin}</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${version.maven.jacoco.plugin}</version>
+                    <executions>
+                        <execution>
+                            <id>pre-unit-test</id>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                            <configuration>
+                                <destFile>${jacoco.datafile.location}</destFile>
+                                <!-- Sets the name of the property containing the settings for JaCoCo runtime agent. -->
+                                <propertyName>jacocoSurefireArgLine</propertyName>
+                                <append>true</append>
+                                <includes>
+                                    <include>com/washingtonpost/**/*.*</include>
+                                </includes>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>post-unit-test</id>
+                            <phase>test</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                            <configuration>
+                                <dataFile>${jacoco.datafile.location}</dataFile>
+                                <outputDirectory>${project.reporting.outputDirectory}/jacoco-unit-tests</outputDirectory>
+                                <append>true</append>
+                                <includes>
+                                    <include>com/washingtonpost/**/*.*</include>
+                                </includes>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>${version.maven.checkstyle}</version>
+                    <executions>
+                        <execution>
+                            <id>validate</id>
+                            <phase>validate</phase>
+                            <configuration>
+                                <configLocation>checkstyle.xml</configLocation>
+                                <encoding>${project.build.sourceEncoding}</encoding>
+                                <consoleOutput>true</consoleOutput>
+                                <failsOnError>true</failsOnError>
+                                <linkXRef>false</linkXRef>
+                            </configuration>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.washingtonpost</groupId>
+                            <artifactId>wp-java-checkstyle</artifactId>
+                            <version>${version.wp.checkstyle}</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${version.java}</source>
+                    <target>${version.java}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

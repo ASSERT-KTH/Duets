@@ -1,0 +1,431 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>music.marching.attendance</groupId>
+  <artifactId>attendance</artifactId>
+  <packaging>war</packaging>
+  <version>2.0.1-gamma</version>
+  <name>music.marching.attendance</name>
+
+  <properties>
+    <!-- Convenience property to set the GWT version -->
+    <gwtVersion>2.5.0-rc1</gwtVersion>
+
+    <!-- GWT needs at least java 1.6 -->
+    <maven.compiler.source>1.6</maven.compiler.source>
+    <maven.compiler.target>1.6</maven.compiler.target>
+
+    <!-- GAE properties -->
+    <gae.version>1.6.6</gae.version>
+    <gae.home>${user.home}/.m2/repository/com/google/appengine/appengine-java-sdk/${gae.version}/appengine-java-sdk-${gae.version}</gae.home>
+    <gae.application.version>1</gae.application.version>
+
+    <!-- Don't let your Mac use a crazy non-standard encoding -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
+  <repositories>
+    <repository>
+      <id>twig</id>
+      <url>http://mvn.twig-persist.googlecode.com/hg</url>
+    </repository>
+    <repository>
+        <id>lib</id>
+        <name>lib</name>
+        <releases>
+            <enabled>true</enabled>
+            <checksumPolicy>ignore</checksumPolicy>
+        </releases>
+        <snapshots>
+            <enabled>false</enabled>
+        </snapshots>
+        <url>file://${project.basedir}/lib</url>
+    </repository>
+  </repositories>
+
+  <dependencies>
+  
+  	<!-- JCACHE API -->
+  	<dependency>
+  		<groupId>net.sf.jsr107cache</groupId>
+  		<artifactId>jsr107cache</artifactId>
+  		<version>1.1</version>
+  	</dependency>
+
+    <!--
+      J2EE Servlet API. We need it to compile IndexServlet class. You can
+      probably remove it, if you don't explicitly use Servlets
+    -->
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-servlet_2.5_spec</artifactId>
+      <version>1.2</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!--
+      Make use of JSP tags.
+    -->
+    <dependency>
+      <artifactId>standard</artifactId>
+      <groupId>taglibs</groupId>
+      <version>1.1.2</version>
+      <type>jar</type>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!-- yamlbeans: YAML parser -->
+    <dependency>
+      <groupId>com.esotericsoftware.yamlbeans</groupId>
+      <artifactId>yamlbeans</artifactId>
+      <version>1.06</version>
+    </dependency>
+
+    <!-- Apache common language libraries -->
+    <dependency>
+      <groupId>commons-fileupload</groupId>
+      <artifactId>commons-fileupload</artifactId>
+      <version>1.3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.1</version>
+    </dependency>
+
+    <!-- Google Guava project: core lib for collections, string processing, etc. -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>10.0.1</version>
+    </dependency>
+
+    <!-- Gson: Java to Json conversion -->
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.2.2</version>
+    </dependency>
+
+    <!-- Required by Hibernate validator because slf4j-log4j is
+         optional in the hibernate-validator POM -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.6.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.6.1</version>
+    </dependency>
+
+    <!-- Google App Engine (GAE) -->
+    <dependency>
+      <groupId>com.google.appengine</groupId>
+      <artifactId>appengine-api-1.0-sdk</artifactId>
+      <version>${gae.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.appengine</groupId>
+      <artifactId>appengine-testing</artifactId>
+      <version>${gae.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.appengine</groupId>
+      <artifactId>appengine-api-stubs</artifactId>
+      <version>${gae.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.appengine</groupId>
+      <artifactId>appengine-api-labs</artifactId>
+      <version>${gae.version}</version>
+    </dependency>
+
+    <!-- twig-persist: datastore abstraction layer -->
+    <dependency>
+      <groupId>com.google.code.twig</groupId>
+      <artifactId>twig-persist</artifactId>
+      <version>2.0-rc</version>
+    </dependency>
+
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <version>2.3</version>
+    </dependency>    
+
+    <!-- <dependency>
+      <groupId>javax.persistence</groupId>
+      <artifactId>persistence-api</artifactId>
+      <version>1.0</version>
+    </dependency> -->
+
+    <!-- GIN and Guice for IoC / DI -->
+
+    <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+      <version>2.0</version>
+    </dependency>
+
+    <!-- Unit tests -->
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.8.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.9.0</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <!-- Generate compiled stuff in the folder used for development mode -->
+    <outputDirectory>${project.build.directory}/${project.build.finalName}/WEB-INF/classes</outputDirectory>
+
+    <plugins>
+      <!-- requestfactory-apt runs an annotation processor (APT) to
+           instrument its service interfaces so that
+           RequestFactoryServer can decode client requests. Normally
+           you would just have a dependency on requestfactory-apt
+           with <scope>provided</scope>, but that won't work in
+           eclipse due to m2e bug
+           https://bugs.eclipse.org/bugs/show_bug.cgi?id=335036
+      <plugin>
+        <groupId>org.bsc.maven</groupId>
+        <artifactId>maven-processor-plugin</artifactId>
+        <version>2.0.5</version>
+        <executions>
+          <execution>
+            <id>process</id>
+            <goals>
+              <goal>process</goal>
+            </goals>
+            <phase>generate-sources</phase>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>com.google.web.bindery</groupId>
+            <artifactId>requestfactory-apt</artifactId>
+            <version>${gwtVersion}</version>
+          </dependency>
+        </dependencies>
+      </plugin> -->
+
+      <!-- Google Plugin for Eclipse (GPE) won't see the source
+           generated above by requestfactory-apt unless it is exposed
+           as an additional source dir
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-sources/apt</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>-->
+
+      <!-- GWT Maven Plugin
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>gwt-maven-plugin</artifactId>
+        <version>2.3.0-1</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.google.gwt</groupId>
+            <artifactId>gwt-user</artifactId>
+            <version>${gwtVersion}</version>
+          </dependency>
+          <dependency>
+            <groupId>com.google.gwt</groupId>
+            <artifactId>gwt-dev</artifactId>
+            <version>${gwtVersion}</version>
+          </dependency>
+          <dependency>
+            <groupId>com.google.gwt</groupId>
+            <artifactId>gwt-servlet</artifactId>
+            <version>${gwtVersion}</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+        </executions>
+
+        <- Plugin configuration. There are many available options,
+             see gwt-maven-plugin documentation at codehaus.org
+        <configuration>
+          <- URL that should be automatically opened in the GWT shell (gwt:run).
+          <runTarget>MobileWebApp.html</runTarget>
+          <- Ask GWT to create the Story of Your Compile (SOYC) (gwt:compile)
+          <compileReport>true</compileReport>
+          <module>com.google.gwt.sample.mobilewebapp.MobileWebApp</module>
+          <appEngineVersion>${gae.version}</appEngineVersion>
+          <appEngineHome>${gae.home}</appEngineHome>
+          <logLevel>INFO</logLevel>
+          <style>${gwt.style}</style>
+
+          <server>com.google.appengine.tools.development.gwt.AppEngineLauncher</server>
+          <copyWebapp>true</copyWebapp>
+        </configuration>
+      </plugin> -->
+
+      <!-- Google App Engine plugin -->
+      <plugin>
+        <groupId>net.kindleit</groupId>
+        <artifactId>maven-gae-plugin</artifactId>
+        <version>0.8.1</version>
+        <executions>
+          <execution>
+            <id />
+            <phase>validate</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Add source folders to test classpath in order to run gwt-tests as normal junit-tests -->
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <additionalClasspathElements>
+            <additionalClasspathElement>${project.build.sourceDirectory}</additionalClasspathElement>
+            <additionalClasspathElement>${project.build.testSourceDirectory}</additionalClasspathElement>
+          </additionalClasspathElements>
+          <useManifestOnlyJar>false</useManifestOnlyJar>
+          <forkMode>always</forkMode>
+
+          <!-- Folder for generated testing stuff -->
+          <systemProperties>
+            <property>
+              <name>gwt.args</name>
+              <value>-out ${project.build.directory}/${project.build.finalName}</value>
+            </property>
+          </systemProperties>
+        </configuration>
+      </plugin>
+
+      <!-- Copy static web files before executing gwt:run -->
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.4.2</version>
+        <executions>
+          <execution>
+            <phase>compile</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/${project.build.finalName}</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/webapp</directory>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Mark the project for Google Plugin for Eclipse (GPE) -->
+      <plugin>
+        <artifactId>maven-eclipse-plugin</artifactId>
+        <version>2.8</version>
+        <configuration>
+          <downloadSources>true</downloadSources>
+          <downloadJavadocs>true</downloadJavadocs>
+          <wtpversion>2.0</wtpversion>
+          <additionalBuildcommands>
+            <buildCommand>
+              <name>com.google.gwt.eclipse.core.gwtProjectValidator</name>
+            </buildCommand>
+          </additionalBuildcommands>
+          <additionalProjectnatures>
+            <projectnature>com.google.gwt.eclipse.core.gwtNature</projectnature>
+            <projectnature>com.google.appengine.eclipse.core.gaeNature</projectnature>
+          </additionalProjectnatures>
+        </configuration>
+      </plugin>
+    </plugins>
+
+    <!-- Required by m2e for import into eclipse. No effect on command line builds  -->
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>net.kindleit</groupId>
+                    <artifactId>maven-gae-plugin</artifactId>
+                    <versionRange>[0.7.3,)</versionRange>
+                    <goals>
+                      <goal>unpack</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <execute />
+                  </action>
+                </pluginExecution>
+
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.bsc.maven</groupId>
+                    <artifactId>maven-processor-plugin</artifactId>
+                    <versionRange>[2.0.5,)</versionRange>
+                    <goals>
+                      <goal>process</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <execute />
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+</project>

@@ -1,0 +1,332 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<parent>
+		<groupId>org.n52</groupId>
+		<artifactId>52-North</artifactId>
+		<version>5.6.7</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.n52.v3d</groupId>
+	<artifactId>52n-v3d-terrainserver</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<packaging>war</packaging>
+	<name>terrainserver</name>
+	<description>
+        This module serves as a base for all applications
+    </description>
+    <licenses>
+        <license>
+            <name>GNU GENERAL PUBLIC LICENSE Version 2, June 1991</name>
+            <url>http://www.gnu.org/licenses/gpl-2.0.txt</url>
+        </license>
+    </licenses>
+	<mailingLists>
+		<mailingList>
+			<name>3d</name>
+			<archive>
+                http://list.52north.org/pipermail/3d
+            </archive>
+			<post>3d@52north.org</post>
+			<subscribe>
+                mailto:3d-request@52north.org?subject=subscribe
+            </subscribe>
+			<unsubscribe>
+                mailto:3d-request@52north.org?subject=unsubscribe
+            </unsubscribe>
+		</mailingList>
+		<!--mailingList>
+			<name>3d-commits</name>
+			<archive>
+                http://list.52north.org/pipermail/3d-commits
+            </archive>
+			<subscribe>
+                mailto:3d-commits-request@52north.org?subject=subscribe
+            </subscribe>
+			<unsubscribe>
+                mailto:3d-commits-request@52north.org?subject=unsubscribe
+            </unsubscribe>
+		</mailingList-->
+	</mailingLists>
+	<developers>
+		<developer>
+			<id>BennoSchmidt</id>
+			<name>Benno Schmidt</name>
+			<email>b.schmidt@52north.org</email>
+			<timezone>+2</timezone>
+			<organization>Hochschule Bochum</organization>
+			<organizationUrl>http://www.hs-bochum.de</organizationUrl>
+			<roles>
+				<role>Head of WG 3d</role>
+				<role>Java Developer</role>
+			</roles>
+		</developer>
+		<developer>
+			<id>MartinMay</id>
+			<name>Martin May</name>
+			<email>m.may@52north.org</email>
+			<timezone>+2</timezone>
+			<organization>con terra GmbH</organization>
+			<organizationUrl>http://www.conterra.de</organizationUrl>
+			<roles>
+				<role>Software Architect</role>
+				<role>Java Developer</role>
+			</roles>
+		</developer>
+	</developers>
+	<scm>
+		<!-- Specification of the Source-Content-Managmentsystem -->
+		<connection>scm:svn:https://svn.52north.org/svn/3d/52n-v3d-terrainserver/trunk/${project.artifactId}</connection>
+		<developerConnection>scm:svn:https://svn.52north.org/svn/3d/52n-v3d-terrainserver/trunk/${project.artifactId}</developerConnection>
+		<url>http://svn.52north.org/cgi-bin/viewvc.cgi/52n-v3d-terrainserver/trunk/${project.artifactId}?root=3d</url>
+	</scm>
+	<build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>log4j.xml</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.5</version>
+				<configuration>
+					<skip>false</skip>
+					<source>1.5</source>
+				</configuration>
+			</plugin>
+            <plugin>
+                <groupId>org.codehaus.groovy.maven</groupId>
+                <artifactId>gmaven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>replace backslashes in paths on windows</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <properties>
+                                <buildDir>${project.build.directory}</buildDir>
+                            </properties>
+                            <source>
+                                project.properties['slashPath'] = project.properties['buildDir'].replace('\\','/');
+                            </source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-war-plugin</artifactId>
+					<inherited>true</inherited>
+					<executions>
+						<execution>
+							<id>war-exploded-on-test</id>
+							<phase>test</phase>
+							<goals>
+								<goal>exploded</goal>
+							</goals>
+						</execution>
+					</executions>
+					<!-- this removes the version number from the exploded directories -->
+					<configuration>
+						<!--<useCache>false</useCache>-->
+						<!-- slower, but modified jars so realy copied -->
+						<webappDirectory>${project.build.directory}/${project.artifactId}</webappDirectory>
+						<archive>
+							<manifest>
+								<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							</manifest>
+						</archive>
+                        <webResources>
+                            <webResource>
+                                <directory>${basedir}/src/main/webapp/WEB-INF</directory>
+                                <includes>
+                                    <include>*.xml</include>
+                                </includes>
+                                <targetPath>WEB-INF</targetPath>
+                                <filtering>true</filtering>
+                            </webResource>
+                        </webResources>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.mortbay.jetty</groupId>
+					<artifactId>jetty-maven-plugin</artifactId>
+					<version>7.0.0.pre5</version>
+					<configuration>
+						<scanIntervalSeconds>10</scanIntervalSeconds>
+						<connectors>
+							<connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
+								<port>8080</port>
+								<maxIdleTime>60000</maxIdleTime>
+							</connector>
+						</connectors>
+						<webAppConfig>
+							<contextPath>/${project.artifactId}</contextPath>
+							<tempDirectory>${project.build.directory}/jetty-work</tempDirectory>
+							<defaultsDescriptor>src/main/config/jetty-webdefault.xml</defaultsDescriptor>
+						</webAppConfig>
+						<systemProperties>
+							<systemProperty>
+								<name>catalina.home</name>
+								<value>${project.build.directory}/jetty-work</value>
+							</systemProperty>
+						</systemProperties>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+	
+	<repositories>
+        <repository>
+            <id>n52-releases</id>
+            <name>52n Releases</name>
+            <url>http://52north.org/maven/repo/releases/</url>
+        </repository>
+        <repository>
+            <id>n52-snapshots</id>
+            <name>52n Snapshots</name>
+            <url>http://52north.org/maven/repo/snapshots/</url>
+        </repository>
+    </repositories>
+	
+    <dependencies>
+        <dependency>
+            <groupId>org.n52.v3d</groupId>
+            <artifactId>52n-v3d-triturus</artifactId>
+            <version>2.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>batik</groupId>
+            <artifactId>batik-svg-dom</artifactId>
+            <version>1.6-1</version>
+        </dependency>
+        <dependency>
+            <groupId>batik</groupId>
+            <artifactId>batik-transcoder</artifactId>
+            <version>1.6-1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>fop</groupId>
+                    <artifactId>fop</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.4</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <!-- use version 1.1.1 to avoid garbage problems -->
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <scope>compile</scope>
+            <version>1.1.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>avalon-framework</groupId>
+                    <artifactId>avalon-framework</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>logkit</groupId>
+                    <artifactId>logkit</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.servlet</groupId>
+                    <artifactId>servlet-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.5</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	<properties>
+		<!--##### logging properties #####-->
+		<logging.log4j.logger.root.level>WARN</logging.log4j.logger.root.level>
+		<logging.log4j.logger.n52.level>INFO</logging.log4j.logger.n52.level>
+		<logging.log4j.logger.apache.level>WARN</logging.log4j.logger.apache.level>
+		<logging.log4j.appender.console.level>WARN</logging.log4j.appender.console.level>
+		<!-- file appender only used in the web applications -->
+		<logging.log4j.appender.file.level>INFO</logging.log4j.appender.file.level>
+		<!--logging.log4j.appender.file.path>${catalina.home}/logs</logging.log4j.appender.file.path-->
+		<logging.log4j.appender.file.name>${project.artifactId}</logging.log4j.appender.file.name>
+
+
+        <app.capabilities.wts>${slashPath}/WEB-INF/conf/wts/Capabilities.xml</app.capabilities.wts>
+        <app.capabilities.dem>${slashPath}/WEB-INF/conf/demservice/Capabilities.xml</app.capabilities.dem>
+        <app.capabilities.profile>${slashPath}/WEB-INF/conf/profileservice/Capabilities.xml</app.capabilities.profile>
+        <app.capabilities.tkblattnr>${slashPath}/WEB-INF/conf/tkblattnrservice/Capabilities.xml</app.capabilities.tkblattnr>
+        <app.grid.path>D:/Data/demdata</app.grid.path>
+        <app.defaultDrape>D:/WebApps/terrainServer/etc/povraywts/default_drape.jpg</app.defaultDrape>
+        <app.povray.inst.path>C:/Programme/povray36b</app.povray.inst.path>
+        <app.povray.inst.exec>/bin/pvengine.exe</app.povray.inst.exec>
+        <app.working.dir>C:/tmp/terrainServer</app.working.dir>
+
+	</properties>
+	<profiles>
+		<profile>
+			<id>env-dev</id>
+			<!--
+				Developement Environment (activate with -Denv=dev) This is the development profile, per default it points to a
+				build.properties file in the user home, but this can be changed localy by specifiying the property local.configfile
+				with its own string.
+			-->
+			<activation>
+				<property>
+					<name>env</name>
+					<value>dev</value>
+				</property>
+			</activation>
+			<properties>
+				<local.configfile>${user.home}/build.properties</local.configfile>
+			</properties>
+			<build>
+				<filters>
+					<filter>${local.configfile}</filter>
+				</filters>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>properties-maven-plugin</artifactId>
+                        <executions>
+                                <execution>
+                                        <phase>initialize</phase>
+                                        <goals>
+                                                <goal>read-project-properties</goal>
+                                        </goals>
+                                        <configuration>
+                                                <files>
+                                                        <file>${local.configfile}</file>
+                                                </files>
+                                        </configuration>
+                                </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>

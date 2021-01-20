@@ -1,0 +1,306 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.github.camel-tooling</groupId>
+	<artifactId>camel-lsp-server</artifactId>
+	<version>1.1.0-SNAPSHOT</version>
+	
+	<name>Camel Language Server Protocol :: Server Implementation</name>
+	<description>Server Implementation of the Language Server Protocol for Apache Camel</description>
+	<url>https://github.com/camel-tooling/camel-language-server</url>
+	
+	<licenses>
+	    	<license>
+			<name>The Apache License, Version 2.0</name>
+    			<url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+	    	</license>
+	</licenses>
+
+	<scm>
+  		<connection>scm:git:https://github.com/camel-tooling/camel-language-server.git</connection>
+  		<developerConnection>scm:git:https://github.com/camel-tooling/camel-language-server.git</developerConnection>
+  		<url>https://github.com/camel-tooling/camel-language-server/tree/master</url>
+	</scm>
+
+	<developers>
+    	<developer>
+      		<name>Aurelien Pupier</name>
+      		<email>aurelien.pupier@gmail.com</email>
+      		<organization>Red Hat</organization>
+      		<organizationUrl>https://www.redhat.com</organizationUrl>
+    	</developer>
+    	<developer>
+      		<name>Lars Heinemann</name>
+      		<email>lhein.smx@gmail.com</email>
+      		<organization>Red Hat</organization>
+      		<organizationUrl>https://www.redhat.com</organizationUrl>
+    	</developer>
+  	</developers>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- compiler settings -->
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<jacoco.version>0.8.5</jacoco.version>
+		<lsp4j.version>0.9.0</lsp4j.version>
+		<slf4j.version>1.7.30</slf4j.version>
+		<junit.version>5.6.2</junit.version>
+		<assertj.version>3.16.1</assertj.version>
+		<camel.version>3.2.0</camel.version>
+		<camel.tooling.common.version>0.0.3-SNAPSHOT</camel.tooling.common.version>
+		<roaster.version>2.21.1.Final</roaster.version>
+		<awaitility.version>4.0.2</awaitility.version>
+		<tyrus.version>1.16</tyrus.version>
+		<commons-text.version>1.8</commons-text.version>
+	</properties>
+
+	<distributionManagement>
+  		<snapshotRepository>
+    		<id>ossrh</id>
+    		<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+  		</snapshotRepository>
+  		<repository>
+  			<id>ossrh</id>
+  			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+  		</repository>
+	</distributionManagement>
+
+	<profiles>
+		
+		<!-- GPG -->
+		<profile>
+			<id>sign</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.6</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!-- build sources and javadoc -->
+		<profile>
+			<id>build-extras</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<!-- provide sources -->
+		    		<plugin>
+		      			<groupId>org.apache.maven.plugins</groupId>
+		      			<artifactId>maven-source-plugin</artifactId>
+		      			<version>3.2.1</version>
+		      			<executions>
+		        			<execution>
+		          				<id>attach-sources</id>
+		          				<goals>
+		            				<goal>jar-no-fork</goal>
+		          				</goals>
+		        			</execution>
+		      			</executions>
+		    		</plugin>
+		    		
+		    		<!-- provide javadoc -->
+		    		<plugin>
+		      			<groupId>org.apache.maven.plugins</groupId>
+		      			<artifactId>maven-javadoc-plugin</artifactId>
+		      			<version>3.2.0</version>
+		      			<executions>
+		        			<execution>
+		          				<id>attach-javadocs</id>
+		          				<goals>
+		            				<goal>jar</goal>
+		          				</goals>
+		        			</execution>
+		      			</executions>
+		    		</plugin>
+				</plugins>
+			</build>
+		</profile>		
+		
+	</profiles>
+
+	<build>
+		<plugins>
+			<!-- deployment to Central -->
+			<plugin>
+      			<groupId>org.sonatype.plugins</groupId>
+      			<artifactId>nexus-staging-maven-plugin</artifactId>
+      			<version>1.6.8</version>
+      			<extensions>true</extensions>
+      			<configuration>
+        			<serverId>ossrh</serverId>
+        			<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+        			<autoReleaseAfterClose>true</autoReleaseAfterClose>
+      			</configuration>
+    		</plugin>			
+			<!-- SureFire -->
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.22.2</version>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>2.2.7.RELEASE</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>prepare-agent</goal>
+							<goal>report</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.8.1</version>
+					<configuration>
+						<compilerArgs>
+							<arg>-Werror</arg>
+						</compilerArgs>
+						<source>${maven.compiler.source}</source>
+						<target>${maven.compiler.target}</target>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.eclipse.lsp4j</groupId>
+			<artifactId>org.eclipse.lsp4j.jsonrpc</artifactId>
+			<version>${lsp4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.lsp4j</groupId>
+			<artifactId>org.eclipse.lsp4j.websocket</artifactId>
+			<version>${lsp4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.lsp4j</groupId>
+			<artifactId>org.eclipse.lsp4j</artifactId>
+			<version>${lsp4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.xtend</groupId>
+			<artifactId>org.eclipse.xtend.lib</artifactId>
+			<version>2.18.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.camel-tooling</groupId>
+			<artifactId>camel-tooling-common</artifactId>
+			<version>${camel.tooling.common.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-catalog</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-catalog-maven</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-route-parser</artifactId>
+			<version>${camel.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>${assertj.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.forge.roaster</groupId>
+			<artifactId>roaster-jdt</artifactId>
+			<version>${roaster.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.awaitility</groupId>
+			<artifactId>awaitility</artifactId>
+			<version>${awaitility.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+			<version>1.26</version>            
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.tyrus</groupId>
+			<artifactId>tyrus-server</artifactId>
+			<version>${tyrus.version}</version>
+		</dependency>
+		<dependency>
+  			<groupId>org.glassfish.tyrus</groupId>
+			<artifactId>tyrus-container-grizzly-server</artifactId>
+			<version>${tyrus.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+			<version>${commons-text.version}</version>
+		</dependency>
+	</dependencies>
+	
+	<repositories>
+		<repository>
+			<id>oss-snapshot</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</repository>
+	</repositories>
+</project>

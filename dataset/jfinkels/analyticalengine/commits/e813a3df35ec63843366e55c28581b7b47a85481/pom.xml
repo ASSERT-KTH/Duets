@@ -1,0 +1,504 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <groupId>analyticalengine</groupId>
+  <artifactId>analyticalengine</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>  
+
+  <prerequisites>
+    <maven>3.0.1</maven>
+  </prerequisites>
+
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>9</version>
+  </parent>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.beust</groupId>
+      <artifactId>jcommander</artifactId>
+      <version>1.58</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.21</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.1.7</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <properties>
+    <!-- source file encoding -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.build.encoding>UTF-8</project.build.encoding>
+
+    <!-- Java version for source files and target class files -->
+    <version.java.source>1.8</version.java.source>
+    <version.java.target>1.8</version.java.target>
+    
+    <!-- plugin versions -->
+    <version.plugin.gpg>1.6</version.plugin.gpg>
+    <version.plugin.javadoc>2.10.4</version.plugin.javadoc>
+    <version.plugin.scm>1.9.5</version.plugin.scm>
+    <version.plugin.surefire>2.19.1</version.plugin.surefire>
+    <version.plugin.jacoco>0.7.5.201505241946</version.plugin.jacoco>
+    
+    <!-- SCM provider versions -->
+    <version.scm.git>${version.plugin.scm}</version.scm.git>
+
+    <!-- intermediate execution files for Jacoco -->
+    <jacoco.execfile>${project.build.directory}/coverage-reports/jacoco-ut.exec</jacoco.execfile>
+  </properties>
+  
+  <build>
+    <pluginManagement>
+      <plugins>
+        <!-- <plugin> -->
+        <!--   <groupId>org.apache.maven.plugins</groupId> -->
+        <!--   <artifactId>maven-assembly-plugin</artifactId> -->
+        <!--   <version>2.4</version> -->
+        <!-- </plugin> -->
+        <!-- <plugin> -->
+        <!--   <groupId>org.apache.maven.plugins</groupId> -->
+        <!--   <artifactId>maven-dependency-plugin</artifactId> -->
+        <!--   <version>2.6</version> -->
+        <!-- </plugin> -->
+        <plugin> <!-- make release plugin aware of git -->
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5.3</version>
+          <dependencies>
+            <dependency>
+              <groupId>org.apache.maven.scm</groupId>
+              <artifactId>maven-scm-provider-gitexe</artifactId>
+              <version>${version.scm.git}</version>
+            </dependency>
+          </dependencies>
+          <configuration>
+            <mavenExecutorId>forked-path</mavenExecutorId>
+            <useReleaseProfile>false</useReleaseProfile>
+            <arguments>${arguments} -Psonatype-oss-release</arguments>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <!-- <plugin> -->
+      <!--   <groupId>org.apache.maven.plugins</groupId> -->
+      <!--   <artifactId>maven-clean-plugin</artifactId> -->
+      <!--   <version>2.6.1</version> -->
+      <!-- </plugin> -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.3</version>
+        <configuration>
+          <compilerArguments>
+            <Xlint />
+          </compilerArguments>
+          <source>${version.java.source}</source>
+          <target>${version.java.target}</target>
+          <testSource>${version.java.source}</testSource>
+          <testTarget>${version.java.target}</testTarget>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>2.8.2</version>
+      </plugin>
+      <!-- <plugin> -->
+      <!--   <groupId>org.apache.maven.plugins</groupId> -->
+      <!--   <artifactId>maven-install-plugin</artifactId> -->
+      <!--   <version>2.5.2</version> -->
+      <!-- </plugin> -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.6</version>
+        <executions> <!-- execute jar:jar and :test-jar on "mvn package" -->
+          <execution>
+            <id>package-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <mainClass>analyticalengine.main.Main</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin> <!-- Javadoc generation -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>${version.plugin.javadoc}</version>
+        <executions> <!-- execute javadoc:jar and :test-jar on "mvn package" -->
+          <execution>
+            <id>package-javadocs</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin> <!-- enforces resources encoding -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.7</version>
+      </plugin>
+      <plugin> <!-- make SCM plugin aware of git -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-scm-plugin</artifactId>
+        <version>${version.plugin.scm}</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.maven.scm</groupId>
+            <artifactId>maven-scm-provider-gitexe</artifactId>
+            <version>${version.scm.git}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <plugin> <!-- package source and test-sources, too -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.4</version>
+        <executions> <!-- execute source:jar and :test-jar on "mvn package" -->
+          <execution>
+            <id>package-sources</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${version.plugin.surefire}</version>
+        <configuration>
+          <!-- Sets the VM argument line used when unit tests are run. -->
+          <argLine>${surefireArgLine}</argLine>
+          <!--
+              Skips unit tests if the value of skip.unit.tests property is true
+          -->
+          <skipTests>${skip.unit.tests}</skipTests>
+          <!-- Excludes integration tests when unit tests are run. -->
+          <!-- <excludes> -->
+          <!--   <exclude>**/IT*.java</exclude> -->
+          <!-- </excludes> -->
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>3.4</version>
+      </plugin>
+      <plugin> <!-- for generating executable scripts -->
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>appassembler-maven-plugin</artifactId>
+        <version>1.10</version>
+        <configuration>
+          <programs>
+            <program>
+              <mainClass>analyticalengine.main.Main</mainClass>
+              <id>analyticalengine</id>
+            </program>
+          </programs>
+        </configuration>
+      </plugin>
+      <plugin> <!-- for signing artifacts -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>${version.plugin.gpg}</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+            <!-- passphrase is stored in user settings.xml -->
+          </execution>
+        </executions>
+      </plugin>
+      <plugin> <!-- test coverage -->
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${version.plugin.jacoco}</version>
+        <executions>
+          <!--
+              This execution prepares the property pointing to the JaCoCo
+              runtime agent which is passed as VM argument when Maven the
+              Surefire plugin is executed.
+          -->
+          <execution>
+            <id>pre-unit-test</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+            <configuration>
+              <!-- This file contains the execution data. -->
+              <destFile>${jacoco.execfile}</destFile>
+              <!-- This property contains the settings for the JaCoCo runtime
+                   agent. -->
+              <propertyName>surefireArgLine</propertyName>
+            </configuration>
+          </execution>
+          <!--
+              This execution ensures that the code coverage report for unit
+              tests is created after unit tests have been run.
+          -->
+          <execution>
+            <id>post-unit-test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+            <configuration>
+              <!-- This file contains the execution data, as set above. -->
+              <dataFile>${jacoco.execfile}</dataFile>
+              <!-- The output directory for the code coverage report. -->
+              <outputDirectory>${project.reporting.outputDirectory}/jacoco-ut</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <reporting>
+    <plugins>
+
+      <!--<plugin>  changelog generation from SCM 
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-changelog-plugin</artifactId>
+          <version>2.2</version>
+          </plugin>-->
+
+      <plugin> <!-- Checkstyle coding style violations report -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.17</version>
+        <configuration>
+          <configLocation>${basedir}/checkstyle.xml</configLocation>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <enableRSS>false</enableRSS>
+          <enableRulesSummary>false</enableRulesSummary>
+        </configuration>
+      </plugin>
+      
+      <plugin> <!-- Javadoc generation -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>${version.plugin.javadoc}</version>
+      </plugin>
+
+      <plugin> <!-- Java code cross-reference links -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <version>2.5</version>
+      </plugin>
+
+      <plugin> <!-- PMD code analysis report -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>3.6</version>
+        <configuration>
+          <targetJdk>${version.java.target}</targetJdk>
+        </configuration>
+      </plugin>
+
+      <plugin> <!-- project information reports -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.9</version>
+      </plugin>
+
+      <plugin> <!-- Surefire test report -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>${version.plugin.surefire}</version>
+        <reportSets>
+          <reportSet>
+            <reports> <!-- only run tests once -->
+              <report>report-only</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      
+      <!-- <plugin> API version compatibility checks
+           <groupId>org.codehaus.mojo</groupId>
+           <artifactId>clirr-maven-plugin</artifactId>
+           <version>2.2.2</version>
+           </plugin> -->
+      
+      <!-- <plugin> Cobertura test coverage report
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>cobertura-maven-plugin</artifactId>
+        <version>2.7</version>
+      </plugin> -->
+
+      <plugin> <!-- Jacoco test coverage report -->
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${version.plugin.jacoco}</version>
+        <configuration>
+          <dataFile>${jacoco.execfile}</dataFile>
+        </configuration>
+      </plugin>
+
+      <plugin> <!-- FindBugs report -->
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>3.0.4</version>
+        <configuration>
+          <threshold>Low</threshold>
+          <effort>Max</effort>
+        </configuration>
+      </plugin>
+
+      <!-- <plugin> NCSS metrics -->
+      <!--   <groupId>org.codehaus.mojo</groupId> -->
+      <!--   <artifactId>javancss-maven-plugin</artifactId> -->
+      <!--   <version>2.0</version> -->
+      <!-- </plugin> -->
+
+      <plugin> <!-- dependency cycle checks -->
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jdepend-maven-plugin</artifactId>
+        <version>2.0</version>
+      </plugin>
+      
+      <!-- <plugin> TODO tag extraction -->
+      <!--   <groupId>org.codehaus.mojo</groupId> -->
+      <!--   <artifactId>taglist-maven-plugin</artifactId> -->
+      <!--   <version>2.4</version> -->
+      <!--   <configuration> -->
+      <!--     <tagListOptions> -->
+      <!--       <tagClasses> -->
+      <!--         <tagClass> -->
+      <!--           <displayName>Todo</displayName> -->
+      <!--           <tags> -->
+      <!--             <tag> -->
+      <!--               <matchString>todo</matchString> -->
+      <!--               <matchType>ignoreCase</matchType> -->
+      <!--             </tag> -->
+      <!--           </tags> -->
+      <!--         </tagClass> -->
+      <!--       </tagClasses> -->
+      <!--     </tagListOptions> -->
+      <!--   </configuration> -->
+      <!-- </plugin> -->
+
+      <plugin> <!-- dependency and plugin versions -->
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>versions-maven-plugin</artifactId>
+        <version>2.3</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>dependency-updates-report</report>
+              <report>plugin-updates-report</report>
+              <report>property-updates-report</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+    </plugins>
+  </reporting>
+
+  <profiles> <!-- Only sign when releasing. -->
+    <!-- from https://docs.sonatype.org/display/Repository/How+To+Generate+PGP+Signatures+With+Maven -->
+    <profile>
+      <id>release-sign-artifacts</id>
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>${version.plugin.gpg}</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <!-- passphrase is stored in user settings.xml -->
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <name>Analytical Engine</name>
+  <description>A simulation of Charles Babbage's Analytical Engine.</description>
+  <url>https://github.com/jfinkels/analyticalengine</url>
+  <inceptionYear>2014</inceptionYear>
+
+  <licenses>
+    <license>
+      <name>GNU General Public License, Version 3.0</name>
+      <url>https://www.gnu.org/licenses/gpl.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <email>jeffrey.finkelstein@gmail.com</email>
+      <id>jfinkels</id>
+      <name>Jeffrey Finkelstein</name>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>-5</timezone>
+    </developer>  
+  </developers>
+  
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/jfinkels/analyticalengine/issues</url>
+  </issueManagement>
+  <scm>
+    <connection>scm:git:https://github.com/jfinkels/analyticalengine</connection>
+    <developerConnection>scm:git:git@github.com:jfinkels/analyticalengine</developerConnection>
+    <url>https://github.com/jfinkels/analyticalengine</url>
+  </scm>
+
+</project>

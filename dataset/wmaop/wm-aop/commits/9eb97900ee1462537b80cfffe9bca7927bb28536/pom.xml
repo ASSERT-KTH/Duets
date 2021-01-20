@@ -1,0 +1,185 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.xlcatlin</groupId>
+	<artifactId>wm-aop</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<parent>
+		<groupId>org.wmaop</groupId>
+		<artifactId>wm-parent</artifactId>
+		<version>1.0.0</version>
+	</parent>
+
+	<name>wm-aop</name>
+	<url>https://bitbucket.org/sysgen/wm-aop.git</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<wm-aop-util.version>1.0.0-SNAPSHOT</wm-aop-util.version>
+		<jaxb.version>2.2.7</jaxb.version> <!-- Must match jaxb2-maven-plugin dep version -->
+		<commons-loggin.version>1.1.1</commons-loggin.version> <!-- JEXL version for exclusion -->
+		<is.server.lib.dir>G:\SoftwareAG\IntegrationServer\instances\default\lib\jars</is.server.lib.dir>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.wmaop</groupId>
+			<artifactId>wm-aop-util</artifactId>
+			<version>${wm-aop-util.version}</version>
+		</dependency>
+
+		<dependency>
+			<!-- Proided by jexl in wm-aop-util so mark provided for exclusion in copy-->
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>${commons-loggin.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- webMethods server JARs -->
+
+		<dependency>
+			<groupId>com.softwareag.webmethods</groupId>
+			<artifactId>wm-isserver</artifactId>
+			<version>${webMethods.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.softwareag.webmethods</groupId>
+			<artifactId>wm-isclient</artifactId>
+			<version>${webMethods.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.softwareag.webmethods</groupId>
+			<artifactId>wm-g11nutils</artifactId>
+			<version>9.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>${commons-lang.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>${log4j.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- Build JARs -->
+
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<version>${jaxb.version}</version> <!-- Must match jaxb2-maven-plugin dep version -->
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- Testing JARs -->
+
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-junit4</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<!-- Plugin required to build java classes from XSD using XJC -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>jaxb2-maven-plugin</artifactId>
+				<version>1.6</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>xjc</goal>
+						</goals>
+						<configuration>
+							<packageName>com.xlcatlin.wm.interceptor.bdd.xsd</packageName>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>1.9.1</version>
+				<executions>
+					<execution>
+						<id>add-source</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>${project.build.directory}/generated-sources/jaxb</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>localServer</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jar-plugin</artifactId>
+						<version>2.6</version>
+						<configuration>
+							<outputDirectory>${is.server.lib.dir}</outputDirectory>
+						</configuration>
+					</plugin>
+
+					<plugin>
+						<artifactId>maven-dependency-plugin</artifactId>
+						<executions>
+							<execution>
+								<phase>install</phase>
+								<goals>
+									<goal>copy-dependencies</goal>
+								</goals>
+								<configuration>
+									<outputDirectory>${is.server.lib.dir}</outputDirectory>
+									<includeScope>runtime</includeScope>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>

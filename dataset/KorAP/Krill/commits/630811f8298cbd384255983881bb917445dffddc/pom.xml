@@ -1,0 +1,165 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>KorAP-modules</groupId>
+    <artifactId>KorAP-core-modules</artifactId>
+    <version>1.0</version>
+  </parent>
+
+  <groupId>KorAP-modules</groupId>
+  <artifactId>KorAP-lucene-index</artifactId>
+  <version>0.24</version>
+  <packaging>jar</packaging>
+
+  <name>KorAP-lucene-index</name>
+  <url>http://www.ids-mannheim.de/</url>
+
+  <organization>
+    <name>IDS Mannheim</name>
+    <url>http://www.ids-mannheim.de/</url>
+  </organization>
+
+  <developers>
+    <developer>
+      <name>Nils Diewald</name>
+      <email>diewald@ids-mannheim.de</email>
+      <url>http://nils-diewald.de</url>
+    </developer>
+  </developers>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+
+    <!-- junit dependency -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- log4j dependency -->
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.17</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.7.5</version>
+    </dependency>
+
+    <!-- Lucene core dependency -->
+    <dependency>
+      <artifactId>lucene-core</artifactId>
+      <groupId>org.apache.lucene</groupId>
+      <type>jar</type>
+      <version>4.3.0</version>
+    </dependency>
+
+    <!-- Lucene queryparser dependency -->
+    <dependency>
+      <artifactId>lucene-queryparser</artifactId>
+      <groupId>org.apache.lucene</groupId>
+      <type>jar</type>
+      <version>4.3.0</version>
+    </dependency>
+
+    <!-- Lucene analyzers dependency -->
+    <dependency>
+      <artifactId>lucene-analyzers-common</artifactId>
+      <groupId>org.apache.lucene</groupId>
+      <type>jar</type>
+      <version>4.3.0</version>
+    </dependency>
+
+    <!-- JCache -->
+    <dependency>
+      <groupId>net.sf.jsr107cache</groupId>
+      <artifactId>jsr107cache</artifactId>
+      <version>1.0</version>
+    </dependency>
+
+    <!-- Jackson -->
+    <!-- see https://github.com/FasterXML/jackson-core -->
+    <!-- https://github.com/FasterXML/jackson-databind -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.2.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>2.2.2</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>2.2.2</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
+    <outputDirectory>${basedir}/bin</outputDirectory>
+    <plugins>
+      <plugin>
+	<artifactId>maven-compiler-plugin</artifactId>
+	<version>2.3.2</version>
+	<configuration>
+	  <source>1.7</source>
+	  <target>1.7</target>
+	</configuration>
+      </plugin>
+
+      <!--
+	  install the indexer
+	  $ mvn clean compile assembly:single
+	  Then run e.g.
+	  $ java -jar target/KorAP-lucene-index-X.XX-jar-with-dependencies.jar src/test/resources/wiki/
+	  or
+	  $ java -jar target/KorAP-lucene-index-X.XX-jar-with-dependencies.jar /home/ndiewald/Repositories/korap/KorAP-modules/KorAP-lucene-index/sandbox/toindex/A00
+	  $ java -jar target/KorAP-lucene-index-0.21-jar-with-dependencies.jar /home/ndiewald/Repositories/KorAP/KorAP-modules/KorAP-lucene-index/sandbox/toindex/A00
+
+      -->
+      <plugin>
+	<artifactId>maven-assembly-plugin</artifactId>
+	<configuration>
+	  <archive>
+	    <manifest>
+	      <mainClass>de.ids_mannheim.korap.KorapIndexer</mainClass>
+	    </manifest>
+	  </archive>
+	  <descriptorRefs>
+	    <descriptorRef>jar-with-dependencies</descriptorRef>
+	  </descriptorRefs>
+	</configuration>
+	<executions>
+	  <execution>
+	    <id>make-assembly</id>
+	    <phase>package</phase>
+	    <goals>
+	      <goal>single</goal>
+	    </goals>
+	  </execution>
+	</executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.16</version>
+        <configuration>
+          <excludes>
+            <exclude>**/TestRealIndex.java</exclude>
+	  </excludes>
+        </configuration>
+      </plugin> 
+    </plugins>
+  </build>
+</project>

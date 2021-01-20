@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.pokebattler</groupId>
+    <artifactId>POGOProtos</artifactId>
+    <version>2.51.5</version>
+    <packaging>jar</packaging>
+    <name>POGOProtos Java</name>
+    <description>Java bindings for Pokemon Go Protocol Buffers</description>
+    <url>https://gitlab.com/AllProtos/POGOProtos-Private-Java</url>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://gitlab.com/AllProtos/POGOProtos-Private-Java/-/blob/master/LICENSE.md</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>Ryan Barker</name>
+            <email>admin@pokebattler.com</email>
+            <organization>Pokebattler</organization>
+            <organizationUrl>https://www.pokebattler.com</organizationUrl>
+        </developer>
+    </developers>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>1.8</java.version>
+        <protobuf.version>3.12.2</protobuf.version>
+        <github.global.server>github</github.global.server>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java-util</artifactId>
+            <version>${protobuf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <extensions>
+            <extension>
+                <groupId>kr.motd.maven</groupId>
+                <artifactId>os-maven-plugin</artifactId>
+                <version>1.6.2</version>
+            </extension>
+        </extensions>
+        <plugins>
+            <plugin>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <groupId>org.codehaus.mojo</groupId>
+               <executions>
+                   <execution><!-- Run our version calculation script -->
+                       <id>Build Base</id>
+                       <phase>initialize</phase>
+                       <goals>
+                           <goal>exec</goal>
+                       </goals>
+                       <configuration>
+                           <executable>python</executable>
+                           <basedir>POGOProtos</basedir>
+                           <commandlineArgs>compile.py java -o ../src/main/java --java_multiple_files</commandlineArgs>
+                       </configuration>
+                   </execution>
+                   <!-- Reserved ask needed for rpc refs
+                   <execution>
+                       <id>Build Rpc</id>
+                       <phase>initialize</phase>
+                       <goals>
+                           <goal>exec</goal>
+                       </goals>
+                       <configuration>
+                           <executable>python</executable>
+                           <basedir>POGOProtos</basedir>
+                           <commandlineArgs>compile_single_file.py -i -l java -p pogo -o ../src/main/java -m</commandlineArgs>
+                       </configuration>
+                   </execution>
+                   -->
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>Deleting all unnecessary files before lint jar</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>src/main/java/POGOProtos</directory>
+                        </fileset>
+                    </filesets>
+                    <!--<verbose>true</verbose>-->
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
+                <configuration>
+                    <argLine>-Xmx1024m -Xms1024m -XX:MaxPermSize=512m
+                        -Djdk.net.URLClassPath.disableClassPathURLCheck=true
+                    </argLine>
+                    <includes>
+                        <include>**/*Test.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

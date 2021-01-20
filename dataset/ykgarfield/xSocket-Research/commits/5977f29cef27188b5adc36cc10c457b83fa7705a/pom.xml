@@ -1,0 +1,469 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.xsocket</groupId>
+	<artifactId>xSocket</artifactId>
+	<version>2.8.15</version>
+	<name>xSocket</name>
+	<description>xSocket</description>
+	<packaging>jar</packaging>
+	<url>http://www.xsocket.org</url>
+	<developers>
+		<developer>
+			<id>grro</id>
+			<email>grro@xsocket.org</email>
+		</developer>
+	</developers> 
+	<licenses>
+		<license>
+			<name>GNU Lesser General Public License</name>
+			<url>http://www.gnu.org/licenses/lgpl-2.1.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<scm>
+		<connection> scm:svn:https://svn.sourceforge.net/svnroot/xsocket 
+		</connection>
+	</scm>
+	<!--
+		<repositories> <repository> <id>central</id> <name>Maven Repository
+		Switchboard</name> <layout>default</layout>
+		<url>http://repo1.maven.org/maven2</url> <snapshots>
+		<enabled>false</enabled> </snapshots> </repository> <repository>
+		<id>scala</id> <name>Lift Maven2 Repository</name>
+		<url>http://maven.liftweb.net/</url> <layout>default</layout>
+		<snapshots> <enabled>false</enabled> </snapshots> </repository>
+		</repositories>
+	-->
+	<!--
+		requires a server config in settings.xml: 
+		  ...
+		  <servers>
+   		     <server>
+		        <id>ftp-repository</id> 
+		        <username>anonymous</username>
+		         <password>anonymous</password>
+		     </server>
+		     ....
+		  </servers>  
+		  ....
+	-->
+	<distributionManagement>
+		<repository>
+			<id>ftp-repository</id>
+			<url>ftp://localhost/build</url>
+		</repository>
+	</distributionManagement>
+	<build>
+		<extensions>
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ftp</artifactId>
+				<version>1.0-alpha-6</version>
+			</extension>
+		</extensions>
+		<plugins>
+			<plugin>
+			    <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+				<executions> 
+					<execution>
+						<phase>generate-sources</phase>
+						<id>generate-sources</id>
+						<configuration>
+							<tasks>
+								<tstamp>
+									<format property="timestamp" pattern="yyyy-MM-dd HH:mm z" />
+								</tstamp>
+								
+								<!--
+									create a version file which will be used at runtime to get
+									version info The standard java packaging version approach will
+									not be used here (version info within manifest file). The
+									manifest-based approach doesn't work if the maven assembly
+									module will be used
+								-->
+								<echo>generating version file</echo>
+								<echo file="src/main/resources/org/xsocket/version.txt"
+									append="false"> Implementation-Version=${project.version}
+									${line.separator}Implementation-Date=${timestamp} </echo>
+								<echo file="src/main/java/overview.html" append="false"> &lt;!DOCTYPE HTML PUBLIC
+									"-//W3C//DTD HTML 3.2 Final//EN"&gt;
+									&lt;html&gt; &lt;head&gt;
+
+									&lt;/head&gt;
+
+									&lt;body bgcolor="white"&gt;
+									&lt;b&gt; xSocket
+									(${project.version}) &lt;/b&gt;
+									&lt;br/&gt; xSocket is an easy to
+									use nio-based library to build high
+									performance, high scalable network
+									applications. &lt;/body&gt;
+									&lt;/html&gt;
+								</echo>
+
+                                <java classname="SystemInfo">
+                                    <classpath>
+                                        <pathelement path="${java.class.path}"/>
+                                        <pathelement location="${basedir}/src/test/resources"/>
+                                    </classpath>
+                                </java>  
+
+								<echo>
+									copying scripts into test dir to run
+									it within the test phase
+								</echo>
+								<copy
+									todir="${project.build.directory}/test-classes">
+									<fileset dir="src/test/groovy" />
+								</copy>
+								<copy
+									todir="${project.build.directory}/test-classes">
+									<fileset dir="src/test/jruby" />
+								</copy>
+								<copy
+									todir="${project.build.directory}/test-classes">
+									<fileset dir="src/test/jython" />
+								</copy>
+ 
+ 								<echo>
+                                    delete upload dir 
+                                </echo>
+
+<!--  
+                           
+                                <delete includeemptydirs="true" failonerror="false">
+    								<fileset dir="C:\publicftp\upload\" includes="**/*"/>
+  
+                                <echo>
+                                    download current maven-metadata.xml (required for deploy)
+                                </echo>
+                                <mkdir dir="C:\publicftp\upload\org\xsocket\xSocket"/>
+								<loadresource property="maven-metadata"  failOnError="false">
+								    <url url="http://repo1.maven.org/maven2/org/xsocket/xSocket/maven-metadata.xml"/>
+								</loadresource>
+								<echo file="C:\publicftp\upload\org\xsocket\xSocket\maven-metadata.xml" append="false">
+								    ${maven-metadata}
+								</echo>
+ -->				
+
+								<!-- 
+									<echo>running findbugs</echo>
+									<taskdef name="findbugs"
+									classname="edu.umd.cs.findbugs.anttask.FindBugsTask" />
+									
+									<findbugs home="" output="xml" outputFile="C:/workspace/xsocket_core/result.xml">
+									<sourcePath	path="${basedir}/src/java" />
+									<class location="${basedir}/bin/bcel.jar" />
+									</findbugs>  -->
+
+
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+<!-- 					
+					<execution>
+						<phase>package</phase>
+						<id>remove pending test files</id>
+						<configuration>
+							<tasks>
+								<echo>
+									deleting all xSocket test file in ${java.io.tmpdir}
+								</echo>
+								
+								<delete failonerror="false">
+									<fileset dir="${java.io.tmpdir}" includes="**/xSocketTest*"/>
+								</delete>
+							</tasks>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution> -->
+				</executions>
+
+			</plugin>    
+			<plugin>
+				<groupId>org.codehaus.mojo.groovy</groupId>
+				<artifactId>groovy-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifestFile>${project.build.directory}/osgi/MANIFEST.MF</manifestFile>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>1.4.3</version>
+				<configuration>
+					<excludeDependencies>true</excludeDependencies>
+       				<manifestLocation>${project.build.directory}/osgi</manifestLocation>
+					<instructions>
+			            <!-- stops the "uses" clauses being added to "Export-Package" manifest entry -->
+            			<_nouses>true</_nouses>
+						<Export-Package>
+							org.xsocket.*;version=${pom.version}
+						</Export-Package>
+						<!--     <Private-Package>org.xsocket.stream.io.impl.*</Private-Package> -->
+						<Import-Package>
+							javax.*;resolution:=optional,*
+						</Import-Package>
+						<Bundle-RequiredExecutionEnvironment>
+							J2SE-1.5
+						</Bundle-RequiredExecutionEnvironment>
+					</instructions>
+				</configuration>
+				<executions>
+					<execution>
+						<id>bundle-manifest</id>
+						<phase>process-classes</phase>
+						<goals>
+							<goal>manifest</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.4</version>
+			<scope>test</scope> 
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+			<version>2.5</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+			<version>2.5</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>mail</artifactId>
+			<version>1.4</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jruby</groupId>
+			<artifactId>jruby</artifactId>
+			<version>1.1.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.python</groupId>
+			<artifactId>jython</artifactId>
+			<version>2.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.groovy</groupId>
+			<artifactId>groovy-all</artifactId>
+			<version>1.5.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>commons-httpclient</groupId>
+			<artifactId>commons-httpclient</artifactId>
+			<version>3.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.4</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mortbay.jetty</groupId>
+			<artifactId>jetty</artifactId>
+			<version>6.1.4</version>
+			<scope>test</scope>
+		</dependency>	
+		<dependency>
+			<groupId>gr.spinellis</groupId>
+			<artifactId>UmlGraph</artifactId>
+			<version>4.6</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>gr.spinellis</groupId>
+			<artifactId>UmlGraph</artifactId>
+			<version>4.6</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	<reporting>
+		<plugins>
+			<plugin>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<configuration>
+					<!--  Note about UmlGraph: You must have the Graphviz binary on your PATH,
+						or the images will not be generated. For more information about Graphviz,
+						please refer to http://www.graphviz.org/.  -->
+					<doclet>
+						gr.spinellis.umlgraph.doclet.UmlGraphDoc
+					</doclet>
+					<docletArtifact>
+						<groupId>gr.spinellis</groupId>  
+						<artifactId>UmlGraph</artifactId>
+						<version>4.6</version>
+					</docletArtifact>
+					<additionalparam>
+						-inferrel -inferdep -inferreltype depend
+						-inferdepvis private -quiet -useimports
+						-postfixpackage -qualify -nodefontsize 9
+						-nodefontpackagesize 7 -outputencoding UTF-8
+						-link http://java.sun.com/j2se/1.5.0/docs/api
+						-hide .*Exception -hide java.rmi.* -hide
+						java.lang.* -hide java.net.* -hide java.text.*
+						-hide javax.management.* -hide
+						java.nio.ByteBuffer -hide java.nio.charset.*
+						-hide java.nio.channels.FileChannel.MapMode
+						-hide java.nio.MappedByteBuffer -hide
+						org.xsocket.connection.IoChainableHandler -hide
+						org.xsocket.connection.IoAcceptor -hide
+						org.xsocket.connection.HandlerAdapter -hide
+						org.xsocket.datagram.AbstractChannelBasedEndpoint
+						-hide org.xsocket.datagram.AbstractEndpoint
+						-hide java.io.ByteArrayOutputStream -hide
+						java.io.PrintWriter -hide org.xsocket.group.*
+						-hide org.xsocket.connection.TimeoutManager
+						-hide
+						org.xsocket.connection.TimeoutManager.TimeoutMgmHandle
+						-hide
+						org.xsocket.connection.NonBlockingConnection.IoHandlerCallback
+						-hide
+						org.xsocket.connection.NonBlockingConnectionPool.Pool
+						-hide
+						org.xsocket.SerializedTaskQueue.MultithreadedTaskProcessor
+						-hide org.xsocket.connection.ReadQueue -hide
+						org.xsocket.connection.WriteQueue -hide
+						org.xsocket.connection.HandlerProxy -hide
+						java.util.* -hide
+						org.xsocket.connection.BlockingConnection.ReadNotificationHandler
+						-hide java.io.InputStreamReader -hide
+						java.io.LineNumberReader
+					</additionalparam> 
+
+					<show>protected</show>
+					<overview>
+						${basedir}/src/main/java/overview.html
+					</overview>
+
+					<bottom>
+						Copyright {inceptionYear}-{currentYear}
+						xSocket.org
+					</bottom>
+				</configuration>
+			</plugin>
+	        <plugin>
+   				<groupId>org.codehaus.mojo</groupId>
+      			<artifactId>findbugs-maven-plugin</artifactId>
+      			<version>1.2</version>
+       			<configuration>
+			        <excludeFilterFile>findbugs-exclude.xml</excludeFilterFile>
+			        <xmlOutput>true</xmlOutput> 
+		    	</configuration> 
+    		</plugin>    
+       		<plugin>
+        		<groupId>org.apache.maven.plugins</groupId>
+        		<artifactId>maven-pmd-plugin</artifactId>
+        		<configuration>
+					<targetJdk>1.5</targetJdk>
+					<excludes>
+					    <!-- TODO: rule exclude instead of class exclude would 
+					         be the better approach. But how to do this? -->
+					    
+					    <!-- Avoid empty catch blocks -->
+            			<exclude>org/xsocket/connection/HandlerAdapter.java</exclude>
+            			<exclude>org/xsocket/connection/IoSocketDispatcher.java</exclude>
+            			<exclude>org/xsocket/IntrospectionBasedDynamicMBean.java</exclude>
+            			<exclude>org/xsocket/connection/NonBlockingConnection.java</exclude>
+            			<exclude>org/xsocket/connection/IoSocketHandler.java</exclude>
+
+            			<!-- Do not hard code IPv4 or IPv6 addresses -->
+            			<exclude>org/xsocket/connection/IServer.java</exclude>
+            			<exclude>org/xsocket/datagram/IEndpoint.java</exclude>
+            			
+            			<!--  Avoid empty catch blocks -->
+            			<exclude>org/xsocket/connection/ServerMBeanProxyFactory.java</exclude>
+            			<exclude>org/xsocket/connection/DispatcherPoolMBeanProxyFactory.java</exclude>
+            			            			
+            			<!-- CPD: code duplications -->
+            			<exclude>org\xsocket\connection\IoActivateableSSLHandler.java</exclude>
+            			<exclude>org\xsocket\connection\IoSSLHandler.java</exclude>
+            			<exclude>org\xsocket\datagram\AbstractChannelBasedEndpoint.java</exclude>
+            			<exclude>org\xsocket\datagram\MulticastEndpoint.java</exclude>
+            			<exclude>org\xsocket\connection\BlockingConnection.java</exclude>
+            			<exclude>org\xsocket\connection\SynchronizedBlockingConnection.java</exclude>
+            			<exclude>org\xsocket\connection\SynchronizedNonBlockingConnection.java</exclude>
+            			
+            			<!-- These nested if statements could be combined -->
+            			<exclude>org\xsocket\connection\NonBlockingConnectionPool.java</exclude>
+          			</excludes>
+				</configuration>
+      		</plugin>
+    		
+    	<!-- <plugin>
+            	<groupId>org.apache.maven.plugins</groupId>
+        		<artifactId>maven-checkstyle-plugin</artifactId>
+      		</plugin> -->
+    		  
+		<!-- 	<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>cobertura-maven-plugin</artifactId>
+				<configuration>
+					<instrumentation>
+						<excludes>
+              				<exclude>org/xsocket/connection/ReadQeueConcurrentTest.class</exclude>
+            			</excludes>
+					</instrumentation>
+					<formats>
+						<format>xml</format>
+						<format>html</format>
+					</formats>
+				</configuration>
+			</plugin> --> 
+		</plugins>
+	</reporting>
+</project>

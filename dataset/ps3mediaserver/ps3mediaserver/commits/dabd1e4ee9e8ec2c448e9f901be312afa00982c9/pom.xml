@@ -1,0 +1,1748 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<!--
+		PMS consists of two major parts: PMS itself and the third party software needed to
+		run it. While PMS itself is 100% pure Java, some of the third party software is
+		not. This means building a platform specific distribution boils down to first
+		building the pms.jar and then assembling all application resources.
+
+		Note that Maven 3 does not automatically install all dependencies, unlike Maven 2.
+		To install all dependencies to your local repository, run the following commands:
+
+		mvn com.savage7.maven.plugins:maven-external-dependency-plugin:resolve-external
+		mvn com.savage7.maven.plugins:maven-external-dependency-plugin:install-external
+
+		To build PMS, do:
+
+			mvn clean package
+
+		After building, the "target" directory will contain the binary.
+		To generate a full source code report, do:
+
+			mvn site
+
+		After generating, the "target/site" directory will contain the reports.
+	-->
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>net.pms</groupId>
+	<artifactId>pms</artifactId>
+	<name>PS3 Media Server</name>
+	<packaging>jar</packaging>
+	<version>1.90.2-SNAPSHOT</version> <!-- XXX don't forget to update project.version.short below -->
+	<url>http://www.ps3mediaserver.org/</url>
+	<inceptionYear>2008</inceptionYear>
+
+	<!-- this is not required, but is recommended for plugin version checks -->
+	<prerequisites>
+		<maven>2.2.1</maven>
+	</prerequisites>
+
+	<organization>
+		<name>PS3 Media Server</name>
+		<url>http://www.ps3mediaserver.org/</url>
+	</organization>
+
+	<licenses>
+		<license>
+			<name>GNU General Public License version 2</name>
+			<url>http://www.gnu.org/licenses/gpl-2.0.txt</url>
+			<distribution>manual</distribution>
+		</license>
+	</licenses>
+
+	<description>
+		PS3 Media Server is a cross-platform DLNA-compliant UPnP Media Server.
+		Originally written to support the PlayStation 3, PS3 Media Server has been
+		expanded to support a range of other media renderers, including smartphones,
+		televisions, music players and more.
+	</description>
+
+	<scm>
+		<connection>scm:git:git://github.com/ps3mediaserver/ps3mediaserver.git</connection>
+		<developerConnection>scm:git:git@github.com:ps3mediaserver/ps3mediaserver.git</developerConnection>
+		<tag>master</tag>
+		<url>https://github.com/ps3mediaserver/ps3mediaserver</url>
+	</scm>
+
+	<issueManagement>
+		<system>Google Code</system>
+		<url>http://code.google.com/p/ps3mediaserver/issues/list</url>
+	</issueManagement>
+
+	<properties>
+		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
+		<!-- FIXME project is reserved for use by Maven: we shouldn't be using it for custom properties -->
+		<project.version.short>1.90.2</project.version.short>
+
+		<!--
+			XXX we currently need to use an old version of JNA
+			for Windows builds to work around a bug in
+			JNA > 3.2.5. See here for more details:
+			https://code.google.com/p/ps3mediaserver/issues/detail?id=1152
+		-->
+		<jna-version-posix>3.4.0</jna-version-posix>
+		<jna-version-windows>3.2.5</jna-version-windows>
+
+		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
+		<jgoodies-forms-version>1.6.0</jgoodies-forms-version>
+		<jgoodies-looks-version>2.5.2</jgoodies-looks-version>
+		<junrar-version>0.7</junrar-version>
+		<mediautil-version>1.0</mediautil-version>
+		<xmlwise-version>1.2.11</xmlwise-version>
+		<slf4j-version>1.7.1</slf4j-version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<external-resources.directory>${project.basedir}/src/main/external-resources</external-resources.directory>
+		<external-resources.transcode-tools.directory>${external-resources.directory}/transcode-tools</external-resources.transcode-tools.directory>
+		<transcode-tools.download.url>http://downloads.sourceforge.net/project/ps3mediaserver/transcode-tools</transcode-tools.download.url>
+		<target.transcode-tools.directory>${project.build.directory}/bin</target.transcode-tools.directory>
+		<transcode-tools.linux.filename>transcode-tools-linux-20130701.tar.gz</transcode-tools.linux.filename>
+		<transcode-tools.macosx.filename>transcode-tools-osx-20131106.tar.gz</transcode-tools.macosx.filename>
+		<transcode-tools.windows.x86.filename>transcode-tools-win32-20131116.tar.gz</transcode-tools.windows.x86.filename>
+
+		<external-resources.private-jre.directory>${external-resources.directory}/private-jre</external-resources.private-jre.directory>
+
+		<!-- JRE archives direct download links: http://stackoverflow.com/a/12266049 -->
+		<private-jre.windows.x86.filename>jre-7u45-windows-i586.tar.gz</private-jre.windows.x86.filename>
+		<private-jre.windows.x86.archive-directory-name>jre1.7.0_45</private-jre.windows.x86.archive-directory-name>
+		<private-jre.windows.x86.download-url>http://javadl.sun.com/webapps/download/AutoDL?BundleId=81820</private-jre.windows.x86.download-url>
+		<private-jre.windows.x64.filename>jre-7u45-windows-x64.tar.gz</private-jre.windows.x64.filename>
+		<private-jre.windows.x64.archive-directory-name>jre1.7.0_45</private-jre.windows.x64.archive-directory-name>
+		<private-jre.windows.x64.download-url>http://javadl.sun.com/webapps/download/AutoDL?BundleId=81822</private-jre.windows.x64.download-url>
+		<private-jre.macosx.filename>jre-7u45-macosx-x64.gz</private-jre.macosx.filename>
+		<private-jre.macosx.archive-directory-name>jre1.7.0_45.jre</private-jre.macosx.archive-directory-name>
+
+		<!--
+			The BundleId for the jre-7uXX-macosx-x64.tar.gz is a bit tricky to obtain. Go to
+			http://www.java.com/en/download/manual.jsp, inspect the link for the .dmg and add 1
+			to the number contained in its BundleId. Then open the link with the new BundleId
+			and verify whether the correct file downloads.
+		-->
+		<private-jre.macosx.download-url>http://javadl.sun.com/webapps/download/AutoDL?BundleId=81814</private-jre.macosx.download-url>
+		<target.private-jre.x86.directory>${project.build.directory}/jre</target.private-jre.x86.directory>
+		<target.private-jre.x64.directory>${project.build.directory}/jre64</target.private-jre.x64.directory>
+		<private-jre.macosx.directory>${external-resources.transcode-tools.directory}/osx/jre-macosx</private-jre.macosx.directory>
+
+		<!-- Windows Service wrapper. -->
+		<windows-service-wrapper.x86.filename>wrapper-windows-x86-32-3.5.17.zip</windows-service-wrapper.x86.filename>
+		<windows-service-wrapper.x86.archive-directory-name>wrapper-windows-x86-32-3.5.17</windows-service-wrapper.x86.archive-directory-name>
+		<windows-service-wrapper.x86.download-url>http://wrapper.tanukisoftware.com/download/3.5.17/wrapper-windows-x86-32-3.5.17.zip</windows-service-wrapper.x86.download-url>
+
+		<maven-javadoc-plugin-version>2.10.1</maven-javadoc-plugin-version>
+		<git-commit-id-plugin-version>2.1.4</git-commit-id-plugin-version>
+
+		<!--
+			 use the Windows makensis.exe for Windows builds unless
+			 the system makensis is explicitly selected via the
+			 system-makensis profile
+		 -->
+		<makensis-bin>${external-resources.directory}/third-party/nsis/makensis.exe</makensis-bin>
+
+		<izpack.version>5.0.0-rc4</izpack.version>
+		<izpack.staging>${project.build.directory}/staging</izpack.staging>
+		<izpack.installer.app>${project.build.directory}/${project.name} Setup.app</izpack.installer.app>
+
+	</properties>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>central</id>
+			<name>Maven Plugin Repository</name>
+			<url>http://repo1.maven.org/maven2</url>
+			<layout>default</layout>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<releases>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+		</pluginRepository>
+		<pluginRepository>
+			<id>ossrh</id>
+			<name>Sonatype OSS Repository</name>
+			<url>http://oss.sonatype.org/content/groups/public</url>
+			<layout>default</layout>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<repositories>
+		<!-- Java.net -->
+		<repository>
+			<id>java.net</id>
+			<name>Java.net Repository</name>
+			<url>http://download.java.net/maven/2/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+
+		<!-- netty -->
+		<repository>
+			<id>jboss</id>
+			<url>http://repository.jboss.org/</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+
+		<!-- GSON -->
+		<repository>
+			<id>google-gson</id>
+			<name>google-gson</name>
+			<url>https://google-gson.googlecode.com/svn/mavenrepo/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+
+		<!-- JBoss.org repository -->
+		<repository>
+			<id>jboss.releases</id>
+			<name>JBoss releases</name>
+			<url>https://repository.jboss.org/nexus/content/repositories/releases/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+
+		<!-- for jai-imageio-core-standalone, which is used by Thumbnailator -->
+		<repository>
+			<releases />
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>mygrid-repository</id>
+			<name>myGrid Repository</name>
+			<url>http://www.mygrid.org.uk/maven/repository</url>
+		</repository>
+
+		<!-- Repository where the izpack-maven-plugin and such live -->
+		<repository>
+			<id>codehaus-releases</id>
+			<url>https://nexus.codehaus.org/content/repositories/releases</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+		<!-- XXX note: the JNA dependency is declared at the profile level -->
+
+		<!-- TODO this can be removed when MEncoder is removed -->
+		<dependency>
+			<groupId>org.beanshell</groupId>
+			<artifactId>bsh-core</artifactId>
+			<version>2.0b4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.7</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+			<version>3.2.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>1.9</version>
+			<exclusions>
+				<!--  no need for commons-logging, as jcl-over-slf4j provides the impl -->
+				<exclusion>
+					<artifactId>commons-logging</artifactId>
+					<groupId>commons-logging</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-httpclient</groupId>
+			<artifactId>commons-httpclient</artifactId>
+			<version>3.1</version>
+			<exclusions>
+				<!--  no need for commons-logging, as jcl-over-slf4j provides the impl -->
+				<exclusion>
+					<artifactId>commons-logging</artifactId>
+					<groupId>commons-logging</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.3.168</version>
+		</dependency>
+
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.0.7</version>
+		</dependency>
+
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+			<version>1.0.7</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.sanselan</groupId>
+			<artifactId>sanselan</artifactId>
+			<version>0.97-incubator</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<version>${slf4j-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.2.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jboss.netty</groupId>
+			<artifactId>netty</artifactId>
+			<version>3.2.7.Final</version>
+		</dependency>
+
+		<dependency>
+			<groupId>net.java.dev.rome</groupId>
+			<artifactId>rome</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>net.coobird</groupId>
+			<artifactId>thumbnailator</artifactId>
+			<version>0.4.4</version>
+		</dependency>
+
+		<!--
+			this is not used on its own, but rather provides
+			ImageReader subclasses that make support for additional
+			formats (e.g. TIFF) available to the ImageIO API, and thus
+			to Thumbnailator (our built-in image thumbnailer).
+
+			XXX be careful upgrading this. this version is redistributable;
+			other versions may not be:
+
+			https://code.google.com/p/thumbnailator/issues/detail?id=32
+			https://github.com/stain/jai-imageio-core
+			http://stackoverflow.com/questions/1209583/using-java-advanced-imaging-with-maven
+		-->
+		<dependency>
+			<groupId>net.java.dev.jai-imageio</groupId>
+			<artifactId>jai-imageio-core-standalone</artifactId>
+			<version>1.2-pre-dr-b04-2011-07-04</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org</groupId>
+			<artifactId>jaudiotagger</artifactId>
+			<version>2.0.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.jgoodies</groupId>
+			<artifactId>jgoodies-forms</artifactId>
+			<version>${jgoodies-forms-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.jgoodies</groupId>
+			<artifactId>jgoodies-looks</artifactId>
+			<version>${jgoodies-looks-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.junrar</groupId>
+			<artifactId>junrar</artifactId>
+			<version>${junrar-version}</version>
+		</dependency>
+
+		<!-- XXX: not Mavenized: https://code.google.com/p/cuelib/ -->
+		<dependency>
+			<groupId>jwbroek.cuelib</groupId>
+			<artifactId>cuelib</artifactId>
+			<version>${cuelib-version}</version>
+		</dependency>
+
+		<!-- XXX: not Mavenized: http://sourceforge.net/projects/mediachest/ -->
+		<dependency>
+			<groupId>mediautil</groupId>
+			<artifactId>mediautil</artifactId>
+			<version>${mediautil-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>xmlwise</groupId>
+			<artifactId>xmlwise</artifactId>
+			<version>${xmlwise-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.googlecode.juniversalchardet</groupId>
+			<artifactId>juniversalchardet</artifactId>
+			<version>1.0.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.10</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.easytesting</groupId>
+			<artifactId>fest-assert</artifactId>
+			<version>1.4</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.floreysoft</groupId>
+			<artifactId>jmte</artifactId>
+			<version>3.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.codehaus.izpack</groupId>
+			<artifactId>izpack-compiler</artifactId>
+			<version>${izpack.version}</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<defaultGoal>assembly:assembly</defaultGoal>
+
+		<!-- specify how files in src/main/resources are bundled in the target jar -->
+		<resources>
+			<!-- 1) package unfiltered resources -->
+			<resource>
+				<directory>src/main/resources</directory>
+				<!--
+					By default, Maven packages resources in the top-level of the jar e.g.
+
+						/example.res
+
+					The old PMS ant build packaged them in a "resources" directory
+					e.g:
+
+						/resources/example.res
+
+					Currently, we preserve the old destination. If this is ever changed
+					to the Maven default, a handful of files will need to be changed to
+					reference "/example.res" rather than "/resources/example.res"
+				-->
+				<targetPath>resources</targetPath>
+				<excludes>
+					<exclude>project.properties</exclude>
+				</excludes>
+
+				<!-- Avoid inadvertently filtering binaries -->
+				<filtering>false</filtering>
+			</resource>
+
+			<!-- 2) package filtered resources -->
+			<resource>
+				<directory>src/main/resources</directory>
+				<targetPath>resources</targetPath>
+				<includes>
+					<include>project.properties</include>
+				</includes>
+
+				<!-- Filter to replace Maven properties -->
+				<filtering>true</filtering>
+			</resource>
+
+			<!-- Filter IzPack resources so we can use Maven properties in them -->
+			<resource>
+				<directory>src/main/izpack</directory>
+				<targetPath>${izpack.staging}</targetPath>
+				<filtering>true</filtering>
+				<includes>
+					<include>install.xml</include>
+				</includes>
+			</resource>
+		</resources>
+
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+				<includes>
+					<include>project.properties</include>
+				</includes>
+				<targetPath>resources</targetPath>
+				<!-- Enable the use of Maven properties -->
+				<filtering>true</filtering>
+			</testResource>
+
+			<!--*.srt files to test charset detection-->
+			<testResource>
+				<directory>src/test/resources/net/pms/util</directory>
+				<includes>
+					<include>*.srt</include>
+				</includes>
+				<targetPath>net/pms/util</targetPath>
+			</testResource>
+		</testResources>
+
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-resources-plugin</artifactId>
+					<version>2.6</version>
+					<configuration>
+						<nonFilteredFileExtensions>
+							<nonFilteredFileExtension>srt</nonFilteredFileExtension>
+							<nonFilteredFileExtension>ssa</nonFilteredFileExtension>
+							<nonFilteredFileExtension>ass</nonFilteredFileExtension>
+						</nonFilteredFileExtensions>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<configuration>
+						<!--
+							1) Force language because JUnit tests depend on English language strings
+
+							2) Use our JNA dependency rather than the system's - fixes
+							the following error on Linux (Ubuntu 12.04 with system
+							jna-3.2.7.jar via libjna-java):
+
+								There is an incompatible JNA native library installed on this system.
+						-->
+						<argLine>-Duser.language=en -Djna.nosys=true -XX:-UseSplitVerifier</argLine> <!-- only one argLine element is processed -->
+					</configuration>
+					<version>2.15</version>
+				</plugin>
+
+				<plugin>
+					<artifactId>maven-assembly-plugin</artifactId>
+					<version>2.4</version>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-antrun-plugin</artifactId>
+					<version>1.7</version>
+				</plugin>
+
+				<!-- This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself. -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.apache.maven.plugins
+										</groupId>
+										<artifactId>
+											maven-antrun-plugin
+										</artifactId>
+										<versionRange>
+											[1.7,)
+										</versionRange>
+										<goals>
+											<goal>run</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore/>
+									</action>
+								</pluginExecution>
+
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											pl.project13.maven
+										</groupId>
+										<artifactId>
+											git-commit-id-plugin
+										</artifactId>
+										<versionRange>
+											[${git-commit-id-plugin-version},)
+										</versionRange>
+										<goals>
+											<goal>revision</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore/>
+									</action>
+								</pluginExecution>
+
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											com.savage7.maven.plugins
+										</groupId>
+										<artifactId>
+											maven-external-dependency-plugin
+										</artifactId>
+										<versionRange>
+											[0.5,)
+										</versionRange>
+										<goals>
+											<goal>
+												resolve-external
+											</goal>
+											<goal>
+												install-external
+											</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore/>
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.apache.maven.plugins
+										</groupId>
+										<artifactId>
+											maven-jar-plugin
+										</artifactId>
+										<versionRange>
+											[2.4,)
+										</versionRange>
+										<goals>
+											<goal>jar</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore/>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
+		<plugins>
+			<!-- Assemble a jar with dependencies. -->
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>make-jar-with-dependencies</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+							</descriptors>
+							<archive>
+								<manifest>
+									<mainClass>net.pms.PMS</mainClass>
+									<!--
+										this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
+										without it, the following exception is thrown when PMS starts:
+
+										Configuration error: java.util.ServiceConfigurationError: javax.imageio.spi.ImageInputStreamSpi:
+											Provider com.sun.media.imageioimpl.stream.ChannelImageInputStreamSpi could not be instantiated:
+												java.lang.IllegalArgumentException: vendorName == null!
+
+										See: https://thierrywasyl.wordpress.com/2009/07/24/jai-how-to-solve-vendorname-null-exception/
+									-->
+									<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+								</manifest>
+							</archive>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Copy the pms-x.x.x-jar-with-dependencies.jar to pms.jar. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-jar-with-dependencies-to-pms-jar</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<copy file="${project.build.directory}/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
+									  tofile="${project.build.directory}/pms.jar"
+									  overwrite="true"
+									  verbose="true" />
+
+								<mkdir dir="${izpack.staging}" />
+								<!-- All dependencies are in the lib directory, no need to also use the jar-with-dependencies -->
+								<copy file="${project.build.directory}/${project.artifactId}-${project.version}.jar" tofile="${izpack.staging}/lib/pms.jar" overwrite="true" />
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Copy all application jars to the IzPack staging lib directory -->
+			<plugin>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.9</version>
+				<executions>
+					<execution>
+						<id>copy-pms-dependencies</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${izpack.staging}/lib</outputDirectory>
+							<excludeTransitive>false</excludeTransitive>
+							<stripVersion>true</stripVersion>
+							<overWriteReleases>true</overWriteReleases>
+							<overWriteSnapshots>true</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+
+							<!-- This is a izpack dependency that collides with jmte's "asm" dependency -->
+							<excludeArtifactIds>asm-all</excludeArtifactIds>
+
+							<!-- Exclude tools.jar etc. -->
+							<!-- excludeScope>system</excludeScope -->
+
+							<!-- Exclude the IzPack dependencies -->
+							<excludeGroupIds>org.codehaus.izpack</excludeGroupIds>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!--
+				Plugin to add git commit information properties.
+				These are used in the project.properties files.
+				See: https://github.com/ktoso/maven-git-commit-id-plugin
+			-->
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
+				<version>${git-commit-id-plugin-version}</version>
+				<executions>
+					<execution>
+						<phase>initialize</phase>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<dateFormat>yyyy-MM-dd</dateFormat>
+					<verbose>false</verbose>
+					<generateGitPropertiesFile>false</generateGitPropertiesFile>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+					<testSource>1.6</testSource>
+					<testTarget>1.6</testTarget>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<mainClass>net.pms.PMS</mainClass>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+						<id>create-jar-without-dependencies</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<version>2.9</version>
+				<configuration>
+					<additionalProjectnatures>
+						<projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
+					</additionalProjectnatures>
+					<additionalBuildcommands>
+						<buildcommand>org.springframework.ide.eclipse.core.springbuilder</buildcommand>
+					</additionalBuildcommands>
+					<downloadSources>true</downloadSources>
+					<downloadJavadocs>true</downloadJavadocs>
+					<wtpversion>1.5</wtpversion>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-idea-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<downloadSources>true</downloadSources>
+					<downloadJavadocs>true</downloadJavadocs>
+					<dependenciesAsLibraries>true</dependenciesAsLibraries>
+					<useFullNames>false</useFullNames>
+				</configuration>
+			</plugin>
+
+			<!--
+				This plugin will take care of installing the external dependencies that do not
+				exist in a public Maven repository. That is why we store some jar files in the
+				"src/main/external-resources/lib" directory and have this plugin take care of
+				the installation at build time.
+
+				Note: The plugin does not work automatically in Maven 3. To install the required
+				dependencies execute the following commands:
+
+					mvn com.savage7.maven.plugins:maven-external-dependency-plugin:resolve-external
+					mvn com.savage7.maven.plugins:maven-external-dependency-plugin:install-external
+
+				Checksums can be calculated with "openssl sha1 [filename]".
+
+				See: http://code.google.com/p/maven-external-dependency-plugin/issues/detail?id=8#c4
+			-->
+			<plugin>
+				<groupId>com.savage7.maven.plugins</groupId>
+				<artifactId>maven-external-dependency-plugin</artifactId>
+				<version>0.5</version>
+				<inherited>false</inherited>
+				<configuration>
+					<stagingDirectory>${project.build.directory}/dependencies/</stagingDirectory>
+					<createChecksum>true</createChecksum>
+					<skipChecksumVerification>false</skipChecksumVerification>
+					<force>false</force>
+					<artifactItems>
+						<artifactItem>
+							<groupId>jwbroek.cuelib</groupId>
+							<artifactId>cuelib</artifactId>
+							<version>${cuelib-version}</version>
+							<packaging>jar</packaging>
+							<downloadUrl>http://cuelib.googlecode.com/files/cuelib-${cuelib-version}.jar</downloadUrl>
+							<checksum>d03b6b960b3b83a2a419e8b5f07b6ba4bd18387b</checksum>
+						</artifactItem>
+
+						<artifactItem>
+							<groupId>mediautil</groupId>
+							<artifactId>mediautil</artifactId>
+							<version>${mediautil-version}</version>
+							<packaging>jar</packaging>
+							<install>true</install>
+							<force>false</force>
+							<downloadUrl>http://downloads.sourceforge.net/project/mediachest/MediaUtil/Version%201.0/mediautil-1.zip</downloadUrl>
+							<checksum>aa7ae51bb24a9268a8e57c6afe478c4293f84fda</checksum>
+							<extractFile>mediautil-${mediautil-version}/mediautil-${mediautil-version}.jar</extractFile>
+							<extractFileChecksum>e843cd55def75dce57123c79b7f36caca4841466</extractFileChecksum>
+						</artifactItem>
+					</artifactItems>
+
+				</configuration>
+
+				<executions>
+					<execution>
+						<id>clean-external-dependencies</id>
+						<phase>clean</phase>
+						<goals>
+							<!-- mvn com.savage7.maven.plugins:maven-external-dependency-plugin:clean-external -->
+							<goal>clean-external</goal>
+						</goals>
+					</execution>
+
+					<execution>
+						<id>resolve-install-external-dependencies</id>
+						<!-- Note: this phase works in Maven 2. In Maven 3, it needs to be triggered manually. See above -->
+						<phase>validate</phase>
+						<goals>
+							<!-- mvn com.savage7.maven.plugins:maven-external-dependency-plugin:resolve-external -->
+							<goal>resolve-external</goal>
+
+							<!-- mvn com.savage7.maven.plugins:maven-external-dependency-plugin:install-external -->
+							<goal>install-external</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>3.4</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.maven.doxia</groupId>
+						<artifactId>doxia-module-docbook-simple</artifactId>
+						<version>1.2</version>
+					</dependency>
+				</dependencies>
+
+				<configuration>
+					<reportPlugins>
+
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-project-info-reports-plugin</artifactId>
+							<version>2.7</version>
+							<reports>
+								<report>index</report>
+								<report>dependencies</report>
+								<report>dependency-convergence</report>
+								<report>dependency-management</report>
+								<report>plugins</report>
+							</reports>
+						</plugin>
+
+						<!-- PMS tests report -->
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-surefire-report-plugin</artifactId>
+							<version>2.15</version>
+							<configuration>
+								<showSuccess>false</showSuccess>
+							</configuration>
+						</plugin>
+
+						<!-- Javadoc -->
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-javadoc-plugin</artifactId>
+							<version>${maven-javadoc-plugin-version}</version>
+							<configuration>
+								<quiet>true</quiet>
+								<tags>
+									<tag>
+										<name>todo</name>
+										<placement>a</placement>
+										<head>To Do:</head>
+									</tag>
+									<tag>
+										<name>review</name>
+										<placement>a</placement>
+										<head>Review:</head>
+									</tag>
+								</tags>
+								<detectJavaApiLink>false</detectJavaApiLink>
+								<links>
+									<link>http://docs.oracle.com/javase/7/docs/api/</link>
+								</links>
+								<!--
+									Doclet to generate class diagrams inside Javadoc.
+									Requires the installation of Graphviz (http://www.graphviz.org/)
+								-->
+								<doclet>org.jboss.apiviz.APIviz</doclet>
+								<docletArtifact>
+									<groupId>org.jboss.apiviz</groupId>
+									<artifactId>apiviz</artifactId>
+									<version>1.3.2.GA</version>
+								</docletArtifact>
+								<useStandardDocletOptions>true</useStandardDocletOptions>
+							</configuration>
+						</plugin>
+
+						<!-- Class dependency report -->
+						<plugin>
+							<groupId>org.codehaus.mojo</groupId>
+							<artifactId>jdepend-maven-plugin</artifactId>
+							<version>2.0-beta-2</version>
+						</plugin>
+
+						<!-- Findbugs report -->
+						<plugin>
+							<groupId>org.codehaus.mojo</groupId>
+							<artifactId>findbugs-maven-plugin</artifactId>
+							<version>2.5.2</version>
+						</plugin>
+
+						<!-- Checkstyle report will go out of memory because of the huge amount of issues it finds(!)
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-checkstyle-plugin</artifactId>
+							<version>2.10</version>
+						</plugin>
+						-->
+						<!-- Cobertura Test Coverage report -->
+						<plugin>
+							<groupId>org.codehaus.mojo</groupId>
+							<artifactId>cobertura-maven-plugin</artifactId>
+							<version>2.5.2</version>
+						</plugin>
+
+						<!-- PMD and CPD code analysis report -->
+						<plugin>
+							<groupId>org.apache.maven.plugins</groupId>
+							<artifactId>maven-pmd-plugin</artifactId>
+							<version>3.0.1</version>
+							<configuration>
+								<linkXref>false</linkXref>
+								<sourceEncoding>utf-8</sourceEncoding>
+								<minimumTokens>100</minimumTokens>
+								<targetJdk>1.7</targetJdk>
+							</configuration>
+						</plugin>
+
+						<!-- L10n internationalization report -->
+						<plugin>
+							<groupId>org.codehaus.mojo</groupId>
+							<artifactId>l10n-maven-plugin</artifactId>
+							<version>1.0-alpha-2</version>
+							<configuration>
+								<locales>
+									<locale>de</locale>
+									<locale>bg</locale>
+									<locale>br</locale>
+									<locale>ca</locale>
+									<locale>cz</locale>
+									<locale>da</locale>
+									<locale>de</locale>
+									<locale>el</locale>
+									<locale>es</locale>
+									<locale>fi</locale>
+									<locale>fr</locale>
+									<locale>is</locale>
+									<locale>it</locale>
+									<locale>ja</locale>
+									<locale>ko</locale>
+									<locale>nl</locale>
+									<locale>no</locale>
+									<locale>pl</locale>
+									<locale>pt</locale>
+									<locale>ro</locale>
+									<locale>ru</locale>
+									<locale>sl</locale>
+									<locale>sv</locale>
+									<locale>zhs</locale>
+									<locale>zht</locale>
+								</locales>
+							</configuration>
+						</plugin>
+
+					</reportPlugins>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.2</version>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${maven-javadoc-plugin-version}</version>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>system-makensis</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+
+			<properties>
+				<!-- if selected, use the system makensis on Linux, Mac OS X &c. -->
+				<makensis-bin>makensis</makensis-bin>
+			</properties>
+		</profile>
+
+		<!--
+			Windows profile: takes care of building the final package for Microsoft Windows
+		-->
+		<profile>
+			<id>windows</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+				<os>
+					<family>windows</family>
+				</os>
+			</activation>
+
+			<pluginRepositories>
+				<!-- nsis-maven-plugin needs this -->
+				<pluginRepository>
+					<id>Codehaus Snapshots</id>
+					<url>http://nexus.codehaus.org/snapshots/</url>
+					<snapshots>
+						<enabled>true</enabled>
+					</snapshots>
+					<releases>
+						<enabled>true</enabled>
+					</releases>
+				</pluginRepository>
+			</pluginRepositories>
+
+			<dependencies>
+				<dependency>
+					<groupId>net.java.dev.jna</groupId>
+					<artifactId>jna</artifactId>
+					<version>${jna-version-windows}</version>
+				</dependency>
+			</dependencies>
+
+			<build>
+				<resources>
+					<!-- Copy precompiled Windows binaries. -->
+					<resource>
+						<directory>${external-resources.transcode-tools.directory}/win32</directory>
+						<targetPath>${target.transcode-tools.directory}/win32</targetPath>
+						<excludes>
+							<exclude>MediaInfo.dll</exclude>
+							<exclude>MediaInfo64.dll</exclude>
+							<exclude>${windows-service-wrapper.x86.filename}</exclude>
+						</excludes>
+						<!-- Avoid inadvertently filtering binaries -->
+						<filtering>false</filtering>
+					</resource>
+
+					<!-- Filter NSIS header file. -->
+					<resource>
+						<directory>src/main/external-resources/nsis</directory>
+						<targetPath>${project.build.directory}</targetPath>
+						<includes>
+							<include>extra.nsh</include>
+						</includes>
+						<!-- Filter to replace Maven properties -->
+						<filtering>true</filtering>
+					</resource>
+				</resources>
+
+				<plugins>
+					<!-- Download external resources. -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>download-external-resources-windows</id>
+								<phase>generate-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!-- Make sure the download folders exist. -->
+										<mkdir dir="${external-resources.transcode-tools.directory}/win32" />
+										<mkdir dir="${external-resources.private-jre.directory}" />
+
+										<!-- Download and unpack binaries. -->
+										<get src="${transcode-tools.download.url}/win32/${transcode-tools.windows.x86.filename}"
+												dest="${external-resources.transcode-tools.directory}/${transcode-tools.windows.x86.filename}"
+												usetimestamp="true" />
+
+										<untar src="${external-resources.transcode-tools.directory}/${transcode-tools.windows.x86.filename}"
+												dest="${external-resources.transcode-tools.directory}/win32"
+												compression="gzip"
+												stripAbsolutePathSpec="true"
+												overwrite="true"
+												failOnEmptyArchive="true">
+										</untar>
+
+										<!-- Download windows service wrapper. -->
+										<get src="${windows-service-wrapper.x86.download-url}" dest="${external-resources.transcode-tools.directory}/win32/${windows-service-wrapper.x86.filename}" skipexisting="true" />
+
+										<!-- Download private JRE archives. -->
+										<get src="${private-jre.windows.x86.download-url}" dest="${external-resources.private-jre.directory}/${private-jre.windows.x86.filename}" skipexisting="true" />
+										<get src="${private-jre.windows.x64.download-url}" dest="${external-resources.private-jre.directory}/${private-jre.windows.x64.filename}" skipexisting="true" />
+									</target>
+								</configuration>
+							</execution>
+
+							<execution>
+								<id>unpack-private-jre-and-copy-libmediainfo-windows</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!-- MediaInfo library needs to be in the standard library path to be found -->
+										<copy file="${external-resources.transcode-tools.directory}/win32/MediaInfo.dll"
+											  todir="${project.basedir}" overwrite="true" verbose="true" />
+										<copy file="${external-resources.transcode-tools.directory}/win32/MediaInfo64.dll"
+											  todir="${project.basedir}" overwrite="true" verbose="true" />
+
+										<!-- Unpack winodws service wrapper. -->
+										<unzip src="${external-resources.transcode-tools.directory}/win32/${windows-service-wrapper.x86.filename}"
+											   dest="${target.transcode-tools.directory}/win32"
+											   stripAbsolutePathSpec="true"
+											   overwrite="true"
+											   failOnEmptyArchive="true">
+											<patternset>
+												<include name="${windows-service-wrapper.x86.archive-directory-name}/bin/wrapper.exe"/>
+												<include name="${windows-service-wrapper.x86.archive-directory-name}/doc/wrapper-community-license-1.1.txt"/>
+												<include name="${windows-service-wrapper.x86.archive-directory-name}/lib/wrapper.dll"/>
+												<include name="${windows-service-wrapper.x86.archive-directory-name}/lib/wrapper.jar"/>
+											</patternset>
+											<mapper>
+												<globmapper from="${windows-service-wrapper.x86.archive-directory-name}/bin/*" to="service/*"/>
+												<globmapper from="${windows-service-wrapper.x86.archive-directory-name}/doc/*" to="service/*"/>
+												<globmapper from="${windows-service-wrapper.x86.archive-directory-name}/lib/*" to="service/*"/>
+											</mapper>
+										</unzip>
+
+										<!-- Unpack private JRE archives. -->
+										<mkdir dir="${target.private-jre.x86.directory}" />
+										<untar src="${external-resources.private-jre.directory}/${private-jre.windows.x86.filename}"
+											   dest="${target.private-jre.x86.directory}"
+											   compression="gzip"
+											   stripAbsolutePathSpec="true"
+											   overwrite="true"
+											   failOnEmptyArchive="true">
+											<patternset>
+												<exclude name="${private-jre.windows.x86.archive-directory-name}/bin/dtplugin/*"/>
+												<exclude name="${private-jre.windows.x86.archive-directory-name}/bin/plugin2/*"/>
+												<exclude name="${private-jre.windows.x86.archive-directory-name}/lib/plugin.jar"/>
+												<exclude name="${private-jre.windows.x86.archive-directory-name}/bin/javaws.exe"/>
+												<exclude name="${private-jre.windows.x86.archive-directory-name}/lib/deploy/*"/>
+												<exclude name="${private-jre.windows.x86.archive-directory-name}/lib/deploy.jar"/>
+												<exclude name="${private-jre.windows.x86.archive-directory-name}/lib/javaws.jar"/>
+												<exclude name="${private-jre.windows.x86.archive-directory-name}/bin/fx*.dll"/>
+												<exclude name="${private-jre.windows.x86.archive-directory-name}/bin/jfx*.dll"/>
+												<exclude name="${private-jre.windows.x86.archive-directory-name}/bin/javafx*.dll"/>
+												<exclude name="${private-jre.windows.x86.archive-directory-name}/lib/jfxrt.jar"/>
+											</patternset>
+											<mapper>
+												<globmapper from="${private-jre.windows.x86.archive-directory-name}/*" to="*"/>
+											</mapper>
+										</untar>
+										<mkdir dir="${target.private-jre.x64.directory}" />
+										<untar src="${external-resources.private-jre.directory}/${private-jre.windows.x64.filename}"
+											   dest="${target.private-jre.x64.directory}"
+											   compression="gzip"
+											   stripAbsolutePathSpec="true"
+											   overwrite="true"
+											   failOnEmptyArchive="true">
+											<patternset>
+												<exclude name="${private-jre.windows.x64.archive-directory-name}/bin/dtplugin/*"/>
+												<exclude name="${private-jre.windows.x64.archive-directory-name}/bin/plugin2/*"/>
+												<exclude name="${private-jre.windows.x64.archive-directory-name}/lib/plugin.jar"/>
+												<exclude name="${private-jre.windows.x64.archive-directory-name}/bin/javaws.exe"/>
+												<exclude name="${private-jre.windows.x64.archive-directory-name}/lib/deploy/*"/>
+												<exclude name="${private-jre.windows.x64.archive-directory-name}/lib/deploy.jar"/>
+												<exclude name="${private-jre.windows.x64.archive-directory-name}/lib/javaws.jar"/>
+												<exclude name="${private-jre.windows.x64.archive-directory-name}/bin/fx*.dll"/>
+												<exclude name="${private-jre.windows.x64.archive-directory-name}/bin/jfx*.dll"/>
+												<exclude name="${private-jre.windows.x64.archive-directory-name}/bin/javafx*.dll"/>
+												<exclude name="${private-jre.windows.x64.archive-directory-name}/lib/jfxrt.jar"/>
+											</patternset>
+											<mapper>
+												<globmapper from="${private-jre.windows.x64.archive-directory-name}/*" to="*"/>
+											</mapper>
+										</untar>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!--
+						Plugin to build a Windows installer using the nullsoft scriptable install system (NSIS)
+						The "generate-project" goal generates a file "target/project.nsh", which contains the
+						definitions for project variables like "${PROJECT_BASEDIR}" that can be used in the
+						"pms.nsi" and "setup.nsi" files.
+					-->
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>nsis-maven-plugin</artifactId>
+						<version>1.0-SNAPSHOT</version>
+						<executions>
+							<execution>
+								<id>build-pms-exe-java-wrapper-windows</id>
+								<configuration>
+									<makensisBin>${makensis-bin}</makensisBin>
+									<outputFile>${project.build.directory}/pms.exe</outputFile>
+									<setupScript>${external-resources.directory}/nsis/pms.nsi</setupScript>
+								</configuration>
+								<phase>package</phase>
+								<goals>
+									<goal>generate-project</goal>
+									<goal>compile</goal>
+								</goals>
+							</execution>
+
+							<execution>
+								<id>build-pms-setup-full-exe-windows</id>
+								<configuration>
+									<makensisBin>${makensis-bin}</makensisBin>
+									<outputFile>${project.build.directory}/pms-${project.version}-setup-full.exe</outputFile>
+									<setupScript>${external-resources.directory}/nsis/setup-x86.nsi</setupScript>
+								</configuration>
+								<phase>package</phase>
+								<goals>
+									<goal>generate-project</goal>
+									<goal>compile</goal>
+								</goals>
+							</execution>
+
+							<execution>
+								<id>build-pms-setup-full-x64-exe-windows</id>
+								<configuration>
+									<makensisBin>${makensis-bin}</makensisBin>
+									<outputFile>${project.build.directory}/pms-${project.version}-setup-full-x64.exe</outputFile>
+									<setupScript>${external-resources.directory}/nsis/setup-x64.nsi</setupScript>
+								</configuration>
+								<phase>package</phase>
+								<goals>
+									<goal>generate-project</goal>
+									<goal>compile</goal>
+								</goals>
+							</execution>
+
+							<execution>
+								<id>build-pms-setup-without-jre-exe-windows</id>
+								<configuration>
+									<makensisBin>${makensis-bin}</makensisBin>
+									<outputFile>${project.build.directory}/pms-${project.version}-setup-without-jre.exe</outputFile>
+									<setupScript>${external-resources.directory}/nsis/setup-without-jre.nsi</setupScript>
+								</configuration>
+								<phase>package</phase>
+								<goals>
+									<goal>generate-project</goal>
+									<goal>compile</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!--
+			Linux profile: takes care of building the final package for Linux.
+		-->
+		<profile>
+			<id>linux</id>
+			<!--
+				 this setting does the right thing on Linux
+				 and is needed for the Hudson profile to work
+			 -->
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<os>
+					<family>unix</family>
+					<name>Linux</name>
+				</os>
+			</activation>
+
+			<dependencies>
+				<dependency>
+					<groupId>net.java.dev.jna</groupId>
+					<artifactId>jna</artifactId>
+					<version>${jna-version-posix}</version>
+				</dependency>
+			</dependencies>
+
+			<build>
+				<resources>
+					<!-- Copy precompiled Linux binaries. -->
+					<resource>
+						<directory>${external-resources.transcode-tools.directory}/linux</directory>
+						<targetPath>${target.transcode-tools.directory}/linux</targetPath>
+						<!-- Avoid inadvertently filtering binaries -->
+						<filtering>false</filtering>
+					</resource>
+				</resources>
+
+				<plugins>
+					<!-- Assemble the PMS tar.gz archive distribution file. -->
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>make-pms-tar-gz-archive-linux</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-linux.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!-- Download external resources. -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>download-external-resources-linux</id>
+								<phase>generate-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<!-- Make sure the download folder exists. -->
+										<mkdir dir="${external-resources.transcode-tools.directory}/linux" />
+
+										<!-- Download and unpack binaries. -->
+										<get src="${transcode-tools.download.url}/linux/${transcode-tools.linux.filename}"
+												dest="${external-resources.transcode-tools.directory}/${transcode-tools.linux.filename}"
+												usetimestamp="true" />
+
+										<untar src="${external-resources.transcode-tools.directory}/${transcode-tools.linux.filename}"
+												dest="${external-resources.transcode-tools.directory}/linux"
+												compression="gzip"
+												stripAbsolutePathSpec="true"
+												overwrite="true"
+												failOnEmptyArchive="true">
+										</untar>
+
+										<!-- Make all downloaded binaries executable. -->
+										<chmod dir="${external-resources.transcode-tools.directory}/linux" perm="a+x" includes="*" />
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!--
+			Mac OS X profile: takes care of building the final package for Mac OS X.
+		-->
+		<profile>
+			<id>osx</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+				<os>
+					<family>mac</family>
+				</os>
+			</activation>
+
+			<dependencies>
+				<dependency>
+					<groupId>net.java.dev.jna</groupId>
+					<artifactId>jna</artifactId>
+					<version>${jna-version-posix}</version>
+				</dependency>
+			</dependencies>
+
+			<build>
+				<resources>
+					<!-- Copy precompiled OS X binaries. -->
+					<resource>
+						<directory>${external-resources.transcode-tools.directory}/osx/bin</directory>
+						<targetPath>${izpack.staging}/osx</targetPath>
+						<!-- Avoid inadvertently filtering binaries -->
+						<filtering>false</filtering>
+					</resource>
+					<resource>
+						<directory>${external-resources.transcode-tools.directory}/osx</directory>
+						<targetPath>${izpack.staging}/osx</targetPath>
+						<includes>
+							<include>libmediainfo.dylib</include>
+						</includes>
+						<!-- Avoid inadvertently filtering binaries -->
+						<filtering>false</filtering>
+					</resource>
+					<resource>
+						<directory>${external-resources.transcode-tools.directory}/osx</directory>
+						<targetPath>${target.transcode-tools.directory}/osx</targetPath>
+						<!-- Avoid inadvertently filtering binaries -->
+						<filtering>false</filtering>
+					</resource>
+					<resource>
+						<directory>${external-resources.transcode-tools.directory}/osx</directory>
+						<targetPath>${project.build.directory}</targetPath>
+						<includes>
+							<include>libmediainfo.dylib</include>
+						</includes>
+						<!-- Avoid inadvertently filtering binaries -->
+						<filtering>false</filtering>
+					</resource>
+				</resources>
+
+				<plugins>
+					<!-- Download external resources. -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>download-external-resources-osx</id>
+								<phase>generate-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+
+								<configuration>
+									<target>
+										<!-- Make sure the download folder exists. -->
+										<mkdir dir="${external-resources.transcode-tools.directory}/osx" />
+										<mkdir dir="${izpack.staging}/osx" />
+										<mkdir dir="${private-jre.macosx.directory}" />
+
+										<!-- Download and unpack binaries -->
+										<get src="${transcode-tools.download.url}/osx/${transcode-tools.macosx.filename}"
+												dest="${external-resources.transcode-tools.directory}/${transcode-tools.macosx.filename}"
+												usetimestamp="true" />
+
+										<untar src="${external-resources.transcode-tools.directory}/${transcode-tools.macosx.filename}"
+												dest="${external-resources.transcode-tools.directory}/osx"
+												compression="gzip"
+												stripAbsolutePathSpec="true"
+												overwrite="true"
+												failOnEmptyArchive="true">
+										</untar>
+
+										<!-- Download JRE -->
+										<get src="${private-jre.macosx.download-url}" dest="${private-jre.macosx.directory}/${private-jre.macosx.filename}" skipexisting="true" />
+
+										<!-- Make all downloaded binaries executable -->
+										<chmod dir="${external-resources.transcode-tools.directory}/osx" perm="a+x" includes="*" excludes="libmediainfo.dylib" />
+
+										<!-- Copy files to IzPack staging directory -->		
+										<copy file="src/main/izpack/logo.png" todir="${izpack.staging}" overwrite="true" />
+										<copy file="${external-resources.directory}/osx/Info.plist-template-pms" tofile="${izpack.staging}/osx/Info.plist" overwrite="true" />
+										<copy file="${external-resources.directory}/osx/pms.sh" todir="${izpack.staging}/osx" overwrite="true" />
+										<copy file="${external-resources.directory}/osx/copy-installer-jre.sh" todir="${izpack.staging}/osx" overwrite="true" />
+										<copy file="${external-resources.directory}/osx/pms.icns" todir="${izpack.staging}/osx" overwrite="true" />
+									</target>
+								</configuration>
+							</execution>
+
+							<!-- TODO: Investigate if this can be done with the assembly plugin -->
+							<execution>
+								<id>installer-application-with-jre-macosx</id>
+								<phase>package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+
+								<configuration>
+									<tasks>
+										<mkdir dir="${izpack.installer.app}" />
+										<mkdir dir="${izpack.installer.app}/Contents" />
+										<mkdir dir="${izpack.installer.app}/Contents/MacOs" />
+										<mkdir dir="${izpack.installer.app}/Contents/PlugIns" />
+
+										<!-- Unpack the JRE, leave out as many unused features as possible -->
+										<untar src="${private-jre.macosx.directory}/${private-jre.macosx.filename}"
+											   dest="${izpack.installer.app}/Contents/PlugIns/${private-jre.macosx.archive-directory-name}"
+											   compression="gzip"
+											   stripAbsolutePathSpec="true"
+											   overwrite="true"
+											   failOnEmptyArchive="true">
+											<patternset>
+												<exclude name="${private-jre.macosx.archive-directory-name}/Contents/Home/bin/d*" />
+												<exclude name="${private-jre.macosx.archive-directory-name}/Contents/Home/bin/keytool" />
+												<exclude name="${private-jre.macosx.archive-directory-name}/Contents/Home/bin/orbd" />
+												<exclude name="${private-jre.macosx.archive-directory-name}/Contents/Home/bin/pack200" />
+												<exclude name="${private-jre.macosx.archive-directory-name}/Contents/Home/bin/policytool" />
+												<exclude name="${private-jre.macosx.archive-directory-name}/Contents/Home/bin/rmid" />
+												<exclude name="${private-jre.macosx.archive-directory-name}/Contents/Home/bin/rmiregistry" />
+												<exclude name="${private-jre.macosx.archive-directory-name}/Contents/Home/bin/servertool" />
+												<exclude name="${private-jre.macosx.archive-directory-name}/Contents/Home/bin/tnameserv" />
+												<exclude name="${private-jre.macosx.archive-directory-name}/Contents/Home/bin/unpack200" />
+												<exclude name="${private-jre.macosx.archive-directory-name}/Contents/Home/lib/deploy/*" />
+												<exclude name="${private-jre.macosx.archive-directory-name}/Contents/Home/lib/deploy.jar" />
+												<exclude name="${private-jre.macosx.archive-directory-name}/Contents/Home/lib/fx*.dylib" />
+												<exclude name="${private-jre.macosx.archive-directory-name}/Contents/Home/lib/javaws.jar" />
+												<exclude name="${private-jre.macosx.archive-directory-name}/Contents/Home/lib/jfxrt.jar" />
+												<exclude name="${private-jre.macosx.archive-directory-name}/Contents/Home/lib/libjavafx*.dylib" />
+												<exclude name="${private-jre.macosx.archive-directory-name}/Contents/Home/lib/libjfx*.dylib" />
+												<exclude name="${private-jre.macosx.archive-directory-name}/Contents/Home/lib/plugin.jar" />
+												<exclude name="${private-jre.macosx.archive-directory-name}/Contents/Home/man/*" />
+											</patternset>
+											<mapper>
+												<globmapper from="${private-jre.macosx.archive-directory-name}/*" to="*"/>
+											</mapper>
+										</untar>
+
+										<chmod dir="${izpack.installer.app}/Contents/PlugIns/${private-jre.macosx.archive-directory-name}/Contents/Home/bin" perm="a+x" includes="*" />
+
+										<copy file="${external-resources.directory}/osx/package.icns" todir="${izpack.installer.app}/Contents/Resources" overwrite="true" />
+										<copy file="${external-resources.directory}/osx/Info.plist-template-installer" tofile="${izpack.installer.app}/Contents/Info.plist" overwrite="true" />
+										<copy file="${external-resources.directory}/osx/installer.sh" todir="${izpack.installer.app}/Contents/MacOs/" overwrite="true" />
+										<copy file="${project.build.directory}/${project.artifactId}-setup-${project.version}.jar" todir="${izpack.installer.app}/Contents/Resources/Java" overwrite="true" />
+
+										<chmod dir="${izpack.installer.app}/Contents/MacOs/" perm="a+x" includes="*" />
+
+										<tar destfile="${project.build.directory}/${project.artifactId}-${project.version}-setup-macosx.tar.gz"
+											compression="gzip"
+											longfile="gnu">
+											<tarfileset dir="${izpack.installer.app}"
+												prefix="${project.name} Setup.app"
+												excludes="**/java,**/installer.sh" />
+
+											<!-- "java" and "installer.sh" need to be executable -->
+											<tarfileset dir="${izpack.installer.app}"
+												prefix="${project.name} Setup.app"
+												includes="**/java,**/installer.sh"
+												filemode="755" />
+										</tar>
+									</tasks>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!-- IzPack for cross platform packaging (http://izpack.org/) -->
+					<!-- http://docs.codehaus.org/display/IZPACK/Compiling+Using+Maven -->
+					<plugin>
+						<groupId>org.codehaus.izpack</groupId>
+						<artifactId>izpack-maven-plugin</artifactId>
+						<version>${izpack.version}</version>
+
+						<executions>
+							<execution>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>izpack</goal>
+								</goals>
+								<configuration>
+									<baseDir>${izpack.staging}</baseDir>
+									<installFile>${izpack.staging}/install.xml</installFile>
+									<finalName>${project.artifactId}-setup-${project.version}</finalName>
+								</configuration>
+							</execution>
+						</executions>
+						<dependencies>
+							<!--
+								The IzPack plugin needs dependencies on its own modules or you will
+								get CannotResolveClassExceptions.
+							-->
+							<dependency>
+								<groupId>org.codehaus.izpack</groupId>
+								<artifactId>izpack-panel</artifactId>
+								<version>${izpack.version}</version>
+							</dependency>
+						</dependencies>
+					</plugin>
+
+				</plugins>
+			</build>
+		</profile>
+
+		<!--
+			Hudson (windows-jar): minimal profile that builds pms.jar with the
+			Windows JNA. The POSIX JNA causes snapshot builds to crash the JVM on
+			Windows, whereas the Windows JNA only disables MediaInfo for Ubuntu
+			users, who can still use ffmpeg.
+
+			Another difference from the other profiles is that we don't download the
+			binaries or build the tarball.
+		-->
+		<profile>
+			<id>windows-jar</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+				<property>
+					<name>env.HUDSON_URL</name>
+				</property>
+			</activation>
+
+			<dependencies>
+				<dependency>
+					<groupId>net.java.dev.jna</groupId>
+					<artifactId>jna</artifactId>
+					<version>${jna-version-windows}</version>
+				</dependency>
+			</dependencies>
+		</profile>
+
+		<!--
+			This profile allows running PMS from inside Eclipse
+			(Requires a "mvn clean package" to download the binaries first)
+		-->
+		<profile>
+			<id>run-from-eclipse</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>1.2.1</version>
+						<executions>
+							<execution>
+								<phase>test</phase>
+								<goals>
+									<goal>java</goal>
+								</goals>
+								<configuration>
+									<classpathScope>test</classpathScope>
+									<mainClass>net.pms.PMS</mainClass>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>

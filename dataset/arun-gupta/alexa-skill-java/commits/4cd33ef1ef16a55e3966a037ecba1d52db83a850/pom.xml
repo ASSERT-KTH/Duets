@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.sample.aws.alexa</groupId>
+    <artifactId>hello-alexa-world</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
+    <dependencies>
+        
+        <dependency>
+            <groupId>com.amazon.alexa</groupId>
+            <artifactId>alexa-skills-kit</artifactId>
+            <version>1.4.0</version>
+            <scope>compile</scope>
+        </dependency>
+        
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>read-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <file>${user.home}/.aws/credentials</file>
+                            </files>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.seanroy</groupId>
+                <artifactId>lambda-maven-plugin</artifactId>
+                <version>2.2.2</version>
+                <configuration>
+                    <functionCode>${project.basedir}/target/${project.artifactId}-${project.version}.jar</functionCode>
+                    <version>${project.version}</version>
+                    <s3Bucket>alexa-java-skill</s3Bucket>
+                    <region>us-east-1</region>
+                    <lambdaRoleArn>arn:aws:iam::091144949931:role/lambda_basic_execution</lambdaRoleArn>
+                    <publish>true</publish>
+
+                    <!-- default -->
+                    <runtime>java8</runtime>
+                    <memorySize>1024</memorySize>
+                    <timeout>30</timeout>
+                    <lambdaFunctionsJSON>
+                        [
+                          {
+                            "functionName": "HelloAlexaWorld",
+                            "description": "Hello Alexa World",
+                            "handler": "org.sample.aws.alexa.hello.HelloWorldSpeechletRequestStreamHandler",
+                            "triggers": [
+                              {
+                                "integration": "Alexa Skills Kit"
+                              }
+                            ]
+                          }
+                        ]
+                    </lambdaFunctionsJSON>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>deploy-lambda</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <name>hello-alexa-world</name>
+</project>

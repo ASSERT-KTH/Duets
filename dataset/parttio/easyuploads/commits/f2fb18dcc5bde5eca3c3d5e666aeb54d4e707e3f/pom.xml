@@ -1,0 +1,280 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.vaadin.addon</groupId>
+    <artifactId>easyuploads</artifactId>
+    <version>9.0.1-SNAPSHOT</version>
+    <name>EasyUploads</name>
+
+    <organization>
+        <name>Vaadin Community</name>
+        <url>http://vaadin.com/forum/</url>
+    </organization>
+
+    <scm>
+        <url>https://github.com/parttio/easyuploads</url>
+        <connection>scm:git:git://github.com/parttio/easyuploads.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:/parttio/easyuploads.git</developerConnection>
+        <tag>vaadin upload add-on</tag>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/parttio/easyuploads/issues</url>
+    </issueManagement>
+
+    <licenses>
+        <license>
+            <name>Apache 2</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <vaadin.version>8.6.0</vaadin.version>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.3</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <!-- Implementation-Title and Implementation-Version come from the 
+                            POM by default -->
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <!-- Package format version - do not change -->
+                            <Vaadin-Package-Version>1</Vaadin-Package-Version>
+
+                            <!-- Comma-separated list of widgetsets in the package -->
+                            <!-- TODO figure out a way make this automatically configured -->
+                            <Vaadin-Widgetsets>org.vaadin.easyuploads.Widgetset</Vaadin-Widgetsets>
+                        </manifestEntries>
+                    </archive>
+                    <excludes>
+                        <!-- Remove resources included due to gwt compilation -->
+                        <exclude>**/demoandtestapp/*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeScope>runtime</includeScope>
+                            <outputDirectory>target/libs</outputDirectory>
+                            <!-- configure the plugin here -->
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+            <!-- This creates a zip file of jar and sources jar. When publishing in 
+            the Directory this makes sources available to maven users automatically. 
+            We could also use this to package required dependecies for those poor developer 
+            souls that still dont know how to use a build system that supports transient 
+            dependencies... -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <finalName>${project.artifactId}-${project.version}</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <descriptors>
+                        <descriptor>assembly.xml</descriptor>
+                    </descriptors>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>testwidgetset</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <extraJvmArgs>-Xmx1G</extraJvmArgs>
+                            <skip>${skipTests}</skip>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+
+        <resources>
+            <resource>
+                <!-- This add sources, .gwt.xml files etc to jar from source directory. 
+                Not quite maven convention byt easieast to setup this way. -->
+                <directory>src/main/java</directory>
+            </resource>
+            <!-- This is here to simplify working with GWT plugin during test widgetset 
+            compilation. Test widgetset is this way more like a real world usage and 
+            also lets your test up to e.g. use other add-ons. Ensure these are excluded 
+            from the artifact ( jar file ). -->
+            <resource>
+                <directory>src/test/resources</directory>
+            </resource>
+        </resources>
+
+        <pluginManagement>
+            <plugins>
+                <!-- Compile widget set for integration testing -->
+                <plugin>
+                    <groupId>com.vaadin</groupId>
+                    <artifactId>vaadin-maven-plugin</artifactId>
+                    <version>${vaadin.version}</version>
+                    <configuration>
+                        <webappDirectory>${project.build.directory}/testwebapp/VAADIN/widgetsets</webappDirectory>
+                        <extraJvmArgs>-Xmx1024M -Xss512m -XX:MaxPermSize=1024m</extraJvmArgs>
+                        <hostedWebapp>${project.build.directory}/testwebapp</hostedWebapp>
+                        <noServer>true</noServer>
+                        <runTarget>http://localhost:9998/</runTarget>
+                        <draftCompile>true</draftCompile>
+                        <style>PRETTY</style>
+                        <strict>true</strict>
+                        <!-- We only need to compile the test widgetset, if not defined gwt 
+                        module will also compile the add-on widgetset as well -->
+                        <module>org.vaadin.easyuploads.demoandtestapp.TestWidgetset</module>
+                        <!-- If you do lots of e.g. plain css changes and don't wish to use 
+                        hosted mode, you can force compile easily with uncommenting following rule -->
+                        <force>true</force>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <configuration>
+                        <excludes>
+                            <!-- Files here might match to naming convetions, but the are just 
+                            vaadin apps containing you add-on components in varios setups. We can ignore 
+                            them from test. -->
+                            <exclude>**/demoandtestapp/*</exclude>
+                        </excludes>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-ssh</artifactId>
+                <version>3.2.0</version>
+            </extension>
+        </extensions>
+    </build>
+    
+    <distributionManagement>
+        <repository>
+            <id>v4</id>
+            <url>sftp://v4.tahvonen.fi/home/dev/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>vaadin-addons</id>
+            <url>http://maven.vaadin.com/vaadin-addons</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-server</artifactId>
+            <version>${vaadin.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-server</artifactId>
+            <version>${vaadin.version}</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-client</artifactId>
+            <version>${vaadin.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.5</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-themes</artifactId>
+            <version>${vaadin.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.vaadin</groupId>
+            <artifactId>addon-test-helpers</artifactId>
+            <version>2.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.vaadin</groupId>
+            <artifactId>viritin</artifactId>
+            <version>2.8</version>
+            <type>jar</type>
+        </dependency>
+    </dependencies>
+
+</project>

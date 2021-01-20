@@ -1,0 +1,385 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>info.cukes</groupId>
+    <artifactId>cucumber-testng-parallel-selenium</artifactId>
+    <packaging>jar</packaging>
+    <name>Example Java TestNG Cucumber parallel test executor</name>
+    <version>1.0</version>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <googlchromedriverbinary.version>2.9</googlchromedriverbinary.version>
+        <source.and.target.JVM.version>1.7</source.and.target.JVM.version>
+        <surefire.fork.count>2</surefire.fork.count>
+
+        <com.lazerycode.selenium.version>1.0.0</com.lazerycode.selenium.version>
+        <info.cukes.cucumber-java.version>1.1.7-SNAPSHOT</info.cukes.cucumber-java.version>
+        <info.cukes.cucumber-testng.version>1.1.7-SNAPSHOT</info.cukes.cucumber-testng.version>
+        <info.cukes.cucumber-jvm-deps.version>1.0.3</info.cukes.cucumber-jvm-deps.version>
+        <log4j.log4j.version>1.2.17</log4j.log4j.version>
+        <org.apache.commons.commons-io.version>1.3.2</org.apache.commons.commons-io.version>
+        <org.apache.maven.plugins.maven-compiler-plugin.version>3.1</org.apache.maven.plugins.maven-compiler-plugin.version>
+        <org.apache.maven.plugins.maven-surefire-plugin.version>2.16</org.apache.maven.plugins.maven-surefire-plugin.version>
+        <org.codehaus.mojo.exec-maven-plugin.version>1.2.1</org.codehaus.mojo.exec-maven-plugin.version>
+        <org.hamcrest.hamcrest-library.version>1.3</org.hamcrest.hamcrest-library.version>
+        <org.seleniumhq.selenium.selenium-server.version>2.40.0</org.seleniumhq.selenium.selenium-server.version>
+        <org.testng.testng.version>6.8.7</org.testng.testng.version>
+    </properties>
+
+    <profiles>
+    <!--
+    to run one of the profiles defined below, simply add -P name_of_the_profile to mvn command
+    ie.:
+        mvn clean test -P runTestsLocally
+    -->
+        <profile>
+            <id>runTestsLocally</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <testNG.suiteXmlFile>src/test/resources/TestNGRunTestsLocally.xml</testNG.suiteXmlFile>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>${org.apache.maven.plugins.maven-compiler-plugin.version}</version>
+                        <configuration>
+                            <encoding>UTF-8</encoding>
+                            <source>${source.and.target.JVM.version}</source>
+                            <target>${source.and.target.JVM.version}</target>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${org.apache.maven.plugins.maven-surefire-plugin.version}</version>
+                        <configuration>
+                            <suiteXmlFiles>
+                                <suiteXmlFile>${testNG.suiteXmlFile}</suiteXmlFile>
+                            </suiteXmlFiles>
+                            <reuseForks>false</reuseForks>
+                            <argLine>-Duser.language=en</argLine>
+                            <argLine>-Xmx1024m</argLine>
+                            <argLine>-XX:MaxPermSize=256m</argLine>
+                            <argLine>-Dfile.encoding=UTF-8</argLine>
+                            <useFile>false</useFile>
+                            <!--
+                            Remember to set the testFailureIgnore set to true if you want to run
+                            cucumber.jvm.parallel.JSReportMergerer even if some of the tests failed.
+                            -->
+                            <testFailureIgnore>true</testFailureIgnore>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>${org.codehaus.mojo.exec-maven-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>merge-cucumber-js-reports</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>java</goal>
+                                </goals>
+                                <configuration>
+                                    <classpathScope>test</classpathScope>
+                                    <mainClass>cucumber.jvm.parallel.JSReportMerger</mainClass>
+                                    <arguments>
+                                        <argument>target/cucumber-report/</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>merge-cucumber-json-reports</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>java</goal>
+                                </goals>
+                                <configuration>
+                                    <classpathScope>test</classpathScope>
+                                    <mainClass>cucumber.jvm.parallel.JSONReportMerger</mainClass>
+                                    <arguments>
+                                        <argument>target/cucumber-report/</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>runTestsRemotely</id>
+            <!--
+            This profile will run tests using Selenium RemoteWebDriver.
+            By default it will try to connect to http://localhost:4444/wd/hub
+            To change this value please make appropriate changes in:
+            src/test/resources/TestNGRunTestsRemotely.xml
+            or
+            cucumber.examples.java.testNG.RemoteWebDriverListener
+            -->
+            <properties>
+                <testNG.suiteXmlFile>src/test/resources/TestNGRunTestsRemotely.xml</testNG.suiteXmlFile>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>${org.apache.maven.plugins.maven-compiler-plugin.version}</version>
+                        <configuration>
+                            <encoding>UTF-8</encoding>
+                            <source>${source.and.target.JVM.version}</source>
+                            <target>${source.and.target.JVM.version}</target>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${org.apache.maven.plugins.maven-surefire-plugin.version}</version>
+                        <configuration>
+                            <suiteXmlFiles>
+                                <suiteXmlFile>${testNG.suiteXmlFile}</suiteXmlFile>
+                            </suiteXmlFiles>
+                            <reuseForks>false</reuseForks>
+                            <argLine>-Duser.language=en</argLine>
+                            <argLine>-Xmx1024m</argLine>
+                            <argLine>-XX:MaxPermSize=256m</argLine>
+                            <argLine>-Dfile.encoding=UTF-8</argLine>
+                            <useFile>false</useFile>
+                            <!--
+                            Remember to set the testFailureIgnore set to true if you want to run
+                            cucumber.jvm.parallel.JSReportMergerer even if some of the tests failed.
+                            -->
+                            <testFailureIgnore>true</testFailureIgnore>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>${org.codehaus.mojo.exec-maven-plugin.version}</version>
+                        <executions><!--
+                            <execution>
+                                <id>merge-cucumber-js-reports</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>java</goal>
+                                </goals>
+                                <configuration>
+                                    <classpathScope>test</classpathScope>
+                                    <mainClass>cucumber.jvm.parallel.JSReportMerger</mainClass>
+                                    <arguments>
+                                        <argument>target/cucumber-report/</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>-->
+                            <execution>
+                                <id>merge-cucumber-json-reports</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>java</goal>
+                                </goals>
+                                <configuration>
+                                    <classpathScope>test</classpathScope>
+                                    <mainClass>cucumber.jvm.parallel.JSONReportMerger</mainClass>
+                                    <arguments>
+                                        <argument>target/cucumber-report/</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <!--
+            Use this profile to download driver binaries before running your tests locally.
+            Please find more comments explaining how to configure this plugin below.
+            -->
+            <id>downloadDriverBinaries</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>${org.apache.maven.plugins.maven-compiler-plugin.version}</version>
+                        <configuration>
+                            <source>${source.and.target.JVM.version}</source>
+                            <target>${source.and.target.JVM.version}</target>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>com.lazerycode.selenium</groupId>
+                        <artifactId>driver-binary-downloader-maven-plugin</artifactId>
+                        <version>${com.lazerycode.selenium.version}</version>
+                        <configuration>
+                            <!-- root directory that downloaded driver binaries will be stored in -->
+                            <rootStandaloneServerDirectory>binaries</rootStandaloneServerDirectory>
+                            <!-- Where you want to store downloaded zip files -->
+                            <downloadedZipFileDirectory>binaries/zips</downloadedZipFileDirectory>
+                            <customRepositoryMap>src/main/resources/RepositoryMapForMavenWebDriverBinaryDownloaderPlugin.xml</customRepositoryMap>
+                            <operatingSystems>
+                                <windows>false</windows>
+                                <linux>true</linux>
+                                <osx>false</osx>
+                            </operatingSystems>
+                            <!-- Download 32bit binaries -->
+                            <thirtyTwoBitBinaries>false</thirtyTwoBitBinaries>
+                            <!-- Download 64bit binaries -->
+                            <sixtyFourBitBinaries>true</sixtyFourBitBinaries>
+                            <!-- If set to false will download every version available (Other filters will be taken into account -->
+                            <onlyGetLatestVersions>true</onlyGetLatestVersions>
+                            <throwExceptionIfSpecifiedVersionIsNotFound>true</throwExceptionIfSpecifiedVersionIsNotFound>
+                            <!-- Provide a list of drivers and binary versions to download (this is a map so only one version can be specified per driver) -->
+                            <getSpecificExecutableVersions>
+                                <googlechrome>${googlchromedriverbinary.version}</googlechrome>
+                                <!--<internetexplorer>2.40.0</internetexplorer>-->
+                            </getSpecificExecutableVersions>
+                            <!-- Number of times to attempt to download each file -->
+                            <fileDownloadRetryAttempts>2</fileDownloadRetryAttempts>
+                            <!-- Number of ms to wait before timing out when trying to connect to remote server to download file -->
+                            <fileDownloadConnectTimeout>20000</fileDownloadConnectTimeout>
+                            <!-- Number of ms to wait before timing out when trying to read file from remote server -->
+                            <fileDownloadReadTimeout>10000</fileDownloadReadTimeout>
+                            <!-- Overwrite any existing binaries that have been downloaded and extracted -->
+                            <overwriteFilesThatExist>false</overwriteFilesThatExist>
+                            <!-- Download drivers specific to the current HOST OS -->
+                            <!--<onlyGetDriversForHostOperatingSystem>false</onlyGetDriversForHostOperatingSystem>-->
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>selenium</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <repositories>
+        <repository>
+            <id>sonatype-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>info.cukes</groupId>
+            <artifactId>cucumber-jvm-deps</artifactId>
+            <version>${info.cukes.cucumber-jvm-deps.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.thoughtworks.xstream</groupId>
+                    <artifactId>xstream</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.googlecode.java-diff-utils</groupId>
+                    <artifactId>diffutils</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>info.cukes</groupId>
+            <artifactId>cucumber-java</artifactId>
+            <version>${info.cukes.cucumber-java.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${org.testng.testng.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>info.cukes</groupId>
+            <artifactId>cucumber-testng</artifactId>
+            <version>${info.cukes.cucumber-testng.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>info.cukes</groupId>
+            <artifactId>cucumber-junit</artifactId>
+            <version>${info.cukes.cucumber-java.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-server</artifactId>
+            <version>${org.seleniumhq.selenium.selenium-server.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>${log4j.log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${org.apache.commons.commons-io.version}</version>
+        </dependency>
+        <dependency>
+            <!--
+            Hamcrest is a framework for writing matcher objects allowing 'match' rules to be defined declaratively.
+            It nicely integrates with JUnit, making assertions more descriptive.
+
+            http://junit.sourceforge.net/javadoc/org/junit/Assert.html#assertThat(java.lang.String, T, org.hamcrest.Matcher)
+            http://code.google.com/p/hamcrest/wiki/Tutorial
+            -->
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <version>${org.hamcrest.hamcrest-library.version}</version>
+        </dependency>
+        <dependency>
+            <!--
+            A handy plugin that allows you to download driver binaries automatically
+            To download desired driver binaries, call the plugin like that:
+            mvn clean com.lazerycode.selenium:driver-binary-downloader-maven-plugin:selenium
+            to
+            src: http://ardesco.lazerycode.com/index.php/2012/08/introducing-the-driver-binary-downloader-maven-plugin-for-selenium/
+            -->
+            <groupId>com.lazerycode.selenium</groupId>
+            <artifactId>driver-binary-downloader-maven-plugin</artifactId>
+            <version>${com.lazerycode.selenium.version}</version>
+        </dependency>
+        <dependency>
+            <!--
+            Required by JSONReportMerger
+            -->
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1</version>
+        </dependency>
+    </dependencies>
+</project>

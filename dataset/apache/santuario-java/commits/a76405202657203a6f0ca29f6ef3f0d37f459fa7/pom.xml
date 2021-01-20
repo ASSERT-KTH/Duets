@@ -1,0 +1,604 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements. See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership. The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License. You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied. See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.apache.santuario</groupId>
+    <artifactId>xmlsec</artifactId>
+    <packaging>bundle</packaging>
+    <name>Apache XML Security for Java</name>
+    <version>2.0.7</version>
+    <description>
+        Apache XML Security for Java supports XML-Signature Syntax and Processing,
+        W3C Recommendation 12 February 2002, and XML Encryption Syntax and
+        Processing, W3C Recommendation 10 December 2002. As of version 1.4,
+        the library supports the standard Java API JSR-105: XML Digital Signature APIs.
+    </description>
+    <url>http://santuario.apache.org/</url>
+    <issueManagement>
+        <system>JIRA</system>
+        <url>https://issues.apache.org/jira/browse/SANTUARIO</url>
+    </issueManagement>
+    <mailingLists>
+        <mailingList>
+            <name>Apache Santuario Developer List</name>
+            <subscribe>dev-subscribe@santuario.apache.org</subscribe>
+            <unsubscribe>
+                dev-unsubscribe@santuario.apache.org
+            </unsubscribe>
+            <post>dev@santuario.apache.org</post>
+            <archive>
+                http://news.gmane.org/gmane.text.xml.security.devel
+            </archive>
+        </mailingList>
+    </mailingLists>
+    <inceptionYear>2000</inceptionYear>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <connection>
+            scm:svn:http://svn.apache.org/repos/asf/santuario/xml-security-java/tags/xmlsec-2.0.7
+        </connection>
+        <developerConnection>
+            scm:svn:https://svn.apache.org/repos/asf/santuario/xml-security-java/tags/xmlsec-2.0.7
+        </developerConnection>
+        <url>http://svn.apache.org/repos/asf/santuario/xml-security-java/tags/xmlsec-2.0.7</url>
+    </scm>
+    <organization>
+        <name>The Apache Software Foundation</name>
+        <url>http://www.apache.org/</url>
+    </organization>
+
+    <parent>
+        <groupId>org.apache</groupId>
+        <artifactId>apache</artifactId>
+        <version>17</version>
+    </parent>
+
+    <build>
+        <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
+        <testSourceDirectory>${basedir}/src/test/java</testSourceDirectory>
+        <resources>
+            <resource>
+                <directory>src/main/java</directory>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/java</directory>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                </excludes>
+            </testResource>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                </excludes>
+            </testResource>
+        </testResources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>3.5</version>
+                <configuration>
+                    <rulesets>
+                        <ruleset>${basedir}/etc/santuario-pmd-ruleset.xml</ruleset>
+                    </rulesets>
+                    <linkXRef>false</linkXRef>
+                    <sourceEncoding>UTF-8</sourceEncoding>
+                    <failOnViolation>true</failOnViolation>
+                    <verbose>true</verbose>
+                    <includeTests>true</includeTests>
+                    <targetJdk>${targetJdk}</targetJdk>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+             </plugin>
+        
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.3</version>
+                <configuration>
+                    <source>${targetJdk}</source>
+                    <target>${targetJdk}</target>
+                </configuration>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>jar</goal>
+                            <goal>test-jar</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <testClassesDirectory>${project.build.directory}/test-classes</testClassesDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>3.0.1</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Implementation-Title>Apache XML Security</Implementation-Title>
+                        <Implementation-Vendor>The Apache Software Foundation</Implementation-Vendor>
+                        <Implementation-Vendor-Id>org.apache</Implementation-Vendor-Id>
+                        <Implementation-Version>${project.version}</Implementation-Version>
+                        <Specification-Title>Apache XML Security</Specification-Title>
+                        <Specification-Vendor>The Apache Software Foundation</Specification-Vendor>
+                        <Specification-Version>${project.version}</Specification-Version>
+                        <Export-Package>
+                              org.apache.xml.security.*;version="${project.version}",
+                              org.apache.jcp.xml.dsig.internal.*;version="${project.version}",
+                        </Export-Package>
+                        <Import-Package>
+                              !org.apache.xml.security.*,
+                              !org.apache.jcp.xml.dsig.internal.*,
+                              org.slf4j.*;version="[1.7,2)",
+                              org.apache.commons.codec.*;version="[1.6,2)",
+                              org.apache.xml.dtm*;resolution:=optional;version="[2.7,3)",
+                              org.apache.xml.utils*;resolution:=optional;version="[2.7,3)",
+                              org.apache.xpath*;resolution:=optional;version="[2.7,3)",
+                              *
+                        </Import-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.jvnet.jaxb2.maven2</groupId>
+                <artifactId>maven-jaxb2-plugin</artifactId>
+                <version>0.12.3</version>
+                <executions>
+                    <execution>
+                        <id>bindings</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <schemaDirectory>
+                                ${basedir}/src/main/resources/
+                            </schemaDirectory>
+                            <schemaIncludes>
+                                <schemaInclude>schemas/security-config.xsd</schemaInclude>
+                                <schemaInclude>bindings/schemas/exc-c14n.xsd</schemaInclude>
+                                <schemaInclude>bindings/schemas/xmldsig-core-schema.xsd</schemaInclude>
+                                <schemaInclude>bindings/schemas/xmldsig11-schema.xsd</schemaInclude>
+                                <schemaInclude>bindings/schemas/xenc-schema.xsd</schemaInclude>
+                                <schemaInclude>bindings/schemas/xenc-schema-11.xsd</schemaInclude>
+                            </schemaIncludes>
+                            <bindingDirectory>${basedir}/src/main/resources/bindings/</bindingDirectory>
+                            <bindingIncludes>
+                                <bindingInclude>c14n.xjb</bindingInclude>
+                                <bindingInclude>dsig.xjb</bindingInclude>
+                                <bindingInclude>dsig11.xjb</bindingInclude>
+                                <bindingInclude>xenc.xjb</bindingInclude>
+                                <bindingInclude>xenc11.xjb</bindingInclude>
+                                <bindingInclude>security-config.xjb</bindingInclude>
+                            </bindingIncludes>
+                            <catalog>${basedir}/src/main/resources/bindings/bindings.cat</catalog>
+                            <forceRegenerate>false</forceRegenerate>
+                            <episode>true</episode>
+                            <specVersion>2.1</specVersion>
+                            <extension>true</extension>
+                            <!-- disable schema validation since the validation code
+                            doesn't respect the catalog and will do online lookups :-( -->
+                            <strict>false</strict>
+                            <args>
+                                <arg>-npa</arg>
+                            </args>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.2</version>
+                <configuration>
+                    <useReleaseProfile>false</useReleaseProfile>
+                    <preparationGoals>clean install</preparationGoals>
+                    <goals>deploy</goals>
+                    <arguments>-Papache-release</arguments>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <attach>true</attach>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.10.3</version>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>animal-sniffer-maven-plugin</artifactId>
+                <version>1.14</version>
+                <configuration>
+                    <signature>
+                        <groupId>org.codehaus.mojo.signature</groupId>
+                        <artifactId>java16</artifactId>
+                        <version>1.0</version>
+                   </signature>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>check-java-compatibility</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>enforce-bytecode-version</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <enforceBytecodeVersion>
+                                    <maxJdkVersion>${targetJdk}</maxJdkVersion>
+                                </enforceBytecodeVersion>
+                            </rules>
+                            <fail>true</fail>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>extra-enforcer-rules</artifactId>
+                        <version>1.0-beta-3</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+        </plugins>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>2.10.3</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <attach>true</attach>
+                        <excludePackageNames>org.apache.xml.security.binding.*</excludePackageNames>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.18.1</version>
+                    <configuration>
+                        <reportFormat>brief</reportFormat>
+                        <useFile>false</useFile>
+                        <childDelegation>false</childDelegation>
+                        <includes>
+                            <include>**/*Test.java</include>
+                        </includes>
+                        <excludes>
+                            <exclude>**/PerformanceMemoryTest.java</exclude>
+                            <exclude>**/PerformanceTimingTest.java</exclude>
+                        </excludes>
+                        <systemPropertyVariables>
+                            <product.version>${project.version}</product.version>
+                            <log4j.configuration>log4j-xmlsec.xml</log4j.configuration>
+                            <!--<javax.xml.bind.JAXBContext>${xmlsec.jaxb.context.class}</javax.xml.bind.JAXBContext>-->
+                        </systemPropertyVariables>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>clirr-maven-plugin</artifactId>
+                    <version>${clirr.version}</version>
+                    <configuration>
+                        <minSeverity>${minSeverity}</minSeverity>
+                    </configuration>
+                </plugin>
+
+            </plugins>
+        </pluginManagement>
+
+        <defaultGoal>install</defaultGoal>
+    </build>
+
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <activation>
+                <property>
+                    <name>release</name>
+                    <value />
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>fastinstall</id>
+            <properties>
+                <maven.test.skip>true</maven.test.skip>
+                <pmd.skip>true</pmd.skip>
+            </properties>
+        </profile>
+        <profile>
+            <id>nochecks</id>
+            <properties>
+                <pmd.skip>true</pmd.skip>
+            </properties>
+        </profile>
+        <profile>
+            <id>jdk18</id>
+            <activation>
+                <jdk>1.8</jdk>
+            </activation>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-javadoc-plugin</artifactId>
+                            <configuration>
+                                <additionalJOptions>
+                                    <additionalJOption>-Xdoclint:none</additionalJOption>
+                                </additionalJOptions>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+        <profile>
+            <!-- Profile for testing with EclipseLink MOXy based JAXB implementation -->
+            <id>eclipse.moxy</id>
+            <properties>
+                <xmlsec.jaxb.context.class>org.eclipse.persistence.jaxb.JAXBContextFactory</xmlsec.jaxb.context.class>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.eclipse.persistence</groupId>
+                    <artifactId>org.eclipse.persistence.moxy</artifactId>
+                    <version>2.5.1-SNAPSHOT</version>
+                    <scope>provided</scope>
+                    <optional>true</optional>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.geronimo.specs</groupId>
+                    <artifactId>geronimo-javamail_1.4_spec</artifactId>
+                    <version>1.7.1</version>
+                </dependency>
+            </dependencies>
+            <repositories>
+                <repository>
+                    <id>oss.sonatype.org</id>
+                    <name>OSS Sonatype Staging</name>
+                    <url>https://oss.sonatype.org/content/groups/staging</url>
+                    <releases><enabled>false</enabled></releases>
+                    <snapshots><enabled>true</enabled></snapshots>
+                </repository>
+            </repositories>
+        </profile>
+    </profiles>
+
+    <properties>
+        <xml.apis.version>1.4.01</xml.apis.version>
+        <oldxmlsec.version>1.5.8</oldxmlsec.version>
+        <slf4j.version>1.7.14</slf4j.version>
+        <xalan.version>2.7.2</xalan.version>
+        <xerces.version>2.11.0</xerces.version>
+        <junit.version>4.12</junit.version>
+        <log4j.version>1.2.17</log4j.version>
+        <bcprov.version>1.54</bcprov.version>
+        <xmlunit.version>1.6</xmlunit.version>
+        <commons.codec.version>1.10</commons.codec.version>
+        <woodstox.core.asl.version>4.4.1</woodstox.core.asl.version>
+        <jetty.version>8.1.17.v20150415</jetty.version>
+        <xmlsec.jaxb.context.class />
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <targetJdk>1.6</targetJdk>
+        <clirr.version>2.7</clirr.version>
+
+        <!-- Allow Clirr severity to be overriden by the command-line option -DminSeverity=level -->
+        <minSeverity>info</minSeverity>
+    </properties>
+    
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.woodstox</groupId>
+            <artifactId>woodstox-core-asl</artifactId>
+            <version>${woodstox.core.asl.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>${commons.codec.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>xmlunit</groupId>
+            <artifactId>xmlunit</artifactId>
+            <version>${xmlunit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-server</artifactId>
+            <version>${jetty.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlet</artifactId>
+            <version>${jetty.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlets</artifactId>
+            <version>${jetty.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>xalan</groupId>
+            <artifactId>xalan</artifactId>
+            <version>${xalan.version}</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+            <version>${xerces.version}</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>xml-apis</groupId>
+            <artifactId>xml-apis</artifactId>
+            <version>${xml.apis.version}</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>${bcprov.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <id>apache.releases.https</id>
+            <name>Apache Release Distribution Repository</name>
+            <url>https://repository.apache.org/service/local/staging/deploy/maven2</url>
+        </repository>
+        <snapshotRepository>
+            <id>apache.snapshots.https</id>
+            <name>Apache Development Snapshot Repository</name>
+            <url>https://repository.apache.org/content/repositories/snapshots</url>
+            <uniqueVersion>false</uniqueVersion>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>clirr-maven-plugin</artifactId>
+                <version>${clirr.version}</version>
+                <configuration>
+                    <minSeverity>${minSeverity}</minSeverity>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
+</project>

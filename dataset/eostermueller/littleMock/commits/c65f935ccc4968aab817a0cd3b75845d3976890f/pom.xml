@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    	<modelVersion>4.0.0</modelVersion>
+
+    	<groupId>com.github.eostermueller.littlemock</groupId>
+    	<artifactId>littleMock</artifactId>
+    	<version>0.0.2</version>
+
+	<parent>
+        	<groupId>org.springframework.boot</groupId>
+        	<artifactId>spring-boot-starter-parent</artifactId>
+        	<version>2.0.5.RELEASE</version>
+	</parent>
+
+	<properties>
+		<java.version>10</java.version>
+        	<my.lib>${org.glowroot:glowroot-agent:jar}</my.lib>
+	</properties>
+
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+	
+		<dependency>
+	    		<groupId>junit</groupId>
+	    		<artifactId>junit</artifactId>
+	    		<version>4.12</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
+		</dependency>
+
+		<!-- hot swapping, disable cache for template, enable live reload -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<optional>true</optional>
+		</dependency>
+
+		<!-- Optional, for bootstrap -->
+		<dependency>
+			<groupId>org.webjars</groupId>
+			<artifactId>bootstrap</artifactId>
+			<version>3.3.7</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-pool2</artifactId>
+			<version>2.4.1</version>
+		</dependency>
+		
+	
+		<!-- https://mvnrepository.com/artifact/org.glowroot/glowroot-agent 
+		<dependency>
+		    <groupId>org.glowroot</groupId>
+		    <artifactId>glowroot-agent</artifactId>
+		    <version>0.11.0</version>
+		</dependency>
+	        -->	
+		
+	</dependencies>
+
+	<build>
+		<!-- <defaultGoal>generate-sources</defaultGoal> -->
+		<plugins>
+<plugin>
+  <groupId>com.googlecode.maven-download-plugin</groupId>
+  <artifactId>download-maven-plugin</artifactId>
+  <version>1.3.0</version>
+  <executions>
+    <execution>
+      <!-- the wget goal actually binds itself to this phase by default -->
+      <phase>process-resources</phase>
+      <goals>
+        <goal>wget</goal>
+      </goals>
+      <configuration>
+        <url>https://github.com/glowroot/glowroot/releases/download/v0.11.0/glowroot-0.11.0-dist.zip</url>
+        <unpack>true</unpack>
+        <outputFileName>glowroot-0.11.0-dist.zip</outputFileName>
+        <!-- default target location, just to demonstrate the parameter -->
+        <outputDirectory>${project.build.directory}/glowroot-0.11.0</outputDirectory>
+      </configuration>
+    </execution>
+  </executions>
+</plugin>
+
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-dependency-plugin</artifactId>
+    <version>2.2</version>
+    <executions>
+      <execution>
+        <id>unpack-sigar</id>
+        <phase>package<!-- or any other valid maven phase --></phase>
+        <goals>
+          <goal>unpack-dependencies</goal>
+        </goals>
+        <configuration>
+          <includeGroupIds>org.hyperic</includeGroupIds>
+          <includeArtifactIds>sigar-dist</includeArtifactIds>
+          <outputDirectory>
+             ${project.build.directory}/wherever/you/want/it
+             <!-- or: ${project.basedir}/wherever/you/want/it -->
+          </outputDirectory>
+        </configuration>
+      </execution>
+    </executions>
+</plugin>
+<plugin>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-maven-plugin</artifactId>
+    <executions>
+        <execution>
+            <goals>
+                <goal>repackage</goal>
+            </goals>
+ 	    <phase>package</phase>
+            <configuration>
+                <classifier>spring-boot</classifier>
+                <mainClass>
+                  com.github.eostermueller.littlemock.Controller
+                </mainClass>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+<plugin>
+    <groupId>org.bitstrings.maven.plugins</groupId>
+    <artifactId>dependencypath-maven-plugin</artifactId>
+    <version>1.1.1</version>
+    <executions>
+        <execution>
+		<!-- <phase>prepare-package</phase> -->
+            <id>set-all</id>
+            <goals>
+                <goal>set</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+
+
+         <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+			<phase>integration-test</phase>
+                    </execution>
+                </executions>
+		<configuration>
+		    <executable>java</executable>
+		    <arguments>
+			<argument>-classpath</argument>
+		        <classpath /> 
+			
+			<!-- #### Start of XML optimizations 
+			<argument>-Dcom.sun.org.apache.xml.internal.dtm.DTMManager=com.sun.org.apache.xml.internal.dtm.ref.DTMManagerDefault</argument> 
+			<argument>-Djavax.xml.parsers.DocumentBuilderFactory=com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl</argument>
+			<argument>-Djavax.xml.xpath.XPathFactory:http://java.sun.com/jaxp/xpath/dom=com.sun.org.apache.xpath.internal.jaxp.XPathFactoryImpl</argument> 
+			     #### End of XML optimizations -->
+
+			<!-- size the old/new gen  -->
+			<argument>-Xmx1256m</argument>
+			<argument>-XX:NewSize=512m</argument>
+			<argument>-XX:MaxNewSize=512m</argument>
+
+			<!-- choose/configure GC algorithm -->
+			<argument>-XX:+UseConcMarkSweepGC</argument>
+			<argument>-XX:ConcGCThreads=4</argument>
+			<!-- -XX:+UseG1GC 		-->
+			<!-- -XX:+UseParallelOldGC 	-->
+			<!-- -XX:+UseSerialGC 		-->
+
+			<!-- verbose GC logging -->
+			<argument>-Xloggc:gc.log</argument>
+			<argument>-verbose:gc</argument>
+			<argument>-XX:+PrintGCDetails</argument>
+			<argument>-verbose:sizes</argument>
+
+			<argument>-javaagent:${project.build.directory}/glowroot-0.11.0/glowroot/glowroot.jar</argument>
+			<!-- <argument>-javaagent:${org.glowroot:glowroot-agent:jar}</argument> -->
+			<argument>-jar</argument>
+			<argument>target/littleMock-0.0.2-spring-boot.jar</argument>
+		   </arguments>
+		</configuration>
+
+            </plugin>
+
+
+
+
+		</plugins>
+	</build>
+
+</project>

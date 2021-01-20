@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.kcache</groupId>
+    <artifactId>janusgraph-kafka</artifactId>
+    <version>0.1.0</version>
+    <packaging>jar</packaging>
+    <name>JanusGraph Kafka Storage Adapter</name>
+
+    <properties>
+        <maven.compiler.plugin.version>3.6.2</maven.compiler.plugin.version>
+        <jdk.version>1.8</jdk.version>
+        <janusgraph.version>0.4.0</janusgraph.version>
+        <dependency.plugin.version>2.10</dependency.plugin.version>
+        <test.excluded.groups>MEMORY_TESTS,PERFORMANCE_TESTS,BRITTLE_TESTS,CELL_TTL_TESTS</test.excluded.groups>
+        <test.skip.default>false</test.skip.default>
+        <test.skip.tp>true</test.skip.tp>
+    </properties>
+
+    <developers>
+        <developer>
+            <name>Ted Wilmes</name>
+            <email>twilmes@gmail.com</email>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.janusgraph</groupId>
+            <artifactId>janusgraph-core</artifactId>
+            <version>${janusgraph.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.janusgraph</groupId>
+            <artifactId>janusgraph-test</artifactId>
+            <version>${janusgraph.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.kcache</groupId>
+            <artifactId>kcache</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <directory>${basedir}/target</directory>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
+                <configuration>
+                    <source>${jdk.version}</source>
+                    <target>${jdk.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${dependency.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <includeScope>compile</includeScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.1</version>
+                <configuration>
+                    <argLine>-Xms1024m -Xmx2048m -Dbuild.dir=${project.build.directory} -Dis.testing=true
+                    </argLine>
+                    <parallel>none</parallel>
+                    <runOrder>alphabetical</runOrder>
+                    <failIfNoTests>false</failIfNoTests>
+                    <excludes>
+                        <exclude>**/*PerformanceTest.java</exclude>
+                        <exclude>**/*ConcurrentTest.java</exclude>
+                        <exclude>**/*Groovy*Test.java</exclude>
+                        <exclude>**/*ComputerTest.java</exclude>
+                        <exclude>**/*ProcessTest.java</exclude>
+                        <exclude>**/*ProcessPerformanceTest.java</exclude>
+                        <exclude>**/*StructureTest.java</exclude>
+                    </excludes>
+                    <excludedGroups>${test.excluded.groups}</excludedGroups>
+                    <skip>${test.skip.default}</skip>
+                    <!-- Use log4j.properties from module test resources -->
+                    <systemProperties>
+                        <property>
+                            <name>log4j.configuration</name>
+                            <value>file:${project.build.directory}/test-classes/log4j.properties</value>
+                        </property>
+                    </systemProperties>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>tinkerpop-test</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <phase>test</phase>
+                        <configuration combine.self="override">
+                            <reuseForks>false</reuseForks>
+                            <forkCount>1</forkCount>
+                            <parallel>none</parallel>
+                            <threadCount>1</threadCount>
+                            <perCoreThreadCount>false</perCoreThreadCount>
+                            <includes>
+                                <include>**/*Groovy*Test.java</include>
+                                <include>**/*ComputerTest.java</include>
+                                <include>**/*ProcessTest.java</include>
+                                <include>**/*ProcessPerformanceTest.java</include>
+                                <include>**/*StructureTest.java</include>
+                            </includes>
+                            <runOrder>alphabetical</runOrder>
+                            <skipTests>${test.skip.tp}</skipTests>
+                            <systemPropertyVariables>
+                                <build.dir>${project.build.directory}</build.dir>
+                                <log4j.configuration>file:${project.build.directory}/test-classes/log4j.properties</log4j.configuration>
+                                <is.testing>true</is.testing>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <descriptor>src/assembly/dep.xml</descriptor>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>create-archive</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>SongScribe</groupId>
+    <artifactId>SongScribe</artifactId>
+    <version>1.20</version>
+    <packaging>jar</packaging>
+
+    <description>
+        SongScribe is a song editor program especially designed to support music composed by Maestro Sri Chinmoy
+    </description>
+
+    <url>http://songscribe.org/</url>
+
+    <properties>
+        <build.version>${maven.build.timestamp}</build.version>
+        <project.dist.directory>${project.build.directory}/dist</project.dist.directory>
+        <maven.build.timestamp.format>yyyyMMdd</maven.build.timestamp.format>
+        <jarName>${project.artifactId}</jarName>
+        <project.generated.sources.directory>${project.build.directory}/generated-sources/java/</project.generated.sources.directory>
+    </properties>
+
+    <scm>
+        <connection>scm:git:https://github.com/songscribe/SongScribe.git</connection>
+        <developerConnection>scm:git:git@github.com:songscribe/SongScribe.git</developerConnection>
+        <url>https://github.com/songscribe/SongScribe</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>Himadri</id>
+            <name>Cs. Kavai</name>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+            <url>http://www.kavaiszoftvermernok.hu/</url>
+        </developer>
+        <developer>
+            <id>Aparajita</id>
+            <name>Aparajita Fishman</name>
+            <roles>
+                <role>MacOS X developer</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>GNU GENERAL PUBLIC LICENSE Version 3</name>
+            <url>http://www.gnu.org/licenses</url>
+        </license>
+    </licenses>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.apple</groupId>
+            <artifactId>AppleJavaExtensions</artifactId>
+            <version>1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-httpclient</groupId>
+            <artifactId>commons-httpclient</artifactId>
+            <version>3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.lowagie</groupId>
+            <artifactId>itext</artifactId>
+            <version>1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+        </dependency>
+        <dependency>
+            <groupId>org.swinglabs</groupId>
+            <artifactId>swing-layout</artifactId>
+            <version>1.0.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.jtechlabs</groupId>
+            <artifactId>jdirectorychooser</artifactId>
+            <version>1.1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/jdirectorychooser-1.1.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.bulenkov</groupId>
+            <artifactId>iconloader</artifactId>
+            <version>1.0.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/iconloader-1.0.0.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.intellij</groupId>
+            <artifactId>forms_rt</artifactId>
+            <version>7.0.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+            <version>2.3.19</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <finalName>${jarName}</finalName>
+                    <archive>
+                        <manifest>
+                            <mainClass>songscribe.Runner</mainClass>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>libs</classpathPrefix>
+                        </manifest>
+                        <manifestEntries>
+                            <Class-Path>libs/jdirectorychooser-1.1.0.jar libs/iconloader-1.0.0.jar</Class-Path>
+                            <Implementation-Build>${project.version}.${build.version}</Implementation-Build>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.8</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.dist.directory}/libs</outputDirectory>
+                            <overWriteReleases>false</overWriteReleases>
+                            <overWriteSnapshots>false</overWriteSnapshots>
+                            <overWriteIfNewer>true</overWriteIfNewer>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.dist.directory}</outputDirectory>
+                            <overwrite>true</overwrite>
+                            <resources>
+                                <resource>
+                                    <directory>conf</directory>
+                                    <targetPath>conf</targetPath>
+                                </resource>
+                                <resource>
+                                    <directory>fonts</directory>
+                                    <targetPath>fonts</targetPath>
+                                </resource>
+                                <resource>
+                                    <directory>examples</directory>
+                                    <targetPath>examples</targetPath>
+                                </resource>
+                                <resource>
+                                    <directory>help</directory>
+                                    <targetPath>help</targetPath>
+                                </resource>
+                                <resource>
+                                    <directory>images</directory>
+                                    <targetPath>images</targetPath>
+                                </resource>
+                                <resource>
+                                    <directory>profiles</directory>
+                                    <targetPath>profiles</targetPath>
+                                </resource>
+                                <resource>
+                                    <directory>libs</directory>
+                                    <targetPath>libs</targetPath>
+                                </resource>
+                                <resource>
+                                    <directory>thirdpartylicenses</directory>
+                                    <targetPath>thirdpartylicenses</targetPath>
+                                </resource>
+                                <resource>
+                                    <directory>${project.basedir}/src/main/plist</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                                <resource>
+                                    <directory>${project.basedir}/src/main/config</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                                <resource>
+                                    <directory>${project.basedir}</directory>
+                                    <includes>
+                                        <include>README</include>
+                                        <include>LICENSE</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${project.build.directory}</directory>
+                                    <includes>
+                                        <include>${jarName}.${project.packaging}</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.gmaven</groupId>
+                <artifactId>gmaven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <source>
+                                File dir = new File("${project.generated.sources.directory}/songscribe/")
+                                dir.mkdirs()
+                                File file = new File(dir, "Version.java").withWriter { out ->
+                                    out.println '// This is an auto generated code. DO NOT MODIFY!'
+                                    out.println 'package songscribe;'
+                                    out.println 'public final class Version {'
+                                    out.println '   public static final String PUBLIC_VERSION="${project.version}";'
+                                    out.println '   public static final String BUILD_VERSION="${build.version}";'
+                                    out.println '}'
+                                }
+                            </source>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>ideauidesigner-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>javac2</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <fork>true</fork>
+                    <debug>true</debug>
+                    <failOnError>true</failOnError>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <generatedSourcesDirectory>${project.generated.sources.directory}</generatedSourcesDirectory>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals><goal>add-source</goal></goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.generated.sources.directory}</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <id>prepare-update</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <property name="update.dir" value="${project.build.directory}/update"/>
+                                <property name="songscribe.jar" value="${project.build.directory}/${jarName}.${project.packaging}"/>
+                                <!--Copy the whole dist to a temporary working directory-->
+                                <copy todir="${update.dir}">
+                                    <fileset dir="${project.dist.directory}" />
+                                </copy>
+                                <!--Create the checksums file-->
+                                <java classname="songscribe.ChecksumMaker" dir="${update.dir}" fork="true">
+                                    <classpath location="${songscribe.jar}"/>
+                                </java>
+                                <!--Synchronizing with the server content-->
+                                <java classname="songscribe.UpdateMaker">
+                                    <classpath location="${songscribe.jar}"/>
+                                    <classpath refid="maven.compile.classpath"/>
+                                    <arg value="${update.dir}"/>
+                                </java>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

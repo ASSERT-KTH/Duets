@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    ====================
+    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+    Copyright 2011 ConnId. All rights reserved.
+
+    The contents of this file are subject to the terms of the Common Development
+    and Distribution License("CDDL") (the "License").  You may not use this file
+    except in compliance with the License.
+
+    You can obtain a copy of the License at
+    http://opensource.org/licenses/cddl1.php
+    See the License for the specific language governing permissions and limitations
+    under the License.
+
+    When distributing the Covered Code, include this CDDL Header Notice in each file
+    and include the License file at http://opensource.org/licenses/cddl1.php.
+    If applicable, add the following below this CDDL Header, with the fields
+    enclosed by brackets [] replaced by your own identifying information:
+    "Portions Copyrighted [year] [name of copyright owner]"
+    ====================
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>net.tirasa.connid</groupId>
+    <artifactId>connid</artifactId>
+    <version>1.4.2.0-SNAPSHOT</version>
+  </parent>
+
+  <groupId>net.tirasa.connid.bundles</groupId>
+  <artifactId>net.tirasa.connid.bundles.ldap</artifactId>
+  <version>1.5.0-SNAPSHOT</version>
+
+  <name>ConnId Bundles: LDAP</name>
+
+  <packaging>jar</packaging>
+
+  <url>http://connid.tirasa.net</url>
+
+  <licenses>
+    <license>
+      <name>CDDL 1.0</name>
+      <url>http://opensource.org/licenses/CDDL-1.0</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:git:git@github.com:Tirasa/ConnIdLDAPBundle.git</connection>
+    <url>scm:git:git@github.com:Tirasa/ConnIdLDAPBundle.git</url>
+    <developerConnection>scm:git:git@github.com:Tirasa/ConnIdLDAPBundle.git</developerConnection>
+  </scm>
+
+  <issueManagement>
+    <system>jira</system>
+    <url>https://connid.atlassian.net/browse/LDAP</url>
+  </issueManagement>
+
+  <ciManagement>
+    <system>Travis CI</system>
+    <url>https://travis-ci.org/Tirasa/ConnIdLDAPBundle</url>
+  </ciManagement>
+
+  <mailingLists>
+    <mailingList>
+      <name>connid-dev</name>
+      <post>connid-dev@googlegroups.com</post>
+      <archive>http://groups.google.com/group/connid-dev</archive>
+    </mailingList>
+    <mailingList>
+      <name>connid-users</name>
+      <post>connid-users@googlegroups.com</post>
+      <archive>http://groups.google.com/group/connid-users</archive>
+    </mailingList>
+  </mailingLists>
+
+  <properties>
+    <connid.version>1.4.2.0-SNAPSHOT</connid.version>
+    
+    <opendj.version>2.6.2</opendj.version>        
+    <opendj.setup.dir>${project.build.directory}/opendj-setup</opendj.setup.dir>
+    <opendj.backup.dir>${project.build.directory}/opendj-backup</opendj.backup.dir>
+    <opendj.host>localhost</opendj.host>
+    <opendj.port>2389</opendj.port>
+    <opendj.sslport>2636</opendj.sslport>
+    <opendj.principal>cn=Directory Manager</opendj.principal>
+    <opendj.credentials>password</opendj.credentials>
+    <opendj.baseDN>dc=example,dc=com</opendj.baseDN>
+        
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <netbeans.hint.license>connid</netbeans.hint.license>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>net.tirasa.connid</groupId>
+      <artifactId>connector-framework</artifactId>
+      <version>${connid.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>net.tirasa.connid</groupId>
+      <artifactId>connector-framework-internal</artifactId>
+      <version>${connid.version}</version>
+    </dependency>
+        
+    <dependency>
+      <groupId>org.glassfish.main.external</groupId>
+      <artifactId>ldapbp-repackaged</artifactId>
+      <version>4.1</version>
+    </dependency>
+        
+    <!-- TEST -->
+    <dependency>
+      <groupId>berkeleydb</groupId>
+      <artifactId>je</artifactId>
+      <version>3.2.76</version>
+      <scope>test</scope>
+    </dependency>
+        
+    <dependency>
+      <groupId>net.tirasa.connid</groupId>
+      <artifactId>connector-test-common</artifactId>
+      <version>${connid.version}</version>
+      <scope>test</scope>
+    </dependency>
+        
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+            
+      <plugin>
+        <groupId>com.mycila.maven-license-plugin</groupId>
+        <artifactId>maven-license-plugin</artifactId>
+        <version>1.10.b1</version>
+        <inherited>false</inherited>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <inherited>true</inherited>
+        <executions>
+          <execution>
+            <id>prepareOpenDJ</id>
+            <phase>process-test-classes</phase>
+            <configuration>
+              <target>
+                <mkdir dir="${settings.localRepository}/openrock/opendj"/>
+                <get src="https://github.com/OpenRock/OpenDJ/releases/download/${opendj.version}/opendj-server-${opendj.version}.zip" 
+                     dest="${settings.localRepository}/openrock/opendj" skipexisting="true"/>
+                <delete dir="${opendj.setup.dir}"/>
+                <unzip dest="${project.build.directory}" 
+                       src="${settings.localRepository}/openrock/opendj/opendj-server-${opendj.version}.zip"/>
+                <move file="${project.build.directory}/opendj" tofile="${opendj.setup.dir}"/>
+                                
+                <condition property="tool.setup" value="setup.bat" else="setup">
+                  <os family="windows"/>
+                </condition>
+                <condition property="tool.backup" value="bat/backup.bat" else="bin/backup">
+                  <os family="windows"/>
+                </condition>
+                <condition property="tool.restore" value="bat/restore.bat" else="bin/restore">
+                  <os family="windows"/>
+                </condition>
+                <condition property="tool.import-ldif" value="bat/import-ldif.bat" else="bin/import-ldif">
+                  <os family="windows"/>
+                </condition>
+                <condition property="tool.ldapmodify" value="bat/ldapmodify.bat" else="bin/ldapmodify">
+                  <os family="windows"/>
+                </condition>
+                <condition property="tool.make-ldif" value="bat/make-ldif.bat" else="bin/make-ldif">
+                  <os family="windows"/>
+                </condition>
+                <condition property="tool.rebuild-index" value="bat/rebuild-index.bat" else="bin/rebuild-index">
+                  <os family="windows"/>
+                </condition>
+                <condition property="tool.start-ds" value="bat/start-ds.bat" else="bin/start-ds">
+                  <os family="windows"/>
+                </condition>
+                <condition property="tool.stop-ds" value="bat/stop-ds.bat" else="bin/stop-ds">
+                  <os family="windows"/>
+                </condition>
+                <chmod perm="+x">
+                  <fileset dir="${opendj.setup.dir}">
+                    <include name="${tool.setup}"/>
+                    <include name="${tool.backup}"/>
+                    <include name="${tool.restore}"/>
+                    <include name="${tool.import-ldif}"/>
+                    <include name="${tool.ldapmodify}"/>
+                    <include name="${tool.make-ldif}"/>
+                    <include name="${tool.rebuild-index}"/>
+                    <include name="${tool.start-ds}"/>
+                    <include name="${tool.stop-ds}"/>
+                    <include name="lib/_script-util.sh"/>
+                    <include name="lib/_client-script.sh"/>
+                    <include name="lib/_mixed-script.sh"/>
+                    <include name="lib/_server-script.sh"/>
+                  </fileset>
+                </chmod>
+                                
+                <concat destfile="${opendj.setup.dir}/template/config/config.ldif" append="true">
+                  <filelist dir="${project.build.directory}/test-classes/opendj" files="config-additions.ldif"/>
+                </concat>
+                            
+                <exec executable="${opendj.setup.dir}/${tool.setup}" dir="${opendj.setup.dir}">
+                  <arg value="--cli"/>
+                  <arg value="-n"/>
+                  <arg value="-O"/>
+                  <arg value="--baseDN"/>
+                  <arg value="dc=example,dc=com"/>
+                  <arg value="-D"/>
+                  <arg value="${opendj.principal}"/>
+                  <arg value="-w"/>
+                  <arg value="${opendj.credentials}"/>
+                  <arg value="--generateSelfSignedCertificate"/>                                    
+                  <arg value="-h"/>
+                  <arg value="${opendj.host}"/>
+                  <arg value="-p"/>
+                  <arg value="${opendj.port}"/>
+                  <arg value="-Z"/>
+                  <arg value="${opendj.sslport}"/>
+                  <arg value="--adminConnectorPort"/>
+                  <arg value="4444"/>
+                  <arg value="--acceptLicense"/>
+                </exec>
+
+                <!-- Generate and import data. -->
+                <exec executable="${opendj.setup.dir}/${tool.make-ldif}" dir="${opendj.setup.dir}">
+                  <arg value="-t"/>
+                  <arg value="${project.build.directory}/test-classes/opendj/bigcompany.template"/>
+                  <arg value="-o"/>
+                  <arg value="${opendj.setup.dir}/bigcompany.ldif"/>
+                </exec>
+                <exec executable="${opendj.setup.dir}/${tool.import-ldif}" dir="${opendj.setup.dir}">
+                  <arg value="--clearBackend"/>
+                  <arg value="--ldifFile"/>
+                  <arg value="${project.build.directory}/test-classes/opendj/data.ldif"/>
+                  <arg value="--backendID"/>
+                  <arg value="userRoot"/>
+                </exec>
+                <exec executable="${opendj.setup.dir}/${tool.import-ldif}" dir="${opendj.setup.dir}">
+                  <arg value="--append"/>
+                  <arg value="--ldifFile"/>
+                  <arg value="${opendj.setup.dir}/bigcompany.ldif"/>
+                  <arg value="--backendID"/>
+                  <arg value="userRoot"/>
+                </exec>
+                <exec executable="${opendj.setup.dir}/${tool.rebuild-index}" dir="${opendj.setup.dir}">
+                  <arg value="--baseDN"/>
+                  <arg value="dc=example,dc=com"/>
+                  <arg value="--index"/>
+                  <arg value="vlv.index-uid"/>
+                </exec>
+
+                <!-- Set up an admin user. -->
+                <exec executable="${opendj.setup.dir}/${tool.start-ds}" dir="${opendj.setup.dir}"/>
+                <exec executable="${opendj.setup.dir}/${tool.ldapmodify}" dir="${opendj.setup.dir}">
+                  <arg value="-h"/>
+                  <arg value="${opendj.host}"/>
+                  <arg value="-p"/>
+                  <arg value="${opendj.port}"/>
+                  <arg value="-D"/>
+                  <arg value="${opendj.principal}"/>
+                  <arg value="-w"/>
+                  <arg value="${opendj.credentials}"/>
+                  <arg value="-f"/>
+                  <arg value="${project.build.directory}/test-classes/opendj/admin.ldif"/>
+                </exec>
+                <exec executable="${opendj.setup.dir}/${tool.stop-ds}" dir="${opendj.setup.dir}"/>
+                
+                <!-- Backup right after OpenDJ setup, for usage with LdapConnectorTestBase -->
+                <exec executable="${opendj.setup.dir}/${tool.backup}" dir="${opendj.setup.dir}">
+                  <arg value="-a"/>
+                  <arg value="-d"/>
+                  <arg value="${opendj.backup.dir}"/>
+                </exec>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+            
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <inherited>true</inherited>
+        <configuration>
+          <includes>
+            <include>**/*Tests.java</include>
+          </includes>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <appendAssemblyId>false</appendAssemblyId>
+          <descriptors>
+            <descriptor>src/assemble/connector.xml</descriptor>
+          </descriptors>
+          <archive>
+            <index>true</index>
+            <manifestEntries>
+              <ConnectorBundle-FrameworkVersion>${connid.version}</ConnectorBundle-FrameworkVersion>
+              <ConnectorBundle-Name>${project.artifactId}</ConnectorBundle-Name>
+              <ConnectorBundle-Version>${project.version}</ConnectorBundle-Version>
+            </manifestEntries>
+          </archive>                    
+        </configuration>                
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+        
+    <testResources>
+      <testResource>
+        <directory>${basedir}/src/test/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>test.properties</include>
+        </includes>
+      </testResource>
+      <testResource>
+        <directory>${basedir}/src/test/resources/net</directory>   
+        <targetPath>${project.build.directory}/test-classes/net</targetPath>     
+        <filtering>false</filtering>
+      </testResource>
+      <testResource>
+        <directory>${basedir}/src/test/resources/opendj</directory>        
+        <targetPath>${project.build.directory}/test-classes/opendj</targetPath>     
+        <filtering>false</filtering>
+      </testResource>
+    </testResources>
+  </build>
+
+  <repositories>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+</project>

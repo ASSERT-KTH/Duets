@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>libyara</artifactId>
+    <groupId>com.github.plusvic</groupId>
+    <version>3.10.0-SNAPSHOT</version>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <hawtjni-version>1.14</hawtjni-version>
+        <hawtjni-verbose>true</hawtjni-verbose>
+        <easymock-version>3.2</easymock-version>
+        <jni-with-crypto>-lcrypto</jni-with-crypto>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.fusesource.hawtjni</groupId>
+            <artifactId>hawtjni-runtime</artifactId>
+            <version>${hawtjni-version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <version>${easymock-version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.jcip</groupId>
+            <artifactId>jcip-annotations</artifactId>
+            <version>1.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <!--
+                    <compilerArgument>-Xlint:deprecation</compilerArgument>
+                    <compilerArgument>-Xlint:unchecked</compilerArgument>
+                    -->
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.0.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.fusesource.hawtjni</groupId>
+                <artifactId>maven-hawtjni-plugin</artifactId>
+                <version>${hawtjni-version}</version>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>generate</goal>
+                            <goal>build</goal>
+                            <goal>package-jar</goal>
+                            <goal>package-source</goal>
+                        </goals>
+                        <configuration>
+                            <name>yara-wrapper</name>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>package-native</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <dirset dir="${project.build.directory}/generated-sources/hawtjni/lib/META-INF/native/" id="platform">
+                                    <include name="*" />
+                                </dirset>
+                                <copy file="${project.basedir}/../yara"
+                                      tofile="${project.build.directory}/generated-sources/hawtjni/lib/META-INF/native/${toString:platform}/yara"/>
+                                <copy file="${project.basedir}/../yarac"
+                                      tofile="${project.build.directory}/generated-sources/hawtjni/lib/META-INF/native/${toString:platform}/yarac"/>
+                                <jar destfile="${project.build.directory}/${project.artifactId}-${project.version}-${toString:platform}.jar"
+                                        basedir="${project.build.directory}/generated-sources/hawtjni/lib/"
+                                        update="true">
+                                </jar>
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>test-native</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <dirset dir="${project.build.directory}/generated-sources/hawtjni/lib/META-INF/native/" id="platform">
+                                    <include name="*" />
+                                </dirset>
+                                <copy file="${project.basedir}/../yara"
+                                      tofile="${project.build.directory}/test-classes/META-INF/native/${toString:platform}/yara"/>
+                                <copy file="${project.basedir}/../yarac"
+                                      tofile="${project.build.directory}/test-classes/META-INF/native/${toString:platform}/yarac"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>junit:junit</exclude>
+                                </excludes>
+                            </artifactSet>
+                            <transformers>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+      <profile>
+          <id>default</id>
+          <activation>
+            <activeByDefault>true</activeByDefault>
+            <os>
+               <family>Linux</family>
+             </os>
+          </activation>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.fusesource.hawtjni</groupId>
+                      <artifactId>maven-hawtjni-plugin</artifactId>
+                      <configuration>
+                          <configureArgs>
+                              <arg>LDFLAGS=${env.LDFLAGS} ${jni-with-crypto}</arg>
+                          </configureArgs>
+                          <platform>linux86</platform>
+                      </configuration>
+                  </plugin>
+              </plugins>
+          </build>
+        </profile>
+        <profile>
+            <id>mac</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.fusesource.hawtjni</groupId>
+                        <artifactId>maven-hawtjni-plugin</artifactId>
+                        <configuration>
+                            <osgiPlatforms>
+                                <osgiPlatform>osname=MacOS;processor=x86-64</osgiPlatform>
+                                <osgiPlatform>osname=MacOS;processor=x86</osgiPlatform>
+                                <osgiPlatform>*</osgiPlatform>
+                            </osgiPlatforms>
+                            <configureArgs>
+                                <arg>--with-universal=x86_64</arg>
+                                <arg>LDFLAGS=${env.LDFLAGS} ${jni-with-crypto}</arg>
+                            </configureArgs>
+                            <platform>osx</platform>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>linux-amd64</id>
+            <activation>
+                <os>
+                    <family>Linux</family>
+                    <arch>amd64</arch>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.fusesource.hawtjni</groupId>
+                        <artifactId>maven-hawtjni-plugin</artifactId>
+                        <configuration>
+                            <osgiPlatforms>
+                                <osgiPlatform>osname=Linux;processor=x86-64</osgiPlatform>
+                                <osgiPlatform>osname=Linux;processor=x86</osgiPlatform>
+                                <osgiPlatform>*</osgiPlatform>
+                            </osgiPlatforms>
+                            <configureArgs>
+                                <arg>--libdir=${project.build.directory}/native-build/target/lib</arg>
+                                <arg>LDFLAGS=${env.LDFLAGS} ${jni-with-crypto}</arg>
+                            </configureArgs>
+                            <platform>linux64</platform>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

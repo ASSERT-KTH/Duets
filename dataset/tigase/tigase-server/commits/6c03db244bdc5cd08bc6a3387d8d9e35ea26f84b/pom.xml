@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Tigase XMPP Server - The instant messaging server
+    Copyright © 2004 Tigase, Inc. (office@tigase.com)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, version 3 of the License.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program. Look for COPYING file in the top folder.
+    If not, see http://www.gnu.org/licenses/.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>tigase</groupId>
+        <artifactId>tigase-projects-parent</artifactId>
+        <version>1.0.1</version>
+    </parent>
+
+    <properties>
+        <tests.excludeGroups>tigase.tests.SlowTest</tests.excludeGroups>
+        <!--<tests.logger_properties>src/test/resources/logging.properties</tests.logger_properties>-->
+        <tests.logger_properties />
+
+        <license.inlineHeader>${inlineHeader_agpl3}</license.inlineHeader>
+    </properties>
+
+    <artifactId>tigase-server</artifactId>
+    <packaging>bundle</packaging>
+    <version>8.1.0-SNAPSHOT</version>
+
+    <name>Tigase XMPP Server</name>
+    <description>The instant messaging server</description>
+
+    <issueManagement>
+        <system>Redmine</system>
+        <url>https://projects.tigase.org/projects/tigase-server</url>
+    </issueManagement>
+
+    <inceptionYear>2004</inceptionYear>
+
+    <developers>
+        <developer>
+            <id>kobit</id>
+            <name>Artur Hefczyc</name>
+            <email>kobit@tigase.org</email>
+            <url>http://www.tigase.org/</url>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>GNU Affero General Public License GPLv3</name>
+            <url>http://www.gnu.org/licenses/agpl.txt</url>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:${scm_repo_base}/tigase-server.git</connection>
+        <developerConnection>scm:git:${scm_repo_base}/tigase-server.git</developerConnection>
+        <url>https://tigase.tech/projects/tigase-server/repository</url>
+      <tag>HEAD</tag>
+  </scm>
+
+    <profiles>
+        <profile>
+            <id>osgi</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <packaging.type>bundle</packaging.type>
+                <maven.javadoc.skip>true</maven.javadoc.skip>
+            </properties>
+        </profile>
+        <profile>
+            <id>jar</id>
+            <properties>
+                <packaging.type>jar</packaging.type>
+                <maven.javadoc.skip>true</maven.javadoc.skip>
+            </properties>
+        </profile>
+        <profile>
+            <id>dist</id>
+            <properties>
+                <packaging.type>bundle</packaging.type>
+                <maven.javadoc.skip>false</maven.javadoc.skip>
+                <tests.excludeGroups />
+
+                <guide_name>Tigase_Server</guide_name>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.asciidoctor</groupId>
+                        <artifactId>asciidoctor-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>output-html</id>
+                                <phase>${documentation_phases.html}</phase>
+                                <configuration>
+                                    <sourceDirectory>./src/main/asciidoc/admin</sourceDirectory>
+                                    <outputDirectory>${guide_path}_-_Admin/html</outputDirectory>
+                                    <backend>html5</backend>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>output-html-dev</id>
+                                <phase>${documentation_phases.html}</phase>
+                                <goals>
+                                    <goal>process-asciidoc</goal>
+                                </goals>
+                                <configuration>
+                                    <sourceDirectory>./src/main/asciidoc/devguide</sourceDirectory>
+                                    <outputDirectory>${guide_path}_-_Developer/html</outputDirectory>
+                                    <backend>html5</backend>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>output-docbook</id>
+                                <phase>${documentation_phases.docbook}</phase>
+                                <configuration>
+                                    <sourceDirectory>./src/main/asciidoc/admin</sourceDirectory>
+                                    <outputDirectory>${project.build.directory}/docbook-admin/</outputDirectory>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>output-docbook-dev</id>
+                                <phase>${documentation_phases.docbook}</phase>
+                                <goals>
+                                    <goal>process-asciidoc</goal>
+                                </goals>
+                                <configuration>
+                                    <sourceDirectory>./src/main/asciidoc/devguide</sourceDirectory>
+                                    <outputDirectory>${project.build.directory}/docbook-devguide/</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>com.agilejava.docbkx</groupId>
+                        <artifactId>docbkx-maven-plugin</artifactId>
+                        <executions>
+                            <!--admin guide-->
+                            <execution>
+                                <id>generate-webhelp</id>
+                                <phase>${documentation_phases.webhelp}</phase>
+                                <configuration>
+                                    <targetDirectory>${guide_path}_-_Admin/webhelp/</targetDirectory>
+                                    <sourceDirectory>${project.build.directory}/docbook-admin/</sourceDirectory>
+                                    <postProcess>
+                                        <copy todir="${guide_path}_-_Admin/webhelp/css">
+                                            <fileset dir="src/main/asciidoc/css" />
+                                        </copy>
+                                        <copy todir="${guide_path}_-_Admin/webhelp/images">
+                                            <fileset dir="src/main/asciidoc/admin/images" />
+                                        </copy>
+                                    </postProcess>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>generate-pdf</id>
+                                <phase>${documentation_phases.pdf}</phase>
+                                <configuration>
+                                    <targetDirectory>${guide_path}_-_Admin/pdf/</targetDirectory>
+                                    <imgSrcPath>${project.build.directory}/docbook-admin/</imgSrcPath>
+                                    <sourceDirectory>${project.build.directory}/docbook-admin/</sourceDirectory>
+                                    <postProcess>
+                                        <move failonerror="false" file="${guide_path}_-_Admin/pdf/index.pdf" tofile="${guide_path}_-_Admin/pdf/${guide_name}_Guide.pdf" />
+                                    </postProcess>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>generate-html</id>
+                                <phase>${documentation_phases.html_chunked}</phase>
+                                <configuration>
+                                    <targetDirectory>${guide_path}_-_Admin/html_chunk/</targetDirectory>
+                                    <sourceDirectory>${project.build.directory}/docbook-admin/</sourceDirectory>
+                                    <postProcess>
+                                        <copy todir="${guide_path}_-_Admin/html_chunk/css">
+                                            <fileset dir="src/main/asciidoc/css" />
+                                        </copy>
+                                        <copy todir="${guide_path}_-_Admin/html_chunk/images">
+                                            <fileset dir="src/main/asciidoc/admin/images" />
+                                        </copy>
+                                    </postProcess>
+                                </configuration>
+                            </execution>
+                            <!--dev guide-->
+                            <execution>
+                                <id>generate-webhelp-devguide</id>
+                                <phase>${documentation_phases.webhelp}</phase>
+                                <goals>
+                                    <goal>generate-webhelp</goal>
+                                </goals>
+                                <configuration>
+                                    <targetDirectory>${guide_path}_-_Developer/webhelp/</targetDirectory>
+                                    <sourceDirectory>${project.build.directory}/docbook-devguide/</sourceDirectory>
+                                    <postProcess>
+                                        <copy todir="${guide_path}_-_Developer/webhelp/css">
+                                            <fileset dir="src/main/asciidoc/css" />
+                                        </copy>
+                                        <copy todir="${guide_path}_-_Developer/webhelp/images">
+                                            <fileset dir="src/main/asciidoc/devguide/images" />
+                                        </copy>
+                                    </postProcess>
+
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>generate-pdf-devguide</id>
+                                <phase>${documentation_phases.pdf}</phase>
+                                <goals>
+                                    <goal>generate-pdf</goal>
+                                </goals>
+                                <configuration>
+                                    <targetDirectory>${guide_path}_-_Developer/pdf/</targetDirectory>
+                                    <imgSrcPath>${project.build.directory}/docbook-devguide/</imgSrcPath>
+                                    <ignoreImageScaling>true</ignoreImageScaling>
+                                    <fopLogLevel>OFF</fopLogLevel>
+                                    <sourceDirectory>${project.build.directory}/docbook-devguide/</sourceDirectory>
+                                    <postProcess>
+                                        <move failonerror="false" file="${guide_path}_-_Developer/pdf/index.pdf" tofile="${guide_path}_-_Developer/pdf/${guide_name}_Guide.pdf" />
+                                    </postProcess>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>generate-html-devguide</id>
+                                <phase>${documentation_phases.html_chunked}</phase>
+                                <goals>
+                                    <goal>generate-html</goal>
+                                </goals>
+                                <configuration>
+                                    <chunkedOutput>true</chunkedOutput>
+                                    <sourceDirectory>${project.build.directory}/docbook-devguide/</sourceDirectory>
+                                    <targetDirectory>${guide_path}_-_Developer/html_chunk/</targetDirectory>
+                                    <targetsFilename>true</targetsFilename>
+                                    <useIdAsFilename>true</useIdAsFilename>
+                                    <cssDecoration>true</cssDecoration>
+                                    <annotationCss>true</annotationCss>
+                                    <htmlStylesheet>css/docbook-xsl.css</htmlStylesheet>
+                                    <postProcess>
+                                        <copy todir="${guide_path}_-_Developer/html_chunk/css">
+                                            <fileset dir="src/main/asciidoc/css" />
+                                        </copy>
+                                        <copy todir="${guide_path}_-_Developer/html_chunk/images">
+                                            <fileset dir="src/main/asciidoc/devguide/images" />
+                                        </copy>
+                                    </postProcess>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+        <plugins>
+
+
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>resources</id>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <instructions combine.inherited="append">
+                        <Bundle-Activator>tigase.osgi.Activator</Bundle-Activator>
+                        <Implementation-Version>${project.version}-b${gitVersion}/${buildNumber}
+                        </Implementation-Version>
+                        <Export-Package>
+                            tigase.auth.*;version=${project.version},tigase.cluster.*;version=${project.version},tigase.component.*;version=${project.version},tigase.conf.*;version=${project.version},tigase.db.*;version=${project.version},tigase.disco.*;version=${project.version},tigase.disteventbus.*;version=${project.version},tigase.eventbus.*;version=${project.version},tigase.io.*;version=${project.version},tigase.kernel.*;version=${project.version},tigase.map.*;version=${project.version},tigase.monitor.*;version=${project.version},tigase.net.*;version=${project.version},tigase.osgi.*;version=${project.version},tigase.server.*;version=${project.version},tigase.stats.*;version=${project.version},tigase.sys.*;version=${project.version},tigase.util.common.*;version=${project.version},tigase.util.historyCache.*;version=${project.version},tigase.util.log.*;version=${project.version},tigase.util.processing.*;version=${project.version},tigase.util.reflection.*;version=${project.version},tigase.util.routing.*;version=${project.version},tigase.util.setup.*;version=${project.version},tigase.util.updater.*;version=${project.version},tigase.util.workqueue.*;version=${project.version},tigase.vhosts.*;version=${project.version},!tigase.xmpp.jid,!tigase.xmpp.rsm,tigase.xmpp.*;version=${project.version}
+                        </Export-Package>
+                        <Import-Package>!junit.*,!sun.*,!com.sun.*,*</Import-Package>
+                        <DynamicImport-Package>*</DynamicImport-Package>
+                        <Embed-Dependency>
+                            *;scope=compile|runtime;artifactId=!junit|org.osgi.core|slf4j-api|tigase-xmltools|tigase-utils
+                        </Embed-Dependency>
+                        <Bundle-SymbolicName>${project.artifactId};singleton=true</Bundle-SymbolicName>
+                    </instructions>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <includeDependencySources>true</includeDependencySources>
+                            <dependencySourceIncludes>
+                                <dependencySourceInclude>tigase:*</dependencySourceInclude>
+                            </dependencySourceIncludes>
+
+                            <maxmemory>512m</maxmemory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <dependenciesToScan>
+                        <dependency>tigase:tigase-utils</dependency>
+                    </dependenciesToScan>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jarsigner-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>add-resource</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <resources>
+            <resource>
+                <targetPath>database</targetPath>
+                <directory>src/main/database</directory>
+                <includes>
+                    <include>**/*.sql</include>
+                    <include>**/*.sh</include>
+                    <include>**/*.cmd</include>
+                    <include>**/*.txt</include>
+                </includes>
+            </resource>
+            <resource>
+                <targetPath>templates</targetPath>
+                <directory>src/main/resources/templates</directory>
+                <includes>
+                    <include>**/*.*</include>
+                </includes>
+            </resource>
+        </resources>
+
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>tigase</groupId>
+            <artifactId>tigase-utils</artifactId>
+            <version>4.1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>tigase</groupId>
+            <artifactId>tigase-utils</artifactId>
+            <version>4.1.0-SNAPSHOT</version>
+            <scope>test</scope>
+            <classifier>tests</classifier>
+        </dependency>
+        <dependency>
+            <groupId>tigase</groupId>
+            <artifactId>tigase-xmltools</artifactId>
+            <version>4.1.0-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.osgi.core</artifactId>
+            <version>1.4.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.compendium</artifactId>
+            <version>5.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <version>2.5.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-json</artifactId>
+            <version>2.5.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-jsr223</artifactId>
+            <version>2.5.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-templates</artifactId>
+            <version>2.5.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-xml</artifactId>
+            <version>2.5.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- For JUnit tests to test repository implementations -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.40</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.sourceforge.jtds</groupId>
+            <artifactId>jtds</artifactId>
+            <version>1.2.8</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>9.4.1207</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.derby</groupId>
+            <artifactId>derby</artifactId>
+            <version>10.12.1.1</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>tigase</id>
+            <url>http://maven-repo.tigase.org/repository/tigase</url>
+        </repository>
+    </repositories>
+</project>
+

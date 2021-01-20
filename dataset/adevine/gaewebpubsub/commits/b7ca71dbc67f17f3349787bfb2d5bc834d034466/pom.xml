@@ -1,0 +1,235 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <!-- The Basics -->
+    <groupId>org.gaewebpubsub</groupId>
+    <artifactId>gaewebpubsub</artifactId>
+    <packaging>war</packaging>
+    <version>1.0-SNAPSHOT</version>
+    <name>GAE Web Pub Sub</name>
+    <description>
+        GAE Web Pub Sub is a publish-subscribe framework that runs on Google App Engine. It can
+        be deployed as is to App Engine, with no changes, to give you a publish-subscribe topic
+        server that javascript clients can connect to.
+    </description>
+    <url>http://gaewebpubsub.appspot.org</url>
+    <inceptionYear>2012</inceptionYear>
+    <developers>
+        <developer>
+            <id>adevine</id>
+            <name>Alex Devine</name>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+        </developer>
+    </developers>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    
+    <properties>
+        <!--
+           Sets the project's default encoding.
+           http://docs.codehaus.org/display/MAVENUSER/POM+Element+for+Source+File+Encoding
+        -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- This is just for "eclipse:eclipse" goal to always attempt downloading sources -->
+        <downloadSources>true</downloadSources>
+
+        <!--
+           Specify AppEngine version for your project. It should match SDK
+           version pointed to by ${gae.home} property (Typically, one used by
+           your Eclipse plug-in)
+         -->
+        <gae.version>1.6.4</gae.version>
+
+        <!-- GAE home points to directory where GAE SDK is unpacked in local repository -->
+        <gae.home>${settings.localRepository}/com/google/appengine/appengine-java-sdk/${gae.version}/appengine-java-sdk-${gae.version}</gae.home>
+        
+        <!-- The version of the net.kindleit GAE plugin to use -->
+        <gae.plugin.version>0.9.2</gae.plugin.version>
+
+        <!-- Upload to http://test.latest.<applicationName>.appspot.com by default -->
+        <gae.application.version>test</gae.application.version>
+
+        <!-- Note this datanucleus version should be in synce with the version that the gae runtime uses -->
+        <datanucleus.version>1.1.5</datanucleus.version>
+    </properties>
+
+    <dependencies>
+        <!-- Google App Engine meta-package -->
+        <dependency>
+            <groupId>net.kindleit</groupId>
+            <artifactId>gae-runtime</artifactId>
+            <version>${gae.version}</version>
+            <type>pom</type>
+        </dependency>
+        
+        <!-- Datanucleus is used by appengine datastore -->
+        <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-core</artifactId>
+            <version>${datanucleus.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        
+        <!-- JTA for appengine datastore -->
+        <!--
+        <dependency>
+            <groupId>javax.transaction</groupId>
+            <artifactId>jta</artifactId>
+            <version>1.1</version>
+        </dependency>
+        -->
+
+        <!-- JDO if we use this for datastore -->
+        <!--
+        <dependency>
+            <groupId>javax.jdo</groupId>
+            <artifactId>jdo2-api</artifactId>
+            <version>2.3-eb</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.transaction</groupId>
+                    <artifactId>transaction-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        -->
+
+        <!-- for compile only, your container should have this -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!--
+           GAE libraries for local testing as described here:
+           http://code.google.com/appengine/docs/java/howto/unittesting.html
+         -->
+        <dependency>
+          <groupId>com.google.appengine</groupId>
+          <artifactId>appengine-api-labs</artifactId>
+          <version>${gae.version}</version>
+          <scope>test</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>com.google.appengine</groupId>
+          <artifactId>appengine-api-stubs</artifactId>
+          <version>${gae.version}</version>
+          <scope>test</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>com.google.appengine</groupId>
+          <artifactId>appengine-testing</artifactId>
+          <version>${gae.version}</version>
+          <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+            
+            <!-- Tell maven to pull in appengine-web.xml when building the war -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <webResources>
+                        <resource>
+                            <directory>src/main/webapp</directory>
+                            <filtering>true</filtering>
+                            <includes>
+                                <include>**/appengine-web.xml</include>
+                            </includes>
+                        </resource>
+                    </webResources>
+                </configuration>
+            </plugin>
+            
+            <!--
+               The actual maven-gae-plugin. Type "mvn gae:run" to run project, "mvn
+               gae:deploy" to upload to GAE.
+             -->
+            <plugin>
+                <groupId>net.kindleit</groupId>
+                <artifactId>maven-gae-plugin</artifactId>
+                <version>${gae.plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>net.kindleit</groupId>
+                        <artifactId>gae-runtime</artifactId>
+                        <version>${gae.version}</version>
+                        <type>pom</type>
+                    </dependency>
+                </dependencies>
+            </plugin>    
+            
+            <!--
+               Upload application to the appspot automatically, during
+               release:perform
+             -->
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <goals>gae:deploy</goals>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    
+    <profiles>
+        <!--
+           We can configure our integration server to activate this profile and
+           perform gae:deploy, thus uploading latest snapshot to the
+           http://1.latest.<applicationName>.appspot.com automatically
+         -->
+        <profile>
+            <id>integration-build</id>
+            <properties>
+                <gae.application.version>stage</gae.application.version>
+            </properties>
+        </profile>
+
+        <!--
+           This profile will activate automatically during release and upload
+           application to the http://2.latest.<applicationName>.appspot.com (We
+           might want to set the 2nd version as our applications Default version
+           to be accessible at http://<applicationName>.appspot.com)
+         -->
+        <profile>
+            <id>release-build</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+
+            <properties>
+                <!-- During release, set application version in appengine-web.xml to 2 -->
+                <gae.application.version>release</gae.application.version>
+            </properties>
+        </profile>
+    </profiles>
+</project>

@@ -1,0 +1,240 @@
+<!--
+
+    This file is part of FlexibleLogin
+
+    The MIT License (MIT)
+
+    Copyright (c) 2015-2018 contributors
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.github.games647</groupId>
+    <artifactId>flexiblelogin</artifactId>
+
+    <packaging>jar</packaging>
+
+    <name>FlexibleLogin</name>
+    <version>0.19-SNAPSHOT</version>
+    <description>Second Auth plugin for Sponge Minecraft servers</description>
+    <url>https://github.com/games647/FlexibleLogin</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+
+        <junit.jupiter.version>5.5.2</junit.jupiter.version>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.1</version>
+                <configuration>
+                    <filters>
+                        <filter>
+                            <!-- Exclude jar signature files -->
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+
+                    <relocations>
+                        <!--Do not relocate Java Mail, because some files in Meta-INF depend on the correct path-->
+                        <relocation>
+                            <pattern>at.favre.lib</pattern>
+                            <shadedPattern>flexiblelogin.bcrypt</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>com.warrenstrange.googleauth</pattern>
+                            <shadedPattern>flexiblelogin.googleauth</shadedPattern>
+                        </relocation>
+
+                        <!--Relocate these packages, because the LaunchWrapper in SpongeVanilla ignores all classes
+                        in a sun.* package-->
+                        <relocation>
+                            <pattern>com.sun.mail</pattern>
+                            <shadedPattern>flexiblelogin.mail</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>com.sun.activation</pattern>
+                            <shadedPattern>flexiblelogin.activation</shadedPattern>
+                        </relocation>
+                    </relocations>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>3.0</version>
+                <configuration>
+                    <header>header.txt</header>
+                    <excludes>
+                        <exclude>LICENSE</exclude>
+                        <exclude>src/test/resources/**</exclude>
+                        <exclude>src/main/resources/**</exclude>
+                    </excludes>
+                    <mapping>
+                        <java>SLASHSTAR_STYLE</java>
+                    </mapping>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>templating-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <id>filter-src</id>
+                        <goals>
+                            <goal>filter-sources</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.0</version>
+            </plugin>
+        </plugins>
+    </build>
+
+    <repositories>
+        <!--Sponge-API-->
+        <repository>
+            <id>sponge-repo</id>
+            <url>https://repo.spongepowered.org/maven</url>
+        </repository>
+
+        <!--GriefPrevention-->
+        <repository>
+            <id>forge-repo</id>
+            <url>https://files.minecraftforge.net/maven</url>
+        </repository>
+
+        <!--Google auth-->
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <!--Server API-->
+        <dependency>
+            <groupId>org.spongepowered</groupId>
+            <artifactId>spongeapi</artifactId>
+            <version>7.1.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!--Sponge plugin that ignores our cancelled events and we force to cancel ClaimEvent explicitly-->
+        <dependency>
+            <groupId>me.ryanhamshire</groupId>
+            <artifactId>griefprevention</artifactId>
+            <version>1.10.2-4.0.1.535</version>
+            <!-- We only depend on the API -->
+            <classifier>api</classifier>
+            <scope>provided</scope>
+        </dependency>
+
+        <!--BCrypt hashing in java-->
+        <dependency>
+            <groupId>at.favre.lib</groupId>
+            <artifactId>bcrypt</artifactId>
+            <version>0.9.0</version>
+        </dependency>
+
+        <!--2FA code generation and verification-->
+        <dependency>
+            <groupId>com.github.games647</groupId>
+            <artifactId>googleauth</artifactId>
+            <version>1.2.0-SMALL</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.httpcomponents</groupId>
+                    <artifactId>httpclient</artifactId>
+                </exclusion>
+                <!--We use Java 8 Base64 so this works without commons codec-->
+                <exclusion>
+                    <groupId>commons-codec</groupId>
+                    <artifactId>commons-codec</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Java Email API -->
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+
+        <!--JUnit 5-->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

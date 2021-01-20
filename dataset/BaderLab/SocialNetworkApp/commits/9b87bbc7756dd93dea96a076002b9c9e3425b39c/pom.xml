@@ -1,0 +1,346 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<properties>
+		<bundle.symbolicName>SocialNetwork</bundle.symbolicName>
+		<bundle.namespace>org.baderlab.csapps.socialnetwork</bundle.namespace>
+		<cytoscape.api.version>3.2.0</cytoscape.api.version>
+
+		<maven-bundle-plugin.version>2.3.4</maven-bundle-plugin.version>
+		<osgi.api.version>4.2.0</osgi.api.version>
+	</properties>
+
+
+	<groupId>org.baderlab.csapps.socialnetwork</groupId>
+	<artifactId>social-network-app</artifactId>
+	<name>${bundle.symbolicName}</name>
+
+	<repositories>
+		<repository>
+			<id>cytoscape_snapshots</id>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<name>Cytoscape Snapshots</name>
+			<url>http://code.cytoscape.org/nexus/content/repositories/snapshots/</url>
+		</repository>
+		<repository>
+			<id>cytoscape_releases</id>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<name>Cytoscape Releases</name>
+			<url>http://code.cytoscape.org/nexus/content/repositories/releases/</url>
+		</repository>
+	</repositories>
+
+	<version>1.0</version>
+	<build>
+		<finalName>${project.artifactId}-${project.version}-r${git.commit.id.abbrev}_${buildNumber}_${git.branch}</finalName>
+	
+		<plugins>
+			<plugin>
+				<inherited>true</inherited>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.0</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+					<optimize>true</optimize>
+					<showWarnings>true</showWarnings>
+					<showDeprecation>true</showDeprecation>
+					<compilerArguments>
+						<Xmaxwarns>10000</Xmaxwarns>
+						<Xmaxerrs>10000</Xmaxerrs>
+					</compilerArguments>
+				</configuration>
+			</plugin>
+			<!-- make sure we set the encoding for copying the resources -->
+			<plugin>
+        			<groupId>org.apache.maven.plugins</groupId>
+        			<artifactId>maven-resources-plugin</artifactId>
+        			<version>2.6</version>
+        			<configuration>
+   <!--       			<encoding>UTF-8</encoding>
+        -->  			<nonFilteredFileExtensions>
+            				<nonFilteredFileExtension>sn</nonFilteredFileExtension>
+          			</nonFilteredFileExtensions>
+        			</configuration>
+      		</plugin>
+			
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>${maven-bundle-plugin.version}</version>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
+						<Bundle-Version>${project.version}</Bundle-Version>
+						<Private-Package>${bundle.namespace}.*</Private-Package>
+						<Bundle-Activator>${bundle.namespace}.CyActivator</Bundle-Activator>
+						<Export-Package>!${bundle.namespace}.*;version="${project.version}"</Export-Package>
+						<Embed-Dependency>*;scope=compile|runtime;inline=false;artifactId=!junit|swing-app-api|swing-application-api|layout-api|org.osgi.core|session-api|service-api|work-api|application-api|group-api|swing-util-api</Embed-Dependency>
+						<Import-Package>*;resolution:=optional</Import-Package>
+					</instructions>
+				</configuration>
+			</plugin>
+			<plugin>
+        				<groupId>org.codehaus.mojo</groupId>
+        				<artifactId>buildnumber-maven-plugin</artifactId>
+        				<version>1.3</version>
+        				<executions>
+          				<execution>
+            					<phase>validate</phase>
+            					<goals>
+              					<goal>create</goal>
+            					</goals>
+          				</execution>
+        				</executions>
+        				<configuration>
+          				<doCheck>true</doCheck>
+          				<doUpdate>false</doUpdate>
+          				<format>{0,number}</format>
+          				<items>
+            					<item>buildNumber</item>
+          				</items>
+        				</configuration>
+      			  		</plugin>
+      			  		<plugin>
+        				<groupId>org.apache.maven.plugins</groupId>
+        				<artifactId>maven-compiler-plugin</artifactId>
+        				<version>3.0</version>
+        				<configuration>
+          				<source>1.5</source>
+          				<target>1.5</target>
+        				</configuration>
+      			  </plugin> 
+      			    <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>2.1.5</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>revision</goal>
+                         </goals>
+                    </execution>
+                </executions>
+
+                <configuration>
+                    <!-- that's the default value, you don't have to set it -->
+                    <prefix>git</prefix>
+
+                    <!-- that's the default value -->
+                    <dateFormat>dd.MM.yyyy '@' HH:mm:ss z</dateFormat>
+
+                    <!-- true is default here, it prints some more information during the build -->
+                    <verbose>false</verbose>
+
+                    <!--
+                        If you'd like to tell the plugin where your .git directory is,
+                        use this setting, otherwise we'll perform a search trying to
+                        figure out the right directory. It's better to add it explicite IMHO.
+                    -->
+                    <dotGitDirectory>${project.basedir}/../.git</dotGitDirectory>
+
+                    <!-- ALTERNATE SETUP - GENERATE FILE -->                    
+                    <!--
+                        this is true by default; You may want to set this to false, if the plugin should run inside a
+                        <packaging>pom</packaging> project. Most projects won't need to override this property.
+                     -->
+                    <skipPoms>true</skipPoms>
+
+                    <!-- this is false by default, forces the plugin to generate the git.properties file -->
+                    <generateGitPropertiesFile>false</generateGitPropertiesFile>
+
+                    <!-- The path for the to be generated properties file, it's relative to ${project.basedir} -->
+                    <generateGitPropertiesFilename>src/main/resources/revision.txt</generateGitPropertiesFilename>
+
+                    <!-- true by default, controls whether the plugin will fail when no .git directory is found, when set to false the plugin will just skip execution -->
+                    <!-- @since 2.0.4 -->
+                    <failOnNoGitDirectory>false</failOnNoGitDirectory>
+
+                    <!-- @since 2.1.0 -->
+                    <!-- 
+                        read up about git-describe on the in man, or it's homepage - it's a really powerful versioning helper 
+                        and the recommended way to use git-commit-id-plugin. The configuration bellow is optional, 
+                        by default describe will run "just like git-describe on the command line", even though it's a JGit reimplementation.
+                    -->
+                    <gitDescribe>
+
+                        <!-- don't generate the describe property -->
+                        <skip>false</skip>
+
+                        <!-- 
+                            if no tag was found "near" this commit, just print the commit's id instead, 
+                            helpful when you always expect this field to be not-empty 
+                        -->
+                        <always>false</always>
+                        <!--
+                             how many chars should be displayed as the commit object id? 
+                             7 is git's default, 
+                             0 has a special meaning (see end of this README.md), 
+                             and 40 is the maximum value here 
+                        -->
+                        <abbrev>7</abbrev>
+
+                        <!-- when the build is triggered while the repo is in "dirty state", append this suffix -->
+                        <dirty>-dirty</dirty>
+
+                        <!-- 
+                             always print using the "tag-commits_from_tag-g_commit_id-maybe_dirty" format, even if "on" a tag. 
+                             The distance will always be 0 if you're "on" the tag. 
+                        -->
+                        <forceLongFormat>false</forceLongFormat>
+                    </gitDescribe>
+                </configuration>
+
+            </plugin>     			  	
+		</plugins>
+    		 <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.props</include>
+                    <include>**/*.xml</include>
+                    <include>**/*.txt</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>**/*.gif</include>                
+                    <include>**/*.png</include>
+                </includes>
+            </resource>
+        </resources> 
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>application-api</artifactId>
+			<version>${cytoscape.api.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>work-api</artifactId>
+			<version>${cytoscape.api.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>service-api</artifactId>
+			<version>${cytoscape.api.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>session-api</artifactId>
+			<version>${cytoscape.api.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.core</artifactId>
+			<version>${osgi.api.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>layout-api</artifactId>
+			<version>${cytoscape.api.version}</version>
+			<type>bundle</type>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>swing-application-api</artifactId>
+			<version>${cytoscape.api.version}</version>
+			<type>bundle</type>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>swing-app-api</artifactId>
+			<version>${cytoscape.api.version}</version>
+		</dependency>
+		<dependency>
+    		<groupId>org.cytoscape</groupId>
+    		<artifactId>swing-util-api</artifactId>
+    		<version>${cytoscape.api.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-math</artifactId>
+			<version>2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>3.8</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>3.8</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml-schemas</artifactId>
+			<version>3.8</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlbeans</groupId>
+			<artifactId>xmlbeans</artifactId>
+			<version>2.6.0</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>xerces</groupId>
+			<artifactId>xercesImpl</artifactId>
+			<version>2.11.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>group-api</artifactId>
+			<version>${cytoscape.api.version}</version>
+			<type>bundle</type>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>swing-util-api</artifactId>
+			<version>${cytoscape.api.version}</version>
+			<type>bundle</type>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.9.5</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+	
+	<packaging>bundle</packaging>
+	
+	<scm>
+		<connection>scm:git:git://github.com/BaderLab/SocialNetworkApp.git</connection>
+		<url>https://github.com/BaderLab/SocialNetworkApp</url>
+		<developerConnection>scm:git:git@github.com:BaderLab/SocialNetworkApp.git</developerConnection>
+	</scm>	
+</project>

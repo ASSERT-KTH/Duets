@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.1.8.RELEASE</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.cicd</groupId>
+	<artifactId>cicd-applied-to-spring-boot-java-app</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>cicd-applied-to-spring-boot-java-app</name>
+	<description>Implementing CI/CD on Spring Boot Java App</description>
+
+	<properties>
+		<java.version>1.8</java.version>
+		
+      	<!-- solving error : Invalid or corrupt jarfile /app.jar -->
+      
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		
+		<!-- property useful for  spotify's dockerfile-maven-plugin -->
+		
+		<!-- Instead of "fanjups", please add your Docker Hub username -->
+		
+		<docker.image.prefix>fanjups</docker.image.prefix>
+		
+		<!-- how to skip docker in maven from my computer -->
+		
+		<maven.deploy.skip>true</maven.deploy.skip>
+		
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			
+			<!-- spotify's dockerfile-maven-plugin -->
+			
+			<plugin>
+	            <groupId>com.spotify</groupId>
+	            <artifactId>dockerfile-maven-plugin</artifactId>
+	            <version>1.4.9</version>
+	            <executions>
+					<execution>
+						<id>default</id>
+						<phase>install</phase>
+						<goals>
+							<goal>build</goal>
+							<goal>push</goal>
+						</goals>
+					</execution>
+				</executions>
+	            <configuration>
+	                <repository>${docker.image.prefix}/${project.artifactId}</repository>
+			
+	                <serverId>index.docker.io</serverId>
+	      		<registryUrl>https://index.docker.io:443/v1/</registryUrl>
+	            </configuration>
+        	</plugin>
+        	
+        	<!-- maven-dependency-plugin useful for creating docker image -->
+        	
+        	<plugin>
+		     
+			    <groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-dependency-plugin</artifactId>
+			    <executions>
+			        <execution>
+			            <id>unpack</id>
+			            <phase>package</phase>
+			            <goals>
+			                <goal>unpack</goal>
+			            </goals>
+			            <configuration>
+			                <artifactItems>
+			                    <artifactItem>
+			                        <groupId>${project.groupId}</groupId>
+			                        <artifactId>${project.artifactId}</artifactId>
+			                        <version>${project.version}</version>
+			                    </artifactItem>
+			                </artifactItems>
+			            </configuration>
+			        </execution>
+				
+	 
+			    </executions>
+		    
+       		</plugin>
+        	
+		</plugins>
+	</build>
+
+</project>

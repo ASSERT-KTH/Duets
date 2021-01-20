@@ -1,0 +1,99 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>cn.org.taodong</groupId>
+  <artifactId>jettyExam</artifactId>
+  <packaging>war</packaging>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>jettyExam Maven Webapp</name>
+  <url>http://maven.apache.org</url>
+  <dependencies>
+    <dependency>
+    	<groupId>org.eclipse.jetty</groupId>
+    	<artifactId>jetty-server</artifactId>
+    	<version>${jettyVersion}</version>
+    	<scope>provided</scope>
+    </dependency>
+    <dependency>
+    	<groupId>org.eclipse.jetty</groupId>
+    	<artifactId>jetty-webapp</artifactId>
+    	<version>${jettyVersion}</version>
+    	<scope>provided</scope>
+    </dependency>
+  </dependencies>
+  <build>
+    <finalName>jettyExam</finalName>
+    <plugins>
+    	<plugin>
+    		<groupId>org.apache.maven.plugins</groupId>
+    		<artifactId>maven-war-plugin</artifactId>
+    		<version>2.3</version>
+    		<configuration>
+    			<archive>
+    				<manifest>
+    					<mainClass>Runner</mainClass>
+    					<!--
+    					<addClasspath>true</addClasspath>
+    					-->
+    				</manifest>
+    			</archive>
+    		</configuration>
+    	</plugin>
+
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-antrun-plugin</artifactId>
+			<version>1.7</version>
+			<executions>
+				<execution>
+					<id>main-class-placement</id>
+					<phase>prepare-package</phase>
+					<configuration>
+						<target>
+							<move todir="${project.build.directory}/${project.artifactId}/">
+								<fileset dir="${project.build.directory}/classes/">
+									<include name="Runner.class" />
+								</fileset>
+							</move>
+						</target>
+					</configuration>
+					<goals>
+						<goal>run</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin>
+
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-dependency-plugin</artifactId>
+			<version>2.5.1</version>
+			<executions>
+				<execution>
+					<id>jetty-classpath</id>
+					<phase>prepare-package</phase>
+					<goals>
+						<goal>unpack-dependencies</goal>
+					</goals>
+					<configuration>
+						<includeGroupIds>org.eclipse.jetty, javax.servlet</includeGroupIds>
+						<excludeArtifactIds>jsp-jspapi, jstl</excludeArtifactIds>
+						<includeScope>provided</includeScope>
+						<!-- remove some files in order to decrease size -->
+						<excludes>*, about_files/*, META-INF/*</excludes>
+						<outputDirectory>
+							${project.build.directory}/${project.artifactId}
+						</outputDirectory>
+					</configuration>
+				</execution>
+			</executions>
+		</plugin>
+    </plugins>
+  </build>
+  <properties>
+  	<!-- 
+  	<jettyVersion>7.3.0.v20110203</jettyVersion>
+  	-->
+  	<jettyVersion>8.1.7.v20120910</jettyVersion>
+  </properties>
+</project>

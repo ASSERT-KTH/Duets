@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<properties>
+		<project.name>AutoAnnotate</project.name>
+		<bundle.symbolicName>org.baderlab.autoannotate</bundle.symbolicName>
+		<bundle.namespace>org.baderlab.autoannotate</bundle.namespace>
+		<cytoscape.version>3.3.0</cytoscape.version>
+	</properties>
+
+	<name>AutoAnnotate</name>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.baderlab</groupId>
+	<artifactId>autoannotate</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<packaging>bundle</packaging>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<executions>
+					<execution>
+						<id>default-testCompile</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>default-compile</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<optimize>true</optimize>
+					<showWarnings>true</showWarnings>
+					<showDeprecation>true</showDeprecation>
+					<compilerArguments>
+						<Xmaxwarns>10000</Xmaxwarns>
+						<Xmaxerrs>10000</Xmaxerrs>
+					</compilerArguments>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.7.1</version>
+				<configuration>
+					<redirectTestOutputToFile>true</redirectTestOutputToFile>
+				</configuration>
+			</plugin>
+			<!-- Generates the OSGi metadata based on the osgi.bnd file. -->
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<version>2.4.0</version>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Bundle-SymbolicName>${bundle.symbolicName}</Bundle-SymbolicName>
+						<Bundle-Version>${project.version}</Bundle-Version>
+						<Export-Package>${bundle.namespace}</Export-Package>
+						<Private-Package>${bundle.namespace}.internal.*</Private-Package>
+						<Bundle-Activator>${bundle.namespace}.internal.CyActivator</Bundle-Activator>
+						
+						<Import-Package>!com.google.inject.internal.asm.util,sun.misc;resolution:=optional,*</Import-Package>
+						<Embed-Dependency>guice,peaberry,javax.inject,aopalliance,guice-multibindings,guava</Embed-Dependency>
+						<Embed-Transitive>true</Embed-Transitive>
+						
+						<Cytoscape-App-Dependencies>WordCloud;3.1.0</Cytoscape-App-Dependencies>
+					</instructions>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
+				<version>2.1.15</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<prefix>git</prefix>
+					<dateFormat>dd.MM.yyyy '@' HH:mm:ss z</dateFormat>
+					<verbose>false</verbose>
+					<dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
+					<skipPoms>true</skipPoms>
+					<generateGitPropertiesFile>false</generateGitPropertiesFile>
+					<generateGitPropertiesFilename>src/main/resources/revision.txt</generateGitPropertiesFilename>
+					<failOnNoGitDirectory>false</failOnNoGitDirectory>
+					<excludeProperties>
+                    	<excludeProperty>git.commit.message.*</excludeProperty>
+                    </excludeProperties>
+					<gitDescribe>
+						<skip>false</skip>
+						<always>false</always>
+						<abbrev>7</abbrev>
+						<dirty>-dirty</dirty>
+						<forceLongFormat>false</forceLongFormat>
+					</gitDescribe>
+				</configuration>
+			</plugin>
+		</plugins>
+	
+		<resources>
+			<resource>
+				<filtering>true</filtering>
+				<directory>src/main/resources</directory>
+				<includes>
+					<include>**/app.props</include>
+				</includes>
+			</resource>
+			<resource>
+				<filtering>false</filtering>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<exclude>**/app.props</exclude>
+				</excludes>
+			</resource>
+		</resources>
+	        
+	</build>
+
+	<!-- Links to the Cytoscape Maven repositories. -->
+	<repositories>
+		<repository>
+			<id>cytoscape_snapshots</id>
+			<snapshots>
+			</snapshots>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<name>Cytoscape Snapshots</name>
+			<url>http://code.cytoscape.org/nexus/content/repositories/snapshots/</url>
+		</repository>
+		<repository>
+			<id>cytoscape_releases</id>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<releases>
+			</releases>
+			<name>Cytoscape Releases</name>
+			<url>http://code.cytoscape.org/nexus/content/repositories/releases/</url>
+		</repository>
+	</repositories>
+
+	<dependencies>
+	
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.core</artifactId>
+			<version>4.2.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ops4j.pax.logging</groupId>
+			<artifactId>pax-logging-api</artifactId>
+			<version>1.5.2</version>
+			<scope>provided</scope>
+		</dependency>
+		
+		<!-- Cytoscape -->
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>service-api</artifactId>
+			<version>${cytoscape.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>swing-application-api</artifactId>
+			<version>${cytoscape.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>session-api</artifactId>
+			<version>${cytoscape.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>command-executor-api</artifactId>
+			<version>${cytoscape.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>swing-util-api</artifactId>
+			<version>${cytoscape.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>layout-api</artifactId>
+			<version>${cytoscape.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.cytoscape</groupId>
+			<artifactId>group-api</artifactId>
+			<version>${cytoscape.version}</version>
+		</dependency>
+
+ 
+		<!-- Dependency Injection -->
+		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+			<version>4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.inject.extensions</groupId>
+			<artifactId>guice-multibindings</artifactId>
+			<version>4.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ops4j</groupId>
+			<artifactId>peaberry</artifactId>
+			<version>1.3</version>
+		</dependency>
+		
+		<!-- additional libraries -->
+		<dependency>
+		     <groupId>com.google.guava</groupId>
+		     <artifactId>guava</artifactId>
+	     	<version>18.0</version>
+	   	</dependency>
+	   	
+	   	<!-- Testing -->
+	   	<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.9.5</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jukito</groupId>
+			<artifactId>jukito</artifactId>
+			<version>1.4</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.cytoscape</groupId>
+		    <artifactId>model-impl</artifactId>
+		    <version>${cytoscape.version}</version>
+		    <type>test-jar</type>
+		    <scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.cytoscape</groupId>
+		    <artifactId>event-api</artifactId>
+		    <version>${cytoscape.version}</version>
+		    <type>test-jar</type>
+		    <scope>test</scope>
+		</dependency>
+		<dependency>
+		    <groupId>org.cytoscape</groupId>
+		    <artifactId>model-impl</artifactId>
+		    <version>${cytoscape.version}</version>
+		    <scope>test</scope>
+		</dependency>
+	   	
+	</dependencies>
+
+</project>

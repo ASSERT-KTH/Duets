@@ -1,0 +1,221 @@
+<?xml version="1.0"?>
+<!-- Licensed to David Pilato (the "Author") under one or more contributor
+license agreements. See the NOTICE file distributed with this work for additional
+information regarding copyright ownership. Author licenses this file to you
+under the Apache License, Version 2.0 (the "License"); you may not use this
+file except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by
+applicable law or agreed to in writing, software distributed under the License
+is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied. See the License for the specific language
+governing permissions and limitations under the License. -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+    <groupId>fr.pilato.elasticsearch.river</groupId>
+	<artifactId>rssriver</artifactId>
+	<packaging>jar</packaging>
+	<version>0.1.0-SNAPSHOT</version>
+	<name>RSS River Plugin for ElasticSearch</name>
+	<url>http://www.pilato.fr/rssriver</url>
+    <description>
+RSS River Plugin offers a simple way to index RSS feeds into Elasticsearch.
+See full documentation on Github: https://github.com/dadoonet/rssriver
+    </description>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <properties>
+		<elasticsearch.version>0.90.0.Beta1</elasticsearch.version>
+		
+		<!-- Some properties for github that you have to define in your settings.xml -->
+		<!-- 
+		<github.global.oauth2token>token</github.global.oauth2token>
+		<github.global.userName>username</github.global.userName>
+		<github.global.password>password</github.global.password>
+		-->
+	</properties>
+
+	<developers>
+		<developer>
+			<id>dadoonet</id>
+			<name>David Pilato</name>
+			<email>david@pilato.fr</email>
+			<url>http://dev.david.pilato.fr/</url>
+			<timezone>+1</timezone>
+		</developer>
+		<developer>
+			<id>managr</id>
+			<name>Marcin Naglik</name>
+			<url>http://managr.github.com</url>
+		</developer>
+	</developers>
+	
+	<scm>
+		<connection>scm:git:git@github.com:dadoonet/rssriver.git</connection>
+		<url>scm:git:git@github.com:dadoonet/rssriver.git</url>
+		<developerConnection>scm:git:git@github.com:dadoonet/rssriver.git</developerConnection>
+	</scm>
+	
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/dadoonet/rssriver/issues/</url>
+	</issueManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>rome</groupId>
+            <artifactId>rome</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>${elasticsearch.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.geonames</groupId>
+            <artifactId>georss-rome</artifactId>
+            <version>0.9.8</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.9</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>2.2.1</version>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-changes-plugin</artifactId>
+				<version>2.8</version>
+
+                <configuration>
+                    <smtpHost>smtp.free.fr</smtpHost>
+                    <smtpPort implementation="java.lang.Integer">25</smtpPort>
+                    <fromDeveloperId>dadoonet</fromDeveloperId>
+                    <toAddresses>
+                        <toAddress implementation="java.lang.String">elasticsearch@googlegroups.com</toAddress>
+                        <toAddress implementation="java.lang.String">elasticsearch-fr@googlegroups.com</toAddress>
+                    </toAddresses>
+                    <template>es-announcement.vm</template>
+                    <templateDirectory>changes</templateDirectory>
+                </configuration>
+			</plugin>
+      		<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.2.1</version>
+			</plugin>
+			<!-- Add/Edit items in META-INF/MANIFEST.MF -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.4</version>
+			</plugin>
+			<!-- Copy dependencies into lib folder -->
+			<!-- To see full classpath use  mvn dependency:build-classpath -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.6</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- Skip Surefire tests -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.13</version>
+				<configuration>
+					<skipTests>true</skipTests>
+					<additionalClasspathElements>
+						<additionalClasspathElement>${project.build.directory}/classes/conf</additionalClasspathElement>
+						<additionalClasspathElement>${project.build.directory}/lib</additionalClasspathElement>
+					</additionalClasspathElements>
+				</configuration>
+			</plugin>
+			<!-- Generate the release zip file (run during package step) -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<appendAssemblyId>false</appendAssemblyId>
+					<outputDirectory>${project.build.directory}/release/</outputDirectory>
+					<descriptors>
+						<descriptor>${basedir}/src/main/assemblies/esplugin.xml</descriptor>
+					</descriptors>
+				</configuration>
+				<executions>
+					<execution>
+						<id>generate-release-plugin</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>	
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.0</version>
+		        <configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+		        </configuration>
+   			</plugin>
+		</plugins>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>**/*.properties</include>
+				</includes>
+			</resource>
+		</resources>
+	</build>
+
+</project>

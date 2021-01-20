@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.springframework.data</groupId>
+	<artifactId>spring-data-hazelcast</artifactId>
+	<version>1.0.0.BUILD-SNAPSHOT</version>
+
+	<name>Spring Data Hazelcast</name>
+  	<description>Spring Data module for Hazelcast repositories.</description>  
+
+	<parent>
+		<groupId>org.springframework.data.build</groupId>
+		<artifactId>spring-data-parent</artifactId>
+		<version>1.6.2.RELEASE</version>
+	</parent>
+
+	<properties>
+		<dist.key>DATAHC</dist.key>
+		<failsafe.and.surefire>2.18.1</failsafe.and.surefire>
+		<hazelcast>3.6-SNAPSHOT</hazelcast>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<springdata.keyvalue>1.0.0.RELEASE</springdata.keyvalue>
+	</properties>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-keyvalue</artifactId>
+			<version>${springdata.keyvalue}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast</artifactId>
+			<version>${hazelcast}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.mysema.querydsl</groupId>
+			<artifactId>querydsl-core</artifactId>
+			<version>${querydsl}</version>
+		</dependency>
+
+		<!-- SCOPE==test -->
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast-client-new</artifactId>
+			<version>${hazelcast}</version>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+
+  			<plugin>
+  				<artifactId>maven-antrun-plugin</artifactId>
+  				<version>1.8</version>
+  				<configuration>
+  					<target>
+	  					<property name="escapeDollar" value="$$"/>
+  						<echo>TODO: Update ${escapeDollar}{project.version}</echo>
+  						<echo>TODO: Remove sonatype-snapshot repository once Hazelcast 3.6 released.</echo>
+  						<echo>TODO  Update template.mf for ${escapeDollar}{hazelcast:[=.=.=,+1.0.0)}</echo>
+  						<echo>TODO: Update checkstyle to enforce</echo>
+  					</target>
+  				</configuration>
+  				<executions>
+  					<execution>
+  						<phase>package</phase>
+  						<goals>
+  							<goal>run</goal>
+  						</goals>
+  					</execution>
+  				</executions>
+  			</plugin>
+
+  			<plugin>
+  				<artifactId>maven-checkstyle-plugin</artifactId>
+  				<version>2.16</version>
+  				<configuration>
+  				    <!--  Checkstyle file copied from https://github.com/hazelcast/hazelcast/tree/master/checkstyle -->
+  					<failOnViolation>false</failOnViolation>
+  					<failsOnError>false</failsOnError>
+      				<configLocation>${project.basedir}/checkstyle/checkstyle.xml</configLocation>
+                    <propertyExpansion>main.basedir=${project.basedir}</propertyExpansion>
+  				</configuration>
+  				<executions>
+  					<execution>
+  						<phase>compile</phase>
+  						<goals>
+  							<goal>check</goal>
+  						</goals>
+  					</execution>
+  				</executions>
+  			</plugin>
+
+  			<plugin>
+  				<artifactId>maven-compiler-plugin</artifactId>
+  				<version>3.3</version>
+  				<configuration>
+  					<source>1.8</source>
+  					<target>1.8</target>
+  				</configuration>
+  			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<version>1.4</version>
+				<executions>
+					<execution>
+						<id>enforce-rules</id>
+						<goals>
+							<goal>enforce</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<rules>
+						<requireJavaVersion>
+							<version>[1.8,1.9)</version>
+						</requireJavaVersion>
+					</rules>
+				</configuration>
+			</plugin>
+			
+            <!--  Run unit "*Test.java" and integration tests "*IT.java" from same module  -->
+            <!-- so can remain single module maven project. Not necessarily ideal.         -->
+            <!--  Also, force default inclusions for Failsafe and Surefire as common parent -->
+            <!-- otherwise overrides.                                                      -->
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${failsafe.and.surefire}</version>
+                <configuration>
+                    <failIfNoTests>true</failIfNoTests>
+                    <includes>
+                        <include>**/IT*.java</include>
+                        <include>**/*IT.java</include>
+                        <include>**/*ITCase.java</include>
+                    </includes>
+                </configuration>
+                <executions>
+                    <execution>
+                    	<id>default-integration-test</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${failsafe.and.surefire}</version>
+                <configuration>
+                	<!-- 
+                    <failIfNoTests>true</failIfNoTests>
+                	 -->
+                    <includes>
+                        <include>**/Test*.java</include>
+                        <include>**/*Test.java</include>
+                        <include>**/*TestCase.java</include>
+                    </includes>
+                </configuration>
+                <executions>
+                    <execution>
+                    	<id>default-test</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>wagon-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.asciidoctor</groupId>
+				<artifactId>asciidoctor-maven-plugin</artifactId>
+			</plugin>
+
+ 			<plugin>
+ 				<groupId>org.codehaus.mojo</groupId>
+ 				<artifactId>findbugs-maven-plugin</artifactId>
+ 				<version>3.0.1</version>
+ 				<configuration>
+ 					<failOnError>true</failOnError>
+ 				</configuration>
+ 				<executions>
+ 					<execution>
+ 						<phase>compile</phase>
+ 						<goals>
+ 							<goal>check</goal>
+ 						</goals>
+ 					</execution>
+ 				</executions>
+ 			</plugin>
+
+		</plugins>
+	</build>
+
+	<!-- For Hazelcast 3.6-SNAPSHOT -->
+	<repositories>
+		<repository>
+			<id>sonatype-snapshots</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<!-- For Spring Bundlor plugin -->
+	<pluginRepositories>
+		<pluginRepository>
+			<id>spring-plugins-release</id>
+			<url>http://repo.spring.io/plugins-release</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+</project>

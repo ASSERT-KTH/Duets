@@ -1,0 +1,238 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.javaruntype</groupId>
+  <artifactId>javaruntype</artifactId>
+  <packaging>jar</packaging>
+  <version>1.4-SNAPSHOT</version>
+  <name>javaruntype</name>
+  <description>javaRuntype is a compact library aimed at offering a runtime representation of the Java type system</description>
+  <url>http://www.javaruntype.org</url>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <organization>
+    <name>The JAVARUNTYPE team</name>
+    <url>http://www.javaruntype.org</url>
+  </organization>
+  
+  <scm>
+    <url>scm:git:git@github.com:javaruntype/javaruntype.git</url>
+    <connection>scm:git:git@github.com:javaruntype/javaruntype.git</connection>
+    <developerConnection>scm:git:git@github.com:javaruntype/javaruntype.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+  
+  <developers>
+    <developer>
+      <id>dfernandez</id>
+      <name>Daniel Fernandez</name>
+      <email>dfernandez AT users.sourceforge.net</email>
+      <roles>
+        <role>Project admin</role>
+      </roles>
+    </developer>
+  </developers>
+  
+  <distributionManagement>
+    <snapshotRepository>
+      <id>sonatype-nexus-snapshots</id>
+      <name>Sonatype Nexus Snapshots</name>
+      <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>sonatype-nexus-snapshots</id>
+      <name>Sonatype Nexus Snapshots</name>
+      <url>http://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+    </repository>
+  </distributionManagement>
+
+  
+  <build>
+    
+    <resources>
+        <resource>
+            <directory>.</directory>
+            <targetPath>META-INF</targetPath>
+            <includes>
+                <include>LICENSE.txt</include>
+                <include>NOTICE.txt</include>
+            </includes>
+        </resource>
+    </resources>
+  
+    <plugins>
+    
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+		<version>2.4</version>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+      
+	  
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+		<version>2.8.1</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <noqualifier>java.lang</noqualifier>
+          <overview>${basedir}/src/main/javadoc/overview.html</overview>
+          <javadocDirectory>${basedir}/src/main/javadoc</javadocDirectory>
+          <reportOutputDirectory>${project.reporting.outputDirectory}/apidocs</reportOutputDirectory>
+        </configuration>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+		<version>2.1.2</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+		<version>1.4</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+       
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.2</version>
+        <configuration>
+          <descriptors>
+            <descriptor>src/assembly/dist.xml</descriptor>
+          </descriptors>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly-deps</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.3</version>
+      </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>3.1</version>
+		<configuration>
+          <reportPlugins>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-project-info-reports-plugin</artifactId>
+              <version>2.2</version>
+              <reports>
+                <report>license</report>
+              </reports>
+            </plugin>
+          </reportPlugins>
+        </configuration>
+      </plugin>
+
+      
+<!--  ************************************************************* -->       
+<!--  UNCOMMENT ONLY FOR GENERATING AND/OR REGENERATING THE PARSER  -->       
+<!--  ************************************************************* -->       
+<!--       
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <configuration>
+              <tasks>
+                <java classname="org.antlr.Tool" classpathref="maven.plugin.classpath" fork="true" dir="src/main/java">
+                  <arg value="org/javaruntype/type/parser/Type.g" />
+                </java>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr</artifactId>
+            <version>3.1.2</version>
+            <scope>provided</scope>
+          </dependency>
+        </dependencies>
+      </plugin>
+-->      
+    </plugins>
+
+  </build>
+
+
+  <dependencies>
+  
+    <dependency>
+      <groupId>org.antlr</groupId>
+      <artifactId>antlr-runtime</artifactId>
+      <version>3.1.2</version>
+      <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.antlr</groupId>
+          <artifactId>stringtemplate</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.5</version>
+      <scope>test</scope>
+    </dependency>
+    
+  </dependencies>
+
+</project>

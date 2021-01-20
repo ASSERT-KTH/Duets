@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	JBoss, Home of Professional Open Source
+	Copyright 2016, Red Hat, Inc. and/or its affiliates, and individual
+	contributors by the @authors tag. See the copyright.txt in the
+	distribution for a full listing of individual contributors.
+
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
+	http://www.apache.org/licenses/LICENSE-2.0
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.redhat.developers.msa</groupId>
+	<artifactId>hola</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>war</packaging>
+	<name>Red Hat MSA: hola</name>
+	<description>Hello microservice using WildFly Swarm</description>
+
+	<url>https://developers.redhat.com/</url>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<distribution>repo</distribution>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+		</license>
+	</licenses>
+
+	<properties>
+		<!-- Explicitly declaring the source encoding eliminates the following
+			message: -->
+		<!-- [WARNING] Using platform encoding (UTF-8 actually) to copy filtered
+			resources, i.e. build is platform dependent! -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<!-- JBoss dependency versions -->
+		<version.wildfly.swarm>2017.2.0</version.wildfly.swarm>
+
+		<!-- DeltaSpike - Used for configuration -->
+		<deltaspike.version>1.6.1</deltaspike.version>
+
+		<!-- other plugin versions -->
+		<version.compiler.plugin>3.1</version.compiler.plugin>
+		<version.surefire.plugin>2.16</version.surefire.plugin>
+		<version.war.plugin>2.5</version.war.plugin>
+
+		<!-- maven-compiler-plugin -->
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<openfeign.version>9.4.0</openfeign.version>
+		<openfeign.opentracing.version>0.0.1</openfeign.opentracing.version>
+		<opentracing.web.servlet.filter>0.0.4</opentracing.web.servlet.filter>
+		<hystrix.version>1.5.1</hystrix.version>
+		<brave.opentracing.version>0.19.2</brave.opentracing.version>
+		<zipkin.reporter.version>0.6.12</zipkin.reporter.version>
+		<swagger.version>1.5.8</swagger.version>
+
+
+		<!-- fabric8 version -->
+		<fabric8.version>2.2.105</fabric8.version>
+		<docker.maven.plugin.version>0.15.8</docker.maven.plugin.version>
+
+		<!-- Docker & Fabric8 Configs -->
+		<docker.from>fabric8/java-jboss-openjdk8-jdk:1.2.1</docker.from>
+		<fabric8.dockerUser>redhatmsa/</fabric8.dockerUser>
+		<docker.image>${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
+		<docker.port.container.jolokia>8778</docker.port.container.jolokia>
+		<docker.port.container.http>8080</docker.port.container.http>
+
+		<!-- Openshift service customization -->
+		<fabric8.service.name>${project.artifactId}</fabric8.service.name>
+		<fabric8.service.port>8080</fabric8.service.port>
+		<fabric8.service.containerPort>8080</fabric8.service.containerPort>
+		<fabric8.service.type>LoadBalancer</fabric8.service.type>
+		<fabric8.label.group>msa</fabric8.label.group>
+		<fabric8.label.hystrix.enabled>true</fabric8.label.hystrix.enabled>
+		<fabric8.iconRef>icons/wildfly</fabric8.iconRef>
+
+		<!-- WildFly Swarm has issues with Jolokia. We have to disable it.
+			See: https://issues.jboss.org/browse/SWARM-204 -->
+		<fabric8.env.AB_OFF>true</fabric8.env.AB_OFF>
+		<fabric8.env.JAVA_OPTIONS>-Xmx512m</fabric8.env.JAVA_OPTIONS>
+
+		<!-- Readiness Probe -->
+		<fabric8.readinessProbe.httpGet.path>/api/health</fabric8.readinessProbe.httpGet.path>
+		<fabric8.readinessProbe.httpGet.port>8080</fabric8.readinessProbe.httpGet.port>
+		<fabric8.readinessProbe.initialDelaySeconds>5</fabric8.readinessProbe.initialDelaySeconds>
+		<fabric8.readinessProbe.timeoutSeconds>30</fabric8.readinessProbe.timeoutSeconds>
+	</properties>
+
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- JBoss distributes a complete set of Java EE 7 APIs including a Bill
+				of Materials (BOM). A BOM specifies the versions of a "stack" (or a collection)
+				of artifacts. We use this here so that we always get the correct versions
+				of artifacts. -->
+			<dependency>
+				<groupId>org.wildfly.swarm</groupId>
+				<artifactId>bom</artifactId>
+				<version>${version.wildfly.swarm}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.deltaspike.distribution</groupId>
+				<artifactId>distributions-bom</artifactId>
+				<version>${deltaspike.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.wildfly.swarm</groupId>
+			<artifactId>jaxrs-jsonp</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.wildfly.swarm</groupId>
+			<artifactId>jaxrs-cdi</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.wildfly.swarm</groupId>
+			<artifactId>cdi</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.wildfly.swarm</groupId>
+			<artifactId>keycloak</artifactId>
+		</dependency>
+
+		<!-- DeltaSpike -->
+		<dependency>
+			<groupId>org.apache.deltaspike.core</groupId>
+			<artifactId>deltaspike-core-api</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.deltaspike.core</groupId>
+			<artifactId>deltaspike-core-impl</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- Feign -->
+		<dependency>
+			<groupId>io.github.openfeign.opentracing</groupId>
+			<artifactId>feign-hystrix-opentracing</artifactId>
+			<version>${openfeign.opentracing.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.github.openfeign</groupId>
+			<artifactId>feign-jackson</artifactId>
+			<version>${openfeign.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.github.openfeign</groupId>
+			<artifactId>feign-httpclient</artifactId>
+			<version>${openfeign.version}</version>
+		</dependency>
+
+
+		<!-- hystrix-metrics-event-stream -->
+		<dependency>
+			<groupId>com.netflix.hystrix</groupId>
+			<artifactId>hystrix-core</artifactId>
+			<version>${hystrix.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.netflix.hystrix</groupId>
+			<artifactId>hystrix-metrics-event-stream</artifactId>
+			<version>${hystrix.version}</version>
+		</dependency>
+
+		<!-- OpenTracing -->
+		<dependency>
+			<groupId>io.opentracing</groupId>
+			<artifactId>opentracing-noop</artifactId>
+			<version>0.20.9</version>
+		</dependency>
+		<dependency>
+			<groupId>io.opentracing.contrib</groupId>
+			<artifactId>opentracing-web-servlet-filter</artifactId>
+			<version>0.0.4</version>
+		</dependency>
+
+		<!-- OpenTracing implementation - Zipkin -->
+		<dependency>
+			<groupId>io.opentracing.brave</groupId>
+			<artifactId>brave-opentracing</artifactId>
+			<version>${brave.opentracing.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.zipkin.reporter</groupId>
+			<artifactId>zipkin-sender-urlconnection</artifactId>
+			<version>${zipkin.reporter.version}</version>
+		</dependency>
+
+		<!-- Swagger -->
+		<dependency>
+			<groupId>io.swagger</groupId>
+			<artifactId>swagger-jaxrs</artifactId>
+			<version>${swagger.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.webjars</groupId>
+			<artifactId>swagger-ui</artifactId>
+			<version>2.1.4</version>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<!-- Maven will append the version to the finalName (which is the name
+			given to the generated war, and hence the context root) -->
+		<finalName>${project.artifactId}</finalName>
+		<plugins>
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>${version.war.plugin}</version>
+				<configuration>
+					<!-- Java EE 7 doesn't require web.xml, Maven needs to catch up! -->
+					<failOnMissingWebXml>false</failOnMissingWebXml>
+				</configuration>
+			</plugin>
+			<!-- The WildFly Swarm plugin creates an uber jar -->
+			<!-- To use, run: mvn wildfly-swarm:run -->
+			<plugin>
+				<groupId>org.wildfly.swarm</groupId>
+				<artifactId>wildfly-swarm-plugin</artifactId>
+				<version>${version.wildfly.swarm}</version>
+				<configuration>
+					<mainClass>com.redhat.developers.msa.hola.Main</mainClass>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>package</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>io.fabric8</groupId>
+				<artifactId>fabric8-maven-plugin</artifactId>
+				<version>${fabric8.version}</version>
+			</plugin>
+			<plugin>
+				<groupId>io.fabric8</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<version>${docker.maven.plugin.version}</version>
+				<configuration>
+					<images>
+						<image>
+							<name>${docker.image}</name>
+							<build>
+								<from>${docker.from}</from>
+								<assembly>
+									<basedir>/deployments</basedir>
+									<inline>
+										<id>${project.artifactId}</id>
+										<files>
+											<file>
+												<source>${project.build.directory}/${project.build.finalName}-swarm.jar</source>
+												<outputDirectory>/</outputDirectory>
+											</file>
+										</files>
+									</inline>
+								</assembly>
+								<env>
+									<JAVA_APP_JAR>${project.build.finalName}-swarm.jar</JAVA_APP_JAR>
+									<ZIPKIN_SERVER_URL>http://zipkin-query:9411</ZIPKIN_SERVER_URL>
+									<AB_OFF>true</AB_OFF>
+									<JAVA_OPTIONS>-Xmx512m</JAVA_OPTIONS>
+								</env>
+								<ports>
+									<port>8080</port>
+								</ports>
+							</build>
+						</image>
+					</images>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+
+</project>

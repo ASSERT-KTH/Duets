@@ -1,0 +1,162 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.ostendorf</groupId>
+	<artifactId>mojaha</artifactId>
+	<version>0.1.4-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>mojaha</name>
+	<description>Mongrel2 Java Handler</description>
+	<url>http://ostendorf.com/mojaha/</url>
+
+	<licenses>
+		<license>
+			<name>Apache v2</name>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<id>kwo</id>
+			<name>Karl Ostendorf</name>
+			<email>karl@ostendorf.com</email>
+			<url>http://ostendorf.com/</url>
+			<timezone>+1</timezone>
+		</developer>
+	</developers>
+
+	<scm>
+		<url>scm:git:https://github.com/kwo/mojaha.git</url>
+		<connection>scm:git:https://github.com/kwo/mojaha.git</connection>
+	</scm>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.6</maven.compiler.source>
+		<maven.compiler.target>1.6</maven.compiler.target>
+
+		<maven-buildnumber-plugin.version>1.0</maven-buildnumber-plugin.version>
+		<maven-jar-plugin.version>2.3.1</maven-jar-plugin.version>
+		<maven-javadoc-plugin.version>2.7</maven-javadoc-plugin.version>
+		<maven-shade-plugin.version>1.4</maven-shade-plugin.version>
+		<maven-source-plugin.version>2.1.2</maven-source-plugin.version>
+
+		<json.version>20090211</json.version>
+		<junit.version>4.8.2</junit.version>
+		<jzmq.version>2.1.0-SNAPSHOT</jzmq.version>
+
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.zeromq</groupId>
+			<artifactId>jzmq</artifactId>
+			<version>${jzmq.version}</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>${json.version}</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>buildnumber-maven-plugin</artifactId>
+				<version>${maven-buildnumber-plugin.version}</version>
+				<executions>
+					<execution>
+						<phase>validate</phase>
+						<goals>
+							<goal>create</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<doCheck>false</doCheck>
+					<doUpdate>false</doUpdate>
+					<timestampPropertyName>buildTimestamp</timestampPropertyName>
+					<timestampFormat>{0,date,yyyy-MM-dd HH:mm Z}</timestampFormat>
+				</configuration>
+			</plugin>
+      
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>${maven-jar-plugin.version}</version>
+				<inherited>true</inherited>
+				<configuration>
+					<archive>                   
+						<manifest>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+						<manifestEntries>
+							<Implementation-Version>${buildNumber} ${buildTimestamp}</Implementation-Version>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>${maven-shade-plugin.version}</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<manifestEntries>
+										<Main-Class>mongrel2.App</Main-Class>
+									</manifestEntries>
+								</transformer>
+							</transformers>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>${maven-source-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${maven-javadoc-plugin.version}</version>
+			</plugin>
+
+		</plugins>
+	</build>
+
+</project>
+

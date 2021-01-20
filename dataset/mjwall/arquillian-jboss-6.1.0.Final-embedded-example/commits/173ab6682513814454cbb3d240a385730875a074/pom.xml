@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.jboss.arquillian.examples</groupId>
+  <artifactId>arquillian-jboss-6.1.0.Final-embedded</artifactId>
+  <name>Arquillian Examples EJB3.1 JBoss AS 6 Embedded</name>
+  <description>Simple Arquillian EJB3.1 JBoss AS 6 Embedded Project</description>
+  <version>1.0.0-SNAPSHOT</version>
+
+  <properties>
+    <version.junit>4.8.2</version.junit>
+    <version.org.jboss.arquillian>1.0.0.CR3</version.org.jboss.arquillian>
+    <version.org.jboss.arquillian.core>1.0.0.CR7</version.org.jboss.arquillian.core>
+    <version.org.jboss.jbossas>6.1.0.Final</version.org.jboss.jbossas>
+    <version.shrinkwrap_shrinkwrap>1.0.0</version.shrinkwrap_shrinkwrap>
+    <JBOSS_HOME>${project.build.directory}/jboss-${version.org.jboss.jbossas}</JBOSS_HOME>
+  </properties>
+  <repositories>
+    <!-- The JBoss Community public repository is a composite repository of several major repositories -->
+    <!-- see http://community.jboss.org/wiki/MavenGettingStarted-Users -->
+    <!-- At the time of writing, Arquillian and the JBoss Java EE specification POMs are only in the JBoss Community public
+         repository (not Maven central) -->
+    <repository>
+      <id>jboss-public-repository</id>
+      <name>JBoss Repository</name>
+      <url>https://repository.jboss.org/nexus/content/groups/public</url>
+      <!-- These optional flags are designed to speed up your builds by reducing remote server calls -->
+      <releases>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+      <snapshots>
+        <updatePolicy>daily</updatePolicy>
+      </snapshots>
+    </repository>
+  </repositories>
+  <dependencies>
+    <!-- test stuff -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${version.junit}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.arquillian.junit</groupId>
+      <artifactId>arquillian-junit-container</artifactId>
+      <version>${version.org.jboss.arquillian}</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- ejb stuff -->
+    <dependency>
+      <groupId>org.jboss.spec.javax.ejb</groupId>
+      <artifactId>jboss-ejb-api_3.1_spec</artifactId>
+      <version>1.0.1.Final</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>jboss</groupId>
+      <artifactId>jboss-annotations-ejb3</artifactId>
+      <version>4.2.2.GA</version>
+    </dependency>
+    <!-- arquillian stuff -->
+    <dependency>
+      <groupId>org.jboss.arquillian</groupId>
+      <artifactId>arquillian-bom</artifactId>
+      <version>${version.org.jboss.arquillian.core}</version>
+      <type>pom</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.arquillian.container</groupId>
+      <artifactId>arquillian-container-test-spi</artifactId>
+      <version>${version.org.jboss.arquillian.core}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.arquillian.container</groupId>
+      <artifactId>arquillian-container-spi</artifactId>
+      <version>${version.org.jboss.arquillian}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.jboss.shrinkwrap</groupId>
+          <artifactId>shrinkwrap-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.arquillian.container</groupId>
+      <artifactId>arquillian-jbossas-embedded-6</artifactId>
+      <version>${version.org.jboss.arquillian}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.jboss.shrinkwrap</groupId>
+          <artifactId>shrinkwrap-spi</artifactId>
+          <!-- <version>1.0.0-alpha-11</version> -->
+        </exclusion>
+        <exclusion>
+          <groupId>org.jboss.shrinkwrap</groupId>
+          <artifactId>shrinkwrap-impl-base</artifactId>
+          <!-- <version>1.0.0-alpha-11</version> -->
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- need newer version of shrinkwrap impl base since
+         jboss embedded 6 appears to be dead and arquillian-container-spi includes
+         the same shrinkwrap api version -->
+    <dependency>
+      <groupId>org.jboss.shrinkwrap</groupId>
+      <artifactId>shrinkwrap-spi</artifactId>
+      <version>${version.shrinkwrap_shrinkwrap}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.shrinkwrap</groupId>
+      <artifactId>shrinkwrap-impl-base</artifactId>
+      <version>${version.shrinkwrap_shrinkwrap}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.shrinkwrap</groupId>
+      <artifactId>shrinkwrap-api</artifactId>
+      <version>${version.shrinkwrap_shrinkwrap}</version>
+    </dependency>
+    <!-- JBossAS -->
+    <dependency>
+      <groupId>org.jboss.jbossas</groupId>
+      <artifactId>jboss-as-depchain</artifactId>
+      <version>${version.org.jboss.jbossas}</version>
+      <type>pom</type>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <dependencyManagement>
+    <!--
+        We also need to place the AS depchain into
+        the "dependencyManagement" section in import scope
+        so that Maven respects the "exclusion" elements
+        configured
+    -->
+    <dependencies>
+      <dependency>
+        <groupId>org.jboss.jbossas</groupId>
+        <artifactId>jboss-as-depchain</artifactId>
+        <version>${version.org.jboss.jbossas}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <build>
+    <plugins>
+      <!-- Get AS and put into "target" -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack</id>
+            <phase>pre-integration-test</phase>
+            <!-- So run before testing -->
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.jboss.jbossas</groupId>
+                  <artifactId>jboss-as-distribution</artifactId>
+                  <version>6.1.0.Final</version>
+                  <type>zip</type>
+                  <overWrite>false</overWrite>
+                  <outputDirectory>${project.build.directory}</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- FailSafe Plugin. Expects test suffix "IT". -->
+      <plugin>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>2.6</version>
+        <executions>
+          <execution>
+            <id>integration-test</id>
+            <goals>
+              <goal>integration-test</goal>
+            </goals>
+            <configuration>
+              <additionalClasspathElements>
+                <additionalClasspathElement>${JBOSS_HOME}/client/jbossws-native-client.jar
+                </additionalClasspathElement>
+                <additionalClasspathElement>${JBOSS_HOME}/server/default/deploy/jbossweb.sar
+                </additionalClasspathElement>
+              </additionalClasspathElements>
+              <trimStackTrace>false</trimStackTrace>
+              <printSummary>true</printSummary>
+              <forkMode>pertest</forkMode>
+              <!--
+                  <forkMode>never</forkMode>
+              -->
+              <!-- Caution: no linebreak here !-->
+              <argLine>-Xmx512m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true -Djava.util.logging.manager=org.jboss.logmanager.LogManager -Djava.endorsed.dirs=${JBOSS_HOME}/lib/endorsed -Djboss.home=${JBOSS_HOME} -Djboss.boot.server.log.dir=${JBOSS_HOME} -Dorg.jboss.reflect.spi.TypeInfoFactory=org.jboss.reflect.plugins.introspection.IntrospectionTypeInfoFactory </argLine>
+            </configuration>
+          </execution>
+          <execution>
+            <id>verify</id>
+            <goals>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

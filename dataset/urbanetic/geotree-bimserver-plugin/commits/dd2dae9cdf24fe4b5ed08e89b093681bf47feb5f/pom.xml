@@ -1,0 +1,179 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>au.com.mutopia</groupId>
+  <artifactId>geotree-bimserver-plugin</artifactId>
+  <version>0.3.0</version>
+
+  <properties>
+    <runnableJarName>geotree-bimserver-plugin</runnableJarName>
+    <bimserver.version>1.3.0</bimserver.version>
+    <emf.version>2.5.0</emf.version>
+    <java.version>1.7</java.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <repositories>
+    <!-- Local repo for unpublished dependencies. -->
+    <repository>
+      <id>data-local</id>
+      <name>data</name>
+      <url>file://${project.basedir}/repo</url>
+    </repository>
+  </repositories>
+
+  <!-- Dependencies -->
+  <dependencies>
+
+    <!-- GENERAL -->
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.2.4</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>15.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+      <version>1.9.13</version>
+    </dependency>
+
+    <!-- Spatial -->
+    <dependency>
+      <groupId>com.vividsolutions</groupId>
+      <artifactId>jts</artifactId>
+      <version>1.13</version>
+    </dependency>
+
+    <!-- BIM Server -->
+    <dependency>
+      <groupId>org.osbim</groupId>
+      <artifactId>bimserver</artifactId>
+      <version>${bimserver.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.osbim</groupId>
+      <artifactId>bimserver-buildingsmartlibrary</artifactId>
+      <version>${bimserver.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.osbim</groupId>
+      <artifactId>bimserver-client-lib</artifactId>
+      <version>${bimserver.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.osbim</groupId>
+      <artifactId>bimserver-ifc</artifactId>
+      <version>${bimserver.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.osbim</groupId>
+      <artifactId>bimserver-ifcplugins</artifactId>
+      <version>${bimserver.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.osbim</groupId>
+      <artifactId>bimserver-shared</artifactId>
+      <version>${bimserver.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.osbim</groupId>
+      <artifactId>bimserver-utils</artifactId>
+      <version>${bimserver.version}</version>
+    </dependency>
+
+    <!-- ECLIPSE MODULE -->
+    <dependency>
+      <groupId>org.mod4j.org.eclipse.emf</groupId>
+      <artifactId>common</artifactId>
+      <version>${emf.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mod4j.org.eclipse.emf</groupId>
+      <artifactId>ecore</artifactId>
+      <version>${emf.version}</version>
+    </dependency>
+
+  </dependencies>
+
+  <!-- Build management -->
+  <build>
+    <resources>
+      <!-- Include the plugin XML description. -->
+      <resource>
+        <directory>src/main/resources</directory>
+        <includes>
+          <include>plugin/plugin.xml</include>
+        </includes>
+      </resource>
+    </resources>
+
+    <plugins>
+      <!-- Use the Java 7 compiler. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.2</version>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>com.coderplus.maven.plugins</groupId>
+        <artifactId>copy-rename-maven-plugin</artifactId>
+        <version>1.0</version>
+        <executions>
+          <execution>
+            <id>rename-file</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>rename</goal>
+            </goals>
+            <configuration>
+              <sourceFile>${project.build.directory}/${project.build.finalName}.jar</sourceFile>
+              <destinationFile>${project.build.directory}/${runnableJarName}.jar</destinationFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Docker image build. -->
+      <plugin>
+        <groupId>com.spotify</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <version>0.1.1</version>
+        <configuration>
+          <imageName>urbanetic/geotree-bimserver</imageName>
+          <dockerDirectory>docker</dockerDirectory>
+          <resources>
+            <resource>
+              <targetPath>/</targetPath>
+              <directory>${project.build.directory}</directory>
+              <include>${runnableJarName}.jar</include>
+            </resource>
+          </resources>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <!-- JavaDoc -->
+  <reporting>
+    <plugins>
+      <!-- Build the Javadoc. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.10.1</version>
+      </plugin>
+    </plugins>
+  </reporting>
+
+</project>

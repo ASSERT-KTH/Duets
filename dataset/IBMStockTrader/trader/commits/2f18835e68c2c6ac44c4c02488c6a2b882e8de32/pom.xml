@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+       Copyright 2017-2020 IBM Corp All Rights Reserved
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+       http://www.apache.org/licenses/LICENSE-2.0
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.stocktrader</groupId>
+    <artifactId>trader</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>war</packaging>
+
+    <name>StockTrader - trader</name>
+
+    <!-- Parent needed for MicroClimate to build properly -->
+    <parent>
+        <groupId>io.openliberty.tools</groupId>
+        <artifactId>liberty-maven-app-parent</artifactId>
+        <version>3.2.1</version>
+    </parent>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+
+        <app.name>trader</app.name>
+        <warContext>${app.name}</warContext>
+        <package.file>${project.build.directory}/${app.name}.zip</package.file>
+        <packaging.type>usr</packaging.type>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.eclipse.microprofile</groupId>
+            <artifactId>microprofile</artifactId>
+            <version>3.3</version>
+            <type>pom</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-web-api</artifactId>
+            <version>8.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.ibm.websphere.appserver.api</groupId>
+            <artifactId>com.ibm.websphere.appserver.api.oidc</artifactId>
+            <version>1.0.40</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.ibm.websphere.appserver.api</groupId>
+            <artifactId>com.ibm.websphere.appserver.api.oauth</artifactId>
+            <version>1.2.40</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <packagingExcludes>pom.xml</packagingExcludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <!-- Profile needed for microclimate to build this properly -->
+    <profiles>
+        <profile>
+            <id>microclimate</id>
+            <activation>
+                <property>
+                    <name>libertyEnv</name>
+                    <value>microclimate</value>
+                </property>
+            </activation>
+            <build>
+                <directory>${microclimateOutputDir}</directory>
+                <plugins>
+                    <!-- Enablement of liberty-maven plugin in microclimate -->
+                    <plugin>
+                        <groupId>net.wasdev.wlp.maven.plugins</groupId>
+                        <artifactId>liberty-maven-plugin</artifactId>
+                        <version>2.4.2</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <looseApplication>true</looseApplication>
+                            <appsDirectory>apps</appsDirectory>
+                            <installDirectory>/opt/ibm/wlp</installDirectory>
+                            <userDirectory>${project.build.directory}/liberty/wlp/usr</userDirectory>
+                            <configDirectory>${basedir}/src/main/liberty/config</configDirectory>
+                            <packageFile>${package.file}</packageFile>
+                            <include>${packaging.type}</include>
+                            <bootstrapProperties>
+                                <default.http.port>${testServerHttpPort}</default.http.port>
+                                <default.https.port>${testServerHttpsPort}</default.https.port>
+                                <app.location>${project.artifactId}-${project.version}.war</app.location>
+                                <server.start.wait.time>90</server.start.wait.time>
+                            </bootstrapProperties>
+                            <installAppPackages>project</installAppPackages>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

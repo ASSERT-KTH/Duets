@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.jenkins-ci.plugins</groupId>
+		<artifactId>plugin</artifactId>
+		<version>3.50</version>
+	</parent>
+
+	<properties>
+		<java.level>8</java.level>
+		<jenkins.version>2.1</jenkins.version>
+		<findbugs.failOnError>false</findbugs.failOnError>
+		<maven.javadoc.skip>true</maven.javadoc.skip>
+		<violations-maven>1.29</violations-maven>
+		<violation-comments-lib>1.81</violation-comments-lib>
+		<violations-lib>1.106</violations-lib>
+		<changelog>1.60</changelog>
+		<fmt>2.9</fmt>
+                <findbugs.failOnError>false</findbugs.failOnError>
+	</properties>
+
+	<artifactId>violation-comments-to-gitlab</artifactId>
+	<version>2.35-SNAPSHOT</version>
+	<packaging>hpi</packaging>
+	<name>Violation Comments to GitLab Plugin</name>
+	<description>Finds violations reported by code analyzers and comments GitLab merge requests with them.</description>
+	<url>https://wiki.jenkins-ci.org/display/JENKINS/Violation+Comments+to+GitLab+Plugin</url>
+
+	<licenses>
+		<license>
+			<name>MIT License</name>
+			<url>http://opensource.org/licenses/MIT</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<id>tomasbjerre</id>
+			<name>Tomas Bjerre</name>
+			<email>tomas.bjerre85@gmail.com</email>
+		</developer>
+	</developers>
+
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/tomasbjerre/violation-comments-to-gitlab-plugin</url>
+	</issueManagement>
+
+	<scm>
+		<connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
+		<developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
+		<url>git@github.com:jenkinsci/${project.artifactId}-plugin</url>
+		<tag>HEAD</tag>
+	</scm>
+
+	<repositories>
+		<repository>
+			<id>repo.jenkins-ci.org</id>
+			<url>https://repo.jenkins-ci.org/public/</url>
+		</repository>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>repo.jenkins-ci.org</id>
+			<url>https://repo.jenkins-ci.org/public/</url>
+		</pluginRepository>
+	</pluginRepositories>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-eclipse-plugin</artifactId>
+				<configuration>
+					<downloadSources>true</downloadSources>
+					<downloadJavadocs>true</downloadJavadocs>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>se.bjurr.gitchangelog</groupId>
+				<artifactId>git-changelog-maven-plugin</artifactId>
+				<version>${changelog}</version>
+				<executions>
+					<execution>
+						<id>GenerateGitChangelog</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>git-changelog</goal>
+						</goals>
+						<configuration>
+							<filePath>CHANGELOG.md</filePath>
+							<readableTagName>-([^-]+?)$</readableTagName>
+							<gitHubApi>https://api.github.com/repos/jenkinsci/violation-comments-to-gitlab-plugin</gitHubApi>
+							<gitHubToken>${GITHUB_OAUTH2TOKEN}</gitHubToken><!-- Optional // -->
+							<gitHubIssuePattern>#([0-9]*)</gitHubIssuePattern>
+							<templateContent>
+<![CDATA[
+# Violation Comments to GitLab changelog
+Changelog of Violation Comments to GitLab plugin for Jenkins.
+{{#tags}}
+## {{name}}
+ {{#issues}}
+  {{#hasIssue}}
+   {{#hasLink}}
+### {{name}} [{{issue}}]({{link}}) {{title}}
+   {{/hasLink}}
+   {{^hasLink}}
+### {{name}} {{issue}} {{title}}
+   {{/hasLink}}
+  {{/hasIssue}}
+  {{^hasIssue}}
+### {{name}}
+  {{/hasIssue}}
+
+  {{#commits}}
+**{{{messageTitle}}}**
+
+{{#messageBodyItems}}
+ * {{.}} 
+{{/messageBodyItems}}
+
+[{{hash}}](https://github.com/jenkinsci/violation-comments-to-gitlab-plugin/commit/{{hashFull}}) {{authorName}} *{{commitTime}}*
+
+  {{/commits}}
+
+ {{/issues}}
+{{/tags}}
+]]>
+							</templateContent>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.coveo</groupId>
+				<artifactId>fmt-maven-plugin</artifactId>
+				<version>${fmt}</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>format</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>se.bjurr.violations</groupId>
+				<artifactId>violations-maven-plugin</artifactId>
+				<version>${violations-maven}</version>
+				<configuration>
+					<minSeverity>INFO</minSeverity>
+					<detailLevel>VERBOSE</detailLevel>
+					<maxViolations>99999999</maxViolations>
+					<printViolations>true</printViolations>
+					<violations>
+						<violation>
+							<parser>FINDBUGS</parser>
+							<reporter>Findbugs</reporter>
+							<folder>.</folder>
+							<pattern>.*/findbugsXml.*\.xml$</pattern>
+						</violation>
+					</violations>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>verify</phase>
+						<goals>
+							<goal>violations</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.25</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>credentials</artifactId>
+			<version>2.1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aop</artifactId>
+			<version>4.1.6.RELEASE</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>plain-credentials</artifactId>
+			<version>1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>se.bjurr.violations</groupId>
+			<artifactId>violations-lib</artifactId>
+			<version>${violations-lib}</version>
+		</dependency>
+		<dependency>
+			<groupId>se.bjurr.violations</groupId>
+			<artifactId>violation-comments-to-gitlab-lib</artifactId>
+			<version>${violation-comments-lib}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.servlet</groupId>
+					<artifactId>javax.servlet-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.xml.bind</groupId>
+					<artifactId>jaxb-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.jenkins-ci.plugins</groupId>
+			<artifactId>structs</artifactId>
+			<version>1.10</version>
+		</dependency>
+
+		<dependency>
+			<groupId>uk.co.jemos.podam</groupId>
+			<artifactId>podam</artifactId>
+			<version>6.0.2.RELEASE</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>

@@ -1,0 +1,168 @@
+<!--
+  Copyright 2010 the original author or authors.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.tautua.markdownpapers</groupId>
+    <artifactId>markdownpapers-benchmark</artifactId>
+    <version>1.1.0</version>
+    <packaging>jar</packaging>
+    <name>markdownpapers-benchmark</name>
+    <url>http://markdown.tautua.org</url>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.sun.japex</groupId>
+            <artifactId>japex</artifactId>
+            <version>${japex.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.tautua.markdownpapers</groupId>
+            <artifactId>markdownpapers-core</artifactId>
+            <version>${markdownpapers.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.markdownj</groupId>
+            <artifactId>markdownj-core</artifactId>
+            <version>${markdownj.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.rjeschke</groupId>
+            <artifactId>txtmark</artifactId>
+            <version>${txtmark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark-all</artifactId>
+            <version>${flexmark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.atlassian.commonmark</groupId>
+            <artifactId>commonmark</artifactId>
+            <version>0.12.1</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <defaultGoal>test</defaultGoal>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <!--
+                japex needs a classpath in it's configuration, so we copy all dependencies into a directory
+                -->
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.sun.japex</groupId>
+                <artifactId>japex-maven-plugin</artifactId>
+                <version>${japex.version}</version>
+                <executions>
+                    <execution>
+                        <id>japex</id>
+                        <goals>
+                            <goal>japex</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <japexConfig>
+                        <testSuite name="Markdown Test Suite" xmlns="http://www.sun.com/japex/testSuite">
+                            <param name="japex.classPath" value="target/dependency/*.jar"/>
+                            <param name="japex.classPath" value="target/classes"/>
+
+                            <param name="japex.resultUnit" value="tps"/>
+                            <param name="japex.plotGroupSize" value="20"/>
+                            <param name="japex.warmupTime" value="2"/>
+                            <param name="japex.numberOfThreads" value="2"/>
+                            <param name="japex.runTime" value="3"/>
+                            <param name="japex.chartType" value="barchart"/>
+
+                            <driver name="MarkdownJDriver ${markdownj.version}">
+                                <param name="description" value="Driver for MarkdownJ"/>
+                                <param name="japex.driverClass" value="org.tautua.markdownpapers.benchmarks.MarkdownJDriver"/>
+                            </driver>
+                            <driver name="MarkdownPapersDriver ${markdownpapers.version}">
+                                <param name="description" value="MarkdownPapers "/>
+                                <param name="japex.driverClass" value="org.tautua.markdownpapers.benchmarks.MarkdownPapersDriver"/>
+                            </driver>
+                            <driver name="TxtmarkDriver ${txtmark.version}">
+                                <param name="description" value="Txtmark"/>
+                                <param name="japex.driverClass" value="org.tautua.markdownpapers.benchmarks.TxtmarkDriver"/>
+                            </driver>
+                            <driver name="FlexmarkDriver ${flexmark.version}">
+                                <param name="description" value="Flexmark"/>
+                                <param name="japex.driverClass" value="org.tautua.markdownpapers.benchmarks.FlexmarkDriver"/>
+                            </driver>
+                            <driver name="CommonmarkDriver ${commonmark.version}">
+                                <param name="description" value="Commonmark"/>
+                                <param name="japex.driverClass" value="org.tautua.markdownpapers.benchmarks.CommonmarkDriver"/>
+                            </driver>
+
+                            <testCase name="Markdown Documentation - Syntax.text">
+                                <param name="input" value="target/classes/Markdown Documentation - Syntax.text"/>
+                            </testCase>
+                            <testCase name="Markdown Documentation - Basics.text">
+                                <param name="input" value="target/classes/Markdown Documentation - Basics.text"/>
+                            </testCase>
+                        </testSuite>
+                    </japexConfig>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>1.7</java.version>
+        <japex.version>1.2.4</japex.version>
+
+        <markdownj.version>0.4</markdownj.version>
+        <markdownpapers.version>1.4.2</markdownpapers.version>
+        <knockoff.version>0.8.3</knockoff.version>
+        <txtmark.version>0.13</txtmark.version>
+        <flexmark.version>0.35.0</flexmark.version>
+        <commonmark.version>0.12.1</commonmark.version>
+    </properties>
+</project>

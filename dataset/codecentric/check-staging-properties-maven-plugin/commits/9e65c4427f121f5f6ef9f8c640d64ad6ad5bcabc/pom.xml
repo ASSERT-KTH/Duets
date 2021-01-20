@@ -1,0 +1,195 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>de.codecentric</groupId>
+    <artifactId>check-staging-properties-maven-plugin</artifactId>
+    <name>check-staging-properties-maven-plugin</name>
+    <packaging>maven-plugin</packaging>
+    <version>1.0.5-SNAPSHOT</version>
+    <description>Checks stage dependent properties</description>
+    <url>https://github.com/codecentric/check-staging-properties-maven-plugin</url>
+    <organization>
+        <name>codecentric AG</name>
+        <url>https://www.codecentric.de</url>
+    </organization>
+    <inceptionYear>2016</inceptionYear>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>Bennet Schulz</name>
+            <organization>codecentric AG</organization>
+            <organizationUrl>https://www.codecentric.de</organizationUrl>
+        </developer>
+        <developer>
+            <name>Christian Langmann</name>
+            <organization>codecentric AG</organization>
+            <organizationUrl>https://www.codecentric.de</organizationUrl>
+        </developer>
+        <developer>
+            <name>Florian Kraus</name>
+            <organization>codecentric AG</organization>
+            <organizationUrl>https://www.codecentric.de</organizationUrl>
+        </developer>
+    </developers>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <maven.compiler.source>1.7</maven.compiler.source>
+        <maven.compiler.target>1.7</maven.compiler.target>
+
+        <build.plugin.maven.compiler.version>3.1</build.plugin.maven.compiler.version>
+        <build.plugin.coveralls.version>4.2.0</build.plugin.coveralls.version>
+        <build.plugin.cobertura.version>2.7</build.plugin.cobertura.version>
+        <build.plugin.license.version>1.8</build.plugin.license.version>
+        <build.plugin.maven.plugin.version>3.5</build.plugin.maven.plugin.version>
+
+        <maven.plugin.api.version>3.3.9</maven.plugin.api.version>
+        <maven.plugin.annotations.version>3.5</maven.plugin.annotations.version>
+        <junit.version>4.13.1</junit.version>
+    </properties>
+
+    <scm>
+        <connection>scm:git:git@github.com:codecentric/check-staging-properties-maven-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:codecentric/check-staging-properties-maven-plugin.git
+        </developerConnection>
+        <url>https://github.com/codecentric/check-staging-properties-maven-plugin/tree/master</url>
+        <tag>check-staging-properties-maven-plugin-1.0.5</tag>
+    </scm>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Sonatype Nexus Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>sonatype-nexus-staging</id>
+            <name>Nexus Release Repository</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <profiles>
+        <profile>
+            <id>upload-release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <version>1.5</version>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>license-maven-plugin</artifactId>
+                        <version>${build.plugin.license.version}</version>
+                        <configuration>
+                            <verbose>true</verbose>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>add-apache-headers</id>
+                                <goals>
+                                    <goal>update-file-header</goal>
+                                </goals>
+                                <phase>process-sources</phase>
+                                <configuration>
+                                    <licenseName>apache_v2</licenseName>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.7</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <version>${build.plugin.maven.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>default-descriptor</id>
+                        <phase>process-classes</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <version>${build.plugin.cobertura.version}</version>
+                <configuration>
+                    <format>xml</format>
+                    <maxmem>256m</maxmem>
+                    <aggregate>false</aggregate>
+                    <check/>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.eluder.coveralls</groupId>
+                <artifactId>coveralls-maven-plugin</artifactId>
+                <version>${build.plugin.coveralls.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${build.plugin.maven.compiler.version}</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+            <version>${maven.plugin.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.plugin-tools</groupId>
+            <artifactId>maven-plugin-annotations</artifactId>
+            <version>${maven.plugin.annotations.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

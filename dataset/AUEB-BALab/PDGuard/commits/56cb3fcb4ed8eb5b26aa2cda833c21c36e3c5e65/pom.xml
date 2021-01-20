@@ -1,0 +1,203 @@
+<project>
+  <!-- model version is always 4.0.0 for Maven 2.x POMs -->
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- project coordinates, i.e. a group of values which
+       uniquely identify this project -->
+  <groupId>org.pdguard</groupId>
+  <artifactId>reference</artifactId>
+  <version>0.1</version>
+
+  <!-- Project properties. Make build platform-independent -->
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+	<plugin>
+	  <artifactId>maven-compiler-plugin</artifactId>
+	  <version>3.1</version>
+	  <configuration>
+	    <source>1.8</source>
+	    <target>1.8</target>
+	  </configuration>
+	</plugin>
+
+	<plugin>
+	  <groupId>org.apache.maven.plugins</groupId>
+	  <artifactId>maven-checkstyle-plugin</artifactId>
+	  <version>2.13</version>
+	  <configuration>
+	    <!-- Exclude until checkstyle can handle Java 1.8 -->
+	    <excludes>**/Subsumption.java</excludes>
+	    <consoleOutput>true</consoleOutput>
+	  </configuration>
+	</plugin>
+
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-checkstyle-plugin</artifactId>
+	<version>2.16</version>
+	<executions>
+	  <execution>
+	    <id>validate</id>
+	    <phase>validate</phase>
+	    <configuration>
+	      <encoding>UTF-8</encoding>
+          <configLocation>../custom_check.xml</configLocation>
+	      <consoleOutput>true</consoleOutput>
+	      <failsOnError>true</failsOnError>
+	      <linkXRef>false</linkXRef>
+	    </configuration>
+	    <goals>
+	      <goal>check</goal>
+	    </goals>
+	  </execution>
+	</executions>
+      </plugin>
+
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-pmd-plugin</artifactId>
+	<version>3.3</version>
+	<configuration>
+	  <linkXref>true</linkXref>
+	  <sourceEncoding>utf-8</sourceEncoding>
+	  <minimumTokens>100</minimumTokens>
+	  <targetJdk>1.7</targetJdk>
+	  <excludes>
+	    <!-- Exclude following two files, until they get a body -->
+	    <exclude>**/api/AuthenticationBundle.java</exclude>
+	    <exclude>**/api/EscrowAgentConnection.java</exclude>
+	    <exclude>**/*Bean.java</exclude>
+	    <exclude>**/generated/*.java</exclude>
+	  </excludes>
+	  <excludeRoots>
+	    <excludeRoot>target/generated-sources/stubs</excludeRoot>
+	  </excludeRoots>
+	</configuration>
+	<executions>
+	  <execution>
+	  <phase>validate</phase>
+	  <goals>
+	    <goal>check</goal>
+	    <goal>cpd-check</goal>
+	  </goals>
+	  </execution>
+	</executions>
+      </plugin>
+
+      <plugin>
+	<groupId>org.codehaus.mojo</groupId>
+	<artifactId>findbugs-maven-plugin</artifactId>
+        <version>3.0.0</version>
+	<configuration>
+	    <!--
+		Enables analysis which takes more memory but finds more bugs.
+		If you run out of memory, changes the value of the effort element
+		to 'Low'.
+	    -->
+	    <effort>Max</effort>
+	    <!-- Reports all bugs (other values are medium and max) -->
+	    <threshold>Low</threshold>
+	    <!-- Produces XML report -->
+	    <xmlOutput>true</xmlOutput>
+	    <!-- Configures the directory in which the XML report is created -->
+	    <findbugsXmlOutputDirectory>${project.build.directory}/findbugs</findbugsXmlOutputDirectory>
+	</configuration>
+	<executions>
+	    <!--
+		Ensures that FindBugs inspects source code when project is compiled.
+	    -->
+	    <execution>
+		<id>analyze-compile</id>
+		<phase>compile</phase>
+		<goals>
+		    <goal>check</goal>
+		</goals>
+	    </execution>
+	</executions>
+      </plugin>
+    </plugins>
+  </build>
+
+
+  <!-- library dependencies -->
+  <dependencies>
+    <dependency>
+
+      <!-- coordinates of the required library -->
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+
+      <!-- this dependency is only used for running and compiling tests -->
+      <scope>test</scope>
+    </dependency>
+	<dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.3</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.6.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>2.0.31-beta</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>18.0</version>
+    </dependency>
+  </dependencies>
+
+  <reporting>
+    <plugins>
+
+      <plugin>
+       <groupId>org.apache.maven.plugins</groupId>
+       <artifactId>maven-checkstyle-plugin</artifactId>
+       <version>2.13</version>
+       <reportSets>
+        <reportSet>
+          <reports>
+           <report>checkstyle</report>
+          </reports>
+        </reportSet>
+       </reportSets>
+      </plugin>
+
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-pmd-plugin</artifactId>
+	<version>3.3</version>
+      </plugin>
+
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>3.0.1-SNAPSHOT</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.10.1</version>
+      </plugin>
+
+    </plugins>
+   </reporting>
+
+</project>

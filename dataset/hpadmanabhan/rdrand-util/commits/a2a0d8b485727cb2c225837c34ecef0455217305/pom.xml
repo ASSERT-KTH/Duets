@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>net.lizalab.util</groupId>
+  <artifactId>lizalab-rdrand-util</artifactId>
+  <version>0.0.0.9-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>lizalab-rdrand-util</name>
+  <description>Provides java.util.Random extensions using Intel's hardware circuit based Digital Random Number Generator (DRNG) RdRand library using JNI.</description>
+
+ <organization>
+    <name>Lizalab Inc.</name>
+    <url>www.lizlab.net</url>
+  </organization>
+  <inceptionYear>2013</inceptionYear>
+  <url>http://www.lizalab.net</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <distributionManagement>
+    <repository>
+      <id>releases</id>
+      <name>Lizalab Nexus Releases Repository</name>
+      <url>dav:http://lizalab.com/nexus/content/repositories/releases/</url>
+    </repository>
+    <snapshotRepository>
+      <id>snapshots</id>
+      <name>Lizalab Nexus Snapshots Repository</name>
+      <url>dav:http://lizalab.com/nexus/content/repositories/snapshots/</url>
+      <uniqueVersion>false</uniqueVersion>
+      <layout>default</layout>
+    </snapshotRepository>
+    <site>
+      <id>nexus-site</id>
+      <name>Lizalab Nexus Sites Repository</name>
+      <url>dav:http://minastirith/nexus/content/sites/site/${project.groupId}/${project.artifactId}/${project.version}</url>
+    </site>
+  </distributionManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.2</version> 
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.7.2</version>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.17</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-webdav-jackrabbit</artifactId>
+        <version>2.2</version>
+      </extension>
+    </extensions>
+    <resources>
+      <!-- Exclude the rdrand source from generated library archive. -->
+      <resource>
+        <directory>src/main/resources</directory>
+        <excludes>
+          <exclude>*.tar.gz</exclude>
+        </excludes>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.5.1</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9.1</version>
+        <configuration>
+          <show>private</show>
+          <nohelp>true</nohelp>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <executions>
+          <!-- Build the Intel rdrand library and place artifacts where the JNI utility build requires them. -->
+          <execution>
+            <id>build-librdrand</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>scripts/build-rdrand.sh</executable>
+            </configuration>
+          </execution>
+          <!-- Build the JNI utility implementation. -->
+          <execution>
+            <id>build-native</id>
+            <phase>process-classes</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>make</executable>
+              <workingDirectory>src/main/c</workingDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>3.2</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <scmCommentPrefix>BZ 37:</scmCommentPrefix>
+          <tagNameFormat>@{artifactId}-BUILD-@{version}</tagNameFormat>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.7</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9.1</version>
+        <configuration>
+          <show>public</show>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
+  
+  <issueManagement>
+  	<system>Bugzilla</system>
+  	<url>https://lizalab.com/bugzilla</url>
+  </issueManagement>
+  
+  <ciManagement>
+  	<system>Jenkins</system>
+  	<url>https://lizalab.com/jenkins</url>
+  </ciManagement>
+  
+  <scm>
+  	<url>http://lizalab.com/svn/rdrand-util</url>
+  	<connection>scm:svn:http://lizalab.com/svn/rdrand-util/trunk</connection>
+  	<developerConnection>scm:svn:http://lizalab.com/svn/rdrand-util/trunk</developerConnection>
+  </scm>
+</project>

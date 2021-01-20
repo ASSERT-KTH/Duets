@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="utf-8"?><!-- $Id: pom.xml 336 2011-02-26 22:20:22Z ljnelson $ -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.edugility</groupId>
+  <artifactId>jpa-archetype</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <name>JPA Archetype</name>
+
+  <dependencyManagement>
+    <dependencies>
+
+      <dependency>
+        <groupId>org.eclipse.persistence</groupId>
+        <artifactId>javax.persistence</artifactId>
+        <version>${javaxPersistenceVersion}</version>
+        <scope>provided</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.persistence</groupId>
+        <artifactId>org.eclipse.persistence.jpa</artifactId>
+        <version>${eclipseLinkVersion}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+	<groupId>org.hibernate</groupId>
+	<artifactId>hibernate-entitymanager</artifactId>
+	<version>${hibernateVersion}</version>
+	<scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+        <version>${h2Version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junitVersion}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.apache.openjpa</groupId>
+        <artifactId>openjpa</artifactId>
+        <version>${openJPAVersion}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+	<groupId>org.slf4j</groupId>
+	<artifactId>slf4j-jdk14</artifactId>
+	<version>${slf4jVersion}</version>
+	<scope>runtime</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.openjpa</groupId>
+      <artifactId>openjpa</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>javax.persistence</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>org.eclipse.persistence.jpa</artifactId>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-entitymanager</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jdk14</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.edugility</groupId>
+      <artifactId>edugility-party-jpa</artifactId>
+      <version>1.19-SNAPSHOT</version>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+
+	<plugin>
+          <artifactId>maven-assembly-plugin</artifactId>
+	  <version>2.2.1</version>
+	</plugin>
+
+	<plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <configuration>
+            <compilerArgument>-Xlint:all</compilerArgument>
+            <encoding>UTF8</encoding>
+            <source>1.6</source>
+            <target>1.6</target>
+          </configuration>
+          <version>2.3.2</version>
+        </plugin>
+	
+	<plugin>
+          <artifactId>maven-clean-plugin</artifactId>
+          <configuration>
+            <filesets>
+              <fileset>
+                <directory>${basedir}</directory>
+                <includes>
+                  <include>*~</include>
+                  <include>src/**/*~</include>
+                </includes>              
+              </fileset>
+            </filesets>
+          </configuration>
+          <version>2.4.1</version>
+        </plugin>
+
+        <plugin>
+          <artifactId>maven-dependency-plugin</artifactId>
+	  <executions>
+	    <execution>
+	      <configuration>
+		<includeGroupIds>${project.groupId}</includeGroupIds>
+		<includes>**/*.class</includes>             
+	      </configuration>
+	      <goals>
+		<goal>unpack-dependencies</goal>
+	      </goals>
+	      <id>Unpack all dependencies so that weaving, instrumentation and enhancement may run on them prior to testing</id>
+	      <phase>generate-test-resources</phase>
+	    </execution>
+	  </executions>
+          <version>2.2</version>
+        </plugin>
+
+	<plugin>
+	  <artifactId>maven-jar-plugin</artifactId>
+	  <version>2.3.1</version>
+	</plugin>
+
+	<plugin>
+          <artifactId>maven-resources-plugin</artifactId>
+          <configuration>
+            <delimiters>
+              <delimiter>${*}</delimiter>
+            </delimiters>
+            <encoding>UTF8</encoding>
+            <escapeString>\</escapeString>
+            <useDefaultDelimiters>false</useDefaultDelimiters>
+          </configuration>
+	  <executions>
+
+	    <execution>
+	      <configuration>
+		<resources>
+		  <resource>
+		    <filtering>false</filtering>
+		    <directory>${project.build.outputDirectory}</directory>
+		  </resource>
+		</resources>
+		<outputDirectory>${project.build.directory}/eclipselink/classes</outputDirectory>
+		<overwrite>true</overwrite>
+	      </configuration>
+	      <goals>
+		<goal>copy-resources</goal>
+	      </goals>
+	      <id>Copy contents of build.outputDirectory to EclipseLink area</id>
+	      <phase>process-classes</phase>
+	    </execution>
+
+	    <execution>
+	      <configuration>
+		<outputDirectory>${project.build.directory}/eclipselink/test-classes</outputDirectory>
+		<overwrite>true</overwrite>
+		<resources>
+		  <resource>
+		    <directory>${project.build.directory}/dependency</directory>
+		    <filtering>false</filtering>
+		  </resource>
+		</resources>
+	      </configuration>
+	      <goals>
+		<goal>copy-resources</goal>
+	      </goals>
+	      <id>Copy dependencies into EclipseLink test area</id>
+	      <phase>process-test-resources</phase>
+	    </execution>
+
+	    <execution>
+	      <configuration>
+		<outputDirectory>${project.build.directory}/eclipselink/test-classes</outputDirectory>
+		<overwrite>true</overwrite>
+		<resources>
+		  <resource>
+		    <directory>${project.build.directory}/eclipselink/classes</directory>
+		    <filtering>false</filtering>
+		  </resource>
+		  <resource>
+		    <directory>${project.build.testOutputDirectory}</directory>
+		    <filtering>false</filtering>
+		  </resource>
+		</resources>
+	      </configuration>
+	      <goals>
+		<goal>copy-resources</goal>
+	      </goals>
+	      <id>Copy contents of testOutputDirectory and contents of EclipseLink area to EclipseLink test area</id>
+	      <phase>process-test-classes</phase>
+	    </execution>
+
+	  </executions>
+          <version>2.5</version> 
+        </plugin>
+	
+	<plugin>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <configuration>
+	    <classpathDependencyExcludes>
+	      <!-- Remove JPA specs -->
+	      <classpathDependencyExclude>org.hibernate.javax.persistence:hibernate-jpa-2.0-api</classpathDependencyExclude>
+	      <classpathDependencyExclude>org.apache.geronimo.specs:geronimo-jpa_2.0_spec</classpathDependencyExclude>
+	    </classpathDependencyExcludes>
+            <forkMode>always</forkMode>
+	    <skip>true</skip>
+            <systemPropertyVariables>
+	      <defaultDatabaseSchema>${defaultDatabaseSchema}</defaultDatabaseSchema>
+	      <java.util.logging.config.file>${loggingConfigFile}</java.util.logging.config.file>
+	      <maven.project.build.directory>${project.build.directory}</maven.project.build.directory>
+	      <testDatabaseCatalog>${testDatabaseCatalog}</testDatabaseCatalog>
+              <testDatabaseConnectionURL>${testDatabaseConnectionURL}</testDatabaseConnectionURL>
+              <testDatabaseDriverClass>${testDatabaseDriverClass}</testDatabaseDriverClass>
+              <testDatabasePassword>${testDatabasePassword}</testDatabasePassword>
+              <testDatabaseSchema>${testDatabaseSchema}</testDatabaseSchema>
+              <testDatabaseUser>${testDatabaseUser}</testDatabaseUser>
+	      <testDatabaseSchemaPrefix>${testDatabaseSchemaPrefix}</testDatabaseSchemaPrefix>
+	    </systemPropertyVariables>
+	    <useFile>false</useFile>
+	  </configuration>
+	  <executions>
+	    <execution>
+	      <configuration>
+		<classpathDependencyExcludes combine.children="append">
+		  <!-- Remove EclipseLink -->
+		  <classpathDependencyExclude>org.eclipse.persistence:org.eclipse.persistence.antlr</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.eclipse.persistence:org.eclipse.persistence.asm</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.eclipse.persistence:org.eclipse.persistence.core</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.eclipse.persistence:org.eclipse.persistence.jpa</classpathDependencyExclude>
+
+		  <!-- Remove OpenJPA -->
+		  <classpathDependencyExclude>commons-collections:commons-collections</classpathDependencyExclude>
+		  <classpathDependencyExclude>commons-lang:commons-lang</classpathDependencyExclude>
+		  <classpathDependencyExclude>commons-pool:commons-pool</classpathDependencyExclude>
+		  <classpathDependencyExclude>net.sourceforge.serp:serp</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.apache.geronimo.specs:geronimo-jms_1.1_spec</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.apache.geronimo.specs:geronimo-jta_1.1_spec</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.apache.openjpa:openjpa</classpathDependencyExclude>
+		</classpathDependencyExcludes>
+		<includes>
+		  <include>**/JPATest*.java</include>
+		</includes>
+		<skip>false</skip>
+		<testClassesDirectory>${project.build.directory}/hibernate/test-classes</testClassesDirectory>
+	      </configuration>
+	      <goals>
+		<goal>test</goal>
+	      </goals>
+	      <id>SureFire Hibernate run</id>
+	      <phase>test</phase>
+	    </execution>
+
+	    <execution>
+	      <configuration>
+		<classpathDependencyExcludes combine.children="append">
+		  <!-- Remove EclipseLink -->
+		  <classpathDependencyExclude>org.eclipse.persistence:org.eclipse.persistence.antlr</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.eclipse.persistence:org.eclipse.persistence.asm</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.eclipse.persistence:org.eclipse.persistence.core</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.eclipse.persistence:org.eclipse.persistence.jpa</classpathDependencyExclude>
+
+		  <!-- Remove Hibernate -->
+		  <classpathDependencyExclude>antlr:antlr</classpathDependencyExclude>
+		  <classpathDependencyExclude>com.fasterxml:classmate</classpathDependencyExclude>
+		  <classpathDependencyExclude>dom4j:dom4j</classpathDependencyExclude>
+		  <classpathDependencyExclude>javassist:javassist</classpathDependencyExclude>
+		  <classpathDependencyExclude>javax.transaction:jta</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.hibernate:hibernate-commons-annotations</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.hibernate:hibernate-core</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.hibernate:hibernate-entitymanager</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.jboss.logging:jboss-logging</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.jboss.logging:jboss-logging</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.jboss:jandex</classpathDependencyExclude>
+		  <classpathDependencyExclude>xml-apis:xml-apis</classpathDependencyExclude>		  
+		</classpathDependencyExcludes>
+		<includes>
+		  <include>**/JPATest*.java</include>
+		</includes>
+		<skip>false</skip>
+		<testClassesDirectory>${project.build.directory}/openjpa/test-classes</testClassesDirectory>
+	      </configuration>
+	      <goals>
+		<goal>test</goal>
+	      </goals>
+	      <id>SureFire OpenJPA run</id>
+	      <phase>test</phase>
+	    </execution>
+
+	    <execution>
+	      <configuration>
+		<classpathDependencyExcludes combine.children="append">
+
+		  <!-- Remove Hibernate -->
+		  <classpathDependencyExclude>antlr:antlr</classpathDependencyExclude>
+		  <classpathDependencyExclude>com.fasterxml:classmate</classpathDependencyExclude>
+		  <classpathDependencyExclude>dom4j:dom4j</classpathDependencyExclude>
+		  <classpathDependencyExclude>javassist:javassist</classpathDependencyExclude>
+		  <classpathDependencyExclude>javax.transaction:jta</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.hibernate:hibernate-commons-annotations</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.hibernate:hibernate-core</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.hibernate:hibernate-entitymanager</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.jboss.logging:jboss-logging</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.jboss.logging:jboss-logging</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.jboss:jandex</classpathDependencyExclude>
+		  <classpathDependencyExclude>xml-apis:xml-apis</classpathDependencyExclude>		  
+
+		  <!-- Remove OpenJPA -->
+		  <classpathDependencyExclude>commons-collections:commons-collections</classpathDependencyExclude>
+		  <classpathDependencyExclude>commons-lang:commons-lang</classpathDependencyExclude>
+		  <classpathDependencyExclude>commons-pool:commons-pool</classpathDependencyExclude>
+		  <classpathDependencyExclude>net.sourceforge.serp:serp</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.apache.geronimo.specs:geronimo-jms_1.1_spec</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.apache.geronimo.specs:geronimo-jta_1.1_spec</classpathDependencyExclude>
+		  <classpathDependencyExclude>org.apache.openjpa:openjpa</classpathDependencyExclude>
+
+		</classpathDependencyExcludes>
+		<includes>
+		  <include>**/JPATest*.java</include>
+		</includes>
+		<skip>false</skip>
+		<testClassesDirectory>${project.build.directory}/eclipselink/test-classes</testClassesDirectory>
+	      </configuration>
+	      <goals>
+		<goal>test</goal>
+	      </goals>
+	      <id>SureFire EclipseLink run</id>
+	      <phase>test</phase>
+	    </execution>
+	  </executions>
+          <version>2.9</version>
+	</plugin>
+
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <plugin>
+	<artifactId>maven-dependency-plugin</artifactId>
+      </plugin>
+    </plugins>
+
+    <testResources>
+      <testResource>
+	<directory>src/test/resources</directory>
+	<filtering>true</filtering>
+      </testResource>
+    </testResources>
+
+  </build>
+
+  <properties>
+
+    <!-- Versions -->
+    <eclipseLinkVersion>2.3.0</eclipseLinkVersion>
+    <h2Version>1.3.158</h2Version>
+    <hibernateVersion>4.0.0.Beta4</hibernateVersion>
+    <javaxPersistenceVersion>2.0.3</javaxPersistenceVersion>
+    <junitVersion>4.8.2</junitVersion>
+    <openJPAVersion>2.1.1</openJPAVersion>
+    <slf4jVersion>1.6.1</slf4jVersion>
+
+    <!-- Other -->
+    <defaultDatabaseSchema>test</defaultDatabaseSchema>
+    <loggingConfigFile>${basedir}/logging.properties</loggingConfigFile>
+    <testDatabaseCatalog>test</testDatabaseCatalog>
+    <testDatabaseConnectionURL>jdbc:h2:mem:${testDatabaseCatalog};DB_CLOSE_DELAY=-1</testDatabaseConnectionURL>
+    <testDatabaseDriverClass>org.h2.Driver</testDatabaseDriverClass>
+    <testDatabasePassword />
+    <testDatabaseSchema>${defaultDatabaseSchema}</testDatabaseSchema>
+    <testDatabaseSchemaPrefix>${testDatabaseSchema}.</testDatabaseSchemaPrefix>
+    <testDatabaseUser>sa</testDatabaseUser>
+
+  </properties>
+
+</project>

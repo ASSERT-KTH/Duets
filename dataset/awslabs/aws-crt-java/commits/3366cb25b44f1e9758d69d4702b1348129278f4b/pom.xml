@@ -1,0 +1,370 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>software.amazon.awssdk.crt</groupId>
+    <artifactId>aws-crt</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Java bindings for the AWS SDK Common Runtime</description>
+    <url>https://github.com/awslabs/aws-crt-java</url>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>AWS SDK Common Runtime Team</name>
+            <email>aws-sdk-common-runtime@amazon.com</email>
+            <organization>Amazon Web Services</organization>
+            <organizationUrl>https://aws.amazon.com</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/awslabs/aws-crt-java.git</connection>
+        <developerConnection>scm:git:ssh://github.com:awslabs/aws-crt-java.git</developerConnection>
+        <url>https://github.com/awslabs/aws-crt-java/tree/master</url>
+    </scm>
+
+    <properties>
+        <cmake.command>cmake</cmake.command>
+        <cmake.buildtype>RelWithDebInfo</cmake.buildtype>
+        <cmake.buildconfig>${cmake.buildtype}</cmake.buildconfig>
+        <cmake.binaries>target/cmake-build</cmake.binaries>
+        <cmake.libcrypto_include>-DLIBCRYPTO_NOT_USED=1</cmake.libcrypto_include>
+        <cmake.libcrypto_shared>-DLIBCRYPTO_NOT_USED=1</cmake.libcrypto_shared>
+        <cmake.libcrypto_static>-DLIBCRYPTO_NOT_USED=1</cmake.libcrypto_static>
+        <libcrypto.path></libcrypto.path>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <profiles>
+        <profile>
+            <!-- Windows profile: find cmake generators and use ALL_BUILD target
+                NOTE: CMake generator will be cached to target/cmake-build/cmake.properties, delete or edit this
+                file to change VS version
+                -->
+            <id>windows-vs</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <properties>
+                <cmake.target>ALL_BUILD</cmake.target>
+                <cmake.buildtype></cmake.buildtype>
+                <cmake.buildconfig>RelWithDebInfo</cmake.buildconfig>
+                <cmake.cflags/>
+            </properties>
+        </profile>
+        <!-- Unix/Linux/OSX profiles: use makefiles and the "all" compile target -->
+        <profile>
+            <id>unix-make</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                </os>
+            </activation>
+            <properties>
+                <cmake.target>all</cmake.target>
+                <cmake.cflags/>
+            </properties>
+        </profile>
+        <profile>
+            <id>mac-make</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <cmake.target>all</cmake.target>
+                <cmake.cflags/>
+            </properties>
+        </profile>
+        <!-- 32-bit Unix -->
+        <profile>
+            <id>unix-x86</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <arch>i386</arch>
+                </os>
+            </activation>
+            <properties>
+                <cmake.cflags>-m32</cmake.cflags>
+            </properties>
+        </profile>
+        <profile>
+            <id>debug-native</id>
+            <activation>
+                <property>
+                    <name>debug.native</name>
+                </property>
+            </activation>
+            <properties>
+                <cmake.buildtype>Debug</cmake.buildtype>
+            </properties>
+        </profile>
+        <profile>
+            <id>use-custom-libcrypto</id>
+            <activation>
+                <property>
+                    <name>libcrypto.path</name>
+                </property>
+            </activation>
+            <properties>
+                <cmake.libcrypto_include>-DLibCrypto_INCLUDE_DIR=${libcrypto.path}/include</cmake.libcrypto_include>
+                <cmake.libcrypto_shared>-DLibCrypto_SHARED_LIBRARY=${libcrypto.path}/lib/libcrypto.so</cmake.libcrypto_shared>
+                <cmake.libcrypto_static>-DLibCrypto_STATIC_LIBRARY=${libcrypto.path}/lib/libcrypto.a</cmake.libcrypto_static>
+            </properties>
+        </profile>
+        <!-- native compilation -->
+        <profile>
+            <id>build-shared-lib</id>
+            <activation>
+                <property>
+                    <name>!shared-lib.skip</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <!-- cmake configure and build -->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>1.3.2</version>
+                        <executions>
+                            <!-- cmake configure -->
+                            <execution>
+                                <id>cmake-configure</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>${cmake.command}</executable>
+                                    <workingDirectory>${project.basedir}</workingDirectory>
+                                    <arguments>
+                                        <argument>-B${cmake.binaries}</argument>
+                                        <argument>-H${project.basedir}</argument>
+                                        <argument>-DCMAKE_BUILD_TYPE=${cmake.buildtype}</argument>
+                                        <argument>-DCMAKE_EXPORT_COMPILE_COMMANDS=ON</argument>
+                                        <argument>-DBUILD_DEPS=ON</argument>
+                                        <argument>-DCMAKE_PREFIX_PATH=${cmake.binaries}/install</argument>
+                                        <argument>-DCMAKE_INSTALL_PREFIX=${cmake.binaries}/install</argument>
+                                        <argument>-DCMAKE_C_FLAGS=${cmake.cflags}</argument>
+                                        <argument>-DBUILD_TESTING=OFF</argument>
+                                        <argument>-DS2N_NO_PQ_ASM=ON</argument>
+                                        <argument>${cmake.libcrypto_include}</argument>
+                                        <argument>${cmake.libcrypto_shared}</argument>
+                                        <argument>${cmake.libcrypto_static}</argument>
+                                        <argument>-Wno-unused-variables</argument>
+                                        <argument>${cmake.generator}</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <!-- cmake build -->
+                            <execution>
+                                <id>make</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>${cmake.command}</executable>
+                                    <workingDirectory>${cmake.binaries}</workingDirectory>
+                                    <arguments>
+                                        <argument>--build</argument>
+                                        <argument>.</argument>
+                                        <argument>--config</argument>
+                                        <argument>${cmake.buildconfig}</argument>
+                                        <argument>--target</argument>
+                                        <argument>${cmake.target}</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>release</id>
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>ossrh</id>
+                    <url>https://aws.oss.sonatype.org/content/repositories/snapshots</url>
+                </snapshotRepository>
+            </distributionManagement>
+            <build>
+                <plugins>
+                    <!-- staging/release to Sonatype -->
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.8</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://aws.oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+                    <!-- source jar -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>2.2.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- javadoc jar -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.9.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- GPG signing -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                                <configuration>
+                                    <keyname>${gpg.keyname}</keyname>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <resources>
+            <!-- shared libs built via cmake -->
+            <resource>
+                <directory>${cmake.binaries}/lib</directory>
+                <excludes>
+                    <exclude>**/*.ilk</exclude>                    <!-- no one needs incremental linker files in their jar -->
+                    <exclude>**/*.pdb</exclude>                    <!-- do not package pdbs, comment this out to debug C code -->
+                </excludes>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+        </testResources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <!-- make build dir for cmake -->
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>create-build-dir</id>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${cmake.binaries}"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <exportAntProperties>true</exportAntProperties>
+                            <target>
+                                <property environment="env"/>
+                                <condition property="cmake.generator" value="-G${env.AWS_CMAKE_GENERATOR}" else="-DGENERATOR_DUMMY=1">
+                                    <isset property="env.AWS_CMAKE_GENERATOR" />
+                                </condition>
+                                <echo message="Generator = ${cmake.generator}"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- unit test configuration -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.21.0</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <certificate>${crt.test.certificate}</certificate>
+                        <privatekey>${crt.test.privatekey}</privatekey>
+                        <endpoint>${crt.test.endpoint}</endpoint>
+                        <rootca>${crt.test.rootca}</rootca>
+                    </systemPropertyVariables>
+                    <shutdown>kill</shutdown>
+                    <argLine>-Daws.crt.memory.tracing=2 -Xcheck:jni</argLine>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

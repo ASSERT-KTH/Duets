@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>fr.cnes.sonar</groupId>
+    <artifactId>cnesreport</artifactId>
+    <version>3.2.2</version>
+    <packaging>sonar-plugin</packaging>
+
+    <name>SonarQube CNES Report</name>
+    <description>CNES app/plugin for SonarQube that allows users to export analysis reports as OpenXML, Markdown and CSV.</description>
+    <organization>
+        <name>CNES</name>
+        <url>https://cnes.fr/</url>
+    </organization>
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/lequal/sonar-cnes-report/issues</url>
+    </issueManagement>
+    <ciManagement>
+        <system>Travis-CI</system>
+        <url>https://travis-ci.org/lequal/sonar-cnes-report</url>
+    </ciManagement>
+    <scm>
+        <url>https://github.com/lequal/sonar-cnes-report</url>
+    </scm>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jdk.min.version>1.8</jdk.min.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <junit.version>4.12</junit.version>
+        <jacoco.version>0.8.4</jacoco.version>
+        <sonar.apiVersion>6.5</sonar.apiVersion>
+        <sonar-packaging-maven-plugin.version>1.18.0.372</sonar-packaging-maven-plugin.version>
+        <sonar.pluginKey>cnesreport</sonar.pluginKey>
+        <sonar.pluginUrl>https://github.com/lequal/sonar-cnes-report</sonar.pluginUrl>
+        <sonar.pluginOrganizationName>CNES</sonar.pluginOrganizationName>
+        <sonar.sources>src/main/java</sonar.sources>
+        <sonar.test>src/test/java</sonar.test>
+        <sonar.skipDependenciesPackaging>true</sonar.skipDependenciesPackaging>
+        <sonar.useChildFirstClassLoader>true</sonar.useChildFirstClassLoader>
+        <sonar.pluginClass>fr.cnes.sonar.plugin.ReportSonarPlugin</sonar.pluginClass>
+        <app.mainClass>fr.cnes.sonar.report.ReportCommandLine</app.mainClass>
+    </properties>
+
+    <licenses>
+        <license>
+            <name>GPL-3.0</name>
+            <url>https://www.gnu.org/licenses/gpl-3.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>begarco</id>
+            <name>Benoît Garçon</name>
+        </developer>
+        <developer>
+            <id>Sancretor</id>
+            <name>Alexis Chatillon</name>
+        </developer>
+        <developer>
+            <id>louisjdmartin</id>
+            <name>Louis Martin</name>
+        </developer>
+    </developers>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.5</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.sonarsource.sonarqube</groupId>
+            <artifactId>sonar-plugin-api</artifactId>
+            <version>${sonar.apiVersion}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.sonarsource.sonarqube</groupId>
+            <artifactId>sonar-ws</artifactId>
+            <version>${sonar.apiVersion}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <!-- network use -->
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.6</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <!-- https://mvnrepository.com/artifact/commons-cli/commons-cli -->
+            <groupId>commons-cli</groupId>
+            <artifactId>commons-cli</artifactId>
+            <version>1.4</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.8.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <!-- packaged with the plugin -->
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.2</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <!-- json parsing -->
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.5</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <!-- openxml generation -->
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>3.17</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml-schemas</artifactId>
+            <version>4.1.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>ooxml-security</artifactId>
+            <version>1.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- unit report -->
+        <dependency>
+            <groupId>org.sonarsource.sonarqube</groupId>
+            <artifactId>sonar-testing-harness</artifactId>
+            <version>${sonar.apiVersion}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.3.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.stefanbirkner</groupId>
+            <artifactId>system-rules</artifactId>
+            <version>1.19.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <testSourceDirectory>src/test/ut/java</testSourceDirectory>
+        <plugins>
+
+            <plugin>
+                <groupId>org.sonarsource.sonar-packaging-maven-plugin</groupId>
+                <artifactId>sonar-packaging-maven-plugin</artifactId>
+                <version>${sonar-packaging-maven-plugin.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <jarName>sonar-cnes-report</jarName>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>${app.mainClass}</mainClass>
+                                </transformer>
+                            </transformers>
+                            <shadedArtifactAttached>false</shadedArtifactAttached>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <!--<minimizeJar>true</minimizeJar>-->
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <source>${jdk.min.version}</source>
+                    <target>${jdk.min.version}</target>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <!-- UTF-8 bundles are not supported by Java, so they must be converted during build -->
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>native2ascii-maven-plugin</artifactId>
+                <version>1.0-beta-1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>native2ascii</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.9</version>
+                <configuration>
+                    <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M4</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.surefire</groupId>
+                        <artifactId>surefire-junit47</artifactId>
+                        <version>3.0.0-M4</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>post-unit-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Sets the path to the file which contains the execution data. -->
+                            <dataFile>target/jacoco.exec</dataFile>
+                            <!-- Sets the output directory for the code coverage report. -->
+                            <outputDirectory>target/jacoco-ut</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.9.1</version>
+                <executions>
+                <execution>
+                    <phase>generate-resources</phase>
+                    <id>install node and yarn</id>
+                    <goals>
+                    <goal>install-node-and-yarn</goal>
+                    </goals>
+                    <configuration>
+                    <nodeVersion>v12.16.1</nodeVersion>
+                    <yarnVersion>v1.22.0</yarnVersion>
+                    </configuration>
+                </execution>
+                <execution>
+                    <id>yarn install</id>
+                    <goals>
+                    <goal>yarn</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <phase>generate-resources</phase>
+                    <id>yarn run script</id>
+                    <goals>
+                    <goal>yarn</goal>
+                    </goals>
+                    <configuration>
+                    <arguments>run build</arguments>
+                    </configuration>
+                </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

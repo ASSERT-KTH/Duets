@@ -1,0 +1,185 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.pentaho.kettle.engines</groupId>
+  <artifactId>kettle-engine-storm</artifactId>
+  <version>0.0.2-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>kettle-engine-storm</name>
+  <url>http://github.com/pentaho/kettle-storm</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <storm.version>0.9.0.1</storm.version>
+    <!-- Scope for Storm jar so we can disable the inclusion of it when building an assembly jar with dependencies -->
+    <storm.scope>compile</storm.scope>
+    <storm.signals.version>0.2.0</storm.signals.version>
+    <kettle.version>TRUNK-SNAPSHOT</kettle.version>
+    <main.class>org.pentaho.kettle.engines.storm.KettleStorm</main.class>
+    <kettle.storm.topology.jar>${project.build.finalName}-for-remote-topology.jar</kettle.storm.topology.jar>
+  </properties>
+
+  <repositories>
+    <repository>
+      <id>github-releases</id>
+      <url>http://oss.sonatype.org/content/repositories/github-releases/</url>
+    </repository>
+    <repository>
+      <id>clojars.org</id>
+      <url>http://clojars.org/repo</url>
+    </repository>
+    <repository>
+      <id>pentaho</id>
+      <url>http://repo.pentaho.org/artifactory/repo/</url>
+    </repository>
+  </repositories>
+
+  <dependencies>
+    <dependency>
+      <groupId>storm</groupId>
+      <artifactId>storm</artifactId>
+      <version>${storm.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.github.ptgoetz</groupId>
+      <artifactId>storm-signals</artifactId>
+      <version>${storm.signals.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-engine</artifactId>
+      <version>${kettle.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>pentaho-kettle</groupId>
+      <artifactId>kettle-core</artifactId>
+      <version>${kettle.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>xerces</groupId>
+          <artifactId>xercesImpl</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>xerces</groupId>
+          <artifactId>xmlParserAPIs</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-vfs</groupId>
+      <artifactId>commons-vfs</artifactId>
+      <version>1.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.10</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <version>3.2</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>java</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <mainClass>${main.class}</mainClass>
+          <!-- We need the provided dependencies too (namely storm) -->
+          <classpathScope>compile</classpathScope>
+          <!--
+              Configure the topology jar to point to the one in the target directory.
+              The default path is configured for the release archive directory structure.
+            -->
+          <systemProperties>
+            <property>
+              <key>kettle-storm-topology-jar</key>
+              <value>target/${kettle.storm.topology.jar}</value>
+            </property>
+          </systemProperties>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.2-beta-5</version>
+        <executions>
+          <!-- This assembly will exclude the storm dependency so it can be used to submit a topology to a cluster without creating class loader conflicts. -->
+          <execution>
+            <id>for-remote-topology</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>src/main/assembly/for-remote-topology-assembly.xml</descriptor>
+              </descriptors>
+              <archive>
+                <manifest>
+                  <mainClass>${main.class}</mainClass>
+                </manifest>
+              </archive>
+            </configuration>
+          </execution>
+          <!-- The main assembly configuration. This will include all artifacts and can be used to test locally. -->
+          <execution>
+            <id>assembly</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>src/main/assembly/assembly.xml</descriptor>
+              </descriptors>
+              <archive>
+                <manifest>
+                  <mainClass>${main.class}</mainClass>
+                </manifest>
+              </archive>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

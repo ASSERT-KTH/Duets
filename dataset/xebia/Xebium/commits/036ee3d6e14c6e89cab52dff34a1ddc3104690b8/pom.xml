@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
+
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>xebium</artifactId>
+  <groupId>com.xebia.incubator</groupId>
+  <version>0.12-SNAPSHOT</version>
+  <name>Xebium</name>
+  <packaging>jar</packaging>
+
+  <url>http://xebia.github.com/Xebium</url>
+
+  <description>
+    A Selenium2 fixture for FitNesse.
+  </description>
+
+  <licenses>
+    <license>
+      <name>Apache License version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <properties>
+    <selenium.version>2.41.0</selenium.version>
+    <fitnesse.version>20130530</fitnesse.version>
+    <fitnesse.port>8000</fitnesse.port>
+    <fitnesse.expiration>0</fitnesse.expiration>
+    <maven-classpath-plugin.version>1.7</maven-classpath-plugin.version>
+    <slf4j.version>1.6.4</slf4j.version>
+    <operadriver.version>1.1</operadriver.version>
+    <phantomjsdriver.version>1.0.3</phantomjsdriver.version>
+    <commons-lang.version>2.6</commons-lang.version>
+  </properties>
+
+  <scm>
+    <connection>scm:git:git://github.com/xebia/Xebium.git</connection>
+    <developerConnection>scm:git:git@github.com:xebia/Xebium.git</developerConnection>
+    <url>scm:git:http://github.com/xebia/Xebium</url>
+  </scm>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-server</artifactId>
+      <version>${selenium.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-api</artifactId>
+      <version>${selenium.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-remote-driver</artifactId>
+      <version>${selenium.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-java</artifactId>
+      <version>${selenium.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.opera</groupId>
+      <artifactId>operadriver</artifactId>
+      <version>${operadriver.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.detro.ghostdriver</groupId>
+      <artifactId>phantomjsdriver</artifactId>
+      <version>${phantomjsdriver.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>${commons-lang.version}</version>
+    </dependency>
+    <!-- for some reason FitNesse appears to conflict with guava 15 from selenium -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>14.0</version>
+    </dependency>
+
+    <!-- runtime dependencies -->
+    <dependency>
+      <groupId>org.fitnesse</groupId>
+      <artifactId>fitnesse</artifactId>
+      <version>${fitnesse.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+
+
+    <!-- test dependencies -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.5</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>rhino</groupId>
+      <artifactId>js</artifactId>
+      <version>1.7R1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.8.5</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <version>1.1</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-ssh</artifactId>
+        <version>1.0-beta-7</version>
+      </extension>
+    </extensions>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.1</version>
+        <configuration>
+          <pushChanges>false</pushChanges>
+          <preparationGoals>clean package</preparationGoals>
+          <localCheckout>true</localCheckout>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>jar-with-dependencies</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>2.2.1</version>
+            <configuration>
+              <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
+            </configuration>
+            <executions>
+              <execution>
+                <id>make-jar</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>ide</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>2.2.1</version>
+            <configuration>
+              <descriptors>
+                <descriptor>src/assemble/ide.xml</descriptor>
+              </descriptors>
+            </configuration>
+            <executions>
+              <execution>
+                <id>make-jar</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>fitnesse</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>start-fitnesse</id>
+                <phase>test</phase>
+                <configuration>
+                  <tasks>
+                    <echo taskname="fitnesse" message="Starting FitNesse ${fitnesse.version}... (Selenium ${selenium.version})" />
+                    <property file="saucelabs.properties" />
+                    <!-- "Sensible" defaults -->
+                    <property name="sauce.user" value="[provide user through saucelabs.properties]" />
+                    <property name="sauce.accesskey" value="[provide accesskey through saucelabs.properties]" />
+                    <java classname="fitnesseMain.FitNesseMain" classpathref="maven.runtime.classpath" fork="true">
+                      <arg line="-p ${fitnesse.port}" />
+                      <arg line="-d ." />
+                      <arg line="-e ${fitnesse.expiration}" />
+                      <jvmarg value="-DBROWSER=firefox" />
+                      <jvmarg value="-Dsauce.user=${sauce.user}" />
+                      <jvmarg value="-Dsauce.accesskey=${sauce.accesskey}" />
+                    </java>
+                  </tasks>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+      <dependencies>
+        <dependency>
+          <groupId>org.fitnesse.plugins</groupId>
+          <artifactId>maven-classpath-plugin</artifactId>
+          <version>${maven-classpath-plugin.version}</version>
+          <scope>runtime</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
+      <id>fitnesse-integration</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.6</version>
+            <executions>
+              <execution>
+                <id>start-fitnesse-integration</id>
+                <phase>integration-test</phase>
+                <configuration>
+                  <tasks>
+                    <echo taskname="fitnesse" message="Starting FitNesse..." />
+                    <java classname="fitnesseMain.FitNesseMain" classpathref="maven.runtime.classpath" fork="true" failonerror="true">
+                      <arg line="-p 8001" />
+                      <arg line="-c ProjectXebium?suite&amp;format=text&amp;excludeSuiteFilter=NotOnPhantomJS" />
+                      <arg line="-d ." />
+                      <jvmarg value="-DBROWSER=phantomjs" />
+                    </java>
+                  </tasks>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+      <dependencies>
+        <dependency>
+          <groupId>org.fitnesse.plugins</groupId>
+          <artifactId>maven-classpath-plugin</artifactId>
+          <version>${maven-classpath-plugin.version}</version>
+          <scope>runtime</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+
+  </profiles>
+
+  <issueManagement>
+  	<system>GitHub</system>
+  	<url>https://github.com/xebia/Xebium/issues</url>
+  </issueManagement>
+
+  <organization>
+    <name>Xebia B.V.</name>
+    <url>http://xebia.com</url>
+  </organization>
+  
+  <developers>
+    <developer>
+      <id>sgrijpink</id>
+      <email>sgrijpink@xebia.com</email>
+      <name>Sjors Grijpink</name>
+      <organization>Xebia B.V.</organization>
+    </developer>
+    <developer>
+      <id>kgeusebroek</id>
+      <email>kgeusebroek@xebia.com</email>
+      <name>Kris Geusebroek</name>
+      <organization>Xebia B.V.</organization>
+    </developer>
+    <developer>
+      <id>cwortel</id>
+      <email>cwortel@xebia.com</email>
+      <name>Cirilo Wortel</name>
+      <organization>Xebia B.V.</organization>
+    </developer>
+    <developer>
+      <id>amolenaar</id>
+      <email>amolenaar@xebia.com</email>
+      <name>Arjan Molenaar</name>
+      <organization>Xebia B.V.</organization>
+    </developer>
+    <developer>
+      <id>tkaastra</id>
+      <email>tkaastra@xebia.com</email>
+      <name>Tjeerd Kaastra</name>
+      <organization>Xebia B.V.</organization>
+    </developer>
+    <developer>
+      <id>evanderkoogh</id>
+      <email>evanderkoogh@xebia.com</email>
+      <name>Erwin van der Koogh</name>
+      <organization>Xebia B.V.</organization>
+    </developer>
+    <developer>
+      <id>asikkema</id>
+      <email>asikkema@xebia.com</email>
+      <name>Albert Sikkema</name>
+      <organization>Xebia B.V.</organization>
+    </developer>
+    <developer>
+      <id>bvanklingeren</id>
+      <email>bvanklingeren@xebia.com</email>
+      <name>Boudewijn van Klingeren</name>
+      <organization>Xebia B.V.</organization>
+    </developer>
+    <developer>
+      <id>aengelen</id>
+      <email>aengelen@xebia.com</email>
+      <name>Arnout Engelen</name>
+      <organization>Xebia B.V.</organization>
+    </developer>
+  </developers>
+</project>

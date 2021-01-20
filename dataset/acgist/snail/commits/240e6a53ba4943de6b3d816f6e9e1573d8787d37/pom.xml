@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	
+	<modelVersion>4.0.0</modelVersion>
+	
+	<groupId>com.acgist</groupId>
+	<artifactId>snail</artifactId>
+	
+	<url>https://gitee.com/acgist/snail</url>
+	<name>snail</name>
+	<version>1.1.0</version>
+	<description>基于Java、JavaFX开发的下载工具，支持下载协议：BT、FTP、HTTP。</description>
+	<inceptionYear>2019</inceptionYear>
+
+	<properties>
+		<!-- 配置 -->
+		<vendor>acgist</vendor>
+		<module>${project.groupId}.${project.artifactId}</module>
+		<encoding>UTF-8</encoding>
+		<!-- 系统：win、mac、linux -->
+		<os.name>win</os.name>
+		<!-- Java -->
+		<java.version>11</java.version>
+		<!-- JUnit -->
+		<junit.version>4.12</junit.version>
+		<!-- 依赖 -->
+		<h2.version>1.4.199</h2.version>
+		<javafx.version>11.0.2</javafx.version>
+		<slf4j.version>1.8.0-alpha2</slf4j.version>
+		<logback.version>1.3.0-alpha4</logback.version>
+		<!-- Maven插件 -->
+		<maven.jar.version>3.1.1</maven.jar.version>
+		<maven.source.version>3.0.1</maven.source.version>
+		<maven.javadoc.version>3.1.0</maven.javadoc.version>
+		<maven.compiler.version>3.8.0</maven.compiler.version>
+		<maven.resources.version>3.1.0</maven.resources.version>
+		<maven.dependency.version>3.1.1</maven.dependency.version>
+		<!-- 资源文件编码 -->
+		<project.build.sourceEncoding>${encoding}</project.build.sourceEncoding>
+	</properties>
+
+	<dependencies>
+		<!-- GUI：JavaFX -->
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-fxml</artifactId>
+			<version>${javafx.version}</version>
+			<classifier>${os.name}</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-base</artifactId>
+			<version>${javafx.version}</version>
+			<classifier>${os.name}</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-controls</artifactId>
+			<version>${javafx.version}</version>
+			<classifier>${os.name}</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-graphics</artifactId>
+			<version>${javafx.version}</version>
+			<classifier>${os.name}</classifier>
+		</dependency>
+		<!-- 数据库：H2 -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>${h2.version}</version>
+		</dependency>
+		<!-- 日志：slf4j、logback -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+			<version>${logback.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>${logback.version}</version>
+		</dependency>
+		
+		<!-- 测试：JUnit -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<!-- 环境：mvn clean package -DskipTests -Pdevelop -->
+	<profiles>
+		<profile>
+			<id>develop</id>
+			<!-- 设置默认 -->
+			<activation>
+				<!-- 如果配置JDK标签会导致环境配置失效 -->
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<package.environment>develop</package.environment>
+			</properties>
+		</profile>
+		<profile>
+			<id>release</id>
+			<properties>
+				<package.environment>release</package.environment>
+			</properties>
+		</profile>
+	</profiles>
+	
+	<build>
+		<!-- 资源 -->
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>false</filtering>
+				<includes>
+					<include>**</include>
+				</includes>
+				<!-- 排除环境文件 -->
+				<excludes>
+					<exclude>profiles/**</exclude>
+				</excludes>
+			</resource>
+			<resource>
+				<directory></directory>
+				<targetPath>META-INF/</targetPath>
+				<filtering>false</filtering>
+				<includes>
+					<include>LICENSE</include>
+					<include>README.md</include>
+				</includes>
+			</resource>
+		</resources>
+		<!-- 插件 -->
+		<plugins>
+			<!-- 编译代码 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven.compiler.version}</version>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<encoding>${encoding}</encoding>
+				</configuration>
+			</plugin>
+			<!-- 资源文件 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>${maven.resources.version}</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<!-- 覆盖文件 -->
+							<overwrite>true</overwrite>
+							<outputDirectory>${project.build.outputDirectory}</outputDirectory>
+							<resources>
+								<!-- 环境 -->
+								<resource>
+									<directory>src/main/resources/profiles/${package.environment}</directory>
+									<filtering>false</filtering>
+								</resource>
+							</resources>
+						</configuration>
+						<inherited></inherited>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- 打包属性 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>${maven.jar.version}</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>com.acgist.main.Application</mainClass>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>lib</classpathPrefix>
+						</manifest>
+						<manifestEntries>
+							<Built-By>${vendor}</Built-By>
+							<Automatic-Module-Name>${module}</Automatic-Module-Name>
+							<Implementation-Title>${project.artifactId}</Implementation-Title>
+							<Implementation-Vendor>${vendor}</Implementation-Vendor>
+							<Implementation-Vendor-Id>${vendor}</Implementation-Vendor-Id>
+							<Implementation-Version>${project.version}</Implementation-Version>
+							<Specification-Title>${project.artifactId}</Specification-Title>
+							<Specification-Vendor>${vendor}</Specification-Vendor>
+							<Specification-Version>${project.version}</Specification-Version>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+			<!-- 依赖打包 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>${maven.dependency.version}</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<stripVersion>false</stripVersion>
+							<includeScope>compile</includeScope>
+							<excludeTransitive>false</excludeTransitive>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- 源代码包：mvn source:jar-no-fork -->
+			<!-- 问题：release环境不能正确包含环境配置 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>${maven.source.version}</version>
+				<executions>
+					<execution>
+						<id>jar-no-fork</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+						<configuration>
+							<attach>true</attach>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- JavaDoc：跳过：mvn -Dmaven.javadoc.skip=true -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${maven.javadoc.version}</version>
+				<executions>
+					<execution>
+						<id>javadoc</id>
+						<phase>package</phase>
+						<goals>
+							<goal>javadoc</goal>
+						</goals>
+						<configuration>
+							<doclint>none</doclint>
+							<aggregate>true</aggregate>
+							<charset>${encoding}</charset>
+							<encoding>${encoding}</encoding>
+							<docencoding>${encoding}</docencoding>
+							<description>${project.description}</description>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<organization>
+		<url>https://www.acgist.com</url>
+		<name>acgist</name>
+	</organization>
+
+	<developers>
+		<developer>
+			<id>acgist.snail.developer</id>
+			<url>https://www.acgist.com</url>
+			<name>acgister</name>
+			<email>admin@acgist.com</email>
+			<roles>
+				<role>master</role>
+				<role>developer</role>
+			</roles>
+		</developer>
+	</developers>
+
+	<licenses>
+		<license>
+			<url>https://opensource.org/licenses/BSD-3-Clause</url>
+			<name>The 3-Clause BSD License</name>
+		</license>
+	</licenses>
+
+</project>

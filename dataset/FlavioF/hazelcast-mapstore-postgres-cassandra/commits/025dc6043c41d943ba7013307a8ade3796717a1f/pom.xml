@@ -1,0 +1,205 @@
+<?xml version="1.0"?>
+<project
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <groupId>com.fferreira.example</groupId>
+  <artifactId>hazelcast-map-store</artifactId>
+  <name>Hazelcast Map Store</name>
+  <version>0.1-SNAPSHOT</version>
+  
+
+  <dependencies>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+
+    <!-- Persistence -->
+    <dependency>
+      <groupId>org.hibernate.javax.persistence</groupId>
+      <artifactId>hibernate-jpa-2.1-api</artifactId>
+      <version>${jpa2.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-core</artifactId>
+      <version>${hibernate.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-entitymanager</artifactId>
+      <version>${hibernate.version}</version>
+    </dependency>
+
+    <!--Tests -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>${slf4j.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>${testng.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${postgres.driver.version}</version>
+      <scope>test</scope>
+    </dependency>
+    
+    <!-- Hazelcast -->
+    <dependency>
+      <groupId>com.hazelcast</groupId>
+      <artifactId>hazelcast</artifactId>
+      <version>${hazelcast.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.hazelcast</groupId>
+      <artifactId>hazelcast-client</artifactId>
+      <version>${hazelcast.version}</version>
+    </dependency>
+    <!-- Cassandra Java Driver -->
+    <dependency>
+      <groupId>com.datastax.cassandra</groupId>
+      <artifactId>cassandra-driver-core</artifactId>
+      <version>${cassandra.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.5.0</version>
+      <type>jar</type>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>2.6.1</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${basedir}/gen/main/java</directory>
+              <excludes>
+                <exclude>.gitkeep</exclude>
+              </excludes>
+              <includes>
+                <include>*/**</include>
+              </includes>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.8</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-sources</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <systemPropertyVariables>
+            <cassandra.ip>172.17.0.108</cassandra.ip>
+          </systemPropertyVariables>
+        </configuration>
+        <version>2.18</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+          <optimize>true</optimize>
+          <debug>true</debug>
+          <compilerArgument>-proc:none</compilerArgument>
+        </configuration>
+      </plugin>
+      <plugin>
+        <inherited>false</inherited>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>2.6</version>
+        <configuration>
+        <aggregate>true</aggregate>
+        <header>${basedir}/COPYRIGHT</header>
+        <strictCheck>true</strictCheck>
+        <includes>
+        <include>**/src/main/java/**/*.java</include>
+        <include>**/src/test/java/**/*.java</include>
+        <include>**/src/main/**/*.xml</include>
+        <include>**/src/test/**/*.xml</include>
+        </includes>
+        <useDefaultExcludes>true</useDefaultExcludes>
+        <encoding>UTF-8</encoding>
+        </configuration>
+        <executions>
+        <execution>
+        <phase>process-test-resources</phase>
+        <goals>
+        <goal>format</goal>
+        </goals>
+        </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <properties>
+    <!-- Java versions -->
+    <java.version>1.8</java.version>
+
+    <!-- Testing versions -->
+    <testng.version>6.8.13</testng.version>
+
+    <!-- Dependencies versions -->
+    <hazelcast.version>3.4</hazelcast.version>
+    <cassandra.version>2.1.2</cassandra.version>
+
+    <!-- Logging -->
+    <slf4j.version>1.7.7</slf4j.version>
+    <log4j.version>2.0.2</log4j.version>
+
+    <!-- Fabric8 -->
+    <cxf-version>2.7.12</cxf-version>
+    <cxf-version-range>[2.7,3)</cxf-version-range>
+    <fabric8.version>1.2.0.Beta3</fabric8.version>
+
+    <!-- Hibernate and JPA -->
+    <hibernate.version>4.3.6.Final</hibernate.version>
+    <postgres.driver.version>9.3-1102-jdbc4</postgres.driver.version>
+    <jpa2.version>1.0.0.Final</jpa2.version>
+
+    <!-- Plug-ins -->
+    <license.plugin.version>2.6</license.plugin.version>
+    
+  </properties>
+
+</project>

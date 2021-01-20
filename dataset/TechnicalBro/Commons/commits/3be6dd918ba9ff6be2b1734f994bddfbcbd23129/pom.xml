@@ -1,0 +1,256 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.caved_in</groupId>
+    <artifactId>commons</artifactId>
+    <version>1.2.3-SNAPSHOT</version>
+
+    <distributionManagement>
+        <repository>
+            <id>internal.repo</id>
+            <name>Temporary Staging Repository</name>
+            <url>file://${project.build.directory}/mvn-repo</url>
+        </repository>
+    </distributionManagement>
+
+    <properties>
+        <!-- github server corresponds to entry in ~/.m2/settings.xml -->
+        <github.global.server>github</github.global.server>
+    </properties>
+
+    <build>
+        <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>src</directory>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <targetPath>.</targetPath>
+                <filtering>true</filtering>
+                <directory>${basedir}/src/main/resources/</directory>
+                <includes>
+                    <include>plugin.yml</include>
+                </includes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <index>false</index>
+                        <compress>true</compress>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <artifactSet>
+                                <includes>
+                                    <!--Include the SimpleXML framework in commons-->
+                                    <include>org.simpleframework:simple-xml:jar:*</include>
+                                    <include>commons-io:commons-io:jar:*</include>
+                                    <!--Shade in SK89Q's command framework so other plugins can depend on it / use it-->
+                                </includes>
+                            </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>org.simpleframework:simple-xml:jar:*</artifact>
+                                    <excludes>
+                                        <exclude>templates/**</exclude>
+                                        <exclude>META-INF/*.xml</exclude>
+                                        <exclude>META-INF/*.txt</exclude>
+                                        <exclude>**/LICENSE</exclude>
+                                        <exclude>**/*.java</exclude>
+                                    </excludes>
+                                </filter>
+                                <filter>
+                                    <artifact>commons-io:commons-io:jar:*</artifact>
+                                    <excludes>
+                                        <exclude>templates/**</exclude>
+                                        <exclude>META-INF/*.xml</exclude>
+                                        <exclude>META-INF/*.txt</exclude>
+                                        <exclude>**/LICENSE</exclude>
+                                        <exclude>**/*.java</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.github</groupId>
+                <artifactId>site-maven-plugin</artifactId>
+                <version>0.9</version>
+                <configuration>
+                    <message>Maven artifacts for ${project.groupId}${project.artifactId} ${project.version}</message>
+                    <!-- git commit message -->
+                    <noJekyll>true</noJekyll>
+                    <!-- disable webpage processing -->
+                    <outputDirectory>${project.build.directory}/mvn-repo</outputDirectory>
+                    <!-- matches distribution management repository url above -->
+                    <branch>refs/heads/master</branch>
+                    <!-- remote branch name -->
+                    <includes>
+                        <include>**/*</include>
+                    </includes>
+                    <repositoryName>mvn-repo</repositoryName>
+                    <!-- github repo name -->
+                    <repositoryOwner>TheGamersCave</repositoryOwner>
+                    <!-- github username  -->
+                    <merge>true</merge>
+                </configuration>
+                <executions>
+                    <!-- run site-maven-plugin's 'site' target as part of the build's normal 'deploy' phase -->
+                    <execution>
+                        <goals>
+                            <goal>site</goal>
+                        </goals>
+                        <phase>deploy</phase>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>autoincrement-versions-maven-plugin</artifactId>
+                <version>2.0-SNAPSHOT</version>
+                <executions>
+                    <execution>
+                        <id>update-pom-versions</id>
+                        <goals>
+                            <goal>increment</goal>
+                            <goal>commit</goal>
+                        </goals>
+                        <phase>compile</phase>
+                        <configuration>
+                            <autoIncrementVersion>true</autoIncrementVersion>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>autoincrement-versions-maven-plugin</id>
+            <name>autoincrement-versions-maven-plugin</name>
+            <url>http://autoincrement-versions-maven-plugin.googlecode.com/svn/repo</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <repositories>
+        <!--Repo for Bukkit-->
+        <repository>
+            <id>bukkit-repo</id>
+            <url>http://repo.bukkit.org/content/groups/public/</url>
+        </repository>
+        <!--Repository for TagAPI, a soft dependency used for nicknames / disguises-->
+        <repository>
+            <id>tagapi-repo</id>
+            <url>http://repo.kitteh.org/content/repositories/public/</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <!--Apache commonsIO 2.4-->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
+        </dependency>
+        <!--Sk89Q's command framework-->
+        <!--Craftbukkit-->
+        <dependency>
+            <groupId>org.bukkit</groupId>
+            <artifactId>craftbukkit</artifactId>
+        </dependency>
+        <!--Simple XML; What we use for configuration-->
+        <dependency>
+            <groupId>org.simpleframework</groupId>
+            <artifactId>simple-xml</artifactId>
+        </dependency>
+        <!--The only "dependancy" for this plugin; The PopupmenuAPI, used for, well, menus!-->
+        <dependency>
+            <groupId>me.xhawk87</groupId>
+            <artifactId>PopupMenuAPI</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.kitteh</groupId>
+            <artifactId>tagapi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.github</groupId>
+            <artifactId>site-maven-plugin</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.12.2</version>
+        </dependency>
+    </dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.bukkit</groupId>
+                <artifactId>craftbukkit</artifactId>
+                <version>LATEST</version>
+            </dependency>
+            <dependency>
+                <groupId>org.simpleframework</groupId>
+                <artifactId>simple-xml</artifactId>
+                <version>2.7.1</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>2.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.kitteh</groupId>
+                <artifactId>tagapi</artifactId>
+                <version>RELEASE</version>
+            </dependency>
+            <dependency>
+                <groupId>me.xhawk87</groupId>
+                <artifactId>PopupMenuAPI</artifactId>
+                <version>0.2.1</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.github</groupId>
+                <artifactId>site-maven-plugin</artifactId>
+                <version>0.9</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>1.12.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>

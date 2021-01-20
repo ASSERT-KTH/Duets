@@ -1,0 +1,209 @@
+<!--
+  ~  Hadoop CLI
+  ~
+  ~  (c) 2016-2019 David W. Streever. All rights reserved.
+  ~
+  ~ This code is provided to you pursuant to your written agreement with David W. Streever, which may be the terms of the
+  ~ Affero General Public License version 3 (AGPLv3), or pursuant to a written agreement with a third party authorized
+  ~ to distribute this code.  If you do not have a written agreement with David W. Streever or with an authorized and
+  ~ properly licensed third party, you do not have any rights to this code.
+  ~
+  ~ If this code is provided to you under the terms of the AGPLv3:
+  ~ (A) David W. Streever PROVIDES THIS CODE TO YOU WITHOUT WARRANTIES OF ANY KIND;
+  ~ (B) David W. Streever DISCLAIMS ANY AND ALL EXPRESS AND IMPLIED WARRANTIES WITH RESPECT TO THIS CODE, INCLUDING BUT NOT
+  ~   LIMITED TO IMPLIED WARRANTIES OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE;
+  ~ (C) David W. Streever IS NOT LIABLE TO YOU, AND WILL NOT DEFEND, INDEMNIFY, OR HOLD YOU HARMLESS FOR ANY CLAIMS ARISING
+  ~    FROM OR RELATED TO THE CODE; AND
+  ~  (D) WITH RESPECT TO YOUR EXERCISE OF ANY RIGHTS GRANTED TO YOU FOR THE CODE, David W. Streever IS NOT LIABLE FOR ANY
+  ~    DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, PUNITIVE OR CONSEQUENTIAL DAMAGES INCLUDING, BUT NOT LIMITED TO,
+  ~   DAMAGES RELATED TO LOST REVENUE, LOST PROFITS, LOSS OF INCOME, LOSS OF BUSINESS ADVANTAGE OR UNAVAILABILITY,
+  ~     OR LOSS OR CORRUPTION OF DATA.
+  ~
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.streever.hadoop</groupId>
+    <artifactId>hadoop.cli</artifactId>
+    <version>2.2.0.2-SNAPSHOT</version>
+    <name>Hadoop CLI</name>
+    <description>Hadoop Command Line Interface</description>
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- See Profiles for the correct version of Hadoop -->
+        <!--<hadoop.version>2.7.1.2.4.1.0-327</hadoop.version>-->
+        <!--<hadoop.version>2.6.0.2.2.8.0-3150</hadoop.version>-->
+        <junit.version>4.11</junit.version>
+        <jackson.parser>2.7.3</jackson.parser>
+        <commons-io.version>2.4</commons-io.version>
+        <jcabi.manifests.version>1.1</jcabi.manifests.version>
+        <!-- This needs to be in sync with Hadoop Common when using this cli in api mode  -->
+        <!--        <commons-cli.version>1.2</commons-cli.version>-->
+
+        <jline.version>2.5</jline.version>
+    </properties>
+    <repositories>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.jcabi</groupId>
+            <artifactId>jcabi-manifests</artifactId>
+            <version>${jcabi.manifests.version}</version>
+        </dependency>
+        <!--
+
+        Leveraging the Hadoop commons-cli version information here.
+        When I tried to use a newer version, it broke 'api' mode when integrating
+        more with FsShell.
+
+        -->
+        <!--        <dependency>-->
+        <!--            <groupId>commons-cli</groupId>-->
+        <!--            <artifactId>commons-cli</artifactId>-->
+        <!--            <version>${commons-cli.version}</version>-->
+        <!--        </dependency>-->
+        <dependency>
+            <groupId>org.sonatype.jline</groupId>
+            <artifactId>jline</artifactId>
+            <version>${jline.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.knox</groupId>
+            <artifactId>gateway-shell</artifactId>
+            <version>${gateway-shell.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-distcp</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons-io.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.parser}</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.1</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+ <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+ <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <Apache-Hadoop-Version>${hadoop.major}</Apache-Hadoop-Version>
+                            <Build-Timestamp>${maven.build.timestamp}</Build-Timestamp>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.0</version>
+                <!--<configuration>-->
+                <!--<createDependencyReducedPom>true</createDependencyReducedPom>-->
+                <!--</configuration>-->
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createSourcesJar>false</createSourcesJar>
+                            <finalName>hadoop-cli-full-bin</finalName>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <transformers>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                <transformer
+                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.streever.hadoop.HadoopSession</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptor>src/main/assembly/assembly.xml</descriptor>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <!-- this is used for inheritance merges -->
+                        <phase>package</phase>
+                        <!-- bind to the packaging phase -->
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <profiles>
+        <profile>
+            <id>2.7</id>
+            <properties>
+                <hadoop.version>2.7.3.2.6.5.0-292</hadoop.version>
+                <gateway-shell.version>0.12.0.2.6.5.0-292</gateway-shell.version>
+                <hadoop.major>2.7</hadoop.major>
+            </properties>
+        </profile>
+        <profile>
+            <id>3.1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <hadoop.version>3.1.1</hadoop.version>
+                <gateway-shell.version>1.0.0</gateway-shell.version>
+                <hadoop.major>3.1</hadoop.major>
+            </properties>
+        </profile>
+    </profiles>
+</project>

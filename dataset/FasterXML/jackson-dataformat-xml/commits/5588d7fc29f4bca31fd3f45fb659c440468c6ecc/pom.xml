@@ -1,0 +1,246 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion> 
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>5</version>
+  </parent>
+  <groupId>com.fasterxml</groupId>
+  <artifactId>jackson-xml-databind</artifactId>
+  <name>Jackson-XML-databind</name>
+  <version>0.6.2</version>
+  <packaging>bundle</packaging>
+  <description>Extension for Jackson (http://jackson.codehaus.org) to offer
+alternative support for serializing POJOs as XML and deserializing XML as pojos.
+Support implemented on top of Stax API (javax.xml.stream), by implementing core Jackson Streaming API types like JsonGenerator, JsonParser and JsonFactory.
+Some data-binding types overridden as well (ObjectMapper sub-classed as XmlMapper).
+  </description>
+  <url>http://wiki.fasterxml.com/JacksonExtensionXmlDataBinding</url>
+  <scm>
+    <connection>scm:git:git@github.com:FasterXML/jackson-xml-databind.git</connection>
+    <developerConnection>scm:git:git@github.com:FasterXML/jackson-xml-databind.git</developerConnection>
+    <url>http://github.com/FasterXML/jackson-xml-databind</url>    
+  </scm>
+  <developers>
+        <developer>
+            <id>tatu</id>
+            <name>Tatu Saloranta</name>
+            <email>tatu@fasterxml.com</email>
+        </developer>
+  </developers>
+
+  <prerequisites>
+    <maven>2.2.1</maven>
+  </prerequisites>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <!-- Licensing -->
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <organization>
+    <name>fasterxml.com</name>
+    <url>http://fasterxml.com</url>
+  </organization>
+
+  <dependencies>
+    <!-- Extends Jackson (jackson-mapper); requires Stax API (and implementation on deploy time), Stax2 API.
+         Also requires jackson xc to support JAXB annotations.
+         
+         Note: current version is based on 1.8 API, and might work on it,
+         however, 1.9 has useful fixes so we will request that
+      -->
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+      <version>1.9.2</version>
+    </dependency>
+    <!--  JAXB annotation introspector from Jackson/xc -->
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-xc</artifactId>
+      <version>1.9.2</version>
+    </dependency>
+    <!-- JDK 1.6 provides stax-api (javax.xml.stream), but let's add this for documentation
+      -->
+    <dependency>
+      <groupId>javax.xml.stream</groupId>
+      <artifactId>stax-api</artifactId>
+      <version>1.0-2</version>
+      <scope>provided</scope>
+    </dependency>
+    <!--  But Stax2 API must be included -->
+    <dependency>
+      <groupId>org.codehaus.woodstox</groupId>
+      <artifactId>stax2-api</artifactId>
+      <!-- 01-Jan-2010, Stupid Maven Release plug-in mandates a non-range
+            version
+        -->
+<!--
+      <version>[3.0.4, 3.5.0)</version>
+-->
+      <version>3.1.0</version>
+    </dependency>
+
+     <!--  Test Dependencies -->
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    <!--  Sjsxp (from JDK 1.6) mostly works, but simpler with Woodstox -->
+    <dependency>
+      <groupId>org.codehaus.woodstox</groupId>
+      <artifactId>woodstox-core-asl</artifactId>
+      <version>4.1.0</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <!-- Let's require JDK 1.6; makes things easier wrt Stax API for one 
+          -->
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+        </configuration>
+      </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-release-plugin</artifactId>
+            <version>2.0</version>
+            <configuration>
+                <mavenExecutorId>forked-path</mavenExecutorId>
+            </configuration>
+        </plugin>
+        <plugin><!-- plug-in to attach source bundle in repo -->
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                    <encoding>UTF-8</encoding>
+                    <maxmemory>512m</maxmemory>
+                    <links>
+                        <link>http://java.sun.com/javase/6/docs/api/</link>
+                    </links>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+        </plugin>
+
+	    <!--  Need to skip known-failing tests for build... -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.9</version>
+          <configuration>
+            <excludes>
+              <exclude>com/fasterxml/jackson/xml/failing/*.java</exclude>
+            </excludes>
+            <includes>
+              <include>**/Test*.java</include>
+            </includes>
+          </configuration>
+        </plugin>
+
+        <!-- Plus, let's make jars OSGi bundles as well 
+             2.3.4 used to get src and javadodc (2.3.5 has issues)
+            -->
+        <plugin>
+          <groupId>org.apache.felix</groupId>
+          <artifactId>maven-bundle-plugin</artifactId>
+          <version>2.3.4</version>
+          <extensions>true</extensions>
+          <configuration>
+            <instructions>
+              <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+              <Bundle-Vendor>fasterml.com</Bundle-Vendor>
+              <Import-Package>
+javax.xml.bind.annotation, javax.xml.namespace, javax.xml.stream, javax.xml.transform
+,org.codehaus.stax2, org.codehaus.stax2.io, org.codehaus.stax2.ri
+,org.codehaus.jackson, org.codehaus.jackson.annotate, org.codehaus.jackson.format, org.codehaus.jackson.impl
+,org.codehaus.jackson.io ,org.codehaus.jackson.type, org.codehaus.jackson.util
+,org.codehaus.jackson.map, org.codehaus.jackson.map.introspect, org.codehaus.jackson.map.module
+,org.codehaus.jackson.map.jsontype, org.codehaus.jackson.map.jsontype.impl
+,org.codehaus.jackson.map.ser, org.codehaus.jackson.map.ser.impl
+,org.codehaus.jackson.map.type, org.codehaus.jackson.map.util
+,org.codehaus.jackson.xc
+</Import-Package>
+              <Private-Package>
+</Private-Package>
+              <Export-Package>
+com.fasterxml.jackson.xml
+,com.fasterxml.jackson.xml.annotate
+,com.fasterxml.jackson.xml.deser
+,com.fasterxml.jackson.xml.jaxb
+,com.fasterxml.jackson.xml.ser
+,com.fasterxml.jackson.xml.util
+</Export-Package>
+            </instructions>
+          </configuration>
+        </plugin>
+    </plugins>
+  </build>
+  <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.1</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+  </profiles>
+  <!-- NOTE: repositories from parent POM -->
+</project>

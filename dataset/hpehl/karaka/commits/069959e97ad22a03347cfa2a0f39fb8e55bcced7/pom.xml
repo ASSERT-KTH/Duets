@@ -1,0 +1,602 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <!--
+        $LastChangedBy: harald.pehl 
+        $LastChangedRevision: 65 $
+    -->
+
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>name.pehl</groupId>
+    <artifactId>tire-d8</artifactId>
+    <version>0.1</version>
+    <name>TiRe</name>
+    <description>Time Recording Application</description>
+    <packaging>war</packaging>
+    <url>http://code.google.com/p/tire-d8/</url>
+    <organization>
+        <name>Harald Pehl</name>
+        <url>http://harald.pehl.name</url>
+    </organization>
+    
+    
+    <licenses>
+        <license>
+            <name>Apache 2</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+    
+    
+    <developers>
+        <developer>
+            <id>harald.pehl</id>
+            <name>Harald Pehl</name>
+            <email>harald.pehl@googlemail.com</email>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+    </developers>
+    
+    
+    <scm>
+        <connection>scm:svn:http://tire-d8.googlecode.com/svn/trunk</connection>
+        <developerConnection>scm:svn:https://tire-d8.googlecode.com/svn/trunk</developerConnection>
+        <tag>HEAD</tag>
+        <url>http://tire-d8.googlecode.com/svn/trunk</url>
+    </scm>
+
+
+    <distributionManagement>
+        <repository>
+            <id>tire-d8-repo</id>
+            <name>TiRe Repository</name>
+            <url>svn:https://tire-d8.googlecode.com/svn/repository</url>
+        </repository>
+        <site>
+            <id>tire-d8-site</id>
+            <name>TiRe Site</name>
+            <url>svn:https://tire-d8.googlecode.com/svn/site</url>
+        </site>
+    </distributionManagement>
+    
+    
+    <repositories>
+        <repository>
+            <id>piriti-repo</id>
+            <name>Piriti Repository</name>
+            <url>http://piriti.googlecode.com/svn/repository</url>
+        </repository>
+        <repository>
+            <id>taoki-repo</id>
+            <name>Taoki Repository</name>
+            <url>http://taoki.googlecode.com/svn/repository</url>
+        </repository>
+        <repository>
+            <id>maven-restlet</id>
+            <name>Public online Restlet repository</name>
+            <url>http://maven.restlet.org</url>
+        </repository>
+        <!-- We go to mvnsearch.org after latest GAE SDK artifacts -->
+	    <repository>
+	        <id>mvnsearch.org</id>
+	        <name>MVN Search</name>
+	        <url>http://www.mvnsearch.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+	    </repository>
+        <repository>
+            <id>DataNucleus_Repos2</id>
+            <name>DataNucleus Repository</name>
+            <url>http://www.datanucleus.org/downloads/maven2</url>
+        </repository>
+        <repository>
+            <id>maven-gae-plugin-repo</id>
+            <name>maven-gae-plugin repository</name>
+            <url>http://maven-gae-plugin.googlecode.com/svn/repository</url>
+        </repository>
+        <repository>
+            <id>maven2-repository.dev.java.net</id>
+            <name>Java.net Repository for Maven</name>
+            <url>http://download.java.net/maven/2/</url>
+        </repository>
+    </repositories>
+    
+    
+    <pluginRepositories>
+        <pluginRepository>
+            <id>DataNucleus_2</id>
+            <url>http://www.datanucleus.org/downloads/maven2/</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>maven-gae-plugin-repo</id>
+            <name>maven-gae-plugin repository</name>
+            <url>http://maven-gae-plugin.googlecode.com/svn/repository</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+
+    <properties>
+        <gae.version>1.3.0</gae.version>
+        <gwt.version>2.0.0</gwt.version>
+        <!--
+            Upload to http://0.latest.<applicationName>.appspot.com by
+            default
+        -->
+        <gae.application.version>0</gae.application.version>
+        <gae.port>8080</gae.port>
+        <gwt.style>DETAILED</gwt.style>
+        <junit.version>4.7</junit.version>
+        <easymock.version>2.4</easymock.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+
+    <dependencies>
+        <!-- name.pehl -->
+        <dependency>
+            <groupId>name.pehl.gwt</groupId>
+            <artifactId>piriti</artifactId>
+            <version>0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>name.pehl</groupId>
+            <artifactId>taoki</artifactId>
+            <version>0.1</version>
+        </dependency>
+
+        <!--
+            jars from GAE's "lib/user" must be added as compile-time
+            dependencies, as described here in "Copying JARs" section:
+            http://code.google.com/appengine/docs/java/tools/ant.html
+        -->
+        <dependency>
+            <groupId>javax.jdo</groupId>
+            <artifactId>jdo2-api</artifactId>
+            <version>2.3-eb</version>
+            <exclusions>
+                <!--
+                    exclude the legacy javax.transaction:transaction-api
+                    and replace it with javax.transaction:jta (it
+                    appears to be the same thing)
+                -->
+                <exclusion>
+                    <groupId>javax.transaction</groupId>
+                    <artifactId>transaction-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>javax.transaction</groupId>
+            <artifactId>jta</artifactId>
+            <version>1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.appengine.orm</groupId>
+            <artifactId>datanucleus-appengine</artifactId>
+            <version>1.0.4.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.datanucleus</groupId>
+            <artifactId>datanucleus-core</artifactId>
+            <version>1.1.5</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.transaction</groupId>
+                    <artifactId>transaction-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.google.appengine</groupId>
+            <artifactId>datanucleus-jpa</artifactId>
+            <version>1.1.5</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.appengine</groupId>
+            <artifactId>geronimo-jpa_3.0_spec</artifactId>
+            <version>1.1.1</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.appengine</groupId>
+            <artifactId>appengine-api-1.0-sdk</artifactId>
+            <version>${gae.version}</version>
+        </dependency>
+
+        <!-- GWT -->
+        <dependency>
+            <groupId>com.google.gwt</groupId>
+            <artifactId>gwt-servlet</artifactId>
+            <version>${gwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.gwt</groupId>
+            <artifactId>gwt-user</artifactId>
+            <version>${gwt.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.gwt</groupId>
+            <artifactId>gwt-dev</artifactId>
+            <version>${gwt.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!--
+            J2EE Servlet API. You can probably remove it, if you 
+            don't explicitly use servlets
+        -->
+        <dependency>
+            <groupId>org.apache.geronimo.specs</groupId>
+            <artifactId>geronimo-servlet_2.5_spec</artifactId>
+            <version>1.2</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- These dependencies are here just for enabling logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.5.6</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>0.9.15</version>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <version>${easymock.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymockclassextension</artifactId>
+            <version>${easymock.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!--
+            GAE libraries for local testing as described here:
+            http://code.google.com/appengine/docs/java/howto/unittesting.html
+        -->
+        <dependency>
+            <groupId>com.google.appengine</groupId>
+            <artifactId>appengine-api-labs</artifactId>
+            <version>${gae.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.appengine</groupId>
+            <artifactId>appengine-api-stubs</artifactId>
+            <version>${gae.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.appengine</groupId>
+            <artifactId>appengine-local-runtime</artifactId>
+            <version>${gae.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+
+    <build>
+        <outputDirectory>${basedir}/war/WEB-INF/classes</outputDirectory>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>**/*GwtTest.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-eclipse-plugin</artifactId>
+                <configuration>
+                    <downloadSources>true</downloadSources>
+                    <downloadJavadocs>true</downloadJavadocs>
+                    <classpathContainers>
+                        <classpathContainer>org.eclipse.jdt.launching.JRE_CONTAINER</classpathContainer>
+                        <classpathContainer>com.google.appengine.eclipse.core.GAE_CONTAINER</classpathContainer>
+                        <classpathContainer>com.google.gwt.eclipse.core.GWT_CONTAINER</classpathContainer>
+                    </classpathContainers>
+                    <additionalBuildcommands>
+                        <buildcommand>com.google.gwt.eclipse.core.gwtProjectValidator</buildcommand>
+                        <buildcommand>com.google.appengine.eclipse.core.enhancerbuilder</buildcommand>
+                        <buildcommand>com.google.appengine.eclipse.core.projectValidator</buildcommand>
+                        <buildcommand>com.google.gdt.eclipse.core.webAppProjectValidator</buildcommand>
+                    </additionalBuildcommands>
+                    <additionalProjectnatures>
+                        <projectnature>com.google.gwt.eclipse.core.gwtNature</projectnature>
+                        <projectnature>com.google.appengine.eclipse.core.gaeNature</projectnature>
+                        <projectnature>com.google.gdt.eclipse.core.webAppNature</projectnature>
+                    </additionalProjectnatures>
+                    <additionalConfig>
+                        <file>
+                            <name>.settings/org.eclipse.core.resources.prefs</name>
+                            <content>
+                                <![CDATA[
+eclipse.preferences.version=1
+encoding/<project>=${project.build.sourceEncoding}]]>
+                            </content>
+                        </file>
+                        <file>
+                            <name>.settings/com.google.appengine.eclipse.core.prefs</name>
+                            <content>
+                                <![CDATA[
+eclipse.preferences.version=1
+filesCopiedToWebInfLib=]]>
+                            </content>
+                        </file>
+                        <file>
+                            <name>.settings/com.google.gdt.eclipse.core.prefs</name>
+                            <content>
+                                <![CDATA[
+eclipse.preferences.version=1
+jarsExcludedFromWebInfLib=]]>
+                            </content>
+                        </file>
+                        <file>
+                            <name>.settings/com.google.gwt.eclipse.core.prefs</name>
+                            <content>
+                                <![CDATA[
+eclipse.preferences.version=1
+entryPointModules=]]>
+                            </content>
+                        </file>
+                    </additionalConfig>
+                </configuration>
+            </plugin>
+            <!--
+                This plug-in "enhances" your domain model objects (i.e.
+                makes them persistent for datanucleus)
+            -->
+            <plugin>
+                <groupId>org.datanucleus</groupId>
+                <artifactId>maven-datanucleus-plugin</artifactId>
+                <version>1.1.4</version>
+                <configuration>
+                    <!--
+                        Make sure this path contains your persistent
+                        classes!
+                    -->
+                    <mappingIncludes>**/model/*.class</mappingIncludes>
+                    <verbose>true</verbose>
+                    <enhancerName>ASM</enhancerName>
+                    <api>JDO</api>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>enhance</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.datanucleus</groupId>
+                        <artifactId>datanucleus-core</artifactId>
+                        <version>1.1.5</version>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>javax.transaction</groupId>
+                                <artifactId>transaction-api</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.datanucleus</groupId>
+                        <artifactId>datanucleus-rdbms</artifactId>
+                        <version>1.1.5</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.datanucleus</groupId>
+                        <artifactId>datanucleus-enhancer</artifactId>
+                        <version>1.1.4</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.1-beta-1</version>
+                <configuration>
+                    <webXml>war/WEB-INF/web.xml</webXml>
+                    <warSourceDirectory>war</warSourceDirectory>
+                    <webResources>
+                        <resource>
+                            <directory>war</directory>
+                            <filtering>true</filtering>
+                            <includes>
+                                <include>**/appengine-web.xml</include>
+                            </includes>
+                        </resource>
+                    </webResources>
+                </configuration>
+            </plugin>
+            <!--
+                Maven GWT plugin (ex.
+                http://gwt-maven.googlecode.com/svn/docs/maven-googlewebtoolkit2-plugin/index.html)
+                http://mojo.codehaus.org/gwt-maven-plugin
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>gwt-maven-plugin</artifactId>
+                <version>1.2</version>
+                <configuration>
+                    <logLevel>INFO</logLevel>
+
+                    <!-- match -Dgae.port -->
+                    <port>${gae.port}</port>
+
+                    <!-- This must point to your GWT modules! -->
+                    <compileTargets>
+                        <value>net.kindleit.gae.example.Messages</value>
+                    </compileTargets>
+
+                    <!-- This is for generating Asynch interfaces -->
+                    <!-- <servicePattern>**/client/*Service.java</servicePattern> -->
+
+                    <extraJvmArgs>-Xmx512m</extraJvmArgs>
+                    <!--<jvm>${JAVA_HOME}/bin/java</jvm>-->
+                    <!--<noServer>false</noServer>-->
+
+                    <!--
+                        TODO This should help running GAE stuff in
+                        hosted mode (when gwt-maven-plugin-1.2 is
+                        released, see
+                        http://jira.codehaus.org/browse/MGWT-112)
+                    -->
+                    <server>com.google.appengine.tools.development.gwt.AppEngineLauncher
+                    </server>
+
+                    <runTarget>/index.html</runTarget>
+                    <style>DETAILED</style>
+                    <webXml>war/WEB-INF/web.xml</webXml>
+                    <!--
+                        this parameter is VERY important with automatic
+                        mode - has to match the version in your declared
+                        deps
+                    -->
+                    <!--
+                        if this is set incorrect (not a match), or left
+                        out (default is 1.5.2 for 2.0-beta23) you will
+                        have mysterious errors
+                    -->
+                    <gwtVersion>${gwt.version}</gwtVersion>
+                </configuration>
+                <executions>
+                    <!--
+                        <execution> <id>generateAsynch</id>
+                        <phase>generate-sources</phase> <goals>
+                        <goal>generateAsync</goal> </goals> </execution>
+                    -->
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--
+                The actual maven-gae-plugin. Type "mvn gae:run" to run
+                project, "mvn gae:deploy" to upload to GAE.
+            -->
+            <plugin>
+                <groupId>net.kindleit</groupId>
+                <artifactId>maven-gae-plugin</artifactId>
+                <version>0.5.0</version>
+            </plugin>
+
+            <!--
+                Upload application to the appspot automatically, during
+                release:perform
+            -->
+            <plugin>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <goals>gae:deploy</goals>
+                </configuration>
+            </plugin>
+        </plugins>
+
+
+        <extensions>
+            <extension>
+                <groupId>org.jvnet.wagon-svn</groupId>
+                <artifactId>wagon-svn</artifactId>
+            </extension>
+        </extensions>
+    </build>
+
+
+    <profiles>
+        <!--
+            We can configure our integration server to activate this
+            profile and perform gae:deploy, thus uploading latest
+            snapshot to the
+            http://1.latest.<applicationName>.appspot.com automatically
+        -->
+        <profile>
+            <id>integration-build</id>
+            <properties>
+                <gae.application.version>1</gae.application.version>
+
+                <!-- Produce pretty JS during GWT compilation for test environment -->
+                <gwt.style>PRETTY</gwt.style>
+            </properties>
+        </profile>
+        <!--
+            This profile will activate automatically during release and
+            upload application to the
+            http://2.latest.<applicationName>.appspot.com (We might want
+            to set the 2nd version as our applications Default version
+            to be accessible at http://<applicationName>.appspot.com)
+        -->
+        <profile>
+            <id>release-build</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <properties>
+                <!--
+                    During release, set application version in
+                    appengine-web.xml to 2
+                -->
+                <gae.application.version>2</gae.application.version>
+                <!--
+                    Produce compressed JS during GWT compilation for
+                    production environment
+                -->
+                <gwt.style>OBFUSCATED</gwt.style>
+            </properties>
+        </profile>
+    </profiles>
+</project>

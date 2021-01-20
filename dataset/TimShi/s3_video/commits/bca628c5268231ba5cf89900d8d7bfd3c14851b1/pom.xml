@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.s3video</groupId>
+	<artifactId>s3video</artifactId>
+	<version>0.0.1</version>
+	<packaging>jar</packaging>
+
+	<name>s3video</name>
+	<description>s3video</description>
+
+	<dependencies>
+		<!-- AWS -->
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk</artifactId>
+            <version>1.9.6</version>
+        </dependency>
+        
+        <!-- Mockito -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>1.10.19</version>
+        </dependency>
+        
+        <dependency>
+    	    <groupId>ch.qos.logback</groupId>
+        	<artifactId>logback-classic</artifactId>
+	        <version>1.1.3</version>
+	    </dependency>
+	    
+	    <dependency>
+	    	<groupId>org.apache.velocity</groupId>
+			<artifactId>velocity</artifactId>
+			<version>1.7</version>	    
+	    </dependency>
+	</dependencies>
+
+	<build>
+        <resources>          
+          <resource>
+	        <directory>src/main/resources</directory>
+            <excludes>
+      			<exclude>logback-test.xml</exclude>
+		   </excludes>
+          </resource>
+        </resources>              
+		<plugins>
+			<plugin>
+		    	<artifactId>maven-resources-plugin</artifactId>
+		        <version>2.7</version>
+		        <executions>
+		          <execution>
+		            <id>copy-resources</id>
+		            <phase>validate</phase>
+		            <goals>
+		              <goal>copy-resources</goal>
+		            </goals>
+		            <configuration>
+		              <outputDirectory>${project.build.directory}</outputDirectory>
+		              <resources>          
+		                <resource>
+		                  <directory>.</directory>
+		                  <filtering>true</filtering>
+		                  <excludes>
+		                  	<exclude>target/**</exclude>
+		                  </excludes>
+		                  <includes>
+				          	<include>**/*.properties</include>
+				          	<include>**/*.vm</include>
+				          	<include>s3_video.sh</include>
+					      </includes>
+		                </resource>
+		              </resources>              
+		            </configuration>            
+		          </execution>
+		        </executions>
+		    </plugin>
+			<plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <descriptors>
+                        <descriptor>src/assemble/descriptor.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>		    
+	        <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<archive>
+				    	<manifest>
+					    	<addClasspath>true</addClasspath>
+							<mainClass>com.s3video.commandline.S3VideoCommandLineApplication</mainClass>
+							<classpathPrefix>libs/</classpathPrefix>
+				    	</manifest>
+				  	</archive>
+				</configuration>
+		   </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.10</version>
+				<executions>
+				  <execution>
+					<id>copy-dependencies</id>
+					<phase>package</phase>
+					<goals>
+					    <goal>copy-dependencies</goal>
+					</goals>
+					<configuration>
+					    <outputDirectory>${project.build.directory}/libs/</outputDirectory>
+					</configuration>
+				    </execution>
+				</executions>
+			</plugin>		   
+	       <plugin>
+		   		<groupId>org.apache.maven.plugins</groupId>
+	        	<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.3</version>
+	        	<configuration>
+	          		<source>1.7</source>
+	          		<target>1.7</target>
+	        	</configuration>
+	       </plugin>
+	    </plugins>
+  </build>
+</project>

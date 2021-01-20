@@ -1,0 +1,659 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>edu.mayo.cts2.framework</groupId>
+		<artifactId>base-service-plugin</artifactId>
+		<version>0.8.3-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>lexevs-service</artifactId>
+	<version>0.1.0-SNAPSHOT</version>
+	<packaging>${packaging}</packaging>
+
+	<description>A CTS2 Framework Service Plugin based on LexEVS</description>
+	<name>LexEVS Service Plugin</name>
+
+	<inceptionYear>2012</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache 2</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+			<comments>A business-friendly OSS license</comments>
+		</license>
+	</licenses>
+	<organization>
+		<name>Mayo Clinic</name>
+		<url>http://mayo.edu</url>
+	</organization>
+	<issueManagement>
+		<url>https://github.com/cts2/lexevs-service/issues</url>
+	</issueManagement>
+
+	<developers>
+		<developer>
+			<id>kevin</id>
+			<name>Kevin Peterson</name>
+			<email>kevin.peterson@mayo.edu</email>
+			<roles>
+				<role>Developer</role>
+			</roles>
+			<organization>Mayo Clinic</organization>
+			<timezone>-5</timezone>
+		</developer>
+	</developers>
+
+	<scm>
+		<developerConnection>scm:git:git@github.com:cts2/lexevs-service.git</developerConnection>
+	</scm>
+
+	<distributionManagement>
+		<site>
+			<id>site-upload-server</id>
+			<url>scp://informatics.mayo.edu:/home/informatics/homes/cts2framework/public_html/sites/${project.artifactId}</url>
+		</site>
+	</distributionManagement>
+
+	<properties>
+		<forkMode>never</forkMode>
+		<lexevs.version>6.0.5.12-SNAPSHOT</lexevs.version>
+		<lexevs.remote.version>6.0</lexevs.remote.version>
+		<cagrid.version>1.3</cagrid.version>
+		<spring-security.version>${org.springframework-version}</spring-security.version>
+		<webapp.classifier></webapp.classifier>
+		<osgi.bundle.classifier>bundle</osgi.bundle.classifier>
+	</properties>
+
+	<profiles>
+		<profile>
+			<id>all</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<packaging>war</packaging>
+			</properties>
+		</profile>
+	</profiles>
+
+	<build>
+
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+
+		<plugins>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>1.4</version>
+				<executions>
+					<execution>
+						<id>add-clojure-source</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-resource</goal>
+						</goals>
+						<configuration>
+							<resources>
+								<resource>
+									<directory>${basedir}/src/main/clojure</directory>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Import-Package>
+							!com.sun.*,
+							!com.caucho.*,
+							!javax.el,
+							!javax.jms,
+							!javax.jms.*,
+							!javax.faces*,
+							!javax.portlet*,
+							!javax.xml.rpc*,
+							!javax.servlet.*,
+							!org.apache.avalon.*,
+							!org.apache.log,
+							!org.apache.log.*,
+							!com.ibm,
+							!com.ibm.*,
+							!org.jboss.*,
+							!com.jamonapi,
+							!javax.jmdns,
+							!javax.resource,
+							!javax.resource.*,
+							!org.apache.commons.pool,
+							!org.apache.commons.pool.*,
+							!org.apache.derby,
+							!org.apache.derby.*,
+							!javax.ejb,
+							!javax.ejb.*,
+							!javax.mail,
+							!javax.mail.*,
+							!org.springframework.batch,
+							!org.springframework.batch.*,
+							edu.mayo.cts2.*,
+							edu.mayo.cts2.framework.core.xml,
+							edu.mayo.cts2.framework.core.plugin,
+							org.springframework.context.config,
+							org.springframework.security.web.authentication,
+							edu.mayo.cts2.framework.model,
+							edu.mayo.cts2.framework.model.service.association,
+							edu.mayo.cts2.framework.model.service.codesystem,
+							edu.mayo.cts2.framework.model.service.codesystemversion,
+							edu.mayo.cts2.framework.model.service.conceptdomain,
+							edu.mayo.cts2.framework.model.service.conceptdomainbinding,
+							edu.mayo.cts2.framework.model.service.entitydescription,
+							edu.mayo.cts2.framework.model.service.map,
+							edu.mayo.cts2.framework.model.service.mapentry,
+							edu.mayo.cts2.framework.model.service.mapversion,
+							edu.mayo.cts2.framework.model.service.statement,
+							edu.mayo.cts2.framework.model.service.valueset,
+							edu.mayo.cts2.framework.model.service.valuesetdefinition,
+							edu.mayo.cts2.framework.service.provider,
+							net.sf.cglib.proxy,
+							org.aspectj.lang.annotation,
+							org.aspectj.weaver.reflect,
+							org.springframework.aop.aspectj.autoproxy,
+							*;resolution:=optional
+						</Import-Package>
+						<Embed-Transitive>true</Embed-Transitive>
+						<Embed-Dependency>
+							!xercesImpl,
+							!spring-context,
+							!spring-beans,
+							!spring-aop,
+							!spring-core,
+							!xml-apis,
+							!cglib,
+							!cglib-nodep,
+							!aspectjrt,
+							!commons-logging,
+							!aopalliance,
+							!aspectjweaver,
+							*;scope=compile|runtime;inline=false
+						</Embed-Dependency>
+						<Spring-Context>*;timeout:=60</Spring-Context>
+						<_nouses>true</_nouses>
+					</instructions>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<configuration>
+					<packagingExcludes>
+						WEB-INF/lib/commons-logging*.jar,
+						WEB-INF/lib/xml-apis*.jar,
+						WEB-INF/lib/log4j*.jar,
+						WEB-INF/lib/axis-saaj*.jar
+					</packagingExcludes>
+				</configuration>
+				<executions>
+					<execution>
+						<!-- When also running maven-jar-plugin correct maven-war-plugin's 
+							ID from "default-war" to "default-jar" -->
+						<id>build-war</id>
+						<phase>package</phase>
+						<goals>
+							<goal>war</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+
+		<pluginManagement>
+			<plugins>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>2.9</version>
+					<configuration>
+						<enableAssertions>false</enableAssertions>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
+	</build>
+
+	<dependencies>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-expression</artifactId>
+			<version>${org.springframework-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${org.springframework-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+			<version>${org.springframework-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aop</artifactId>
+			<version>${org.springframework-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jdbc</artifactId>
+			<version>${org.springframework-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>${org.springframework-version}</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.acegisecurity</groupId>
+			<artifactId>acegi-security</artifactId>
+			<version>1.0.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>lexevs</groupId>
+			<artifactId>lexbig-impl</artifactId>
+			<version>${lexevs.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>lexevs</groupId>
+			<artifactId>lexbig-interfaces</artifactId>
+			<version>${lexevs.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>lexevs</groupId>
+			<artifactId>lexevs-valuesets</artifactId>
+			<version>${lexevs.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>lexevs</groupId>
+			<artifactId>lexbig-model</artifactId>
+			<version>${lexevs.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>lexevs</groupId>
+			<artifactId>lexgrid-model</artifactId>
+			<version>${lexevs.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>lexevs</groupId>
+			<artifactId>lexbig-impl</artifactId>
+			<version>${lexevs.version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>lexevs</groupId>
+			<artifactId>lexevs-dao</artifactId>
+			<version>${lexevs.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>lexevs</groupId>
+			<artifactId>lexgrid-resourcereader</artifactId>
+			<version>${lexevs.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>lexevs</groupId>
+			<artifactId>lexgrid-util</artifactId>
+			<version>${lexevs.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>lexevs</groupId>
+			<artifactId>lexevs-dao</artifactId>
+			<version>${lexevs.version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>lexevs</groupId>
+			<artifactId>lexevs-remote-client</artifactId>
+			<version>${lexevs.remote.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>lexevs</groupId>
+			<artifactId>sdk-client-framework</artifactId>
+			<version>${lexevs.remote.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>lexevs</groupId>
+			<artifactId>lexevs-remote-security</artifactId>
+			<version>${lexevs.remote.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>cagrid</groupId>
+			<artifactId>caGrid-CQL-cql.1.0</artifactId>
+			<version>1.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-discovery</groupId>
+			<artifactId>commons-discovery</artifactId>
+			<version>0.4</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.0.4</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.xml</groupId>
+			<artifactId>jaxrpc-api</artifactId>
+			<version>1.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>axis</groupId>
+			<artifactId>axis</artifactId>
+			<version>1.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.codehaus.castor</groupId>
+			<artifactId>castor-core</artifactId>
+			<version>1.3.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.codehaus.castor</groupId>
+			<artifactId>castor-xml</artifactId>
+			<version>1.3.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+			<version>3.6.10.Final</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>3.1.0.GA</version>
+		</dependency>
+
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.16</version>
+		</dependency>
+
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.19</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+			<version>3.2.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.6</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-beanutils</groupId>
+			<artifactId>commons-beanutils-core</artifactId>
+			<version>1.8.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.6.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>xerces</groupId>
+			<artifactId>xercesImpl</artifactId>
+			<version>2.11.0</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>cglib</groupId>
+			<artifactId>cglib-nodep</artifactId>
+			<version>2.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>xml-apis</groupId>
+			<artifactId>xml-apis</artifactId>
+			<version>1.4.01</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.6.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.clojure</groupId>
+			<artifactId>clojure</artifactId>
+			<version>1.3.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>clj-http</groupId>
+			<artifactId>clj-http</artifactId>
+			<version>0.5.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.2.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore</artifactId>
+			<version>4.2.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpmime</artifactId>
+			<version>4.2.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>slingshot</groupId>
+			<artifactId>slingshot</artifactId>
+			<version>0.10.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.7</version>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>net.sf.supercsv</groupId>
+			<artifactId>super-csv</artifactId>
+			<version>2.1.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.easymock</groupId>
+			<artifactId>easymock</artifactId>
+			<version>3.0</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.easymock</groupId>
+			<artifactId>easymockclassextension</artifactId>
+			<version>3.0</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.7</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>edu.mayo.cts2.framework</groupId>
+			<artifactId>service</artifactId>
+			<version>${develpment.framework.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>edu.mayo.cts2.framework</groupId>
+			<artifactId>plugin-util</artifactId>
+			<version>${develpment.framework.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>edu.mayo.cts2.framework</groupId>
+			<artifactId>webapp-rest-extensions</artifactId>
+			<version>${develpment.framework.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>edu.mayo.cts2.framework</groupId>
+			<artifactId>core</artifactId>
+			<version>${develpment.framework.version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.hsqldb</groupId>
+			<artifactId>hsqldb</artifactId>
+			<version>2.0.0</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.dbunit</groupId>
+			<artifactId>dbunit</artifactId>
+			<version>2.4.8</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>edu.informatics.maven.snapshot</id>
+			<name>Informatics Maven Snapshot Repository</name>
+			<url>http://informatics.mayo.edu/maven/content/repositories/snapshots</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+
+		<repository>
+			<id>edu.informatics.maven.releases</id>
+			<name>Informatics Maven Release Repository</name>
+			<url>http://informatics.mayo.edu/maven/content/repositories/releases</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+
+		<repository>
+			<id>edu.informatics.maven.thirdparty</id>
+			<name>Informatics Maven 3rd Party Repository</name>
+			<url>http://informatics.mayo.edu/maven/content/repositories/thirdparty</url>
+		</repository>
+
+		<repository>
+			<id>sonatype</id>
+			<url>http://oss.sonatype.org/content/repositories/releases/</url>
+			<name>Sonatype Releases</name>
+		</repository>
+
+		<repository>
+			<id>repo.codahale.com</id>
+			<url>http://repo.codahale.com</url>
+		</repository>
+
+		<repository>
+			<id>local.filebased</id>
+			<url>file://${basedir}/repo</url>
+		</repository>
+
+		<repository>
+			<id>cagrid.1.3</id>
+			<url>http://software.cagrid.org/repository-1.3/</url>
+		</repository>
+	</repositories>
+
+</project>

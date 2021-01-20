@@ -1,0 +1,163 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion> 
+  <parent>
+    <groupId>com.fasterxml</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>41</version>
+  </parent>
+  <groupId>com.fasterxml.util</groupId>
+  <artifactId>java-merge-sort</artifactId>
+  <name>java-merge-sort</name>
+  <version>1.0.3-SNAPSHOT</version>
+  <packaging>bundle</packaging>
+  <description>Basic configurable disk-backed N-way merge sort
+  </description>
+  <url>https://github.com/cowtowncoder/java-merge-sort</url>
+  <scm>
+    <connection>scm:git:git@github.com:cowtowncoder/java-merge-sort.git</connection>
+    <developerConnection>scm:git:git@github.com:cowtowncoder/java-merge-sort.git</developerConnection>
+    <url>http://github.com/cowtowncoder/java-merge-sort</url>    
+    <tag>HEAD</tag>
+  </scm>
+  <developers>
+    <developer>
+      <id>tatu</id>
+      <name>Tatu Saloranta</name>
+      <email>tatu.saloranta@iki.fi</email>
+    </developer>
+  </developers>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <properties>
+    <javac.src.version>1.6</javac.src.version>
+    <javac.target.version>1.6</javac.target.version>
+
+      <!-- 1.0.2 adds "Automatic-Module-Name" for JDK 9 -->
+      <jdk.module.name>com.fasterxml.sort</jdk.module.name>
+  </properties>
+
+  <dependencyManagement>
+   <dependencies>
+    <dependency>
+      <groupId>com.fasterxml.jackson</groupId>
+      <artifactId>jackson-bom</artifactId>
+      <type>pom</type>
+      <version>2.11.3</version>
+      <scope>import</scope>
+    </dependency>
+   </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <!-- only test dependencies; zero-dep for production -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${version.junit}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!--  Let's also test JSON-based sorting -->
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>${version.plugin.javadoc}</version>
+            <configuration>
+              <source>${version.jdk}</source>
+              <target>${version.jdk}</target>
+              <encoding>UTF-8</encoding>
+              <links>
+                <link>http://docs.oracle.com/javase/8/docs/api/</link>
+              </links>
+            </configuration>
+
+            <executions>
+                <execution>
+                    <id>attach-javadocs</id>
+                    <phase>verify</phase>
+                    <goals>
+                        <goal>jar</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+
+        <!-- Plus, let's make jars OSGi bundles as well  -->
+        <plugin>
+          <groupId>org.apache.felix</groupId>
+          <artifactId>maven-bundle-plugin</artifactId>
+          <extensions>true</extensions>
+          <configuration>
+            <instructions>
+              <Automatic-Module-Name>${jdk.module.name}</Automatic-Module-Name>
+              <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
+              <Bundle-Vendor>com.fasterxml</Bundle-Vendor>
+              <Import-Package>
+</Import-Package>
+              <Private-Package>
+</Private-Package>
+              <Export-Package>
+com.fasterxml.sort
+,com.fasterxml.sort.std
+,com.fasterxml.sort.util
+</Export-Package>
+             <Main-Class>com.fasterxml.sort.std.TextFileSorter</Main-Class>
+            </instructions>
+          </configuration>
+        </plugin>
+    </plugins>
+  </build>
+  <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.1</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+  </profiles>
+  <!-- NOTE: repositories from parent POM -->
+
+</project>

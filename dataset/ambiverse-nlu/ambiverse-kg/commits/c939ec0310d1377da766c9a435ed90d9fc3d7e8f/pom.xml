@@ -1,0 +1,564 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>de.mpg.mpi-inf.ambiversenlu</groupId>
+	<artifactId>ambiverse-kg</artifactId>
+	<version>1.1.0-SNAPSHOT</version>
+	<name>AmbiverseNLU Knowledge Graph Service</name>
+	<packaging>war</packaging>
+
+	<properties>
+		<jackson-jaxrs.version>2.9.9</jackson-jaxrs.version>
+		<mockito.version>3.1.0</mockito.version>
+		<avaje.version>8.1.1</avaje.version>
+		<jersey.version>2.29.1</jersey.version>
+		<jetty.version>9.4.18.v20190429</jetty.version>
+		<swagger-core-version>2.0.10</swagger-core-version>
+		<logback-version>1.2.3</logback-version>
+		<junit-version>4.12</junit-version>
+		<servlet-api-version>4.0.1</servlet-api-version>
+		<java.version>1.8</java.version>
+		<beanvalidation-version>1.1.0.Final</beanvalidation-version>
+		<maven-war-plugin.version>3.2.3</maven-war-plugin.version>
+	</properties>
+
+	<scm>
+		<url>https://github.com/ambiverse-nlu/ambiverse-kg</url>
+		<connection>scm:git:git://github.com/ambiverse-nlu/ambiverse-kg.git</connection>
+		<developerConnection>scm:git:git@github.com:ambiverse-nlu/ambiverse-kg.git</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
+
+	<licenses>
+		<license>
+			<name>The Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Dragan Milchevski</name>
+			<email>dmilchev@mpi-inf.mpg.de</email>
+			<organization>MPI</organization>
+			<organizationUrl>https://www.mpi-inf.mpg.de</organizationUrl>
+			<timezone>GMT+01:00</timezone>
+		</developer>
+		<developer>
+			<name>Johannes Hoffart</name>
+			<email>jhoffart@mpi-inf.mpg.de</email>
+			<organization>MPI</organization>
+			<organizationUrl>https://www.mpi-inf.mpg.de</organizationUrl>
+			<timezone>GMT+01:00</timezone>
+		</developer>
+		<developer>
+			<name>Luciano Del Corro</name>
+			<email>corrogg@mpi-inf.mpg.de</email>
+			<organization>MPI</organization>
+			<organizationUrl>https://www.mpi-inf.mpg.de</organizationUrl>
+			<timezone>GMT+01:00</timezone>
+		</developer>
+	</developers>
+
+	<issueManagement>
+		<system>Github</system>
+		<url>https://github.com/ambiverse-nlu/ambiverse-kg/issues</url>
+	</issueManagement>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/test/config</directory>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<excludes>
+					<exclude>**/*.java</exclude>
+				</excludes>
+			</resource>
+		</resources>
+		<sourceDirectory>src/main/java</sourceDirectory>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-maven-plugin</artifactId>
+				<version>${jetty.version}</version>
+				<configuration>
+					<stopPort>9999</stopPort>
+					<stopKey>foo</stopKey>
+					<webAppSourceDirectory>target/${project.artifactId}-${project.version}</webAppSourceDirectory>
+					<webApp>
+						<descriptor>${project.basedir}/src/main/webapp/WEB-INF/web.xml</descriptor>
+						<contextPath>/</contextPath>
+					</webApp>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.eclipse.jetty</groupId>
+						<artifactId>jetty-servlets</artifactId>
+						<version>${jetty.version}</version>
+					</dependency>
+					<dependency>
+						<groupId>javax.validation</groupId>
+						<artifactId>validation-api</artifactId>
+						<version>${beanvalidation-version}</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<id>start-jetty</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>start</goal>
+						</goals>
+						<configuration>
+							<scanIntervalSeconds>0</scanIntervalSeconds>
+							<!--                            <daemon>true</daemon>-->
+						</configuration>
+					</execution>
+					<execution>
+						<id>stop-jetty</id>
+						<phase>post-integration-test</phase>
+						<goals>
+							<goal>stop</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+<!--			&lt;!&ndash; Integration tests - comment back in to run tests that need a database available &ndash;&gt;-->
+<!--			<plugin>-->
+<!--				<groupId>org.apache.maven.plugins</groupId>-->
+<!--				<artifactId>maven-surefire-plugin</artifactId>-->
+<!--				<version>2.18.1</version> &lt;!&ndash; Version 2.20 causes "VM termination" errors, potentially due to communication-->
+<!--					issues with the forks. &ndash;&gt;-->
+<!--				<configuration>-->
+<!--					<excludes>-->
+<!--						<exclude>**/*IT.java</exclude>-->
+<!--						<exclude>**/*IntegrationTest.java</exclude>-->
+<!--					</excludes>-->
+<!--					<forkCount>1</forkCount> &lt;!&ndash; Higher fork counts led to unstable builds (i.e. failed test cases) &ndash;&gt;-->
+<!--					<forkedProcessTimeoutInSeconds>3600</forkedProcessTimeoutInSeconds>-->
+<!--					<reuseForks>false</reuseForks>-->
+<!--					<argLine>-Xmx4G</argLine>-->
+<!--				</configuration>-->
+<!--				<executions>-->
+<!--					<execution>-->
+<!--						<id>test</id>-->
+<!--						<goals>-->
+<!--							<goal>test</goal>-->
+<!--						</goals>-->
+<!--					</execution>-->
+<!--				</executions>-->
+<!--			</plugin>-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>${maven-war-plugin.version}</version>
+				<!--                <executions>-->
+				<!--                    <execution>-->
+				<!--                        <phase>package</phase>-->
+				<!--                        <configuration>-->
+				<!--                            <webappDirectory>${project.basedir}/src/main/java/de/mpg/mpi_inf/ambiversenlu/nlu/service/</webappDirectory>-->
+				<!--                            <webXml>src/main/webapp/WEB-INF/web.xml</webXml>-->
+				<!--                        </configuration>-->
+				<!--                        <goals>-->
+				<!--                            <goal>inplace</goal>-->
+				<!--                        </goals>-->
+				<!--                    </execution>-->
+				<!--                </executions>-->
+			</plugin>
+			<!-- Integration tests - comment back in to run tests that need a database available -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-failsafe-plugin</artifactId>
+				<version>2.18.1</version> <!-- Version 2.20 causes "VM termination" errors, potentially due to communication
+			issues with the forks. -->
+				<configuration>
+					<includes>
+						<include>**/*IT.java</include>
+						<include>**/*IntegrationTest.java</include>
+					</includes>
+					<forkCount>1</forkCount> <!-- Higher fork counts led to unstable builds (i.e. failed test cases) -->
+					<forkedProcessTimeoutInSeconds>12400</forkedProcessTimeoutInSeconds>
+					<reuseForks>false</reuseForks>
+					<argLine>-Xmx12G</argLine>
+				</configuration>
+				<executions>
+					<execution>
+						<id>integration-test</id>
+						<goals>
+							<goal>integration-test</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.8.2</version>
+				<executions>
+					<execution>
+						<id>default-deploy</id>
+						<phase>deploy</phase>
+						<goals>
+							<goal>deploy</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5.3</version>
+				<configuration>
+					<localCheckout>true</localCheckout>
+					<pushChanges>false</pushChanges>
+					<mavenExecutorId>forked-path</mavenExecutorId>
+					<arguments>-Dgpg.keyname=C78B9A633502689D61930F43A0922A6AA85785A8 -Dgpg.passphrase=${gpg.passphrase}</arguments>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.maven.scm</groupId>
+						<artifactId>maven-scm-provider-gitexe</artifactId>
+						<version>1.9.5</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.7</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>ossrh</serverId>
+					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<autoReleaseAfterClose>true</autoReleaseAfterClose>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.0.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.4</version>
+				<configuration>
+					<encoding>UTF-8</encoding>
+				</configuration>
+				<executions>
+					<execution>
+						<id>attach-javadoc</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<additionalparam>-Xdoclint:none</additionalparam>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.sebastian-daschner</groupId>
+				<artifactId>jaxrs-analyzer-maven-plugin</artifactId>
+				<version>0.3</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>analyze-jaxrs</goal>
+						</goals>
+						<configuration>
+							<!-- Available backends, defaults to plaintext -->
+							<!-- <backend>plaintext</backend> -->
+							<backend>swagger</backend>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.googlecode.maven-download-plugin</groupId>
+				<artifactId>download-maven-plugin</artifactId>
+				<version>1.2.1</version>
+				<executions>
+					<execution>
+						<id>swagger-ui</id>
+						<goals>
+							<goal>wget</goal>
+						</goals>
+						<configuration>
+							<skipCache>true</skipCache>
+							<url>https://github.com/swagger-api/swagger-ui/archive/master.tar.gz</url>
+							<unpack>true</unpack>
+							<outputDirectory>${project.build.directory}</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.6</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>target/${project.artifactId}-${project.version}</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${project.build.directory}/swagger-ui-master/dist</directory>
+									<filtering>true</filtering>
+									<excludes>
+										<exclude>index.html</exclude>
+									</excludes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>io.swagger.core.v3</groupId>
+			<artifactId>swagger-jaxrs2</artifactId>
+			<scope>compile</scope>
+			<version>${swagger-core-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>${logback-version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+			<version>${logback-version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>javax.ws.rs-api</artifactId>
+			<version>2.0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit-version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>${servlet-api-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.avaje.ebeanorm</groupId>
+			<artifactId>avaje-ebeanorm</artifactId>
+			<version>${avaje.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-servlet</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-client</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-multipart</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-json-jackson</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-jaxb</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-joda</artifactId>
+			<version>${jackson-jaxrs.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.jaxrs</groupId>
+			<artifactId>jackson-jaxrs-json-provider</artifactId>
+			<version>${jackson-jaxrs.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.module</groupId>
+			<artifactId>jackson-module-parameter-names</artifactId>
+			<version>${jackson-jaxrs.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.jaxrs</groupId>
+			<artifactId>jackson-jaxrs-base</artifactId>
+			<version>${jackson-jaxrs.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>${jackson-jaxrs.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>${jackson-jaxrs.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson-jaxrs.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jdk8</artifactId>
+			<version>${jackson-jaxrs.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+			<version>${jackson-jaxrs.version}</version>
+		</dependency>
+
+		<!-- Base64 encoding that works in both JVM and Android -->
+		<dependency>
+			<groupId>com.brsanthu</groupId>
+			<artifactId>migbase64</artifactId>
+			<version>2.2</version>
+		</dependency>
+
+		<!--		<dependency>-->
+		<!--			<groupId>org.elasticsearch</groupId>-->
+		<!--			<artifactId>elasticsearch</artifactId>-->
+		<!--			<version>1.7.2</version>-->
+		<!--		</dependency>-->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.5</version>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.17</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>${mockito.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.test-framework.providers</groupId>
+			<artifactId>jersey-test-framework-provider-inmemory</artifactId>
+			<version>2.17</version>
+		</dependency>
+
+		<!--		<dependency>-->
+		<!--			<groupId>com.google.api-client</groupId>-->
+		<!--			<artifactId>google-api-client</artifactId>-->
+		<!--			<version>1.22.0</version>-->
+		<!--		</dependency>-->
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-util</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-servlet</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-servlets</artifactId>
+			<version>${jetty.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.neo4j.driver</groupId>
+			<artifactId>neo4j-java-driver</artifactId>
+			<version>1.7.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.graphql-java</groupId>
+			<artifactId>graphql-java</artifactId>
+			<version>4.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.savoirtech.logging</groupId>
+			<artifactId>slf4j-json-logger</artifactId>
+			<version>2.0.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.8.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+			<version>2.8.2</version>
+		</dependency>
+		<!-- Bean Validation API support -->
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+			<version>1.1.0.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.bundles.repackaged</groupId>
+			<artifactId>jersey-guava</artifactId>
+			<version>2.6</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.inject</groupId>
+			<artifactId>jersey-hk2</artifactId>
+			<version>2.28</version>
+		</dependency>
+
+
+	</dependencies>
+</project>

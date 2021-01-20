@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) 2011 Everit Kft. (http://www.everit.org)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.everit.config</groupId>
+    <artifactId>org.everit.config.oss</artifactId>
+    <version>7.1.0</version>
+  </parent>
+
+  <groupId>org.everit.jira.timetracker</groupId>
+  <artifactId>org.everit.jira.timetracker.plugin</artifactId>
+  <version>2.8.4</version>
+
+  <packaging>bundle</packaging>
+
+  <properties>
+    <jira.version>6.3</jira.version>
+    <jira.data.version>6.3</jira.data.version>
+    <projectpath>jira-timetracker-plugin</projectpath>
+    <maven.compiler.source>1.7</maven.compiler.source>
+    <maven.compiler.target>1.7</maven.compiler.target>
+    <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
+    <build.time>${maven.build.timestamp}</build.time>
+  </properties>
+
+  <scm>
+    <connection>scm:git:git://github.com/everit-org/${projectpath}.git</connection>
+    <developerConnection>scm:git:https://github.com/everit-org/${projectpath}.git</developerConnection>
+    <url>https://github.com/everit-org/${projectpath}</url>
+  </scm>
+
+  <distributionManagement>
+    <site>
+      <id>everit.org</id>
+      <url>dav:${everit.public.site.url}/${projectpath}</url>
+    </site>
+  </distributionManagement>
+  <ciManagement>
+    <system>Travis CI</system>
+    <url>https://travis-ci.org/everit-org/${projectpath}</url>
+  </ciManagement>
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/everit-org/${projectpath}/issues</url>
+  </issueManagement>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+            <Import-Package>
+              com.atlassian.templaterenderer;version="[1.5.4,3.0.0)",
+              *
+            </Import-Package>
+            <Export-Package>
+              org.everit.jira.settings;version=1.0.0
+            </Export-Package>
+            <_failok>true</_failok>
+            <Embed-Dependency>sal-api;gson;poi;</Embed-Dependency>
+          </instructions>
+          <log4jProperties>src/main/resources/log4j.properties</log4jProperties>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>com.atlassian.maven.plugins</groupId>
+        <artifactId>maven-jira-plugin</artifactId>
+        <version>5.1.9</version>
+        <extensions>false</extensions>
+        <executions>
+          <execution>
+            <id>generate-obr-artifact</id>
+            <phase>package</phase>
+            <goals>
+              <goal>generate-obr-artifact</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <pluginDependencies>
+            <pluginDependency>
+              <groupId>org.everit.jira</groupId>
+              <artifactId>jira-querydsl-support</artifactId>
+            </pluginDependency>
+          </pluginDependencies>
+          <instructions>
+            <_manifest>${project.build.outputdirectory}/META-INF/MANIFEST.MF</_manifest>
+          </instructions>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.7.1.201405082137</version>
+        <configuration>
+          <excludes>
+            <exclude>org.everit.jira.tests.*</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <id>default-prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>default-report</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>default-check</id>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+              <rules><!-- implementation is needed only for Maven 2 -->
+                <rule implementation="org.jacoco.maven.RuleConfiguration">
+                  <element>BUNDLE</element>
+                  <limits><!-- implementation is needed only for Maven 2 -->
+                    <limit implementation="org.jacoco.report.check.Limit">
+                      <counter>COMPLEXITY</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.05</minimum>
+                    </limit>
+                  </limits>
+                </rule>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>**/atlassian-plugin.xml</include>
+          <include>**/jttp_build.properties</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+        <excludes>
+          <exclude>**/atlassian-plugin.xml</exclude>
+          <exclude>**/jttp_build.properties</exclude>
+        </excludes>
+      </resource>
+    </resources>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.15</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>jmxri</artifactId>
+          <groupId>com.sun.jmx</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jmxtools</artifactId>
+          <groupId>com.sun.jdmk</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jms</artifactId>
+          <groupId>javax.jms</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>servlet-api</artifactId>
+      <version>2.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-beans</artifactId>
+      <version>4.0.0.RELEASE</version>
+    </dependency>
+    <dependency>
+      <groupId>com.atlassian.sal</groupId>
+      <artifactId>sal-api</artifactId>
+      <version>3.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.atlassian.jira</groupId>
+      <artifactId>jira-api</artifactId>
+      <version>${jira.version}</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>jndi</groupId>
+          <artifactId>jndi</artifactId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jta</artifactId>
+          <groupId>jta</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>joda-time</artifactId>
+          <groupId>joda-time</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.atlassian.jira</groupId>
+      <artifactId>jira-tests</artifactId>
+      <version>6.1.5</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <version>3.4</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.atlassian.jira</groupId>
+      <artifactId>jira-core</artifactId>
+      <version>${jira.version}</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>jndi</groupId>
+          <artifactId>jndi</artifactId>
+        </exclusion>
+        <exclusion>
+          <artifactId>jta</artifactId>
+          <groupId>jta</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>joda-time</artifactId>
+          <groupId>joda-time</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.everit.jira</groupId>
+      <artifactId>jira-querydsl-support</artifactId>
+      <version>1.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.atlassian.jira</groupId>
+      <artifactId>jira-rest-plugin</artifactId>
+      <version>${jira.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>jsr311-api</artifactId>
+      <version>1.1.1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi</artifactId>
+      <version>3.14</version>
+    </dependency>
+    <dependency>
+      <groupId>com.atlassian.templaterenderer</groupId>
+      <artifactId>atlassian-template-renderer-api</artifactId>
+      <version>2.0.0</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>atlassian-public</id>
+      <url>https://maven.atlassian.com/repository/public</url>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+    </pluginRepository>
+  </pluginRepositories>
+  <repositories>
+    <repository>
+      <id>atlassian-public</id>
+      <url>https://maven.atlassian.com/repository/public</url>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+    </repository>
+    <repository>
+      <id>everit.release</id>
+      <name>everit-releases</name>
+      <url>https://repo.everit.biz/artifactory/public-release/</url>
+    </repository>
+  </repositories>
+
+</project>

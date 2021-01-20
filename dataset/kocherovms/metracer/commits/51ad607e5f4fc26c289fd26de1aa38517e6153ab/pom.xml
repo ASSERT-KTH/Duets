@@ -1,0 +1,260 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.develorium</groupId>
+  <artifactId>metracer</artifactId>
+  <packaging>jar</packaging>
+  <name>metracer</name>
+  <version>1.3.7</version>
+
+  <organization>
+    <name>Michael Kocherov</name>
+    <url>http://develorium.com</url>
+  </organization>
+
+  <licenses>
+    <license>
+      <name>Apache License 2.0</name>
+      <url>http://www.apache.org/licenses/</url>
+    </license>
+  </licenses>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <metracer.author>Michael Kocherov</metracer.author>
+    <metracer.author.email>m@develorium.com</metracer.author.email>
+    <metracer.release.year>2016</metracer.release.year>
+    <metracer.homepage>http://develorium.com/metracer</metracer.homepage>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.7</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm-all</artifactId>
+      <version>5.0.4</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun</groupId>
+      <artifactId>tools</artifactId>
+      <version>1.6.0</version>
+      <scope>system</scope>
+      <systemPath>${java.home}/../lib/tools.jar</systemPath>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.0.2</version>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.6</version>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Built-By>${user.name}</Built-By>
+              <Build-Host>${hostname}</Build-Host>
+              <Site>${metracer.homepage}</Site>
+              <Premain-Class>com.develorium.metracer.statik.Agent</Premain-Class>
+              <Agent-Class>com.develorium.metracer.dynamic.Agent</Agent-Class>
+              <Can-Retransform-Classes>true</Can-Retransform-Classes>
+              <Main-Class>com.develorium.metracer.Main</Main-Class>
+              <Package-Version>${project.version}</Package-Version>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.4.3</version>
+        <executions>
+          <execution>
+	    <id>BARE metracer compilation</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+	    <configuration>
+	      <createDependencyReducedPom>false</createDependencyReducedPom>
+	      <outputFile>${project.build.directory}/metracer_bare-${project.version}.jar</outputFile>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>com.develorium.metracer.Main</mainClass>
+                </transformer>
+	      </transformers>
+	    </configuration>
+          </execution>
+
+          <execution>
+	    <id>WIN metracer compilation</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+	    <configuration>
+	      <createDependencyReducedPom>false</createDependencyReducedPom>
+	      <outputFile>${project.build.directory}/metracer_win-${project.version}.jar</outputFile>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>com.develorium.metracer.WinLauncher</mainClass>
+                </transformer>
+	      </transformers>
+	    </configuration>
+          </execution>
+
+          <execution>
+	    <id>Lin metracer compilation</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+	    <configuration>
+	      <createDependencyReducedPom>false</createDependencyReducedPom>
+	      <outputFile>${project.build.directory}/metracer_lin-${project.version}.jar</outputFile>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <mainClass>com.develorium.metracer.LinLauncher</mainClass>
+                </transformer>
+	      </transformers>
+	    </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.10</version>
+        <executions>
+          <execution>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/it/java/com/develorium/metracer</source>
+                <source>src/it/java/com/develorium/metracertest</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>2.19.1</version>
+        <executions>
+          <execution>
+            <id>metracer-integration-tests</id>
+            <phase>integration-test</phase>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.groovy.maven</groupId>
+        <artifactId>gmaven-plugin</artifactId>
+        <version>1.0</version>
+        <executions>
+          <execution>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>execute</goal>
+            </goals>
+            <configuration>
+              <source>
+                project.properties["hostname"] = InetAddress.getLocalHost().getHostName()
+              </source>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>unix</id>
+      <activation>
+        <os>
+          <family>unix</family>
+        </os>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>exec-maven-plugin</artifactId>
+            <groupId>org.codehaus.mojo</groupId>
+            <version>1.4.0</version>
+            <executions>
+              <execution>
+                <id>metracer.sh compilation</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>/bin/sh</executable>
+                  <arguments>
+                    <argument>-c</argument>
+                    <argument>\
+                     sed 's|${launchstring}|metracer.sh|g' ${basedir}/src/main/resources/usage.txt &gt; ${project.build.directory}/metracer.sh.usage &amp;&amp; \
+                     sed 's|${usage_file_name}|${project.build.directory}/metracer.sh.usage|g' ${basedir}/scripts/fill_usage_for_sh.sed &gt; ${project.build.directory}/fill_usage_for_sh.sed &amp;&amp; \
+                     sed -f ${project.build.directory}/fill_usage_for_sh.sed ${basedir}/scripts/metracer.sh &gt; ${project.build.directory}/metracer.sh &amp;&amp; \
+                     cat ${project.build.directory}/${project.build.finalName}.jar &gt;&gt; ${project.build.directory}/metracer.sh</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+              <execution>
+                <id>metracer.cmd compilation</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>/bin/sh</executable>
+                  <arguments>
+                    <argument>-c</argument>
+                    <argument>\
+                     sed 's|${launchstring}|metracer.cmd|g' ${basedir}/src/main/resources/usage.txt &gt; ${project.build.directory}/metracer.cmd.usage &amp;&amp; \
+                     sed -e 's|^\(.*\)$|SET help_line="\1"|' -e a\ 'ECHO !help_line:"=!' -i ${project.build.directory}/metracer.cmd.usage &amp;&amp; \
+                     sed 's|${usage_file_name}|${project.build.directory}/metracer.cmd.usage|g' ${basedir}/scripts/fill_usage_for_cmd.sed &gt; ${project.build.directory}/fill_usage_for_cmd.sed &amp;&amp; \
+                     sed -f ${project.build.directory}/fill_usage_for_cmd.sed ${basedir}/scripts/metracer.cmd &gt; ${project.build.directory}/metracer.cmd &amp;&amp; \
+                     cat ${project.build.directory}/${project.build.finalName}.jar &gt;&gt; ${project.build.directory}/metracer.cmd
+		    </argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

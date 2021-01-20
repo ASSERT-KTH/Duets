@@ -1,0 +1,165 @@
+<!--
+  ~ JBoss, a division of Red Hat
+  ~ Copyright 2011, Red Hat Middleware, LLC, and individual
+  ~ contributors as indicated by the @authors tag. See the
+  ~ copyright.txt in the distribution for a full listing of
+  ~ individual contributors.
+  ~
+  ~ This is free software; you can redistribute it and/or modify it
+  ~ under the terms of the GNU Lesser General Public License as
+  ~ published by the Free Software Foundation; either version 2.1 of
+  ~ the License, or (at your option) any later version.
+  ~
+  ~ This software is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public
+  ~ License along with this software; if not, write to the Free
+  ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+
+   <parent>
+      <groupId>org.gatein</groupId>
+      <artifactId>gatein-parent</artifactId>
+      <version>1.3.0.Final</version>
+   </parent>
+
+   <groupId>org.gatein.rhq</groupId>
+   <artifactId>gatein-as7-rhq-plugin</artifactId>
+   <version>1.1.4.Final-SNAPSHOT</version>
+   <packaging>jar</packaging>
+
+   <name>GateIn AS7 RHQ Plugin</name>
+   <description>GateIn Portal RHQ Plugin Project</description>
+
+   <scm>
+      <connection>scm:git:git://github.com/gatein/gatein-rhq.git</connection>
+      <developerConnection>scm:git:ssh://git@github.com/gatein/gatein-rhq.git</developerConnection>
+      <url>https://github.com/gatein/gatein-rhq.git</url>
+     <tag>HEAD</tag>
+  </scm>
+
+   <properties>
+      <org.slf4j.version>1.5.6</org.slf4j.version>
+      <rhq.version>4.9.0</rhq.version>
+      <gatein.common.version>2.2.2.Final</gatein.common.version>
+      <junit.version>4.8.1</junit.version>
+   </properties>
+
+
+   <dependencies>
+      <!-- RHQ Dependencies -->
+      <dependency>
+         <groupId>org.rhq</groupId>
+         <artifactId>rhq-core-domain</artifactId>
+         <version>${rhq.version}</version>
+         <scope>provided</scope>
+        <exclusions>
+          <!-- For some reason hibernate:hibernate3:3.2.r14201-2 is a dependency
+          and since that is only available in deprecated jboss repo, excluding
+          it so we can build w/out it -->
+          <exclusion>
+            <groupId>hibernate</groupId>
+            <artifactId>hibernate3</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+         <groupId>org.rhq</groupId>
+         <artifactId>rhq-core-plugin-api</artifactId>
+         <version>${rhq.version}</version>
+         <scope>provided</scope>
+      </dependency>
+      <dependency>
+         <groupId>org.rhq</groupId>
+         <artifactId>rhq-jboss-as-7-plugin</artifactId>
+         <version>${rhq.version}</version>
+      </dependency>
+
+      <!-- won't compile otherwise due to reliance of JOPR plugin API on hibernate/JPA annotations -->
+      <!-- Fix for the Javac bug requiring annotations to be available when compiling classes. (fixed in JDK 6) -->
+      <dependency>
+         <groupId>javax.persistence</groupId>
+         <artifactId>persistence-api</artifactId>
+         <version>1.0</version>
+         <scope>provided</scope>
+         <!-- provided by the agent/plugin-container -->
+      </dependency>
+      <!-- Fix for the Javac bug requiring annotations to be available when compiling classes. (fixed in JDK 6) -->
+      <dependency>
+         <groupId>org.hibernate</groupId>
+         <artifactId>hibernate-annotations</artifactId>
+         <version>3.3.1.GA</version>
+         <scope>provided</scope>
+         <!-- provided by the agent/plugin-container -->
+      </dependency>
+
+      <dependency>
+         <groupId>commons-logging</groupId>
+         <artifactId>commons-logging</artifactId>
+         <version>1.1</version>
+         <scope>provided</scope>
+      </dependency>
+
+      <!-- Testing -->
+      <dependency>
+         <groupId>junit</groupId>
+         <artifactId>junit</artifactId>
+         <version>${junit.version}</version>
+         <scope>test</scope>
+      </dependency>
+   </dependencies>
+
+   <build>
+      <finalName>gatein-as7-rhq-plugin</finalName>
+      <plugins>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+               <source>1.6</source>
+               <target>1.6</target>
+            </configuration>
+         </plugin>
+         <plugin>
+            <groupId>org.rhq</groupId>
+            <artifactId>rhq-plugin-validator</artifactId>
+            <version>${rhq.version}</version>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-release-plugin</artifactId>
+            <version>2.4.2</version>
+            <configuration>
+               <tagNameFormat>@{project.version}</tagNameFormat>
+            </configuration>
+            <dependencies>
+               <dependency>
+                  <groupId>org.apache.maven.scm</groupId>
+                  <artifactId>maven-scm-provider-gitexe</artifactId>
+                  <version>1.9</version>
+               </dependency>
+            </dependencies>
+         </plugin>
+         <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>buildnumber-maven-plugin</artifactId>
+            <version>1.0</version>
+         </plugin>
+      </plugins>
+   </build>
+
+    <!-- Apparently we need this !?!? -->
+    <repositories>
+        <repository>
+            <id>java.net</id>
+            <url>http://download.java.net/maven/2/</url>
+        </repository>
+    </repositories>
+</project>

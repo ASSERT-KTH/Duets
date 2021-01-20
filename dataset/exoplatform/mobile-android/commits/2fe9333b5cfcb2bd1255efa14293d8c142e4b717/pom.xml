@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (C) 2003-2014 eXo Platform SAS.
+
+    This is free software; you can redistribute it and/or modify it
+    under the terms of the GNU Lesser General Public License as
+    published by the Free Software Foundation; either version 3 of
+    the License, or (at your option) any later version.
+
+    This software is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this software; if not, write to the Free
+    Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA, or see the FSF site: http://www.fsf.org.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>maven-parent-pom</artifactId>
+    <groupId>org.exoplatform</groupId>
+    <version>14</version>
+    <relativePath />
+  </parent>
+  <groupId>org.exoplatform.mobile.platform</groupId>
+  <artifactId>exo-mobile-android</artifactId>
+  <version>2.5.x-SNAPSHOT</version>
+  <packaging>apk</packaging>
+  <name>eXo Mobile Android</name>
+  <description>eXo Mobile Android project.</description>
+  <licenses>
+    <license>
+      <name>GNU General Lesser Public License (LGPL) version 3.0</name>
+      <url>http://www.gnu.org/licenses/lgpl-3.0.txt</url>
+    </license>
+  </licenses>
+  <scm>
+    <connection>scm:git:git://github.com/exoplatform/mobile-android.git</connection>
+    <developerConnection>scm:git:git@github.com:exoplatform/mobile-android.git</developerConnection>
+    <url>http://fisheye.exoplatform.org/browse/mobile-android</url>
+  </scm>
+  <properties>
+    <jira.project.key>MOB</jira.project.key>
+    <jenkins.job.name>mobile-android-master-ci</jenkins.job.name>
+    <!-- Android -->
+    <android.version>2.3.3</android.version>
+    <android.sdk.platform>10</android.sdk.platform>
+    <!-- max allowed to not have conflict with GreenDroid's ActionBar  -->
+    <android.support.version>r7</android.support.version>
+    <!-- March 2012 -->
+    <android.annotations.version>4.1.1.4</android.annotations.version>
+    <!-- Sept 2012  -->
+    <!-- Libraries -->
+    <commons-lang.version>2.4</commons-lang.version>
+    <exo.social.client.version>1.0.0</exo.social.client.version>
+    <slf4j-android.version>1.6.1-RC1</slf4j-android.version>
+    <greendroid.version>67aa3ed</greendroid.version>
+    <!-- Test Dependencies  -->
+    <fest-android.version>1.0.7</fest-android.version>
+    <robolectric.version>2.2</robolectric.version>
+    <junit.version>4.8.2</junit.version>
+    <android.test.version>4.2.2_r2</android.test.version>
+    <!-- Java version -->
+    <maven.compiler.target>1.6</maven.compiler.target>
+    <maven.compiler.source>1.6</maven.compiler.source>
+    <!-- Upgrade must be studied - will be required to upgrade to maven 3.1+ -->
+    <version.android.plugin>3.8.0</version.android.plugin>
+    <!-- Surefire settings (to be compatible with jacoco we should use a property and not the plugin param) -->
+    <argLine>-Xmx1024m</argLine>
+  </properties>
+  <dependencies>
+    <!-- Dependency With Social Client Library -->
+    <dependency>
+      <groupId>org.exoplatform.social</groupId>
+      <artifactId>social-client-java</artifactId>
+      <version>${exo.social.client.version}</version>
+      <exclusions>
+        <!-- Exclusion for slf4j not compatible with android -->
+        <exclusion>
+          <artifactId>slf4j-api</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>slf4j-log4j12</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- Dependency With SLF4J for Android -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-android</artifactId>
+      <version>${slf4j-android.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <!-- Dependency With Android -->
+    <dependency>
+      <groupId>com.google.android</groupId>
+      <artifactId>android</artifactId>
+      <version>${android.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.android</groupId>
+      <artifactId>support-v4</artifactId>
+      <version>${android.support.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.android</groupId>
+      <artifactId>annotations</artifactId>
+      <version>${android.annotations.version}</version>
+    </dependency>
+    <!-- Dependency With Greendroid library for Android -->
+    <dependency>
+      <groupId>com.greendroid</groupId>
+      <artifactId>greendroid</artifactId>
+      <version>${greendroid.version}</version>
+      <type>apklib</type>
+    </dependency>
+    <!-- Commons  -->
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>${commons-lang.version}</version>
+    </dependency>
+    <!-- 
+    JCIP Annotations are only required during compilation to avoid such warnings:
+    [WARNING] /Users/paristote/.m2/repository/org/apache/httpcomponents/httpclient/4.0/httpclient-4.0.jar!org/apache/http/impl/client/AbstractHttpClient.class: 
+              org/apache/http/impl/client/AbstractHttpClient.class(org/apache/http/impl/client:AbstractHttpClient.class): 
+              warning: Cannot find annotation method 'value()' in type 'net.jcip.annotations.GuardedBy'
+    They are not needed at run-time nor in the apk, therefore the scope is 'compile'
+     -->
+    <dependency>
+      <groupId>net.jcip</groupId>
+      <artifactId>jcip-annotations</artifactId>
+      <version>1.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+	  <groupId>com.squareup.picasso</groupId>
+	  <artifactId>picasso</artifactId>
+	  <version>2.3.4</version>
+	</dependency>
+    <!-- Test Dependencies  -->
+    <dependency>
+      <groupId>com.squareup</groupId>
+      <artifactId>fest-android</artifactId>
+      <version>${fest-android.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.robolectric</groupId>
+      <artifactId>robolectric</artifactId>
+      <version>${robolectric.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>android</groupId>
+      <artifactId>android</artifactId>
+      <version>${android.test.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+  <build>
+    <sourceDirectory>src</sourceDirectory>
+    <testSourceDirectory>test</testSourceDirectory>
+    <pluginManagement>
+      <plugins>
+        <!--
+        This plugin's configuration contains Eclipse m2e settings only.
+        It has no influence on the Maven build itself.
+        -->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>com.jayway.maven.plugins.android.generation2</groupId>
+                    <artifactId>android-maven-plugin</artifactId>
+                    <versionRange>[3.0.0-alpha-14,)</versionRange>
+                    <goals>
+                      <goal>manifest-update</goal>
+                      <goal>proguard</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <configuration>
+            <includes>
+              <include>com/exoplatform/*</include>
+              <include>org/exoplatform/*</include>
+            </includes>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>create-version-code</id>
+            <goals>
+              <goal>create-timestamp</goal>
+            </goals>
+            <configuration>
+              <timestampPropertyName>version.code</timestampPropertyName>
+              <timestampFormat>yyMMddHHmm</timestampFormat>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.jayway.maven.plugins.android.generation2</groupId>
+        <artifactId>android-maven-plugin</artifactId>
+        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <id>manifestUpdate</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>manifest-update</goal>
+            </goals>
+            <configuration>
+              <manifestVersionCode>${version.code}</manifestVersionCode>
+            </configuration>
+          </execution>
+          <execution>
+            <id>alignApk</id>
+            <phase>package</phase>
+            <goals>
+              <goal>zipalign</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <dexJvmArguments>
+            <jvmArgument>-Xshare:auto</jvmArgument>
+            <jvmArgument>-Xms128M</jvmArgument>
+            <jvmArgument>-Xmx1G</jvmArgument>
+            <jvmArgument>-XX:MaxPermSize=256M</jvmArgument>
+          </dexJvmArguments>
+          <extractDuplicates>true</extractDuplicates>
+          <sdk>
+            <platform>${android.sdk.platform}</platform>
+          </sdk>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <includes>
+            <include>**/*TestSuite.java</include>
+          </includes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <!-- Profiles definition for Android build -->
+  <profiles>
+    <profile>
+      <id>exo-release</id>
+      <properties>
+        <!-- To be able to retrieve an unsigned apk
+             and use it for publication on android market  -->
+        <android.sign.debug>both</android.sign.debug>
+      </properties>
+    </profile>
+  </profiles>
+</project>

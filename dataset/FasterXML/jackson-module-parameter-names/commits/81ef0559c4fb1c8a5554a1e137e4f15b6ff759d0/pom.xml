@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion> 
+  <parent>
+    <groupId>com.fasterxml.jackson</groupId>
+    <artifactId>jackson-parent</artifactId>
+    <version>2.6.1</version>
+  </parent>
+  <groupId>com.fasterxml.jackson.module</groupId>
+  <artifactId>jackson-module-parameter-names</artifactId>
+  <name>Jackson-module-parameter-names</name>
+  <version>2.6.4-SNAPSHOT</version>
+  <packaging>bundle</packaging>
+  <description>Add-on module for Jackson (http://jackson.codehaus.org) to support
+introspection of method/constructor parameter names, without having to add explicit property name annotation.
+</description>
+
+  <developers>
+    <developer>
+      <id>lpandzic</id>
+      <name>Lovro Pandžić</name>
+      <email>lovro.pandzic@gmail.com</email>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git@github.com:FasterXML/jackson-module-parameter-names.git</connection>
+    <developerConnection>scm:git:git@github.com:FasterXML/jackson-module-parameter-names.git</developerConnection>
+    <url>http://github.com/FasterXML/jackson-module-parameter-names</url>    
+    <tag>HEAD</tag>
+  </scm>
+  <properties>
+    <version.jackson.core>2.6.3</version.jackson.core>
+    <!-- explicitly target JDK 8 -->
+    <javac.src.version>1.8</javac.src.version>
+    <javac.target.version>1.8</javac.target.version>
+    <!-- Generate PackageVersion.java into this directory. -->
+    <packageVersion.dir>com/fasterxml/jackson/module/paramnames</packageVersion.dir>
+    <packageVersion.package>${project.groupId}.paramnames</packageVersion.package>
+    <assertj-core.version>2.0.0</assertj-core.version>
+
+    <!-- Configuration properties for the OSGi maven-bundle-plugin -->
+    <osgi.import>com.fasterxml.jackson.core
+,com.fasterxml.jackson.core.json
+,com.fasterxml.jackson.core.util
+,com.fasterxml.jackson.databind
+,com.fasterxml.jackson.databind.introspect
+,com.fasterxml.jackson.databind.module
+    </osgi.import>
+    <osgi.export>${project.groupId}.paramnames.*;version=${project.version}
+</osgi.export>
+  </properties>
+
+  <dependencies>
+    <!-- Extends Jackson mapper -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${version.jackson.core}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${version.jackson.core}</version>
+    </dependency>
+    <dependency>
+  	  <groupId>org.assertj</groupId>
+  	  <artifactId>assertj-core</artifactId>
+  	  <version>${assertj-core.version}</version>
+  	  <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-java</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>[1.8,)</version>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.2</version>
+        <inherited>true</inherited>
+        <configuration>
+          <source>${javac.src.version}</source>
+          <target>${javac.target.version}</target>
+          <showDeprecation>true</showDeprecation>
+          <showWarnings>true</showWarnings>
+          <optimize>true</optimize>
+          <compilerArgs>
+            <arg>-Xlint</arg>
+            <arg>-Werror</arg>
+            <arg>-parameters</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+      <plugin>
+        <!-- Inherited from oss-base. Generate PackageVersion.java.-->
+        <groupId>com.google.code.maven-replacer-plugin</groupId>
+        <artifactId>replacer</artifactId>
+        <executions>
+          <execution>
+            <id>process-packageVersion</id>
+            <phase>generate-sources</phase>
+          </execution>
+        </executions>
+      </plugin>
+     <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${version.plugin.surefire}</version>
+        <configuration>
+          <excludes>
+            <exclude>${packageVersion.dir}/failing/*.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

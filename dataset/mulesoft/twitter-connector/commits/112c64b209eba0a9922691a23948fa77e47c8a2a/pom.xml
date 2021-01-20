@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.mule.modules</groupId>
+  <artifactId>mule-module-twitter</artifactId>
+  <packaging>mule-module</packaging>
+  <name>Mule Twitter Connector</name>
+  <version>2.2-SNAPSHOT</version>
+
+  <description>
+The Twitter Connector currently makes it possible to query different timelines 
+available to a user, such as the public, friends or private timeline. For example:
+
+    &lt;?xml version="1.0" encoding="UTF-8"?&gt;
+    &lt;mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:spring="http://www.springframework.org/schema/beans"
+        xmlns:twitter="http://www.mulesoft.org/schema/mule/twitter"
+        xmlns:json="http://www.mulesoft.org/schema/mule/json"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                              http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.1/mule.xsd
+                              http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/3.1/mule-json.xsd
+                              http://www.mulesoft.org/schema/mule/twitter http://www.mulesoft.org/schema/mule/twitter/1.0-SNAPSHOT/mule-twitter.xsd"&gt;
+                              
+        &lt;twitter:config consumerKey="${consumer.key}" consumerSecret="${consumer.secret}"/&gt;
+        
+        &lt;flow name="TwitterTest"&gt;
+            &lt;inbound-endpoint address="http://localhost:9002/get-statuses"/&gt;
+            &lt;response&gt;
+                &lt;json:object-to-json-transformer/&gt;
+            &lt;/response&gt;
+            &lt;twitter:get-public-timeline/&gt;
+        &lt;/flow&gt;
+        ....
+        
+Authenticating with OAuth
+-------------------------
+With OAuth 1.0, you must do a two step process to authenticate the connector. 
+First, request authorization from Twitter. Then, submit the OAuth verifier code back 
+to the connector.
+
+You'll need to set up the following two flows to do this:
+
+    &lt;flow name="request-authorization"&gt;
+        &lt;inbound-endpoint address="http://localhost:9002/twitter/request-authorization"/&gt;
+        &lt;twitter:request-authorization/&gt;
+        &lt;message-properties-transformer&gt;
+            &lt;add-message-property key="http.status" value="302"/&gt;
+            &lt;add-message-property key="Location" value="#[payload]"/&gt;
+        &lt;/message-properties-transformer&gt;
+    &lt;/flow&gt;
+    
+    &lt;flow name="set-oauth-verifier"&gt;
+        &lt;inbound-endpoint address="http://localhost:9002/twitter/set-oauth-verifier"/&gt;
+        &lt;logger /&gt;
+        &lt;twitter:set-oauth-verifier oauthVerifier="#[header:inbound:verifier]"/&gt;
+    &lt;/flow&gt;
+    
+The first flow will redirect you to the Twitter authorization page once the connector has
+requested an authentication token. The second flow will allow you to set the OAuth verifier code.
+
+To authenticate your connector, do the following:
+
+- [Create a Twitter account](http://twitter.com)
+- [Register your application](http://dev.twitter.com/login?redirect_after_login=%2Fapps%2Fnew) with Twitter  
+- Set your OAuth consumer key and secret on your config element as shown above
+- Go to http://localhost:9002/twitter/request-authorization in your browser
+- You will be redirected to the Twitter authorization page. Click Authorize.
+- Take the resulting OAuth verifier code and go to http://localhost:9002/twitter/set-oauth-verifier?verifier=OAUTH_VERIFIER in your browser.
+- Your access token and secret will be logged to your application logs. You can use those to avoid future authentication setup by setting the accessToken and accessTokenSecret attributes on the connector.
+
+    </description>
+  <url>http://www.muleforge.org/projects/twitter-connector</url>
+
+  <properties>
+    <mule.version>3.1.0</mule.version>
+    <mule.devkit.version>3.0-SNAPSHOT</mule.devkit.version>
+    <junit.version>4.8.2</junit.version>
+    <mockito.version>1.8.2</mockito.version>
+    <eclipsePluginVersion>2.8</eclipsePluginVersion>
+    <vmtype>org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType</vmtype>
+    <!-- Jersey client is JDK6 only -->
+    <jdk.name>JavaSE-1.6</jdk.name>
+    <jdk.version>1.6</jdk.version>
+    <twitter4j.version>2.2.4</twitter4j.version>
+  </properties>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.mule.tools.devkit</groupId>
+          <artifactId>mule-devkit-maven-plugin</artifactId>
+          <version>${mule.devkit.version}</version>
+          <extensions>true</extensions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-webdav</artifactId>
+        <version>1.0-beta-2</version>
+      </extension>
+    </extensions>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+          <encoding>ISO-8859-1</encoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-eclipse-plugin</artifactId>
+        <version>${eclipsePluginVersion}</version>
+        <configuration>
+          <!--
+            by default download all sources when generating project
+            files
+          -->
+          <downloadSources>true</downloadSources>
+          <classpathContainers>
+            <classpathContainer>org.eclipse.jdt.launching.JRE_CONTAINER/${vmtype}/${jdk.name}
+                        </classpathContainer>
+          </classpathContainers>
+        </configuration>
+      </plugin>
+    <!-- <plugin>
+        <groupId>org.apache.maven.plugins</groupId>mave
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.8</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <docletArtifact>
+            <groupId>org.mule.tools.devkit</groupId>
+            <artifactId>mule-devkit-doclet</artifactId>
+            <version>1.0-SNAPSHOT</version>
+          </docletArtifact>
+          <doclet>org.mule.devkit.doclet.Doclava</doclet>
+          <bootclasspath>${sun.boot.class.path}</bootclasspath>
+          <additionalparam>
+            -quiet
+            -federate JDK
+            http://download.oracle.com/javase/6/docs/api/index.html?
+            -federationxml JDK
+            http://doclava.googlecode.com/svn/static/api/openjdk-6.xml
+            -hdf project.name "${project.name}"
+            -d
+            ${project.build.directory}/apidocs
+                    </additionalparam>
+          <useStandardDocletOptions>false</useStandardDocletOptions>
+          <additionalJOption>-J-Xmx1024m</additionalJOption>
+        </configuration>
+      </plugin>  --> 
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-idea-plugin</artifactId>
+        <version>2.2</version>
+        <configuration>
+          <downloadSources>true</downloadSources>
+          <jdkName>${jdk.version}</jdkName>
+        </configuration>
+      </plugin>
+
+      <!-- The release distribution for this project -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.2</version>
+        <configuration>
+          <finalName>${project.artifactId}-${project.version}</finalName>
+          <descriptors>
+            <descriptor>assembly.xml</descriptor>
+          </descriptors>
+          <appendAssemblyId>false</appendAssemblyId>
+        </configuration>
+      </plugin>
+      
+       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <configuration>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <pushChanges>false</pushChanges>
+        </configuration>
+        <version>2.1</version>
+      </plugin>
+
+      <plugin>
+        <groupId>com.mycila.maven-license-plugin</groupId>
+        <artifactId>maven-license-plugin</artifactId>
+        <version>1.8.0</version>
+        <configuration>
+          <header>LICENSE_HEADER.txt</header>
+          <excludes>
+            <exclude>target/**</exclude>
+            <exclude>.gitignore</exclude>
+            <exclude>**/*.txt</exclude>
+            <exclude>**/*.ftl</exclude>
+            <exclude>**/build-number.txt</exclude> <!-- bamboo -->
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Devkit -->
+      <plugin>
+        <groupId>org.mule.tools.devkit</groupId>
+        <artifactId>mule-devkit-maven-plugin</artifactId>
+        <version>${mule.devkit.version}</version>
+      </plugin>
+    </plugins>
+  </build>
+
+  <!-- plugins for creating site reports -->
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>2.6</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <targetJdk>${jdk.version}</targetJdk>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>cobertura-maven-plugin</artifactId>
+        <version>2.4</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>taglist-maven-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <tags>
+            <tag>TODO</tag>
+            <tag>@todo</tag>
+            <tag>FIXME</tag>
+            <tag>@fixme</tag>
+            <tag>@deprecated</tag>
+          </tags>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <version>2.2</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jdepend-maven-plugin</artifactId>
+        <version>2.0-beta-2</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>2.3.1</version>
+      </plugin>
+    </plugins>
+  </reporting>
+
+  <dependencies>
+    <!-- Mule Dependencies -->
+    <dependency>
+      <groupId>org.mule.transports</groupId>
+      <artifactId>mule-transport-http</artifactId>
+      <version>${mule.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mule.modules</groupId>
+      <artifactId>mule-module-spring-config</artifactId>
+      <version>${mule.version}</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.mule.modules</groupId>
+      <artifactId>mule-module-json</artifactId>
+      <version>${mule.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.twitter4j</groupId>
+      <artifactId>twitter4j-core</artifactId>
+      <version>${twitter4j.version}</version>
+    </dependency>
+    <dependency>
+  <groupId>org.twitter4j</groupId>
+  <artifactId>twitter4j-stream</artifactId>
+  <version>${twitter4j.version}</version>
+</dependency>
+
+    <!-- for testing -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.8.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>${mockito.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mule.tests</groupId>
+      <artifactId>mule-tests-functional</artifactId>
+      <version>${mule.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.htmlparser</groupId>
+      <artifactId>htmlparser</artifactId>
+      <version>1.6</version>
+      <type>jar</type>
+      <scope>compile</scope>
+    </dependency>
+
+    <!-- Devkit -->
+    <dependency>
+      <groupId>org.mule.tools.devkit</groupId>
+      <artifactId>mule-devkit-annotations</artifactId>
+      <version>${mule.devkit.version}</version>
+    </dependency>
+  </dependencies>
+
+  <scm>
+    <connection>scm:git:git://github.com:mulesoft/twitter-connector.git</connection>
+    <developerConnection>scm:git:git@github.com:mulesoft/twitter-connector.git</developerConnection>
+    <url>http://github.com/mulesoft/twitter-connector</url>
+  </scm>
+
+  <repositories>
+    <repository>
+      <id>codehaus-repo</id>
+      <name>Codehaus Release Repository</name>
+      <url>http://repository.codehaus.org/</url>
+      <layout>default</layout>
+    </repository>
+    <repository>
+      <id>mulesoft.releases</id>
+      <name>MuleSoft Releases Repository</name>
+      <url>http://repository.mulesoft.org/releases/</url>
+      <layout>default</layout>
+    </repository>
+    <repository>
+      <id>mulesoft.snapshots</id>
+      <name>MuleForge Release Repository</name>
+      <url>http://repository.mulesoft.org/snapshots/</url>
+      <layout>default</layout>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>codehaus-mule-repo</id>
+      <name>Codehaus Repository</name>
+      <url>http://dist.codehaus.org/mule/dependencies/maven2</url>
+      <layout>default</layout>
+    </repository>
+    <repository>
+      <id>twitter4j</id>
+      <url>http://twitter4j.org/maven2/</url>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>codehaus-plugin-snapshots</id>
+      <name>Codehaus Plugin Snapshot Repository</name>
+      <url>http://snapshots.repository.codehaus.org</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>mulesoft.releases</id>
+      <name>MuleForge Release Repository</name>
+      <url>http://repository.mulesoft.org/releases/</url>
+      <layout>default</layout>
+    </pluginRepository>
+    <pluginRepository>
+      <id>mulesoft.snapshots</id>
+      <name>MuleForge Release Repository</name>
+      <url>http://repository.mulesoft.org/snapshots/</url>
+      <layout>default</layout>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
+  <distributionManagement>
+    <repository>
+      <id>mulesoft.releases</id>
+      <name>Muleforge Releases Repository</name>
+      <url>https://repository.mulesoft.org/releases/</url>
+    </repository>
+    <snapshotRepository>
+      <id>mulesoft.snapshots</id>
+      <name>Muleforge Snapshots Repository</name>
+      <url>https://repository.mulesoft.org/snapshots/</url>
+      <uniqueVersion>false</uniqueVersion>
+    </snapshotRepository>
+  </distributionManagement>
+</project>

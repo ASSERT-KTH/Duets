@@ -1,0 +1,133 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>jpathwatch</groupId>
+    <artifactId>jpathwatch</artifactId>
+    <version>0.95</version>
+    <packaging>bundle</packaging>
+
+    <name>jpathwatch</name>
+    <description>
+        jpathwatch is a Java library for monitoring directories for changes.  It
+        uses the host platform's native OS functions to achive this to avoid
+        polling.
+    </description>
+
+    <url>http://jpathwatch.wordpress.com</url>
+    <licenses>
+        <license>
+            <name>GNU General Public License v2 with Classpath Exception</name>
+            <url>http://www.gnu.org/software/classpath/license.html</url>
+            <comments>
+                A modified version of the GPLv2 which permits linking with
+                GPL-incompatible modules under certain conditions.
+            </comments>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>bobby_newmark</id>
+            <name>Uwe Pachler</name>
+            <roles>
+                <role>developer</role>
+                <role>maintainer</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!--
+                    Don't get bitten by http://jira.codehaus.org/browse/SUREFIRE-836
+                    when running individual tests.
+                -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.13</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.0</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>2.3.7</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+                        <Export-Package>name.pachler.nio.file, name.pachler.nio.file.ext</Export-Package>
+                        <Private-Package>name.pachler.nio.file.impl</Private-Package>
+                        <Bundle-NativeCode>
+                            FreeBSD-i386/libjpathwatch-native.so;osname=FreeBSD;processor=x86,
+                            GNU-Linux-x86/libjpathwatch-native.so;osname=Linux;processor=x86,
+                            GNU-Linux-x86_64/libjpathwatch-native.so;osname=Linux;processor=x86-64,
+                            GNU-MacOSX/libjpathwatch-native-32.dylib;osname=MacOSX;processor=x86,
+                            GNU-MacOSX/libjpathwatch-native-64.dylib;osname=MacOSX;processor=x86-64,
+                            GNU-MacOSX/libjpathwatch-native-ppc-32.dylib;osname=MacOSX;processor=PowerPC,
+                            <!--
+      	                      NOTE: http://www.osgi.org/Specifications/Reference does not list a constant
+                              for 64-bit PowerPC, so I'm not 100% sure this will work in OSGi.
+
+                              Also, Apple never shipped a 64-bit PowerPC system.  Even if someone were to
+                              build one in their garage, I doubt they could find a 64-bit copy of OSX for
+                              the PowerPC.
+                            -->
+                            GNU-MacOSX/libjpathwatch-native-ppc-64.dylib;osname=MacOSX;processor=PowerPC-64
+                            Windows-amd64/jpathwatch-native.dll;osname=WindowsXP;processor=x86-64
+                            Windows-x86/jpathwatch-native.dll;osname=WindowsXP;processor=x86
+                        </Bundle-NativeCode>
+                        <Bundle-Category>Utilities</Bundle-Category>
+                        <Bundle-License>http://www.gnu.org/software/classpath/license.html;description=GPL with Classpath Exception</Bundle-License>
+                    </instructions>
+                </configuration>
+            </plugin>
+
+            <!-- Build the distributable any time we package the jar. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <descriptor>${basedir}/assembly.xml</descriptor>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

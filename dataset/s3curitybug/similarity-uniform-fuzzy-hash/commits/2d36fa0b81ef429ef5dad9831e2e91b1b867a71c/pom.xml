@@ -1,0 +1,349 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+
+	<!-- Project Attributes -->
+	<groupId>com.github.s3curitybug</groupId>
+	<artifactId>similarity-uniform-fuzzy-hash</artifactId>
+	<version>1.8.4</version>
+
+	<packaging>jar</packaging>
+	<name>${project.artifactId}</name>
+	<description>
+		Similarity Uniform Fuzzy Hash is a tool that allows to accurately and efficiently compute 
+		the similarity between two files (or sets of bytes) as a 0 to 1 score.
+		For that purpose, it first computes for each file a Context Triggered Piecewise Hash (CTPH), 
+		also known as fuzzy hash, and then compares the hashes.
+	</description>
+	<url>https://github.com/s3curitybug/similarity-uniform-fuzzy-hash</url>
+	<inceptionYear>2017</inceptionYear>
+
+
+	<!-- Developers -->
+	<developers>
+		<developer>
+			<id>sherl0ck</id>
+			<name>Juan Jose Torres Garcia</name>
+			<email>s3curitybug@gmail.com</email>
+			<url>https://github.com/s3curitybug/</url>
+		</developer>
+	</developers>
+
+
+	<!-- License -->
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+
+	<!-- SCM -->
+	<scm>
+		<connection>scm:git:git://github.com/s3curitybug/similarity-uniform-fuzzy-hash.git</connection>
+		<developerConnection>scm:git:ssh://github.com:s3curitybug/similarity-uniform-fuzzy-hash.git</developerConnection>
+		<url>https://github.com/s3curitybug/similarity-uniform-fuzzy-hash/tree/master</url>
+	</scm>
+
+	<issueManagement>
+		<url>https://github.com/s3curitybug/similarity-uniform-fuzzy-hash/issues</url>
+		<system>GitHub Issues</system>
+	</issueManagement>
+
+
+	<!-- Distribution Management -->
+	<distributionManagement>
+		<snapshotRepository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>ossrh</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
+
+
+	<!-- Project Properties -->
+	<properties>
+
+		<!-- Java Version -->
+		<java.version>1.8</java.version>
+
+		<!-- Main Class -->
+		<mainClass>com.github.s3curitybug.similarityuniformfuzzyhash.Main</mainClass>
+
+		<!-- Dependencies Folder -->
+		<dependenciesFolder>lib</dependenciesFolder>
+
+		<!-- Source Encoding -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<!-- Built By -->
+		<builtBy>s3curitybug@gmail.com</builtBy>
+
+	</properties>
+
+
+	<!-- Profiles -->
+	<profiles>
+
+		<!--Profile: libsOutside -->
+		<profile>
+			<id>libsOutside</id>
+			<properties>
+				<addClasspath>true</addClasspath>
+				<shadePhase>none</shadePhase>
+				<gpgPhase>none</gpgPhase>
+			</properties>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+		</profile>
+
+		<!-- Profile: libsInside -->
+		<profile>
+			<id>libsInside</id>
+			<properties>
+				<addClasspath>false</addClasspath>
+				<shadePhase>package</shadePhase>
+				<gpgPhase>none</gpgPhase>
+			</properties>
+		</profile>
+
+		<!--Profile: libsOutsideSign -->
+		<profile>
+			<id>libsOutsideSign</id>
+			<properties>
+				<addClasspath>true</addClasspath>
+				<shadePhase>none</shadePhase>
+				<gpgPhase>verify</gpgPhase>
+			</properties>
+		</profile>
+
+		<!-- Profile: libsInsideSign -->
+		<profile>
+			<id>libsInsideSign</id>
+			<properties>
+				<addClasspath>false</addClasspath>
+				<shadePhase>package</shadePhase>
+				<gpgPhase>verify</gpgPhase>
+			</properties>
+		</profile>
+
+	</profiles>
+
+
+	<!-- Build -->
+	<build>
+
+		<!-- Jar Name -->
+		<finalName>${project.artifactId}-${project.version}</finalName>
+
+		<!-- Resources -->
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>${project.basedir}</directory>
+				<includes>
+					<include>LICENSE.txt</include>
+					<include>NOTICE.txt</include>
+				</includes>
+				<targetPath>META-INF</targetPath>
+			</resource>
+		</resources>
+
+		<!-- Plugins -->
+		<plugins>
+
+			<!-- Compiler Plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.7.0</version>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+				</configuration>
+			</plugin>
+
+			<!-- Jar Plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.0.2</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>${addClasspath}</addClasspath>
+							<classpathPrefix>${dependenciesFolder}</classpathPrefix>
+							<mainClass>${mainClass}</mainClass>
+						</manifest>
+						<manifestEntries>
+							<Built-By>${builtBy}</Built-By>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<!-- Dependency Plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.0.2</version>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<includeScope>compile</includeScope>
+							<outputDirectory>${project.build.directory}/${dependenciesFolder}</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Shade Plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<phase>${shadePhase}</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>${mainClass}</mainClass>
+								</transformer>
+							</transformers>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Source Plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.0.1</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+						<configuration>
+							<archive>
+								<manifestEntries>
+									<Built-By>${builtBy}</Built-By>
+								</manifestEntries>
+							</archive>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Javadoc Plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.4</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+							<archive>
+								<manifestEntries>
+									<Built-By>${builtBy}</Built-By>
+								</manifestEntries>
+							</archive>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- GPG Plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.6</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>${gpgPhase}</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Nexus Staging Plugin -->
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.6.8</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>ossrh</serverId>
+					<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+					<autoReleaseAfterClose>true</autoReleaseAfterClose>
+				</configuration>
+			</plugin>
+
+		</plugins>
+
+	</build>
+
+
+	<!-- Dependencies -->
+	<dependencies>
+
+		<!-- JUnit -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Commons Cli -->
+		<dependency>
+			<groupId>commons-cli</groupId>
+			<artifactId>commons-cli</artifactId>
+			<version>1.4</version>
+		</dependency>
+
+		<!-- Commons IO -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.5</version>
+		</dependency>
+
+		<!-- JANSI -->
+		<dependency>
+			<groupId>org.fusesource.jansi</groupId>
+			<artifactId>jansi</artifactId>
+			<version>1.15</version>
+		</dependency>
+
+	</dependencies>
+
+</project>

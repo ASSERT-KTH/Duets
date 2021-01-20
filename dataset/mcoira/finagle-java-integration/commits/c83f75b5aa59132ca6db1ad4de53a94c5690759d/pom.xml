@@ -1,0 +1,119 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.ecomnext</groupId>
+    <artifactId>finagle-java-integration</artifactId>
+    <version>1.0</version>
+    <packaging>jar</packaging>
+
+    <name>finagle-java-integration</name>
+    <url>http://maven.apache.org</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <build>
+        <finalName>analytics-finagle-${project.version}</finalName>
+        <plugins>
+            <!-- Generate Finagle scala classes for thrift definitions -->
+            <plugin>
+                <groupId>com.twitter</groupId>
+                <artifactId>scrooge-maven-plugin</artifactId>
+                <version>3.3.2</version>
+                <configuration>
+                    <language>scala</language> <!-- default is scala -->
+                    <thriftOpts>
+                        <!-- add other Scrooge command line options using thriftOpts -->
+                        <thriftOpt>--finagle</thriftOpt>
+                        <!--<thriftOpt>-    -ostrich</thriftOpt>-->
+                    </thriftOpts>
+                    <outputDirectory>target/generated-sources</outputDirectory>
+                    <!-- tell scrooge to extract thrifts from these artifacts -->
+                    <dependencyIncludes>
+                        <include>event-logger-thrift</include>
+                    </dependencyIncludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>thrift-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>thrift-test-sources</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Compile Finagle scala classes -->
+            <plugin>
+                <groupId>org.scala-tools</groupId>
+                <artifactId>maven-scala-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>compile-thrift-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>testCompile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <sourceDir>target/generated-sources/scrooge</sourceDir>
+                    <jvmArgs>
+                        <jvmArg>-Xms64m</jvmArg>
+                        <jvmArg>-Xmx1024m</jvmArg>
+                    </jvmArgs>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>twitter-repo</id>
+            <url>http://maven.twttr.com</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.apache.thrift</groupId>
+            <artifactId>libthrift</artifactId>
+            <version>0.7.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.twitter</groupId>
+            <artifactId>scrooge-core_2.9.2</artifactId>
+            <version>3.5.0</version>
+        </dependency>
+
+        <!-- needed if the "- -finagle" flag is provided -->
+        <dependency>
+            <groupId>com.twitter</groupId>
+            <artifactId>finagle-thrift_2.9.2</artifactId>
+            <version>6.5.1</version>
+        </dependency>
+
+
+        <!-- Scala library for scala/java integration -->
+        <!-- Same version used by scrooge -->
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>2.9.2</version>
+        </dependency>
+
+    </dependencies>
+</project>

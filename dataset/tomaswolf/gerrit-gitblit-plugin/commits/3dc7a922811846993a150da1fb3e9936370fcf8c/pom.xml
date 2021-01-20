@@ -1,0 +1,390 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<!--
+Copyright (C) 2012 The Android Open Source Project
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.googlesource.gerrit.plugins.gitblit</groupId>
+  <artifactId>gitblit-plugin</artifactId>
+  <description>GitBlit for Gerrit integrated as a plugin</description>
+  <name>Gerrit - GitBlit Plugin</name>
+  <version>3.2.171.0-SNAPSHOT</version><!-- Gerrit API version followed by collapsed GitBlit version, followed by plugin version -->
+  <licenses>
+    <license>
+      <name>Apache License 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+    </license>
+  </licenses>
+  <properties>
+    <Gerrit-ApiType>plugin</Gerrit-ApiType>
+    <Gerrit-ApiVersion>3.2.0</Gerrit-ApiVersion>
+    <JGit-Version>5.8.0.202006091008-r</JGit-Version>
+    <GitBlit-Version>1.7.1</GitBlit-Version>
+    <Wicket-Version>1.4.22</Wicket-Version>
+    <Lucene-Version>6.6.5</Lucene-Version>
+    <Gerrit-ReloadMode>restart</Gerrit-ReloadMode>
+    <Gerrit-InitStep>com.googlesource.gerrit.plugins.gitblit.GitBlitInitStep</Gerrit-InitStep>
+    <Gerrit-Module>com.googlesource.gerrit.plugins.gitblit.GitBlitModule</Gerrit-Module>
+    <Gerrit-HttpModule>com.googlesource.gerrit.plugins.gitblit.GitBlitServletModule</Gerrit-HttpModule>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.7</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.wicket</groupId>
+      <artifactId>wicket</artifactId>
+      <version>${Wicket-Version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.wicket</groupId>
+      <artifactId>wicket-auth-roles</artifactId>
+      <version>${Wicket-Version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.wicket</groupId>
+      <artifactId>wicket-extensions</artifactId>
+      <version>${Wicket-Version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-core</artifactId>
+      <version>${Lucene-Version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-highlighter</artifactId>
+      <version>${Lucene-Version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-analyzers-common</artifactId>
+      <version>${Lucene-Version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-memory</artifactId>
+      <version>${Lucene-Version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-queryparser</artifactId>
+      <version>${Lucene-Version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.lucene</groupId>
+        <artifactId>lucene-sandbox</artifactId>
+        <version>${Lucene-Version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jgit</groupId>
+      <artifactId>org.eclipse.jgit</artifactId>
+      <version>${JGit-Version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.gerrit</groupId>
+      <artifactId>gerrit-plugin-api</artifactId>
+      <version>${Gerrit-ApiVersion}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.gitblit</groupId>
+      <artifactId>gitblit</artifactId>
+      <version>${GitBlit-Version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.inject.extensions</groupId>
+          <artifactId>guice-servlet</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+  </dependencies>
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>**/*.md</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+        <excludes>
+          <exclude>**/*.md</exclude>
+        </excludes>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.7</version>
+        <configuration>
+          <useDefaultDelimiters>false</useDefaultDelimiters>
+          <delimiters>
+            <delimiter>BUILDREPLACE{*}</delimiter>
+          </delimiters>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>docu</outputDirectory>
+              <useDefaultDelimiters>false</useDefaultDelimiters>
+              <delimiters>
+                <delimiter>BUILDREPLACE{*}</delimiter>
+                <delimiter>(@URL@plugins/@PLUGIN@/*/gitblit.properties)</delimiter>
+                <delimiter>@</delimiter>
+              </delimiters>
+              <filters>
+                <filters>online-docu.properties</filters>
+              </filters>
+              <resources>
+                <resource>
+                  <directory>src/main/resources/Documentation</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>**/*.md</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.5.1</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.4.3</version>
+        <configuration>
+          <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
+          <artifactSet>
+            <excludes>
+              <exclude>org.parboiled:*</exclude><!-- In Gerrit API 2.11 -->
+              <exclude>org.pegdown:*</exclude><!-- In Gerrit API 2.11 -->
+              <exclude>com.google.gerrit:*</exclude>
+              <exclude>org.bouncycastle:*</exclude>
+              <exclude>aopalliance:*</exclude>
+              <exclude>org.slf4j:*</exclude>
+              <exclude>com.google.guava:*</exclude>
+              <exclude>com.google.inject:*</exclude>
+              <exclude>com.google.inject.extensions:*</exclude>
+              <exclude>org.eclipse.jgit:*</exclude>
+              <exclude>log4j:*</exclude>
+              <exclude>com.google.code.gson:*</exclude>
+              <exclude>com.googlecode.javaewah:*</exclude>
+              <exclude>com.jcraft:*</exclude>
+              <exclude>com.intellij:*</exclude><!-- Huh? Compile-time only. -->
+              <exclude>javax.servlet:*</exclude>
+              <exclude>javax.inject:*</exclude>
+              <exclude>org.eclipse.jetty.aggregate:*</exclude><!-- In Gerrit API. GitBlit 9.2.3.v20140905, Gerrit 9.1.0.v20131115 -->
+              <exclude>org.apache.mina:*</exclude><!--  In Gerrit API. GitBlit 2.07, Gerrit 2.0.7 -->
+              <exclude>org.apache.sshd:*</exclude><!--  In Gerrit API. GitBlit 0.12.0, Gerrit 0.11.1-atlassian-1 -->
+              <exclude>org.apache.commons:commons-compress</exclude><!-- In Gerrit API. GitBlit 1.4.1, Gerrit 1.7 -->
+              <!-- We can't exclude org.apache.lucene:* because gitblit uses also lucene-memory and lucene-highlighter, which apparently are not in the Gerrit API -->
+              <exclude>org.apache.lucene:lucene-core</exclude><!-- In Gerrit API. GitBlit 4.6.0, Gerrit 5.3.0 -->
+              <exclude>org.apache.lucene:lucene-analyzers-commons</exclude><!-- In Gerrit API. GitBlit 4.6.0, Gerrit 5.3.0 -->
+              <exclude>org.apache.lucene:lucene-queries</exclude><!-- In Gerrit API. -->
+              <exclude>org.apache.lucene:lucene-queryparser</exclude><!-- In Gerrit API. GitBlit 4.6.0, Gerrit 5.3.0 -->
+              <exclude>commons-codec:commons-codec</exclude><!-- In Gerrit API. GitBlit 1.7, Gerrit 1.4 -->
+              <exclude>org.tukaani:*</exclude><!-- In Gerrit API. GitBlit 1.0, Gerrit 1.4 -->
+              <exclude>com.toedter:*</exclude><!-- Used only in GitBlit client, which doesn't run -->
+              <exclude>org.codehaus.groovy:groovy-all</exclude><!-- Used only for GitBlit push hooks, which never run in this plugin. 6MB of dead code! -->
+              <exclude>org.ow2.asm:*</exclude>
+              <exclude>org.eclipse.jetty:*</exclude>
+            </excludes>
+          </artifactSet>
+          <transformers>
+            <transformer
+              implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+              <manifestEntries>
+                <Gerrit-PluginName>gitblit</Gerrit-PluginName>
+                <Gerrit-Module>${Gerrit-Module}</Gerrit-Module>
+                <Gerrit-HttpModule>${Gerrit-HttpModule}</Gerrit-HttpModule>
+                <Gerrit-InitStep>${Gerrit-InitStep}</Gerrit-InitStep>
+                <Implementation-Vendor>tw201207</Implementation-Vendor>
+                <Implementation-URL>https://github.com/tomaswolf/gerrit-gitblit-plugin</Implementation-URL>
+                <Implementation-Title>Plugin ${project.artifactId}</Implementation-Title>
+                <Implementation-Version>${project.version}</Implementation-Version>
+                <Gerrit-ApiType>${Gerrit-ApiType}</Gerrit-ApiType>
+                <Gerrit-ApiVersion>${Gerrit-ApiVersion}</Gerrit-ApiVersion>
+                <Gerrit-ReloadMode>${Gerrit-ReloadMode}</Gerrit-ReloadMode>
+              </manifestEntries>
+            </transformer>
+          </transformers>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <filters>
+                <filter>
+                  <artifact>com.gitblit:gitblit</artifact>
+                  <excludes>
+                    <!--
+                      Throw away the GitBlit GO server and the GitBlit client. We don't need them.
+
+                      There's one class in there that we need: com/gitblit/client/Translation.class. We supply that one
+                      in our own Gerrit-GitBlit plugin bundle.
+                      -->
+                    <exclude>com/gitblit/authority/**</exclude>
+                    <exclude>com/gitblit/client/**</exclude>
+                    <exclude>com/gitblit/GitBlitServer.class</exclude>
+                    <exclude>com/gitblit/GitBlitServer$*.class</exclude>
+                    <exclude>com/gitblit/Launcher.class</exclude>
+                    <exclude>com/gitblit/Launcher$*.class</exclude>
+                    <!-- More GitBlit fixes. We supply our own versions of these classes in our own bundle. -->
+                    <exclude>com/gitblit/models/RefModel.class</exclude><!-- StackOverflowError; issue #21 -->
+                    <exclude>com/gitblit/models/RefModel$*.class</exclude>
+                    <exclude>com/gitblit/models/RepositoryCommit.class</exclude><!-- StackOverflowError; issue #21 -->
+                    <exclude>com/gitblit/models/RepositoryCommit$*.class</exclude>
+                    <exclude>com/gitblit/wicket/MarkupProcessor.class</exclude><!-- Use flexmark from Gerrit instead of pegdown/parboiled -->
+                    <exclude>com/gitblit/wicket/MarkupProcessor$*.class</exclude>
+                    <exclude>com/gitblit/wicket/SessionlessForm.class</exclude><!-- Non-transient logger; issue #21 -->
+                    <exclude>com/gitblit/wicket/SessionlessForm$*.class</exclude>
+                    <exclude>com/gitblit/wicket/pages/BasePage.class</exclude><!-- Gerrit footer link -->
+                    <exclude>com/gitblit/wicket/pages/BasePage$*.class</exclude>
+                    <exclude>com/gitblit/wicket/pages/BlamePage.class</exclude><!-- Non-transient logger; issue #21 -->
+                    <exclude>com/gitblit/wicket/pages/BlamePage$*.class</exclude>
+                    <exclude>com/gitblit/wicket/pages/BlobPage.class</exclude><!-- Redirect to tree -->
+                    <exclude>com/gitblit/wicket/pages/BlobPage$*.class</exclude>
+                    <exclude>com/gitblit/wicket/pages/LogoutPage.class</exclude><!-- Logout via redirect to Gerrit's /logout -->
+                    <exclude>com/gitblit/wicket/pages/LogoutPage$*.class</exclude>
+                    <exclude>com/gitblit/wicket/pages/MetricsPage.class</exclude><!-- Non-transient logger; issue #21 -->
+                    <exclude>com/gitblit/wicket/pages/MetricsPage$*.class</exclude>
+                    <exclude>com/gitblit/wicket/pages/RawPage.class</exclude><!-- Non-transient logger; issue #21 -->
+                    <exclude>com/gitblit/wicket/pages/RawPage$*.class</exclude>
+                    <exclude>com/gitblit/wicket/pages/RepositoryPage.class</exclude><!-- Non-transient logger; issue #21 -->
+                    <exclude>com/gitblit/wicket/pages/RepositoryPage$*.class</exclude>
+                    <exclude>com/gitblit/wicket/pages/RootPage.class</exclude><!-- Login link -->
+                    <exclude>com/gitblit/wicket/pages/RootPage$*.class</exclude>
+                    <exclude>com/gitblit/wicket/pages/SummaryPage.class</exclude><!-- Non-transient logger; issue #21 -->
+                    <exclude>com/gitblit/wicket/pages/SummaryPage$*.class</exclude>
+                    <exclude>com/gitblit/wicket/pages/TicketPage.class</exclude><!-- Non-transient logger & StackOverflowError; issue #21 -->
+                    <exclude>com/gitblit/wicket/pages/TicketPage$*.class</exclude>
+                    <exclude>com/gitblit/wicket/panels/LogPanel.class</exclude><!-- StackOverflowError; issue #21 -->
+                    <exclude>com/gitblit/wicket/panels/LogPanel$*.class</exclude>
+                    <exclude>com/gitblit/wicket/panels/SearchPanel.class</exclude><!-- StackOverflowError; issue #21 -->
+                    <exclude>com/gitblit/wicket/panels/SearchPanel$*.class</exclude>
+                    <exclude>com/gitblit/utils/MarkdownUtils.class</exclude><!-- Use flexmark from Gerrit instead of pegdown/parboiled -->
+                    <exclude>com/gitblit/utils/MarkdownUtils$*.class</exclude>
+                    <exclude>com/gitblit/utils/MetricUtils.class</exclude><!-- Bug fix -->
+                    <exclude>com/gitblit/utils/MetricUtils$*.class</exclude>
+                    <exclude>com/gitblit/utils/GitBlitDiffFormatter.class</exclude><!-- Number of diff context lines -->
+                    <exclude>com/gitblit/utils/GitBlitDiffFormatter$*.class</exclude>
+                    <exclude>com/gitblit/utils/ArrayUtils.class</exclude><!-- Performance fix, c.f. issue #23 -->
+                    <exclude>com/gitblit/utils/ArrayUtils$*.class</exclude>
+                    <exclude>com/gitblit/utils/CommitCache.class</exclude><!-- Performance fix, c.f. issue #23 -->
+                    <exclude>com/gitblit/utils/CommitCache$*.class</exclude>
+                    <!-- JGit compatibility. -->
+                    <exclude>com/gitblit/utils/DiffUtils.class</exclude>
+                    <exclude>com/gitblit/utils/DiffUtils$*.class</exclude>
+                    <exclude>com/gitblit/utils/CompressionUtils.class</exclude>
+                    <exclude>com/gitblit/utils/CompressionUtils$*.class</exclude>
+                    <exclude>com/gitblit/utils/JGitUtils.class</exclude>
+                    <exclude>com/gitblit/utils/JGitUtils$*.class</exclude>
+                    <exclude>com/gitblit/utils/RefLogUtils.class</exclude>
+                    <exclude>com/gitblit/utils/RefLogUtils$*.class</exclude>
+                    <exclude>com/gitblit/wicket/pages/NewRepositoryPage.class</exclude>
+                    <exclude>com/gitblit/wicket/pages/NewRepositoryPage$*.class</exclude>
+                    <exclude>com/gitblit/wicket/pages/LuceneSearchPage.class</exclude>
+                    <exclude>com/gitblit/wicket/pages/LuceneSearchPage$*.class</exclude>
+                    <exclude>com/gitblit/wicket/panels/BranchesPanel.class</exclude>
+                    <exclude>com/gitblit/wicket/panels/BranchesPanel$*.class</exclude>
+                    <exclude>com/gitblit/wicket/panels/HistoryPanel.class</exclude><!-- Also StackOverflowError; issue #21 -->
+                    <exclude>com/gitblit/wicket/panels/HistoryPanel$*.class</exclude>
+                    <exclude>com/gitblit/tickets/BranchTicketService.class</exclude>
+                    <exclude>com/gitblit/tickets/BranchTicketService$*.class</exclude>
+                    <exclude>com/gitblit/tickets/TicketIndexer.class</exclude>
+                    <exclude>com/gitblit/tickets/TicketIndexer$*.class</exclude>
+                    <exclude>com/gitblit/servlet/RawServlet.class</exclude>
+                    <exclude>com/gitblit/servlet/RawServlet$*.class</exclude>
+                    <exclude>com/gitblit/service/LuceneService.class</exclude>
+                    <exclude>com/gitblit/service/LuceneService$*.class</exclude>
+                    <exclude>com/syntevo/bugtraq/BugtraqConfig.class</exclude><!-- Also bugfix (issue #22) -->
+                    <exclude>com/syntevo/bugtraq/BugtraqConfig$*.class</exclude>
+                    <!-- Remove direct dependencies on parboiled. -->
+                    <exclude>com/gitblit/wicket/panels/BooleanChoiceOption.class</exclude>
+                    <exclude>com/gitblit/wicket/panels/BooleanChoiceOption$*.class</exclude>
+                    <exclude>com/gitblit/wicket/panels/BooleanOption.class</exclude>
+                    <exclude>com/gitblit/wicket/panels/BooleanOption$*.class</exclude>
+                    <exclude>com/gitblit/wicket/panels/ChoiceOption.class</exclude>
+                    <exclude>com/gitblit/wicket/panels/ChoiceOption$*.class</exclude>
+                    <exclude>com/gitblit/wicket/SafeTextModel.class</exclude>
+                    <exclude>com/gitblit/wicket/SafeTextModel$*.class</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <!-- No signatures; we'd end up with the wrong ones anyway. -->
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                    <exclude>META-INF/maven/</exclude><!--  Don't know why we have that at all in the jar. -->
+                    <exclude>.idea/**</exclude><!--  Ditto. -->
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <repositories>
+    <repository>
+      <id>gerrit-api-repository</id>
+      <url>https://gerrit-api.commondatastorage.googleapis.com/release</url>
+    </repository>
+    <repository>
+        <id>com.gitblit</id>
+        <name>Gitblit</name>
+        <url>http://gitblit.github.io/gitblit-maven/</url>
+        <layout>default</layout>
+    </repository>
+    <repository>
+      <id>jgit-snapshots</id>
+      <url>https://repo.eclipse.org/content/groups/snapshots</url>
+    </repository>
+  </repositories>
+
+</project>

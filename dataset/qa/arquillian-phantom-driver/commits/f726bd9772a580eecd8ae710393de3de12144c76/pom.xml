@@ -1,0 +1,165 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Parent -->
+    <parent>
+        <groupId>org.jboss</groupId>
+        <artifactId>jboss-parent</artifactId>
+        <version>10</version>
+        <relativePath />
+    </parent>
+
+    <groupId>org.jboss.arquillian.selenium</groupId>
+    <artifactId>arquillian-phantom-driver</artifactId>
+    <version>1.0.3-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>Arquillian Phantom Driver</name>
+
+    <description>
+        Remote driver using PhantomJS headless webkit with JavaScript API (http://phantomjs.org/).
+    </description>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Jan Papousek</name>
+            <email>jpapouse@redhat.com</email>
+        </developer>
+    </developers>
+
+    <properties>
+        <!-- versions -->
+        <phantomjs.version>1.8.0</phantomjs.version>
+        <selenium.version>2.28.0</selenium.version>
+        <phantomjs.driver.version>1.0.3-dev</phantomjs.driver.version>
+        <junit.version>4.11</junit.version>
+
+        <!-- paths -->
+        <phantomjs.driver.path>target/phantomjs-driver</phantomjs.driver.path>
+        <phantomjs.driver.url>https://github.com/detro/ghostdriver/blob/master/binding/java/jars/phantomjsdriver-${phantomjs.driver.version}-sources.jar?raw=true</phantomjs.driver.url>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-remote-driver</artifactId>
+            <version>${selenium.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target name="get-phantomjs-driver">
+                                <get src="${phantomjs.driver.url}" dest="target/phantomjs-driver.jar" verbose="on" skipexisting="true" />
+                                <!--
+                                The PhantomJS Driver binding source code is extracted to target/phantomjs-driver.
+                                The same path is stored in ${phantomjs.driver.path}, but it can't be referenced here.
+                                When a developer wanted to specify own source code directory, it would be overridden.
+                                -->
+                                <unzip src="target/phantomjs-driver.jar" dest="target/phantomjs-driver" />
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${phantomjs.driver.path}</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <resources>
+            <resource>
+                <directory>target/phantomjs-jar</directory>
+            </resource>
+        </resources>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>linux</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                </os>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.jboss.arquillian.extension</groupId>
+                    <artifactId>arquillian-phantom-binary</artifactId>
+                    <version>${phantomjs.version}</version>
+                    <classifier>unix_${os.arch}</classifier>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>mac</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.jboss.arquillian.extension</groupId>
+                    <artifactId>arquillian-phantom-binary</artifactId>
+                    <version>${phantomjs.version}</version>
+                    <classifier>mac</classifier>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.jboss.arquillian.extension</groupId>
+                    <artifactId>arquillian-phantom-binary</artifactId>
+                    <version>${phantomjs.version}</version>
+                    <classifier>windows</classifier>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+</project>

@@ -1,0 +1,159 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>net.aimeizi</groupId>
+	<artifactId>activemq-example</artifactId>
+	<packaging>jar</packaging>
+	<version>1.0</version>
+
+	<name>activemq-example</name>
+	<url>http://maven.apache.org</url>
+
+	<properties>
+		<project.build.sourceEncoding>utf-8</project.build.sourceEncoding>
+		<activemq.version>5.7.0</activemq.version>
+		<log4j-version>1.2.13</log4j-version>
+		<slf4j-version>1.6.1</slf4j-version>
+		<activemq.plugin.version>5.10.0</activemq.plugin.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${slf4j-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>${log4j-version}</version>
+		</dependency>	    
+		<!-- activemq -->
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-core</artifactId>
+			<version>${activemq.version}</version>
+		</dependency>
+		<!-- spring-integration-jms -->
+		<dependency>
+			<groupId>org.springframework.integration</groupId>
+			<artifactId>spring-integration-jms</artifactId>
+			<version>4.1.0.RELEASE</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.0.2</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+					<debug>true</debug>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<profiles>
+		<!-- activemq plugin -->
+		<profile>
+			<id>broker</id>
+			<build>
+				<defaultGoal>install activemq:run</defaultGoal>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.activemq.tooling</groupId>
+						<artifactId>activemq-maven-plugin</artifactId>
+						<version>${activemq.plugin.version}</version>
+						<configuration>
+							<configUri>xbean:file:conf/activemq-amqp.xml</configUri>
+						</configuration>
+						<dependencies>
+							<dependency>
+								<groupId>org.apache.activemq</groupId>
+								<artifactId>activemq-spring</artifactId>
+								<version>${activemq.plugin.version}</version>
+							</dependency>
+							<dependency>
+								<groupId>org.apache.activemq</groupId>
+								<artifactId>activemq-jaas</artifactId>
+								<version>${activemq.plugin.version}</version>
+							</dependency>
+							<dependency>
+								<groupId>org.apache.activemq</groupId>
+								<artifactId>activemq-amqp</artifactId>
+								<version>${activemq.plugin.version}</version>
+							</dependency>
+							<!-- dependency to pick up resources (e.g. log4j.properties) on classpath -->
+							<dependency>
+								<groupId>${project.groupId}</groupId>
+								<artifactId>${project.artifactId}</artifactId>
+								<version>${project.version}</version>
+							</dependency>
+						</dependencies>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<!-- activemq 消息发送者 生产者 -->
+		<profile>
+			<id>producer</id>
+			<build>
+				<defaultGoal>package</defaultGoal>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>1.3.2</version>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>java</goal>
+								</goals>
+								<configuration>
+									<mainClass>net.aimeizi.activemq.example.Sender</mainClass>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<!-- activemq 消息接受者 消费者 -->
+		<profile>
+			<id>consumer</id>
+			<build>
+				<defaultGoal>package</defaultGoal>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>1.3.2</version>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>java</goal>
+								</goals>
+								<configuration>
+									<mainClass>net.aimeizi.activemq.example.Receiver</mainClass>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+</project>

@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.intel.diceros</groupId>
+    <artifactId>diceros</artifactId>
+    <version>1.2.1</version>
+    <packaging>jar</packaging>
+
+    <name>diceros</name>
+    <description>
+        lite implementation of jce provider, implementing AES encryption of CTR mode and SecureRandom based on DRNG
+    </description>
+    <url>https://github.com/intel-hadoop/diceros</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <compileSource>1.6</compileSource>
+        <project.name>diceros</project.name>
+        <crypto.prefix></crypto.prefix>
+        <crypto.lib></crypto.lib>
+        <crypto.include></crypto.include>
+        <bundle.crypto>false</bundle.crypto>
+        <require.crypto>true</require.crypto>
+
+        <!-- used to specify the default install prefix of the rpm package -->
+        <rpm.install.prefix.default>/usr/java/latest/jre</rpm.install.prefix.default>
+
+        <!-- should provide the following properties to sign the generated jar -->
+        <keystore.path></keystore.path>
+        <keystore.type>JKS</keystore.type>
+        <keystore.alias></keystore.alias>
+        <keystore.password></keystore.password>
+        <keystore.store.password>${keystore.password}</keystore.store.password>
+        <keystore.key.password>${keystore.password}</keystore.key.password>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>3.8.1</version>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.5.1</version>
+                <configuration>
+                    <source>${compileSource}</source>
+                    <target>${compileSource}</target>
+                    <showWarnings>true</showWarnings>
+                    <showDeprecation>false</showDeprecation>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <version>1.0-alpha-7</version>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>javah</goal>
+                        </goals>
+                        <configuration>
+                            <javahPath>${env.JAVA_HOME}/bin/javah</javahPath>
+                            <javahClassNames>
+                                <javahClassName>com.intel.diceros.crypto.engines.AESMutliBufferEngine
+                                </javahClassName>
+                                <javahClassName>com.intel.diceros.crypto.engines.AESOpensslEngine
+                                </javahClassName>
+                                <javahClassName>com.intel.diceros.provider.securerandom.SecureRandom$DRNG
+                                </javahClassName>
+                            </javahClassNames>
+                            <javahOutputDirectory>${project.build.directory}/native/javah</javahOutputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>make</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <exec executable="cmake" dir="${project.build.directory}/native"
+                                      failonerror="true">
+                                    <arg line="${basedir}/src/ -DGENERATED_JAVAH=${project.build.directory}/native/javah -DJVM_ARCH_DATA_MODEL=${sun.arch.data.model} -DREQUIRE_CRYPTO=${require.crypto} -DCUSTOM_CRYPTO_PREFIX=${crypto.prefix} -DCUSTOM_CRYPTO_LIB=${crypto.lib} -DCUSTOM_CRYPTO_INCLUDE=${crypto.include}"/>
+                                </exec>
+                                <exec executable="make" dir="${project.build.directory}/native"
+                                      failonerror="true">
+                                    <arg line="VERBOSE=1"/>
+                                </exec>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>-Djava.library.path=target/native/target/usr/local/lib/:/usr/lib64/</argLine>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>sign</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+               <plugins>
+                   <plugin>
+                       <groupId>org.apache.maven.plugins</groupId>
+                       <artifactId>maven-jarsigner-plugin</artifactId>
+                       <executions>
+                           <execution>
+                               <id>sign</id>
+                               <goals>
+                                   <goal>sign</goal>
+                               </goals>
+                           </execution>
+                           <execution>
+                               <id>verify</id>
+                               <goals>
+                                   <goal>verify</goal>
+                               </goals>
+                           </execution>
+                       </executions>
+                       <configuration>
+                           <storetype>${keystore.type}</storetype>
+                           <keystore>${keystore.path}</keystore>
+                           <alias>${keystore.alias}</alias>
+                           <storepass>${keystore.store.password}</storepass>
+                           <keypass>${keystore.key.password}</keypass>
+                       </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>tar</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                   <plugin>
+                       <groupId>org.apache.maven.plugins</groupId>
+                       <artifactId>maven-assembly-plugin</artifactId>
+                       <configuration>
+                            <descriptor>src/assembly/bin.xml</descriptor>
+                            <finalName>${pom.artifactId}-${pom.version}</finalName>
+                       </configuration>
+                       <executions>
+                           <execution>
+                               <phase>package</phase>
+                               <goals>
+                                   <goal>single</goal>
+                               </goals>
+                           </execution>
+                       </executions>
+                   </plugin>
+                </plugins>
+           </build>
+        </profile>
+
+        <profile>
+            <id>rpm</id>
+            <activation>
+                <os>
+                     <family>unix</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>rpm-maven-plugin</artifactId>
+                        <version>2.1-alpha-4</version>
+                        <executions>
+                            <execution>
+                                <id>generate-rpm</id>
+                                <goals>
+                                    <goal>rpm</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <license>APL2</license>
+                            <group>Development</group>
+                            <description>A hardware accelerated JCE provider</description>
+                            <name>${project.name}</name>
+                            <prefix>${rpm.install.prefix.default}</prefix>
+                            <defineStatements>
+                                <defineStatement>_binaries_in_noarch_packages_terminate_build 0</defineStatement>
+                            </defineStatements>
+                            <mappings>
+                                <mapping>
+                                    <directory>${rpm.install.prefix.default}/lib/amd64/</directory>
+                                    <filemode>755</filemode>
+                                    <sources>
+                                        <source>
+                                            <location>${basedir}/target/native/target/usr/local/lib/libdiceros.so.${project.version}</location>
+                                            <destination>libdiceros.so</destination>
+                                        </source>
+                                    </sources>
+                                </mapping>
+                                <mapping>
+                                    <directory>${rpm.install.prefix.default}/lib/ext/</directory>
+                                    <filemode>755</filemode>
+                                    <sources>
+                                        <source>
+                                            <location>${basedir}/target/diceros-${project.version}.jar</location>
+                                        </source>
+                                    </sources>
+                                </mapping>
+                                <mapping>
+                                    <directory>${rpm.install.prefix.default}/lib/security/</directory>
+                                    <filemode>644</filemode>
+                                    <sources>
+                                        <source>
+                                            <location>${basedir}/target/classes/local_policy.jar.diceros.6</location>
+                                        </source>
+                                        <source>
+                                            <location>${basedir}/target/classes/local_policy.jar.diceros.7</location>
+                                        </source>
+                                        <source>
+                                            <location>${basedir}/target/classes/local_policy.jar.diceros.8</location>
+                                        </source>
+                                        <source>
+                                            <location>${basedir}/target/classes/US_export_policy.jar.diceros.6</location>
+                                        </source>
+                                        <source>
+                                            <location>${basedir}/target/classes/US_export_policy.jar.diceros.7</location>
+                                        </source>
+                                        <source>
+                                            <location>${basedir}/target/classes/US_export_policy.jar.diceros.8</location>
+                                        </source>
+                                    </sources>
+                                </mapping>
+                            </mappings>
+                            <preinstallScriptlet>
+                                <script>
+                                    if [ ! -x $RPM_INSTALL_PREFIX/bin/java ]; then
+                                        exit 1
+                                    fi
+
+                                    %__mv $RPM_INSTALL_PREFIX/lib/security/local_policy.jar \
+                                        $RPM_INSTALL_PREFIX/lib/security/local_policy.jar.orig;
+
+                                    %__mv $RPM_INSTALL_PREFIX/lib/security/US_export_policy.jar \
+                                        $RPM_INSTALL_PREFIX/lib/security/US_export_policy.jar.orig;
+                                </script>
+                            </preinstallScriptlet>
+                            <postinstallScriptlet>
+                                <script>
+                                    lastIndex=`grep "SunPCSC" $RPM_INSTALL_PREFIX/lib/security/java.security \
+                                        | sed -e "s/security.provider.//;s/=sun.security.smartcardio.SunPCSC//"`;
+                                    ((lastIndex+=1));
+                                    %__sed -i "/SunPCSC/a security.provider.$lastIndex=com.intel.diceros.provider.DicerosProvider" \
+                                        $RPM_INSTALL_PREFIX/lib/security/java.security;
+
+                                    JAVA_VERSION=`$RPM_INSTALL_PREFIX/bin/java -version 2>&amp;1`;
+                                    if [[ `echo $JAVA_VERSION | grep '1\.6\.'` ]]; then
+                                        %__mv $RPM_INSTALL_PREFIX/lib/security/local_policy.jar.diceros.6 \
+                                            $RPM_INSTALL_PREFIX/lib/security/local_policy.jar;
+                                        %__mv $RPM_INSTALL_PREFIX/lib/security/US_export_policy.jar.diceros.6 \
+                                            $RPM_INSTALL_PREFIX/lib/security/US_export_policy.jar;
+                                    elif [[ `echo $JAVA_VERSION | grep '1\.7\.'` ]]; then
+                                        %__mv $RPM_INSTALL_PREFIX/lib/security/local_policy.jar.diceros.7 \
+                                            $RPM_INSTALL_PREFIX/lib/security/local_policy.jar;
+                                        %__mv $RPM_INSTALL_PREFIX/lib/security/US_export_policy.jar.diceros.7 \
+                                            $RPM_INSTALL_PREFIX/lib/security/US_export_policy.jar;
+                                    elif [[ `echo $JAVA_VERSION | grep '1\.8\.'` ]]; then
+                                        %__mv $RPM_INSTALL_PREFIX/lib/security/local_policy.jar.diceros.8 \
+                                            $RPM_INSTALL_PREFIX/lib/security/local_policy.jar;
+                                        %__mv $RPM_INSTALL_PREFIX/lib/security/US_export_policy.jar.diceros.8 \
+                                            $RPM_INSTALL_PREFIX/lib/security/US_export_policy.jar;
+                                    fi
+                                </script>
+                            </postinstallScriptlet>
+                            <preremoveScriptlet>
+                                <script>
+                                    %__sed -i '/DicerosProvider/d' $RPM_INSTALL_PREFIX/lib/security/java.security
+                                </script>
+                            </preremoveScriptlet>
+                            <postremoveScriptlet>
+                                <script>
+                                    %__mv -f $RPM_INSTALL_PREFIX/lib/security/local_policy.jar.orig \
+                                        $RPM_INSTALL_PREFIX/lib/security/local_policy.jar;
+                                    %__mv -f $RPM_INSTALL_PREFIX/lib/security/US_export_policy.jar.orig \
+                                        $RPM_INSTALL_PREFIX/lib/security/US_export_policy.jar;
+                                </script>
+                            </postremoveScriptlet>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
