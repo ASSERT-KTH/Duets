@@ -1,12 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project>
   <modelVersion>4.0.0</modelVersion>
-
   <groupId>com.github.checkstyle</groupId>
   <artifactId>checkstyle-sonar-plugin</artifactId>
   <version>4.34-SNAPSHOT</version>
   <packaging>sonar-plugin</packaging>
-
   <name>Checkstyle SonarQube Plugin</name>
   <description>
     Checkstyle is a code analyser to help programmers write Java code
@@ -24,7 +21,6 @@
       <distribution>repo</distribution>
     </license>
   </licenses>
-
   <developers>
     <developer>
       <id>muhlba91</id>
@@ -76,7 +72,6 @@
       </roles>
     </developer>
   </developers>
-
   <scm>
     <connection>scm:git:git@github.com:checkstyle/sonar-checkstyle.git</connection>
     <developerConnection>scm:git:git@github.com:checkstyle/sonar-checkstyle.git</developerConnection>
@@ -91,32 +86,26 @@
     <system>travis</system>
     <url>https://travis-ci.org/checkstyle/sonar-checkstyle</url>
   </ciManagement>
-
   <properties>
     <checkstyle.version>8.33</checkstyle.version>
     <sonar.version>7.9</sonar.version>
     <sonar-java.version>6.0.0.20538</sonar-java.version>
     <maven.checkstyle.plugin.version>3.1.0</maven.checkstyle.plugin.version>
     <maven.sevntu.checkstyle.plugin.version>1.37.0</maven.sevntu.checkstyle.plugin.version>
-    <!-- it should be a version of checkstyle that is compatible/compiled with sevntu -->
     <maven.sevntu.checkstyle.plugin.checkstyle.version>
       8.28
     </maven.sevntu.checkstyle.plugin.checkstyle.version>
     <maven.jacoco.plugin.version>0.8.5</maven.jacoco.plugin.version>
     <java.version>1.8</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <!-- we disable ITs by default as it need download of 200MB sonar application jar -->
     <skipITs>true</skipITs>
   </properties>
-
   <dependencies>
-    <!-- till https://github.com/checkstyle/sonar-checkstyle/issues/40 -->
     <dependency>
       <groupId>org.sonarsource.java</groupId>
       <artifactId>sonar-java-plugin</artifactId>
       <version>${sonar-java.version}</version>
       <scope>provided</scope>
-      <!-- to avoid 4.5.1 api pickup -->
       <exclusions>
         <exclusion>
           <groupId>org.codehaus.sonar</groupId>
@@ -124,12 +113,10 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <!-- required to load external descriptiona, see CheckstyleRulesDefinition -->
     <dependency>
       <groupId>org.sonarsource.sslr-squid-bridge</groupId>
       <artifactId>sslr-squid-bridge</artifactId>
       <version>2.7.0.377</version>
-      <!-- to avoid 4.5.1 api pickup -->
       <exclusions>
         <exclusion>
           <groupId>org.codehaus.sonar</groupId>
@@ -179,11 +166,6 @@
       <artifactId>slf4j-api</artifactId>
       <version>1.7.30</version>
     </dependency>
-    <!--
-    We need following dependency, otherwise we will receive
-    java.lang.NoClassDefFoundError: org/apache/maven/project/MavenProject
-    during call mock(org.sonar.api.resources.Project.class)
-    -->
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-project</artifactId>
@@ -289,7 +271,6 @@
       </exclusions>
     </dependency>
   </dependencies>
-
   <build>
     <resources>
       <resource>
@@ -307,7 +288,6 @@
         </excludes>
       </resource>
     </resources>
-
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -343,19 +323,6 @@
         <version>2.5</version>
         <configuration>
           <tagNameFormat>@{project.version}</tagNameFormat>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.22.1</version>
-        <configuration>
-          <systemPropertyVariables>
-            <jacoco-agent.destfile>${project.build.directory}/jacoco.exec</jacoco-agent.destfile>
-          </systemPropertyVariables>
-          <includes>
-            <include>org/sonar/**/*.java</include>
-          </includes>
         </configuration>
       </plugin>
       <plugin>
@@ -516,193 +483,6 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
-        <version>${maven.jacoco.plugin.version}</version>
-        <executions>
-          <execution>
-            <id>default-instrument</id>
-            <goals>
-              <goal>instrument</goal>
-            </goals>
-            <phase>test-compile</phase>
-          </execution>
-          <execution>
-            <id>default-restore-instrumented-classes</id>
-            <goals>
-              <goal>restore-instrumented-classes</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>default-report</id>
-            <phase>site</phase>
-            <goals>
-              <goal>report</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>default-check</id>
-            <goals>
-              <goal>check</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <rule>
-                  <element>CLASS</element>
-                  <excludes>
-                    <exclude>org.sonar.plugins.checkstyle.CheckstyleRulesDefinition</exclude>
-                    <exclude>org.sonar.plugins.checkstyle.CheckstyleAuditListener</exclude>
-                    <exclude>org.sonar.plugins.checkstyle.CheckstyleProfileExporter</exclude>
-                    <exclude>org.sonar.plugins.checkstyle.CheckstyleExecutor</exclude>
-                    <exclude>org.sonar.plugins.checkstyle.CheckstyleSeverityUtils</exclude>
-                    <exclude>org.sonar.plugins.checkstyle.CheckstyleConfiguration</exclude>
-                    <exclude>org.sonar.plugins.checkstyle.CheckstyleProfileImporter</exclude>
-                  </excludes>
-                  <limits>
-                    <limit>
-                      <counter>LINE</counter>
-                      <value>COVEREDRATIO</value>
-                      <minimum>1.00</minimum>
-                    </limit>
-                    <limit>
-                      <counter>BRANCH</counter>
-                      <value>COVEREDRATIO</value>
-                      <minimum>1.00</minimum>
-                    </limit>
-                  </limits>
-                </rule>
-                <rule>
-                  <element>CLASS</element>
-                  <includes>
-                    <include>org.sonar.plugins.checkstyle.CheckstyleRulesDefinition</include>
-                  </includes>
-                  <limits>
-                    <limit>
-                      <counter>LINE</counter>
-                      <value>COVEREDRATIO</value>
-                      <minimum>0.89</minimum>
-                    </limit>
-                    <limit>
-                      <counter>BRANCH</counter>
-                      <value>COVEREDRATIO</value>
-                      <minimum>0.5</minimum>
-                    </limit>
-                  </limits>
-                </rule>
-                <rule>
-                  <element>CLASS</element>
-                  <includes>
-                    <include>org.sonar.plugins.checkstyle.CheckstyleAuditListener</include>
-                  </includes>
-                  <limits>
-                    <limit>
-                      <counter>LINE</counter>
-                      <value>COVEREDRATIO</value>
-                      <minimum>0.90</minimum>
-                    </limit>
-                    <limit>
-                      <counter>BRANCH</counter>
-                      <value>COVEREDRATIO</value>
-                      <minimum>0.78</minimum>
-                    </limit>
-                  </limits>
-                </rule>
-                <rule>
-                  <element>CLASS</element>
-                  <includes>
-                    <include>org.sonar.plugins.checkstyle.CheckstyleProfileExporter</include>
-                  </includes>
-                  <limits>
-                    <limit>
-                      <counter>LINE</counter>
-                      <value>COVEREDRATIO</value>
-                      <minimum>1.0</minimum>
-                    </limit>
-                    <limit>
-                      <counter>BRANCH</counter>
-                      <value>COVEREDRATIO</value>
-                      <minimum>0.91</minimum>
-                    </limit>
-                  </limits>
-                </rule>
-                <rule>
-                  <element>CLASS</element>
-                  <includes>
-                    <include>org.sonar.plugins.checkstyle.CheckstyleExecutor</include>
-                  </includes>
-                  <limits>
-                    <limit>
-                      <counter>LINE</counter>
-                      <value>COVEREDRATIO</value>
-                      <minimum>0.97</minimum>
-                    </limit>
-                    <limit>
-                      <counter>BRANCH</counter>
-                      <value>COVEREDRATIO</value>
-                      <minimum>1.0</minimum>
-                    </limit>
-                  </limits>
-                </rule>
-                <rule>
-                  <element>CLASS</element>
-                  <includes>
-                    <include>org.sonar.plugins.checkstyle.CheckstyleSeverityUtils</include>
-                  </includes>
-                  <limits>
-                    <limit>
-                      <counter>LINE</counter>
-                      <value>COVEREDRATIO</value>
-                      <minimum>1.0</minimum>
-                    </limit>
-                    <limit>
-                      <counter>BRANCH</counter>
-                      <value>COVEREDRATIO</value>
-                      <minimum>0.87</minimum>
-                    </limit>
-                  </limits>
-                </rule>
-                <rule>
-                  <element>CLASS</element>
-                  <includes>
-                    <include>org.sonar.plugins.checkstyle.CheckstyleConfiguration</include>
-                  </includes>
-                  <limits>
-                    <limit>
-                      <counter>LINE</counter>
-                      <value>COVEREDRATIO</value>
-                      <minimum>0.93</minimum>
-                    </limit>
-                    <limit>
-                      <counter>BRANCH</counter>
-                      <value>COVEREDRATIO</value>
-                      <minimum>0.8</minimum>
-                    </limit>
-                  </limits>
-                </rule>
-                <rule>
-                  <element>CLASS</element>
-                  <includes>
-                    <include>org.sonar.plugins.checkstyle.CheckstyleProfileImporter</include>
-                  </includes>
-                  <limits>
-                    <limit>
-                      <counter>LINE</counter>
-                      <value>COVEREDRATIO</value>
-                      <minimum>1.0</minimum>
-                    </limit>
-                    <limit>
-                      <counter>BRANCH</counter>
-                      <value>COVEREDRATIO</value>
-                      <minimum>0.96</minimum>
-                    </limit>
-                  </limits>
-                </rule>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>edu.illinois</groupId>
         <artifactId>nondex-maven-plugin</artifactId>
         <version>1.1.1</version>
@@ -719,14 +499,12 @@
           <pluginDescription>Analyze Java code with Checkstyle</pluginDescription>
           <archive>
             <manifestEntries>
-              <!-- ${buildNumber} is the svn revision generated by the buildnumber-maven-plugin -->
               <Implementation-Build>${buildNumber}</Implementation-Build>
               <Build-Time>${timestamp}</Build-Time>
             </manifestEntries>
           </archive>
         </configuration>
       </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
@@ -773,13 +551,39 @@
         <artifactId>sonar-maven-plugin</artifactId>
         <version>3.7.0.1746</version>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.19.1</version>
+        <configuration>
+          <includes>
+            <include>org/sonar/**/*.java</include>
+          </includes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.5</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
-
   <profiles>
     <profile>
-      <!-- To be used during development. Run the command-->
-      <!-- mvn -Pno-validations install -->
       <id>no-validations</id>
       <properties>
         <skipTests>true</skipTests>
@@ -794,7 +598,6 @@
       </properties>
     </profile>
     <profile>
-      <!-- To be used during wercker's sonarqube step. -->
       <id>sonarqube-validations</id>
       <properties>
         <skipITs>true</skipITs>
@@ -807,5 +610,4 @@
       </properties>
     </profile>
   </profiles>
-
 </project>
