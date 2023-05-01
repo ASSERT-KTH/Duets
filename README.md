@@ -1,5 +1,10 @@
 # Duets Dataset
 
+# Paper
+
+T. Durieux, C. Soto-Valero and B. Baudry, "Duets: A Dataset of Reproducible Pairs of Java Library-Clients," 2021 IEEE/ACM 18th International Conference on Mining Software Repositories (MSR), Madrid, Spain, 2021, pp. 545-549, doi: 10.1109/MSR52588.2021.00071.
+https://ieeexplore.ieee.org/abstract/document/9463096
+
 # Structure
 ```
 - README.md
